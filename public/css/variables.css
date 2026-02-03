@@ -1,0 +1,212 @@
+/**
+ * ============================================================================
+ * ARIES 2.0 - CSS Custom Properties (Variables)
+ * FEU Tech Enrollment System
+ * 
+ * This file contains all CSS custom properties used throughout the application.
+ * Organized by category for easy maintenance.
+ * ============================================================================
+ */
+
+:root {
+    /* ===== Brand Colors - FEU Tech Theme ===== */
+    --feu-green-50: #f0fdf4;
+    --feu-green-100: #dcfce7;
+    --feu-green-200: #bbf7d0;
+    --feu-green-300: #86efac;
+    --feu-green-400: #4ade80;
+    --feu-green-500: #22c55e;
+    --feu-green-600: #16a34a;
+    --feu-green-700: #15803d;
+    --feu-green-primary: #1a4d2e;
+    --feu-green-secondary: #2d6a4f;
+    --feu-green-tertiary: #40916c;
+    
+    --feu-gold-50: #fffbeb;
+    --feu-gold-100: #fef3c7;
+    --feu-gold-200: #fde68a;
+    --feu-gold-300: #fcd34d;
+    --feu-gold-400: #fbbf24;
+    --feu-gold-primary: #fbbf24;
+    --feu-gold-secondary: #f59e0b;
+    --feu-gold-tertiary: #d97706;
+    
+    /* ===== Semantic Colors ===== */
+    --success-50: #f0fdf4;
+    --success-100: #dcfce7;
+    --success-200: #bbf7d0;
+    --success-primary: #22c55e;
+    --success-secondary: #16a34a;
+    --success-dark: #166534;
+    
+    --error-50: #fef2f2;
+    --error-100: #fee2e2;
+    --error-200: #fecaca;
+    --error-primary: #ef4444;
+    --error-secondary: #dc2626;
+    --error-dark: #b91c1c;
+    
+    --warning-50: #fffbeb;
+    --warning-100: #fef3c7;
+    --warning-primary: #f59e0b;
+    --warning-secondary: #d97706;
+    
+    --info-50: #eff6ff;
+    --info-100: #dbeafe;
+    --info-primary: #3b82f6;
+    --info-secondary: #2563eb;
+    
+    /* ===== Neutral Colors ===== */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    /* ===== Background Colors ===== */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+    --bg-overlay: rgba(0, 0, 0, 0.5);
+    --bg-glass: rgba(255, 255, 255, 0.95);
+    
+    /* ===== Text Colors ===== */
+    --text-primary: #1f2937;
+    --text-secondary: #4b5563;
+    --text-tertiary: #6b7280;
+    --text-muted: #9ca3af;
+    --text-inverse: #ffffff;
+    
+    /* ===== Border Colors ===== */
+    --border-light: #e5e7eb;
+    --border-default: #d1d5db;
+    --border-focus: var(--feu-green-secondary);
+    
+    /* ===== Shadow Values ===== */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    
+    /* Brand-specific shadows */
+    --shadow-green: 0 4px 14px rgba(26, 77, 46, 0.35);
+    --shadow-green-lg: 0 8px 24px rgba(26, 77, 46, 0.4);
+    --shadow-gold: 0 4px 14px rgba(251, 191, 36, 0.35);
+    --shadow-success: 0 4px 14px rgba(34, 197, 94, 0.35);
+    
+    /* ===== Spacing Scale ===== */
+    --space-0: 0;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+    --space-20: 5rem;
+    
+    /* ===== Typography ===== */
+    --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-family-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    
+    --line-height-tight: 1.25;
+    --line-height-snug: 1.375;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.625;
+    
+    /* ===== Border Radius ===== */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
+    --radius-full: 9999px;
+    
+    /* ===== Transitions ===== */
+    --transition-fast: 150ms;
+    --transition-base: 200ms;
+    --transition-slow: 300ms;
+    --transition-slower: 500ms;
+    
+    --ease-linear: linear;
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* ===== Z-Index Scale ===== */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    --z-toast: 1080;
+    
+    /* ===== Layout ===== */
+    --sidebar-width: 380px;
+    --sidebar-width-lg: 420px;
+    --header-height: 64px;
+    --header-height-mobile: 56px;
+    --container-max-width: 1280px;
+    --form-max-width: 680px;
+    
+    /* ===== Minimalist Form Design (Design Philosophy) ===== */
+    --form-container-max-width: 680px;
+    --form-container-padding: 48px;
+    --form-container-padding-mobile: 24px;
+    --form-field-spacing: 28px;
+    --form-section-spacing: 40px;
+    --form-input-height: 48px;
+    --form-input-padding-x: 14px;
+    --form-input-radius: 8px;
+    --form-label-size: 14px;
+    --form-input-size: 15px;
+    --form-focus-ring: 0 0 0 3px rgba(26, 77, 46, 0.1);
+    --form-error-ring: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    --form-success-ring: 0 0 0 3px rgba(34, 197, 94, 0.1);
+    
+    /* ===== Gradients ===== */
+    --gradient-green: linear-gradient(135deg, var(--feu-green-primary) 0%, var(--feu-green-secondary) 100%);
+    --gradient-green-vertical: linear-gradient(180deg, var(--feu-green-primary) 0%, var(--feu-green-secondary) 100%);
+    --gradient-gold: linear-gradient(135deg, var(--feu-gold-primary) 0%, var(--feu-gold-secondary) 100%);
+    --gradient-success: linear-gradient(135deg, var(--success-primary) 0%, var(--success-secondary) 100%);
+    --gradient-brand: linear-gradient(135deg, var(--feu-green-primary) 0%, var(--feu-green-secondary) 50%, var(--feu-green-primary) 100%);
+    --gradient-shimmer: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+/* ===== Dark Mode Support (Future) ===== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Dark mode variables can be defined here */
+    }
+}
