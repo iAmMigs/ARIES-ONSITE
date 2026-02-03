@@ -3,71 +3,59 @@
 <style>
     /* Header Metronic Enhancements */
     .header-main { transition: all 0.3s ease; }
-    .header-main.scrolled { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+    .header-main.scrolled { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); }
     .nav-link { position: relative; overflow: hidden; }
-    .nav-link::after { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 2px; background: linear-gradient(90deg, #1a4d2e, #fbbf24); transition: all 0.3s ease; transform: translateX(-50%); }
+    .nav-link::after { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 2px; background: #fbbf24; transition: all 0.3s ease; transform: translateX(-50%); }
     .nav-link:hover::after { width: 80%; }
     .logo-icon { position: relative; overflow: hidden; }
     .logo-icon::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent); transform: rotate(45deg) translateX(-100%); transition: transform 0.6s; }
     .logo-group:hover .logo-icon::before { transform: rotate(45deg) translateX(100%); }
-    .btn-apply-pulse { animation: applyPulse 2s ease-in-out infinite; }
-    @keyframes applyPulse { 0%, 100% { box-shadow: 0 4px 15px rgba(26, 77, 46, 0.25); } 50% { box-shadow: 0 4px 25px rgba(26, 77, 46, 0.4); } }
     .mobile-nav-item { position: relative; }
-    .mobile-nav-item::before { content: ''; position: absolute; left: 0; top: 50%; width: 3px; height: 0; background: linear-gradient(180deg, #1a4d2e, #fbbf24); border-radius: 2px; transform: translateY(-50%); transition: height 0.3s ease; }
+    .mobile-nav-item::before { content: ''; position: absolute; left: 0; top: 50%; width: 3px; height: 0; background: #fbbf24; border-radius: 2px; transform: translateY(-50%); transition: height 0.3s ease; }
     .mobile-nav-item:hover::before { height: 60%; }
-    .enrollment-badge { animation: badgePulse 2.5s ease-in-out infinite; }
-    @keyframes badgePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 </style>
 
-<header class="header-main fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm" id="mainHeader">
-    
+<header class="header-main fixed top-0 left-0 right-0 z-50 bg-feu-green-800/95 backdrop-blur-md border-b border-feu-green-700 shadow-sm" id="mainHeader">
     <div class="container mx-auto px-4 lg:px-8">
         <div class="flex items-center justify-between h-14 lg:h-16">
             {# Logo #}
             <a href="{{ path('app_home') }}" class="logo-group flex items-center gap-2.5 group">
-                <div class="logo-icon flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105 bg-gradient-to-br from-feu-green-600 to-feu-green-700">
-                    <i class="ki-filled ki-abstract-26 text-feu-gold-400 text-lg lg:text-xl"></i>
+                <div class="logo-icon flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105 bg-feu-gold-400">
+                    <i class="ki-filled ki-abstract-26 text-feu-green-900 text-lg lg:text-xl"></i>
                 </div>
                 <div class="flex flex-col">
-                    <span class="text-lg lg:text-xl font-extrabold bg-gradient-to-r from-feu-green-700 to-feu-green-600 bg-clip-text text-transparent">ARIES</span>
-                    <span class="hidden lg:block text-[10px] text-gray-500 -mt-0.5 font-medium tracking-wide">FOR ON-SITE BASIC EDUATION</span>
+                    <span class="text-lg lg:text-xl font-extrabold text-white">ARIES</span>
+                    <span class="hidden lg:block text-[10px] text-feu-gold-200/80 -mt-0.5 font-medium tracking-wide">FOR ON-SITE BASIC EDUCATION</span>
                 </div>
             </a>
 
-            {# Navigation #}
+            {# Navigation - INVERTED: White text, gold hover #}
             <nav class="hidden lg:flex items-center gap-0.5">
-                <a href="{{ path('app_home') }}#programs" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50/80 rounded-lg transition-all duration-200">
+                <a href="{{ path('app_home') }}#programs" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 rounded-lg transition-all duration-200">
                     <i class="ki-filled ki-book text-sm opacity-60"></i> Programs
                 </a>
-                <a href="{{ path('app_home') }}#requirements" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50/80 rounded-lg transition-all duration-200">
+                <a href="{{ path('app_home') }}#requirements" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 rounded-lg transition-all duration-200">
                     <i class="ki-filled ki-document text-sm opacity-60"></i> Requirements
                 </a>
-                <a href="{{ path('app_home') }}#steps" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50/80 rounded-lg transition-all duration-200">
+                <a href="{{ path('app_home') }}#steps" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 rounded-lg transition-all duration-200">
                     <i class="ki-filled ki-routing-2 text-sm opacity-60"></i> How to Enroll
                 </a>
-                {# FIXED: Changed path('') to path('app_admission_status') #}
-                <a href="{{ path('app_admission_status') }}" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50/80 rounded-lg transition-all duration-200">
+                <a href="{{ path('app_admission_status') }}" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 rounded-lg transition-all duration-200">
                     <i class="ki-filled ki-magnifier text-sm opacity-60"></i> Check Status
                 </a>
-                <a href="{{ path('app_home') }}#contact" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50/80 rounded-lg transition-all duration-200">
+                <a href="{{ path('app_home') }}#contact" class="nav-link flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 rounded-lg transition-all duration-200">
                     <i class="ki-filled ki-phone text-sm opacity-60"></i> Contact
                 </a>
             </nav>
 
             {# Actions #}
             <div class="flex items-center gap-2 sm:gap-3">
-                
-                {# FIXED: Changed path('') to path('app_admission_status') #}
-                <a href="{{ path('app_admission_status') }}" class="hidden md:inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-feu-green-700 border-2 border-feu-green-200 hover:border-feu-green-700 hover:bg-feu-green-50 rounded-lg transition-all duration-200">
+                <a href="{{ path('app_admission_status') }}" class="hidden md:inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white border-2 border-white/20 hover:border-feu-gold-400 hover:text-feu-gold-400 hover:bg-white/10 rounded-lg transition-all duration-200">
                     <i class="ki-filled ki-search-list mr-1.5"></i> Track
                 </a>
                 
-                {# FIXED: Changed path('') to path('app_admission_apply') #}
-                <a href="{{ path('app_admission_apply') }}" class="btn-apply-pulse hidden sm:inline-flex items-center justify-center gap-2 px-4 lg:px-5 py-2 lg:py-2.5 text-sm font-bold text-white rounded-xl transition-all duration-200 hover:-translate-y-0.5 bg-gradient-to-r from-feu-green-700 to-feu-green-600 hover:from-feu-green-600 hover:to-feu-green-500">
-                    <i class="ki-filled ki-rocket"></i> <span>Apply Now</span>
-                </a>
-                
-                <button type="button" class="lg:hidden p-2 text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50 rounded-xl transition-all duration-200" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+                {# INVERTED: White hamburger icon #}
+                <button type="button" class="lg:hidden p-2 text-white hover:text-feu-gold-400 hover:bg-white/10 rounded-xl transition-all duration-200" id="mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false">
                     <i class="ki-filled ki-menu text-xl" id="menu-icon-open"></i>
                     <i class="ki-filled ki-cross text-xl hidden" id="menu-icon-close"></i>
                 </button>
@@ -75,39 +63,34 @@
         </div>
     </div>
 
-    {# Mobile Menu #}
-    <div class="lg:hidden hidden bg-white border-t border-gray-100 shadow-xl" id="mobile-menu">
+    {# Mobile Menu - INVERTED: Green background, white/gold text #}
+    <div class="lg:hidden hidden bg-feu-green-800 border-t border-feu-green-700 shadow-xl" id="mobile-menu">
         <div class="container mx-auto px-4 py-4">
-            <div class="flex gap-2 mb-4 pb-4 border-b border-gray-100">
-                <a href="{{ path('app_admission_status') }}" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-feu-green-50 border border-gray-200 hover:border-feu-green-200 rounded-xl text-sm font-medium text-gray-700 hover:text-feu-green-700 transition-all">
+            <div class="flex gap-2 mb-4 pb-4 border-b border-feu-green-700">
+                <a href="{{ path('app_admission_status') }}" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-feu-gold-400/50 rounded-xl text-sm font-medium text-white hover:text-feu-gold-400 transition-all">
                     <i class="ki-filled ki-magnifier"></i> Check Status
                 </a>
-                <a href="tel:+6328281611" class="flex items-center justify-center w-12 h-12 bg-gray-50 hover:bg-feu-gold-50 border border-gray-200 hover:border-feu-gold-300 rounded-xl text-gray-600 hover:text-feu-gold-600 transition-all">
+                <a href="tel:+6328281611" class="flex items-center justify-center w-12 h-12 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-feu-gold-400/50 rounded-xl text-white hover:text-feu-gold-400 transition-all">
                     <i class="ki-filled ki-phone text-lg"></i>
                 </a>
             </div>
             
             <nav class="flex flex-col gap-1">
-                <a href="{{ path('app_home') }}#programs" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50 py-3 px-4 rounded-xl transition-all">
+                <a href="{{ path('app_home') }}#programs" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
                     <i class="ki-filled ki-book text-lg opacity-60"></i> Programs
                 </a>
-                <a href="{{ path('app_home') }}#requirements" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50 py-3 px-4 rounded-xl transition-all">
+                <a href="{{ path('app_home') }}#requirements" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
                     <i class="ki-filled ki-document text-lg opacity-60"></i> Requirements
                 </a>
-                <a href="{{ path('app_home') }}#steps" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50 py-3 px-4 rounded-xl transition-all">
+                <a href="{{ path('app_home') }}#steps" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
                     <i class="ki-filled ki-routing-2 text-lg opacity-60"></i> How to Enroll
                 </a>
-                <a href="{{ path('app_home') }}#contact" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50 py-3 px-4 rounded-xl transition-all">
+                <a href="{{ path('app_home') }}#contact" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
                     <i class="ki-filled ki-sms text-lg opacity-60"></i> Contact
                 </a>
-                <a href="{{ path('app_auth_login') }}" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-feu-green-700 hover:bg-feu-green-50 py-3 px-4 rounded-xl transition-all">
+                <a href="{{ path('app_auth_login') }}" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
                     <i class="ki-filled ki-user text-lg opacity-60"></i> Login
                 </a>
-                <div class="pt-3 mt-2 border-t border-gray-100">
-                    <a href="{{ path('app_admission_apply') }}" class="flex items-center justify-center gap-2 px-5 py-3.5 text-sm font-bold text-white rounded-xl bg-gradient-to-r from-feu-green-700 to-feu-green-600 hover:from-feu-green-600 hover:to-feu-green-500 transition-all shadow-lg shadow-feu-green-700/25">
-                        <i class="ki-filled ki-rocket"></i> Apply Now
-                    </a>
-                </div>
             </nav>
         </div>
     </div>
