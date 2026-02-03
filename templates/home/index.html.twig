@@ -1,25 +1,15 @@
 {# templates/home/index.html.twig #}
 {# ============================================================================
-   ARIES Homepage - ARIES Digital University
+   ARIES Homepage - ARIES: Admission, Registration, Information & Enrollment System
    Modern University Website inspired by FEU Design
-   
-   Features:
-   - Hero Carousel with Swiper.js
-   - Animated Statistics Counters
-   - Video Showcase Grid
-   - News/Features Tabbed Section
-   - Quick Services Grid
-   - Cookie Consent Banner
-   - Back to Top Button
-   - AOS (Animate On Scroll) Effects
    
    Framework: Symfony 7 + Metronic v9.4.0 + Tailwind CSS
    ============================================================================ #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Home - ARIES Digital University{% endblock %}
+{% block title %}Home{% endblock %}
 {% block og_title %}ARIES - Digital University{% endblock %}
-{% block og_description %}Experience seamless online enrollment at FEU – Far Eastern University. For Tertiary (College) and Basic Education (K-12) students across FEU Tech, FEU Diliman, and FEU Alabang.{% endblock %}
+{% block og_description %}Experience seamless online enrollment at FEU. For Tertiary (College) and Basic Education (K-12) students across FEU Tech, FEU Diliman, and FEU Alabang.{% endblock %}
 
 {% block stylesheets %}
 {# Swiper.js CSS for Carousel #}
@@ -52,17 +42,8 @@
         100% { background-position: 0% 50%; }
     }
     
-    @keyframes count-up {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
     .animate-float { animation: float 4s ease-in-out infinite; }
     .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-    .animate-gradient { 
-        background-size: 200% 200%;
-        animation: gradient-shift 3s ease infinite;
-    }
     
     /* ===== Hero Section ===== */
     .hero-section {
@@ -78,25 +59,23 @@
         align-items: center;
     }
     
+    /* Overlay Gradient with adjusted opacity so images show through */
     .hero-slide::before {
         content: '';
         position: absolute;
         inset: 0;
-        background: linear-gradient(135deg, rgba(26, 77, 46, 0.95) 0%, rgba(26, 77, 46, 0.85) 50%, rgba(45, 106, 79, 0.8) 100%);
-        z-index: 1;
+        background: linear-gradient(135deg, rgba(26, 77, 46, 0.70) 0%, rgba(26, 77, 46, 0.50) 50%, rgba(45, 106, 79, 0.30) 100%);
+        z-index: 1; 
     }
     
+    /* Image Background stays at the very back */
     .hero-bg {
         position: absolute;
         inset: 0;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-    }
-    
-    .hero-content {
-        position: relative;
-        z-index: 2;
+        z-index: 0; 
     }
     
     /* Hero Pattern Overlay */
@@ -107,7 +86,13 @@
             linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
             linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
         background-size: 50px 50px;
-        z-index: 1;
+        z-index: 2;
+    }
+    
+    /* Text content stays at the front */
+    .hero-content {
+        position: relative;
+        z-index: 3;
     }
     
     /* Swiper Custom Styles */
@@ -325,44 +310,6 @@
         box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
     }
     
-    /* ===== News Tabs ===== */
-    .news-tab {
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        color: #6b7280;
-        background: transparent;
-        border: 2px solid transparent;
-        border-radius: 0.75rem;
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    
-    .news-tab:hover {
-        color: #1a4d2e;
-        background: rgba(26, 77, 46, 0.05);
-    }
-    
-    .news-tab.active {
-        color: #1a4d2e;
-        background: white;
-        border-color: #1a4d2e;
-        box-shadow: 0 4px 15px rgba(26, 77, 46, 0.15);
-    }
-    
-    .news-card {
-        background: white;
-        border-radius: 1rem;
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-        transition: all 0.3s ease;
-    }
-    
-    .news-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        border-color: transparent;
-    }
-    
     /* ===== Service Cards ===== */
     .service-card {
         background: white;
@@ -407,35 +354,6 @@
     
     .service-card:hover .service-icon {
         transform: scale(1.1) rotate(5deg);
-    }
-    
-    /* ===== CTA Section ===== */
-    .cta-section {
-        background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 50%, #1a4d2e 100%);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .cta-section::before {
-        content: '';
-        position: absolute;
-        top: -100px;
-        right: -100px;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-    
-    .cta-section::after {
-        content: '';
-        position: absolute;
-        bottom: -150px;
-        left: -150px;
-        width: 350px;
-        height: 350px;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-        border-radius: 50%;
     }
     
     /* ===== Buttons ===== */
@@ -572,18 +490,6 @@
             padding: 1.5rem;
         }
     }
-    
-    /* ===== Loading Skeleton ===== */
-    .skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: skeleton-loading 1.5s infinite;
-    }
-    
-    @keyframes skeleton-loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
 </style>
 {% endblock %}
 
@@ -601,48 +507,6 @@
         <section class="hero-section">
             <div class="swiper hero-swiper h-full">
                 <div class="swiper-wrapper">
-                    {# Slide 1 - FEU Tech Manila #}
-                    <div class="swiper-slide">
-                        <div class="hero-slide">
-                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
-                            <div class="hero-pattern"></div>
-                            <div class="hero-content container mx-auto px-4 lg:px-8">
-                                <div class="max-w-3xl">
-                                    <div data-aos="fade-up" class="inline-flex items-center gap-3 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8">
-                                        <span class="relative flex h-3 w-3">
-                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-feu-gold-400 opacity-75"></span>
-                                            <span class="relative inline-flex rounded-full h-3 w-3 bg-feu-gold-400"></span>
-                                        </span>
-                                        <span class="text-sm text-white font-semibold tracking-wide">Enrollment Open for A.Y. 2025-2026</span>
-                                    </div>
-                                    
-                                    <h1 data-aos="fade-up" data-aos-delay="100" class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white mb-6 leading-tight">
-                                        FEU Tech<br>
-                                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-feu-gold-400 to-feu-gold-300">Manila</span>
-                                    </h1>
-                                    
-                                    <p data-aos="fade-up" data-aos-delay="200" class="text-lg lg:text-xl text-white/70 mb-4">
-                                        The Premier Technology Institution in the Philippines
-                                    </p>
-                                    
-                                    <p data-aos="fade-up" data-aos-delay="300" class="text-base lg:text-lg text-white/60 mb-10 max-w-xl">
-                                        Excel in <strong class="text-white/80">IT, Computer Science, Engineering</strong> and more. Join 15,000+ students building the future of technology.
-                                    </p>
-                                    
-                                    <div data-aos="fade-up" data-aos-delay="400" class="flex flex-col sm:flex-row items-start gap-4">
-                                        <a href="{{ path('app_admission_apply') }}" class="btn-primary">
-                                            <i class="ki-filled ki-rocket"></i>
-                                            Apply for Tertiary
-                                        </a>
-                                        <a href="#programs" class="btn-secondary">
-                                            <i class="ki-filled ki-book"></i>
-                                            View Programs
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     
                     {# Slide 2 - FEU Diliman #}
                     <div class="swiper-slide">
@@ -667,12 +531,10 @@
                                     
                                     <div class="flex flex-col sm:flex-row items-start gap-4">
                                         <a href="{{ path('app_admission_apply') }}" class="btn-primary">
-                                            <i class="ki-filled ki-notepad-edit"></i>
-                                            Enroll in BED
+                                            <i class="ki-filled ki-notepad-edit"></i> Enroll in BED
                                         </a>
                                         <a href="#campuses" class="btn-secondary">
-                                            <i class="ki-filled ki-geolocation"></i>
-                                            View Campus
+                                            <i class="ki-filled ki-geolocation"></i> View Campus
                                         </a>
                                     </div>
                                 </div>
@@ -703,106 +565,22 @@
                                     
                                     <div class="flex flex-col sm:flex-row items-start gap-4">
                                         <a href="{{ path('app_admission_apply') }}" class="btn-primary">
-                                            <i class="ki-filled ki-rocket"></i>
-                                            Apply Now
+                                            <i class="ki-filled ki-rocket"></i> Apply Now
                                         </a>
                                         <a href="#campuses" class="btn-secondary">
-                                            <i class="ki-filled ki-geolocation"></i>
-                                            Campus Details
+                                            <i class="ki-filled ki-geolocation"></i> Campus Details
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-
                 </div>
                 
                 {# Swiper Navigation #}
                 <div class="swiper-button-next hidden lg:flex"></div>
                 <div class="swiper-button-prev hidden lg:flex"></div>
                 <div class="swiper-pagination"></div>
-            </div>
-        </section>
-
-        {# ===== About ARIES Section ===== #}
-        <section class="py-20 lg:py-28 bg-white" id="about">
-            <div class="container mx-auto px-4 lg:px-8">
-                <div class="section-header" data-aos="fade-up">
-                    <span class="section-badge">
-                        <i class="ki-filled ki-abstract-26"></i>
-                        About ARIES
-                    </span>
-                    <h2 class="section-title">
-                        The Future of<br>
-                        <span class="section-title-gradient">University Enrollment</span>
-                    </h2>
-                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                        ARIES (Admission, Registration, Information & Enrollment System) is FEU's comprehensive digital platform 
-                        for both <strong>Tertiary</strong> and <strong>Basic Education Department (BED)</strong> students across 
-                        <strong>FEU Tech Manila</strong>, <strong>FEU Diliman</strong>, and <strong>FEU Alabang</strong>.
-                    </p>
-                </div>
-                
-                {# Features Grid #}
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-20">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-cloud text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">100% Cloud-Based</h3>
-                        <p class="text-gray-600">Complete your entire enrollment from anywhere in the world, anytime you want.</p>
-                    </div>
-                    
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-shield-tick text-feu-green-800 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">Bank-Level Security</h3>
-                        <p class="text-gray-600">Your personal data is protected with enterprise-grade encryption and security.</p>
-                    </div>
-                    
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-delivery-time text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">Real-Time Tracking</h3>
-                        <p class="text-gray-600">Monitor your application status with instant updates and email notifications.</p>
-                    </div>
-                    
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-message-question text-feu-green-800 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">24/7 Support</h3>
-                        <p class="text-gray-600">Get help whenever you need it through our dedicated support channels.</p>
-                    </div>
-                </div>
-                
-                {# Stats Section #}
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6" id="stats">
-                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="0">
-                        <div class="stat-number" data-count="50">0</div>
-                        <span class="text-2xl font-bold text-feu-gold-500">+</span>
-                        <p class="text-gray-600 mt-3 font-medium">Programs Offered</p>
-                    </div>
-                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="100">
-                        <div class="stat-number" data-count="15000">0</div>
-                        <span class="text-2xl font-bold text-feu-gold-500">+</span>
-                        <p class="text-gray-600 mt-3 font-medium">Active Students</p>
-                    </div>
-                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="200">
-                        <div class="stat-number" data-count="95">0</div>
-                        <span class="text-2xl font-bold text-feu-gold-500">%</span>
-                        <p class="text-gray-600 mt-3 font-medium">Employment Rate</p>
-                    </div>
-                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="300">
-                        <div class="stat-number" data-count="60">0</div>
-                        <span class="text-2xl font-bold text-feu-gold-500">+</span>
-                        <p class="text-gray-600 mt-3 font-medium">Years of Excellence</p>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -870,7 +648,7 @@
                         </div>
                     </div>
                     
-                    {# FEU Diliman - K-12 + Tertiary (Full Offerings) #}
+                    {# FEU Diliman - K-12 + Tertiary #}
                     <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="100">
                         <div class="relative h-48 overflow-hidden">
                             <img src="{{ asset('images/hero/pic2.jpg') }}" alt="FEU Diliman Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
@@ -924,16 +702,6 @@
                                     <span class="text-gray-700 text-sm font-medium">Tertiary (College) Programs</span>
                                 </div>
                             </div>
-                            <div class="pt-4 border-t border-gray-100">
-                                <p class="text-xs text-gray-500 mb-2">SHS Tracks & College:</p>
-                                <div class="flex flex-wrap gap-1.5">
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">STEM</span>
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">ABM</span>
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">HUMSS</span>
-                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BSA</span>
-                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BSBA</span>
-                                </div>
-                            </div>
                         </div>
                     </div>
                     
@@ -971,84 +739,6 @@
                                         <i class="ki-filled ki-user-tick text-feu-green-600 text-xs"></i>
                                     </div>
                                     <span class="text-gray-700 text-sm font-medium">Tertiary (College) Programs</span>
-                                </div>
-                            </div>
-                            <div class="pt-4 border-t border-gray-100">
-                                <p class="text-xs text-gray-500 mb-2">SHS Tracks & College:</p>
-                                <div class="flex flex-wrap gap-1.5">
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">STEM</span>
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">ABM</span>
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">ICT</span>
-                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BS IT</span>
-                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BSBA</span>
-                                </div>
-                            </div>
-                            <div class="mt-4 p-3 bg-gradient-to-r from-purple-50 to-feu-green-50 rounded-lg">
-                                <p class="text-xs text-gray-700">
-                                    <i class="ki-filled ki-information-2 mr-1 text-purple-600"></i>
-                                    Ideal for South Metro Manila students.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                {# Campus Selection Guide #}
-                <div class="mt-16 max-w-5xl mx-auto" data-aos="fade-up">
-                    <div class="bg-gradient-to-br from-feu-green-50 to-feu-gold-50 rounded-2xl p-8 border border-feu-green-100">
-                        <div class="text-center mb-8">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">Which Campus is Right for You?</h3>
-                            <p class="text-gray-600">Select your education level to see available campuses</p>
-                        </div>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {# Kinder & Grade School #}
-                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-yellow-300 hover:shadow-lg transition-all cursor-pointer group">
-                                <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                                    <i class="ki-filled ki-happy-emoji text-yellow-600 text-lg"></i>
-                                </div>
-                                <h4 class="font-bold text-gray-900 text-sm mb-1">Kinder & Grade School</h4>
-                                <p class="text-xs text-gray-500 mb-2">K to Grade 6</p>
-                                <span class="inline-flex items-center text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
-                                    FEU Diliman
-                                </span>
-                            </div>
-                            
-                            {# Junior High School #}
-                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-blue-300 hover:shadow-lg transition-all cursor-pointer group">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                                    <i class="ki-filled ki-book text-blue-600 text-lg"></i>
-                                </div>
-                                <h4 class="font-bold text-gray-900 text-sm mb-1">Junior High School</h4>
-                                <p class="text-xs text-gray-500 mb-2">Grades 7-10</p>
-                                <span class="inline-flex items-center text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
-                                    FEU Diliman
-                                </span>
-                            </div>
-                            
-                            {# Senior High School #}
-                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-purple-300 hover:shadow-lg transition-all cursor-pointer group">
-                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                                    <i class="ki-filled ki-teacher text-purple-600 text-lg"></i>
-                                </div>
-                                <h4 class="font-bold text-gray-900 text-sm mb-1">Senior High School</h4>
-                                <p class="text-xs text-gray-500 mb-2">Grades 11-12</p>
-                                <div class="flex flex-wrap justify-center gap-1">
-                                    <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">Diliman</span>
-                                    <span class="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Alabang</span>
-                                </div>
-                            </div>
-                            
-                            {# Tertiary #}
-                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-feu-green-300 hover:shadow-lg transition-all cursor-pointer group">
-                                <div class="w-10 h-10 rounded-full bg-feu-green-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
-                                    <i class="ki-filled ki-user-tick text-feu-green-600 text-lg"></i>
-                                </div>
-                                <h4 class="font-bold text-gray-900 text-sm mb-1">Tertiary (College)</h4>
-                                <p class="text-xs text-gray-500 mb-2">Bachelor's Degree</p>
-                                <div class="flex flex-wrap justify-center gap-1">
-                                    <span class="text-xs font-bold text-feu-green-700 bg-feu-green-100 px-2 py-0.5 rounded-full">Tech</span>
-                                    <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">Diliman</span>
-                                    <span class="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Alabang</span>
                                 </div>
                             </div>
                         </div>
@@ -1109,30 +799,6 @@
                         <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
                             <h3 class="text-lg font-bold text-white mb-1">FEU Tech Alabang</h3>
                             <p class="text-white/70 text-xs">Quality education in South Metro</p>
-                        </div>
-                    </div>
-                    
-                    {# Video 4 - Student Life #}
-                    <div class="video-card" data-aos="fade-up" data-aos-delay="300">
-                        <img src="{{ asset('images/hero/pic1.jpg') }}" alt="Student Life" loading="lazy">
-                        <div class="video-play-btn" style="width: 50px; height: 50px;">
-                            <i class="ki-filled ki-youtube text-feu-green-800 text-xl"></i>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
-                            <h3 class="text-lg font-bold text-white mb-1">Student Life</h3>
-                            <p class="text-white/70 text-xs">A day in the life of a Tamaraw</p>
-                        </div>
-                    </div>
-                    
-                    {# Video 5 - Campus Events #}
-                    <div class="video-card" data-aos="fade-up" data-aos-delay="400">
-                        <img src="{{ asset('images/hero/pic3.jpg') }}" alt="Campus Events" loading="lazy">
-                        <div class="video-play-btn" style="width: 50px; height: 50px;">
-                            <i class="ki-filled ki-youtube text-feu-green-800 text-xl"></i>
-                        </div>
-                        <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
-                            <h3 class="text-lg font-bold text-white mb-1">Campus Events</h3>
-                            <p class="text-white/70 text-xs">Tech Week and more</p>
                         </div>
                     </div>
                 </div>
@@ -1543,7 +1209,7 @@
         </section>
 
         {# ===== CTA Section ===== #}
-        <section class="cta-section py-20 lg:py-28" id="contact">
+        <section class="cta-section py-20 lg:py-28" id="contact" style="background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 50%, #1a4d2e 100%);">
             <div class="container mx-auto px-4 lg:px-8 relative z-10">
                 <div class="max-w-4xl mx-auto text-center">
                     <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8" data-aos="fade-up">
@@ -1557,8 +1223,7 @@
                     </h2>
                     
                     <p class="text-lg text-white/70 mb-10 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="200">
-                        Join thousands of students who have started their journey to success at FEU Tech, FEU Diliman, and FEU Alabang. 
-                        Your future begins here.
+                        Join thousands of students who have started their journey to success at FEU Tech, FEU Diliman, and FEU Alabang. Your future begins here.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4" data-aos="fade-up" data-aos-delay="300">
@@ -1637,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', function() {
         once: true,
         offset: 50
     });
-    
+
     // ===== Hero Carousel =====
     const heroSwiper = new Swiper('.hero-swiper', {
         loop: true,
@@ -1663,20 +1328,19 @@ document.addEventListener('DOMContentLoaded', function() {
             enabled: true
         }
     });
-    
+
     // ===== Stats Counter Animation =====
     const statNumbers = document.querySelectorAll('.stat-number');
     const observerOptions = {
         threshold: 0.5,
         rootMargin: '0px'
     };
-    
+
     const countUp = (element, target) => {
         let current = 0;
         const increment = target / 60;
         const duration = 2000;
         const stepTime = duration / 60;
-        
         const timer = setInterval(() => {
             current += increment;
             if (current >= target) {
@@ -1699,34 +1363,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }, observerOptions);
     
     statNumbers.forEach(stat => statsObserver.observe(stat));
-    
-    // ===== News Tabs =====
-    const newsTabs = document.querySelectorAll('.news-tab');
-    const newsCards = document.querySelectorAll('.news-card');
-    
-    newsTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Update active tab
-            newsTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            const category = tab.dataset.tab;
-            
-            // Filter cards
-            newsCards.forEach(card => {
-                if (category === 'all' || card.dataset.category === category) {
-                    card.style.display = 'block';
-                    card.style.animation = 'fadeIn 0.3s ease-out';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    });
-    
+
     // ===== Back to Top Button =====
     const backToTop = document.getElementById('backToTop');
-    
     window.addEventListener('scroll', () => {
         if (window.pageYOffset > 500) {
             backToTop.classList.add('visible');
@@ -1734,20 +1373,19 @@ document.addEventListener('DOMContentLoaded', function() {
             backToTop.classList.remove('visible');
         }
     });
-    
+
     backToTop.addEventListener('click', () => {
         window.scrollTo({
             top: 0,
             behavior: 'smooth'
         });
     });
-    
+
     // ===== Cookie Consent =====
     const cookieConsent = document.getElementById('cookieConsent');
     const cookieAccept = document.getElementById('cookieAccept');
     const cookieDecline = document.getElementById('cookieDecline');
-    
-    // Check if user has already made a choice
+
     if (!localStorage.getItem('cookieConsent')) {
         setTimeout(() => {
             cookieConsent.classList.add('show');
@@ -1758,12 +1396,12 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('cookieConsent', 'accepted');
         cookieConsent.classList.remove('show');
     });
-    
+
     cookieDecline.addEventListener('click', () => {
         localStorage.setItem('cookieConsent', 'declined');
         cookieConsent.classList.remove('show');
     });
-    
+
     // ===== Smooth Scroll for Anchor Links =====
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
@@ -1782,34 +1420,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
+
     // ===== Video Card Click Handler =====
     document.querySelectorAll('.video-card').forEach(card => {
         card.addEventListener('click', () => {
-            // In production, this would open a video modal
-            console.log('Video clicked - implement modal');
+            console.log('Video clicked - ready for modal integration');
         });
     });
-    
-    // ===== Lazy Load Images =====
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    if (img.dataset.src) {
-                        img.src = img.dataset.src;
-                        img.removeAttribute('data-src');
-                    }
-                    imageObserver.unobserve(img);
-                }
-            });
-        });
-        
-        document.querySelectorAll('img[data-src]').forEach(img => {
-            imageObserver.observe(img);
-        });
-    }
 });
 </script>
 {% endblock %}
