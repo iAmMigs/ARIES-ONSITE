@@ -149,17 +149,38 @@
                             <div class="hero-overlay"></div>
                         </div>
                     </div>
-                    {# Slide 1 - Diliman #}
-                    <div class="swiper-slide">
+                    {# Slide 1 - Diliman (ADDED DATA ATTRIBUTE) #}
+                    <div class="swiper-slide" data-campus="diliman">
                         <div class="hero-slide">
                             <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic2.jpg') }}');"></div>
                             <div class="hero-overlay"></div>
                         </div>
                     </div>
-                    {# Slide 2 - Alabang #}
-                    <div class="swiper-slide">
+                    {# Slide 2 - Alabang (ADDED DATA ATTRIBUTE) #}
+                    <div class="swiper-slide" data-campus="alabang">
                         <div class="hero-slide">
                             <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic3.jpg') }}');"></div>
+                            <div class="hero-overlay"></div>
+                        </div>
+                    </div>
+                    {# Slide 3 - Cheer #}
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic4.jpg') }}');"></div>
+                            <div class="hero-overlay"></div>
+                        </div>
+                    </div>
+                    {# Slide 4 - Diliman Court #}
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic5.jpg') }}');"></div>
+                            <div class="hero-overlay"></div>
+                        </div>
+                    </div>
+                    {# Slide 5 - Alabang Event #}
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic6.jpg') }}');"></div>
                             <div class="hero-overlay"></div>
                         </div>
                     </div>
@@ -172,11 +193,11 @@
             <div class="hero-content container mx-auto px-4 lg:px-8">
                 <div class="max-w-4xl" data-aos="fade-up">
                     <h1 class="text-5xl md:text-6xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
-                         <span class="text-feu-gold-400">enroll?</span>
+                        Start your campus life with <span class="text-feu-gold-400">FEU</span>
                     </h1>
                     
                     <p class="text-xl md:text-2xl text-white/80 mb-12 font-medium">
-                        Choose the FEU campus that best fits your educational journey.
+                        Choose the FEU campus that you want to enroll in.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
@@ -201,8 +222,8 @@
                         About ARIES
                     </span>
                     <h2 class="section-title">
-                        The Future of<br>
-                        <span class="section-title-gradient">University Enrollment</span>
+                        What is
+                        <span class="section-title-gradient">ARIES?</span>
                     </h2>
                     <p class="text-lg text-gray-600 max-w-3xl mx-auto">
                         ARIES (Admission, Registration, Information & Enrollment System) is FEU's comprehensive digital platform 
@@ -320,90 +341,169 @@
             </div>
         </section>
 
-        {# ===== Programs Section ===== #}
-        <section class="py-20 lg:py-28 bg-white" id="programs">
+        {# ===== Senior High School Tracks Section ===== #}
+        <section class="py-20 lg:py-28 bg-white" id="Tracks">
             <div class="container mx-auto px-4 lg:px-8">
                 <div class="section-header" data-aos="fade-up">
                     <span class="section-badge">
                         <i class="ki-filled ki-book"></i>
-                        Academic Programs
+                        Basic Education Department
                     </span>
                     <h2 class="section-title">
-                        Tertiary &<br>
-                        <span class="section-title-gradient">Basic Education</span>
+                        Senior High School<br>
+                        <span class="section-title-gradient">Academic Tracks</span>
                     </h2>
                     <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Choose from our technology-focused college programs or enroll your child in our Basic Education Department (Grades 7-12).
+                        Prepare for your college journey with our specialized Senior High School tracks available at FEU Diliman and FEU Alabang.
                     </p>
                 </div>
                 
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                    {# Computer Science #}
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+                    
+                    {# 1. STEM - Science, Technology, Engineering, and Mathematics #}
                     <div class="program-card group" data-aos="fade-up" data-aos-delay="0">
                         <div class="flex items-start justify-between mb-4">
                             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-code text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Computer Science</h3>
-                        <p class="text-gray-600 mb-4">Master programming, algorithms, AI, and software development.</p>
-                    </div>
-                    
-                    {# Information Technology #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="100">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                                 <i class="ki-filled ki-technology-4 text-white text-2xl"></i>
                             </div>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Information Technology</h3>
-                        <p class="text-gray-600 mb-4">Learn IT infrastructure, networking, and systems administration.</p>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">STEM</h3>
+                        <p class="text-gray-600 text-sm mb-4">Science, Technology, Engineering, and Mathematics</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
                     </div>
-                    
-                    {# Basic Education #}
-                    <div class="program-card bg-gradient-to-br from-feu-green-50 to-feu-green-100 border-feu-green-200 group" data-aos="fade-up" data-aos-delay="200">
+
+                    {# 2. ABM - Accountancy, Business, and Management #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="100">
                         <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-600 to-feu-green-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-teacher text-white text-2xl"></i>
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-chart-pie-3 text-white text-2xl"></i>
                             </div>
                         </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Basic Education Department</h3>
-                        <p class="text-gray-600 mb-4">Junior High School (Grades 7-10) and Senior High School (Grades 11-12) with STEM, ABM, and HUMSS tracks.</p>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">ABM</h3>
+                        <p class="text-gray-600 text-sm mb-4">Accountancy, Business, and Management</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </section>
 
-        {# ===== ARIES Services Section ===== #}
-        <section class="py-20 lg:py-28 bg-white" id="services">
-            <div class="container mx-auto px-4 lg:px-8">
-                <div class="section-header" data-aos="fade-up">
-                    <span class="section-badge">
-                        <i class="ki-filled ki-abstract-26"></i>
-                        ARIES Features
-                    </span>
-                    <h2 class="section-title">
-                        Smart Enrollment<br>
-                        <span class="section-title-gradient">Made Simple</span>
-                    </h2>
-                </div>
-                
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-6">
-                    {# Feature 1 - Online Application #}
-                    <a href="{{ path('app_admission_apply') }}" class="service-card group" data-aos="fade-up" data-aos-delay="0">
-                        <div class="service-icon bg-gradient-to-br from-feu-green-500 to-feu-green-600 shadow-lg shadow-feu-green-500/30">
-                            <i class="ki-filled ki-notepad-edit text-white text-2xl"></i>
+                    {# 3. HUMSS - Humanities and Social Sciences #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-people text-white text-2xl"></i>
+                            </div>
                         </div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Online Application</h3>
-                    </a>
-                    
-                    {# Feature 3 - Status Tracking #}
-                    <a href="{{ path('app_admission_status') }}" class="service-card group" data-aos="fade-up" data-aos-delay="200">
-                        <div class="service-icon bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/30">
-                            <i class="ki-filled ki-delivery-time text-white text-2xl"></i>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">HUMSS</h3>
+                        <p class="text-gray-600 text-sm mb-4">Humanities and Social Sciences</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
                         </div>
-                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Status Tracking</h3>
-                    </a>
+                    </div>
+
+                    {# 4. GAS - General Academic Strand #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="300">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-book text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">GAS</h3>
+                        <p class="text-gray-600 text-sm mb-4">General Academic Strand</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
+                    </div>
+
+                    {# 5. SPORTS TRACK (Diliman Only) #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="400">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-trophy text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Sports Track</h3>
+                        <p class="text-gray-600 text-sm mb-4">Athletic and Sports Development</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
+                        </div>
+                    </div>
+
+                    {# 6. CSMA (Alabang Only) #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-code text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">CSMA</h3>
+                        <p class="text-gray-600 text-sm mb-4">Computer Science, Multimedia, and Animation</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
+                    </div>
+
+                    {# 7. ENG (Alabang Only) #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="600">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-setting-2 text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">ENG</h3>
+                        <p class="text-gray-600 text-sm mb-4">Engineering Strand</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
+                    </div>
+
+                    {# 8. HA - Health Allied (Alabang Only) #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="700">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-heart text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">HA</h3>
+                        <p class="text-gray-600 text-sm mb-4">Health Allied Strand</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
+                    </div>
+
+                    {# 9. BAE (Alabang Only) #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="800">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-bank text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">BAE</h3>
+                        <p class="text-gray-600 text-sm mb-4">Business, Accountancy, and Entrepreneurship</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
+                    </div>
+
+                    {# 10. SSH (Alabang Only) #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="900">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-abstract-26 text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">SSH</h3>
+                        <p class="text-gray-600 text-sm mb-4">Social Sciences and Humanities</p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -430,7 +530,22 @@ document.addEventListener('DOMContentLoaded', function() {
         offset: 50
     });
 
-    // ===== Hero Carousel (Background Only) =====
+    // ===== 1. SHUFFLE THE DOM ELEMENTS =====
+    const swiperWrapper = document.querySelector('.hero-swiper .swiper-wrapper');
+    if (swiperWrapper) {
+        const slides = Array.from(swiperWrapper.children);
+
+        // Shuffle algorithm
+        for (let i = slides.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [slides[i], slides[j]] = [slides[j], slides[i]];
+        }
+
+        // Apply shuffled order to DOM
+        slides.forEach(slide => swiperWrapper.appendChild(slide));
+    }
+
+    // ===== 2. Initialize Hero Carousel =====
     const heroSwiper = new Swiper('.hero-swiper', {
         loop: true,
         autoplay: {
@@ -442,35 +557,39 @@ document.addEventListener('DOMContentLoaded', function() {
             crossFade: true
         },
         speed: 1000,
-        allowTouchMove: false, // Disables manual swiping of the background
+        allowTouchMove: false, 
     });
 
-    // ===== Hover to Change Slide Functionality =====
+    // ===== 3. DYNAMIC HOVER LOGIC =====
     const btnDiliman = document.getElementById('btn-diliman');
     const btnAlabang = document.getElementById('btn-alabang');
 
-    // Note: slideToLoop(index) uses 0-based indexing for the original slides.
-    // Slide 0 = pic1.jpg (Default/Manila)
-    // Slide 1 = pic2.jpg (Diliman)
-    // Slide 2 = pic3.jpg (Alabang)
+    // Find the NEW index of the specific slides after the shuffle
+    const allShuffledSlides = Array.from(swiperWrapper.children);
+    const dilimanIndex = allShuffledSlides.findIndex(slide => slide.dataset.campus === 'diliman');
+    const alabangIndex = allShuffledSlides.findIndex(slide => slide.dataset.campus === 'alabang');
 
-    // Diliman Button Hover (Slide 1)
-    btnDiliman.addEventListener('mouseenter', () => {
-        heroSwiper.autoplay.stop();
-        heroSwiper.slideToLoop(1);
-    });
-    btnDiliman.addEventListener('mouseleave', () => {
-        heroSwiper.autoplay.start();
-    });
+    // Diliman Button Hover
+    if (btnDiliman && dilimanIndex !== -1) {
+        btnDiliman.addEventListener('mouseenter', () => {
+            heroSwiper.autoplay.stop();
+            heroSwiper.slideToLoop(dilimanIndex); // Uses the dynamic index
+        });
+        btnDiliman.addEventListener('mouseleave', () => {
+            heroSwiper.autoplay.start();
+        });
+    }
 
-    // Alabang Button Hover (Slide 2)
-    btnAlabang.addEventListener('mouseenter', () => {
-        heroSwiper.autoplay.stop();
-        heroSwiper.slideToLoop(2);
-    });
-    btnAlabang.addEventListener('mouseleave', () => {
-        heroSwiper.autoplay.start();
-    });
+    // Alabang Button Hover
+    if (btnAlabang && alabangIndex !== -1) {
+        btnAlabang.addEventListener('mouseenter', () => {
+            heroSwiper.autoplay.stop();
+            heroSwiper.slideToLoop(alabangIndex); // Uses the dynamic index
+        });
+        btnAlabang.addEventListener('mouseleave', () => {
+            heroSwiper.autoplay.start();
+        });
+    }
 
     // ===== Smooth Scroll for Anchor Links =====
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
