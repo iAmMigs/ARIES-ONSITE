@@ -1,0 +1,1815 @@
+{# templates/home/index.html.twig #}
+{# ============================================================================
+   ARIES Homepage - ARIES Digital University
+   Modern University Website inspired by FEU Design
+   
+   Features:
+   - Hero Carousel with Swiper.js
+   - Animated Statistics Counters
+   - Video Showcase Grid
+   - News/Features Tabbed Section
+   - Quick Services Grid
+   - Cookie Consent Banner
+   - Back to Top Button
+   - AOS (Animate On Scroll) Effects
+   
+   Framework: Symfony 7 + Metronic v9.4.0 + Tailwind CSS
+   ============================================================================ #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - ARIES Digital University{% endblock %}
+{% block og_title %}ARIES - Digital University{% endblock %}
+{% block og_description %}Experience seamless online enrollment at FEU – Far Eastern University. For Tertiary (College) and Basic Education (K-12) students across FEU Tech, FEU Diliman, and FEU Alabang.{% endblock %}
+
+{% block stylesheets %}
+{# Swiper.js CSS for Carousel #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+{# AOS (Animate On Scroll) CSS #}
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+
+<style>
+    /* ===== CSS Custom Properties ===== */
+    :root {
+        --swiper-theme-color: #fbbf24;
+        --swiper-navigation-size: 24px;
+    }
+    
+    /* ===== Global Animations ===== */
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(251, 191, 36, 0.5); }
+    }
+    
+    @keyframes gradient-shift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes count-up {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-float { animation: float 4s ease-in-out infinite; }
+    .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+    .animate-gradient { 
+        background-size: 200% 200%;
+        animation: gradient-shift 3s ease infinite;
+    }
+    
+    /* ===== Hero Section ===== */
+    .hero-section {
+        min-height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-slide {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero-slide::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(26, 77, 46, 0.95) 0%, rgba(26, 77, 46, 0.85) 50%, rgba(45, 106, 79, 0.8) 100%);
+        z-index: 1;
+    }
+    
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    /* Hero Pattern Overlay */
+    .hero-pattern {
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: 1;
+    }
+    
+    /* Swiper Custom Styles */
+    .hero-swiper .swiper-pagination {
+        bottom: 40px !important;
+    }
+    
+    .hero-swiper .swiper-pagination-bullet {
+        width: 12px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.4);
+        opacity: 1;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-swiper .swiper-pagination-bullet-active {
+        width: 40px;
+        border-radius: 6px;
+        background: #fbbf24;
+    }
+    
+    .hero-swiper .swiper-button-next,
+    .hero-swiper .swiper-button-prev {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-swiper .swiper-button-next:hover,
+    .hero-swiper .swiper-button-prev:hover {
+        background: rgba(251, 191, 36, 0.9);
+    }
+    
+    .hero-swiper .swiper-button-next::after,
+    .hero-swiper .swiper-button-prev::after {
+        font-size: 18px;
+        font-weight: bold;
+        color: white;
+    }
+    
+    /* ===== Section Styles ===== */
+    .section-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .section-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, rgba(26, 77, 46, 0.1), rgba(45, 106, 79, 0.1));
+        border: 1px solid rgba(26, 77, 46, 0.2);
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1a4d2e;
+        margin-bottom: 1rem;
+    }
+    
+    .section-title {
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 800;
+        color: #111827;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+    
+    .section-title-gradient {
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    /* ===== Feature Cards ===== */
+    .feature-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 2rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e5e7eb;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1a4d2e, #fbbf24);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px -12px rgba(26, 77, 46, 0.15);
+        border-color: transparent;
+    }
+    
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    /* ===== Program Cards ===== */
+    .program-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 1.75rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e5e7eb;
+        position: relative;
+    }
+    
+    .program-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(26, 77, 46, 0.12);
+        border-color: #1a4d2e;
+    }
+    
+    /* ===== Stats Counter ===== */
+    .stat-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: scale(1.05);
+    }
+    
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1a4d2e, #2d6a4f, #fbbf24);
+    }
+    
+    .stat-number {
+        font-size: clamp(2.5rem, 5vw, 3.5rem);
+        font-weight: 800;
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+    }
+    
+    /* ===== Video Showcase ===== */
+    .video-card {
+        position: relative;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        cursor: pointer;
+        aspect-ratio: 16/9;
+    }
+    
+    .video-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+    
+    .video-card:hover::before {
+        background: linear-gradient(to top, rgba(26, 77, 46, 0.9) 0%, rgba(26, 77, 46, 0.4) 100%);
+    }
+    
+    .video-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .video-card:hover img {
+        transform: scale(1.1);
+    }
+    
+    .video-play-btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70px;
+        height: 70px;
+        background: rgba(251, 191, 36, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+    
+    .video-card:hover .video-play-btn {
+        transform: translate(-50%, -50%) scale(1.1);
+        box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);
+    }
+    
+    /* ===== News Tabs ===== */
+    .news-tab {
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        color: #6b7280;
+        background: transparent;
+        border: 2px solid transparent;
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .news-tab:hover {
+        color: #1a4d2e;
+        background: rgba(26, 77, 46, 0.05);
+    }
+    
+    .news-tab.active {
+        color: #1a4d2e;
+        background: white;
+        border-color: #1a4d2e;
+        box-shadow: 0 4px 15px rgba(26, 77, 46, 0.15);
+    }
+    
+    .news-card {
+        background: white;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .news-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-color: transparent;
+    }
+    
+    /* ===== Service Cards ===== */
+    .service-card {
+        background: white;
+        border-radius: 1.25rem;
+        padding: 2rem;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .service-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(26, 77, 46, 0.03), rgba(251, 191, 36, 0.03));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .service-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(26, 77, 46, 0.15);
+        border-color: #1a4d2e;
+    }
+    
+    .service-card:hover::before {
+        opacity: 1;
+    }
+    
+    .service-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .service-card:hover .service-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    /* ===== CTA Section ===== */
+    .cta-section {
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 50%, #1a4d2e 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: -100px;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    
+    /* ===== Buttons ===== */
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a4d2e;
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        border-radius: 0.875rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5);
+    }
+    
+    .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: white;
+        background: transparent;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 0.875rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .btn-green {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 100%);
+        border-radius: 0.875rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(26, 77, 46, 0.3);
+    }
+    
+    .btn-green:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(26, 77, 46, 0.4);
+    }
+    
+    /* ===== Back to Top Button ===== */
+    .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #1a4d2e, #2d6a4f);
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(26, 77, 46, 0.3);
+    }
+    
+    .back-to-top.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    
+    .back-to-top:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(26, 77, 46, 0.4);
+    }
+    
+    /* ===== Cookie Consent ===== */
+    .cookie-consent {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 1.5rem;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+        transform: translateY(100%);
+        transition: transform 0.5s ease;
+    }
+    
+    .cookie-consent.show {
+        transform: translateY(0);
+    }
+    
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+        .hero-slide {
+            min-height: 100vh;
+            padding-top: 120px;
+        }
+        
+        .hero-swiper .swiper-button-next,
+        .hero-swiper .swiper-button-prev {
+            display: none;
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+        }
+        
+        .feature-card {
+            padding: 1.5rem;
+        }
+    }
+    
+    /* ===== Loading Skeleton ===== */
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: skeleton-loading 1.5s infinite;
+    }
+    
+    @keyframes skeleton-loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    {# Skip to Content for Accessibility #}
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-feu-green-700 focus:text-white focus:rounded-lg">
+        Skip to main content
+    </a>
+
+    {# Header #}
+    {% include 'layouts/_public_header.html.twig' %}
+
+    <main id="main-content">
+        {# ===== Hero Carousel Section ===== #}
+        <section class="hero-section">
+            <div class="swiper hero-swiper h-full">
+                <div class="swiper-wrapper">
+                    {# Slide 1 - FEU Tech Manila #}
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
+                            <div class="hero-pattern"></div>
+                            <div class="hero-content container mx-auto px-4 lg:px-8">
+                                <div class="max-w-3xl">
+                                    <div data-aos="fade-up" class="inline-flex items-center gap-3 px-5 py-2.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8">
+                                        <span class="relative flex h-3 w-3">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-feu-gold-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-3 w-3 bg-feu-gold-400"></span>
+                                        </span>
+                                        <span class="text-sm text-white font-semibold tracking-wide">Enrollment Open for A.Y. 2025-2026</span>
+                                    </div>
+                                    
+                                    <h1 data-aos="fade-up" data-aos-delay="100" class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white mb-6 leading-tight">
+                                        FEU Tech<br>
+                                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-feu-gold-400 to-feu-gold-300">Manila</span>
+                                    </h1>
+                                    
+                                    <p data-aos="fade-up" data-aos-delay="200" class="text-lg lg:text-xl text-white/70 mb-4">
+                                        The Premier Technology Institution in the Philippines
+                                    </p>
+                                    
+                                    <p data-aos="fade-up" data-aos-delay="300" class="text-base lg:text-lg text-white/60 mb-10 max-w-xl">
+                                        Excel in <strong class="text-white/80">IT, Computer Science, Engineering</strong> and more. Join 15,000+ students building the future of technology.
+                                    </p>
+                                    
+                                    <div data-aos="fade-up" data-aos-delay="400" class="flex flex-col sm:flex-row items-start gap-4">
+                                        <a href="{{ path('app_admission_apply') }}" class="btn-primary">
+                                            <i class="ki-filled ki-rocket"></i>
+                                            Apply for Tertiary
+                                        </a>
+                                        <a href="#programs" class="btn-secondary">
+                                            <i class="ki-filled ki-book"></i>
+                                            View Programs
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# Slide 2 - FEU Diliman #}
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic2.jpg') }}');"></div>
+                            <div class="hero-pattern"></div>
+                            <div class="hero-content container mx-auto px-4 lg:px-8">
+                                <div class="max-w-3xl">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-feu-gold-400/20 backdrop-blur-md rounded-full border border-feu-gold-400/30 mb-8">
+                                        <i class="ki-filled ki-teacher text-feu-gold-400"></i>
+                                        <span class="text-sm text-white font-semibold">Complete K-12 to College</span>
+                                    </div>
+                                    
+                                    <h1 class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white mb-6 leading-tight">
+                                        FEU<br>
+                                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-feu-gold-400 to-feu-gold-300">Diliman</span>
+                                    </h1>
+                                    
+                                    <p class="text-lg lg:text-xl text-white/70 mb-10 max-w-xl">
+                                        From <strong class="text-white">Kinder to College</strong> — build strong foundations early. STEM, ABM, HUMSS tracks plus Business & Accountancy programs.
+                                    </p>
+                                    
+                                    <div class="flex flex-col sm:flex-row items-start gap-4">
+                                        <a href="{{ path('app_admission_apply') }}" class="btn-primary">
+                                            <i class="ki-filled ki-notepad-edit"></i>
+                                            Enroll in BED
+                                        </a>
+                                        <a href="#campuses" class="btn-secondary">
+                                            <i class="ki-filled ki-geolocation"></i>
+                                            View Campus
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# Slide 3 - FEU Alabang #}
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic3.jpg') }}');"></div>
+                            <div class="hero-pattern"></div>
+                            <div class="hero-content container mx-auto px-4 lg:px-8">
+                                <div class="max-w-3xl">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8">
+                                        <i class="ki-filled ki-geolocation text-feu-gold-400"></i>
+                                        <span class="text-sm text-white font-semibold">South Metro Manila</span>
+                                    </div>
+                                    
+                                    <h1 class="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white mb-6 leading-tight">
+                                        FEU Tech<br>
+                                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-feu-gold-400 to-feu-gold-300">Alabang</span>
+                                    </h1>
+                                    
+                                    <p class="text-lg lg:text-xl text-white/70 mb-10 max-w-xl">
+                                        Quality education closer to home. <strong class="text-white">Senior High School</strong> with STEM, ABM, ICT tracks plus select <strong class="text-white">College programs</strong>.
+                                    </p>
+                                    
+                                    <div class="flex flex-col sm:flex-row items-start gap-4">
+                                        <a href="{{ path('app_admission_apply') }}" class="btn-primary">
+                                            <i class="ki-filled ki-rocket"></i>
+                                            Apply Now
+                                        </a>
+                                        <a href="#campuses" class="btn-secondary">
+                                            <i class="ki-filled ki-geolocation"></i>
+                                            Campus Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                {# Swiper Navigation #}
+                <div class="swiper-button-next hidden lg:flex"></div>
+                <div class="swiper-button-prev hidden lg:flex"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </section>
+
+        {# ===== About ARIES Section ===== #}
+        <section class="py-20 lg:py-28 bg-white" id="about">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-abstract-26"></i>
+                        About ARIES
+                    </span>
+                    <h2 class="section-title">
+                        The Future of<br>
+                        <span class="section-title-gradient">University Enrollment</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                        ARIES (Admission, Registration, Information & Enrollment System) is FEU's comprehensive digital platform 
+                        for both <strong>Tertiary</strong> and <strong>Basic Education Department (BED)</strong> students across 
+                        <strong>FEU Tech Manila</strong>, <strong>FEU Diliman</strong>, and <strong>FEU Alabang</strong>.
+                    </p>
+                </div>
+                
+                {# Features Grid #}
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-20">
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center mb-5 shadow-lg">
+                            <i class="ki-filled ki-cloud text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">100% Cloud-Based</h3>
+                        <p class="text-gray-600">Complete your entire enrollment from anywhere in the world, anytime you want.</p>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center mb-5 shadow-lg">
+                            <i class="ki-filled ki-shield-tick text-feu-green-800 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Bank-Level Security</h3>
+                        <p class="text-gray-600">Your personal data is protected with enterprise-grade encryption and security.</p>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center mb-5 shadow-lg">
+                            <i class="ki-filled ki-delivery-time text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Real-Time Tracking</h3>
+                        <p class="text-gray-600">Monitor your application status with instant updates and email notifications.</p>
+                    </div>
+                    
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center mb-5 shadow-lg">
+                            <i class="ki-filled ki-message-question text-feu-green-800 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">24/7 Support</h3>
+                        <p class="text-gray-600">Get help whenever you need it through our dedicated support channels.</p>
+                    </div>
+                </div>
+                
+                {# Stats Section #}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6" id="stats">
+                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="0">
+                        <div class="stat-number" data-count="50">0</div>
+                        <span class="text-2xl font-bold text-feu-gold-500">+</span>
+                        <p class="text-gray-600 mt-3 font-medium">Programs Offered</p>
+                    </div>
+                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="100">
+                        <div class="stat-number" data-count="15000">0</div>
+                        <span class="text-2xl font-bold text-feu-gold-500">+</span>
+                        <p class="text-gray-600 mt-3 font-medium">Active Students</p>
+                    </div>
+                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="200">
+                        <div class="stat-number" data-count="95">0</div>
+                        <span class="text-2xl font-bold text-feu-gold-500">%</span>
+                        <p class="text-gray-600 mt-3 font-medium">Employment Rate</p>
+                    </div>
+                    <div class="stat-card" data-aos="zoom-in" data-aos-delay="300">
+                        <div class="stat-number" data-count="60">0</div>
+                        <span class="text-2xl font-bold text-feu-gold-500">+</span>
+                        <p class="text-gray-600 mt-3 font-medium">Years of Excellence</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# ===== Our Campuses Section ===== #}
+        <section class="py-20 lg:py-28 bg-white" id="campuses">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-geolocation"></i>
+                        Our Campuses
+                    </span>
+                    <h2 class="section-title">
+                        Three Campuses,<br>
+                        <span class="section-title-gradient">One FEU Family</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+                        Choose from our strategic locations across Metro Manila. Each campus is designed to provide 
+                        quality education tailored to your needs.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+                    {# FEU Tech Manila - Tertiary Only #}
+                    <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="0">
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="{{ asset('images/hero/pic1.jpg') }}" alt="FEU Tech Manila Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div class="absolute inset-0 bg-gradient-to-t from-feu-green-900/90 to-transparent"></div>
+                            <div class="absolute bottom-4 left-4 right-4">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-feu-gold-400 text-feu-green-900 text-xs font-bold rounded-full">
+                                    <i class="ki-filled ki-star"></i>
+                                    Main Campus
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">FEU Tech Manila</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex items-start gap-2">
+                                <i class="ki-filled ki-geolocation text-feu-green-600 flex-shrink-0 mt-0.5"></i>
+                                P. Paredes St., Sampaloc, Manila
+                            </p>
+                            <div class="space-y-2 mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-feu-green-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-user-tick text-feu-green-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Tertiary (College) Programs</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-feu-green-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-brifecase-timer text-feu-green-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Graduate School Programs</span>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-gray-100">
+                                <p class="text-xs text-gray-500 mb-2">College Programs:</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BS IT</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BS CS</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BS CpE</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BS ECE</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-lg font-medium">+more</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# FEU Diliman - K-12 + Tertiary (Full Offerings) #}
+                    <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="100">
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="{{ asset('images/hero/pic2.jpg') }}" alt="FEU Diliman Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div class="absolute inset-0 bg-gradient-to-t from-feu-green-900/90 to-transparent"></div>
+                            <div class="absolute bottom-4 left-4 right-4 flex flex-wrap gap-1.5">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
+                                    <i class="ki-filled ki-teacher"></i>
+                                    K-12
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-feu-green-600 text-white text-xs font-bold rounded-full">
+                                    <i class="ki-filled ki-user-tick"></i>
+                                    College
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">FEU Diliman</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex items-start gap-2">
+                                <i class="ki-filled ki-geolocation text-feu-green-600 flex-shrink-0 mt-0.5"></i>
+                                Regalado Ave., North Fairview, Quezon City
+                            </p>
+                            <div class="space-y-2 mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-yellow-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-happy-emoji text-yellow-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Kinder</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-abstract-24 text-blue-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Grade School (Grades 1-6)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-book text-blue-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Junior High School (Grades 7-10)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-teacher text-purple-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Senior High School (Grades 11-12)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-feu-green-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-user-tick text-feu-green-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Tertiary (College) Programs</span>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-gray-100">
+                                <p class="text-xs text-gray-500 mb-2">SHS Tracks & College:</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">STEM</span>
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">ABM</span>
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">HUMSS</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BSA</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BSBA</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# FEU Tech Alabang - SHS + Tertiary #}
+                    <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="200">
+                        <div class="relative h-48 overflow-hidden">
+                            <img src="{{ asset('images/hero/pic3.jpg') }}" alt="FEU Alabang Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                            <div class="absolute inset-0 bg-gradient-to-t from-feu-green-900/90 to-transparent"></div>
+                            <div class="absolute bottom-4 left-4 right-4 flex gap-1.5">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-500 text-white text-xs font-bold rounded-full">
+                                    <i class="ki-filled ki-teacher"></i>
+                                    SHS
+                                </span>
+                                <span class="inline-flex items-center gap-1 px-2 py-1 bg-feu-green-600 text-white text-xs font-bold rounded-full">
+                                    <i class="ki-filled ki-user-tick"></i>
+                                    College
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">FEU Tech Alabang</h3>
+                            <p class="text-sm text-gray-500 mb-4 flex items-start gap-2">
+                                <i class="ki-filled ki-geolocation text-feu-green-600 flex-shrink-0 mt-0.5"></i>
+                                Alabang-Zapote Road, Las Piñas City
+                            </p>
+                            <div class="space-y-2 mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-teacher text-purple-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Senior High School (Grades 11-12)</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-feu-green-100 flex items-center justify-center">
+                                        <i class="ki-filled ki-user-tick text-feu-green-600 text-xs"></i>
+                                    </div>
+                                    <span class="text-gray-700 text-sm font-medium">Tertiary (College) Programs</span>
+                                </div>
+                            </div>
+                            <div class="pt-4 border-t border-gray-100">
+                                <p class="text-xs text-gray-500 mb-2">SHS Tracks & College:</p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">STEM</span>
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">ABM</span>
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-700 text-xs rounded-lg font-medium">ICT</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BS IT</span>
+                                    <span class="px-2 py-0.5 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-medium">BSBA</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-gradient-to-r from-purple-50 to-feu-green-50 rounded-lg">
+                                <p class="text-xs text-gray-700">
+                                    <i class="ki-filled ki-information-2 mr-1 text-purple-600"></i>
+                                    Ideal for South Metro Manila students.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {# Campus Selection Guide #}
+                <div class="mt-16 max-w-5xl mx-auto" data-aos="fade-up">
+                    <div class="bg-gradient-to-br from-feu-green-50 to-feu-gold-50 rounded-2xl p-8 border border-feu-green-100">
+                        <div class="text-center mb-8">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Which Campus is Right for You?</h3>
+                            <p class="text-gray-600">Select your education level to see available campuses</p>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {# Kinder & Grade School #}
+                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-yellow-300 hover:shadow-lg transition-all cursor-pointer group">
+                                <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="ki-filled ki-happy-emoji text-yellow-600 text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1">Kinder & Grade School</h4>
+                                <p class="text-xs text-gray-500 mb-2">K to Grade 6</p>
+                                <span class="inline-flex items-center text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
+                                    FEU Diliman
+                                </span>
+                            </div>
+                            
+                            {# Junior High School #}
+                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-blue-300 hover:shadow-lg transition-all cursor-pointer group">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="ki-filled ki-book text-blue-600 text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1">Junior High School</h4>
+                                <p class="text-xs text-gray-500 mb-2">Grades 7-10</p>
+                                <span class="inline-flex items-center text-xs font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded-full">
+                                    FEU Diliman
+                                </span>
+                            </div>
+                            
+                            {# Senior High School #}
+                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-purple-300 hover:shadow-lg transition-all cursor-pointer group">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="ki-filled ki-teacher text-purple-600 text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1">Senior High School</h4>
+                                <p class="text-xs text-gray-500 mb-2">Grades 11-12</p>
+                                <div class="flex flex-wrap justify-center gap-1">
+                                    <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">Diliman</span>
+                                    <span class="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Alabang</span>
+                                </div>
+                            </div>
+                            
+                            {# Tertiary #}
+                            <div class="bg-white rounded-xl p-4 text-center border border-gray-100 hover:border-feu-green-300 hover:shadow-lg transition-all cursor-pointer group">
+                                <div class="w-10 h-10 rounded-full bg-feu-green-100 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="ki-filled ki-user-tick text-feu-green-600 text-lg"></i>
+                                </div>
+                                <h4 class="font-bold text-gray-900 text-sm mb-1">Tertiary (College)</h4>
+                                <p class="text-xs text-gray-500 mb-2">Bachelor's Degree</p>
+                                <div class="flex flex-wrap justify-center gap-1">
+                                    <span class="text-xs font-bold text-feu-green-700 bg-feu-green-100 px-2 py-0.5 rounded-full">Tech</span>
+                                    <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">Diliman</span>
+                                    <span class="text-xs font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Alabang</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# ===== Video Showcase Section ===== #}
+        <section class="py-20 lg:py-28 bg-gray-50" id="video-showcase">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-youtube"></i>
+                        Campus Life
+                    </span>
+                    <h2 class="section-title">
+                        Experience<br>
+                        <span class="section-title-gradient">FEU Education</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Take a virtual tour of our campuses and discover what makes FEU a leading educational institution.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                    {# Video 1 - Campus Tour #}
+                    <div class="video-card lg:col-span-2 lg:row-span-2" data-aos="fade-up" data-aos-delay="0">
+                        <img src="{{ asset('images/hero/pic2.jpg') }}" alt="FEU Campus Tour" loading="lazy">
+                        <div class="video-play-btn">
+                            <i class="ki-filled ki-youtube text-feu-green-800 text-2xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 z-10">
+                            <span class="inline-block px-3 py-1 bg-feu-gold-400 text-feu-green-900 text-xs font-bold rounded-full mb-3">Featured</span>
+                            <h3 class="text-xl lg:text-2xl font-bold text-white mb-2">FEU Campus Virtual Tour</h3>
+                            <p class="text-white/70 text-sm">Explore our iconic FEU buildings and modern facilities</p>
+                        </div>
+                    </div>
+                    
+                    {# Video 2 - FEU Tech Manila #}
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="100">
+                        <img src="{{ asset('images/hero/pic1.jpg') }}" alt="FEU Tech Manila" loading="lazy">
+                        <div class="video-play-btn" style="width: 50px; height: 50px;">
+                            <i class="ki-filled ki-youtube text-feu-green-800 text-xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                            <h3 class="text-lg font-bold text-white mb-1">FEU Tech Manila</h3>
+                            <p class="text-white/70 text-xs">Technology excellence in the heart of Manila</p>
+                        </div>
+                    </div>
+                    
+                    {# Video 3 - FEU Alabang #}
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="200">
+                        <img src="{{ asset('images/hero/pic3.jpg') }}" alt="FEU Tech Alabang" loading="lazy">
+                        <div class="video-play-btn" style="width: 50px; height: 50px;">
+                            <i class="ki-filled ki-youtube text-feu-green-800 text-xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                            <h3 class="text-lg font-bold text-white mb-1">FEU Tech Alabang</h3>
+                            <p class="text-white/70 text-xs">Quality education in South Metro</p>
+                        </div>
+                    </div>
+                    
+                    {# Video 4 - Student Life #}
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="300">
+                        <img src="{{ asset('images/hero/pic1.jpg') }}" alt="Student Life" loading="lazy">
+                        <div class="video-play-btn" style="width: 50px; height: 50px;">
+                            <i class="ki-filled ki-youtube text-feu-green-800 text-xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                            <h3 class="text-lg font-bold text-white mb-1">Student Life</h3>
+                            <p class="text-white/70 text-xs">A day in the life of a Tamaraw</p>
+                        </div>
+                    </div>
+                    
+                    {# Video 5 - Campus Events #}
+                    <div class="video-card" data-aos="fade-up" data-aos-delay="400">
+                        <img src="{{ asset('images/hero/pic3.jpg') }}" alt="Campus Events" loading="lazy">
+                        <div class="video-play-btn" style="width: 50px; height: 50px;">
+                            <i class="ki-filled ki-youtube text-feu-green-800 text-xl"></i>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 z-10">
+                            <h3 class="text-lg font-bold text-white mb-1">Campus Events</h3>
+                            <p class="text-white/70 text-xs">Tech Week and more</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# ===== Programs Section ===== #}
+        <section class="py-20 lg:py-28 bg-white" id="programs">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-book"></i>
+                        Academic Programs
+                    </span>
+                    <h2 class="section-title">
+                        Tertiary &<br>
+                        <span class="section-title-gradient">Basic Education</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Choose from our technology-focused college programs or enroll your child in our Basic Education Department (Grades 7-12).
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                    {# Computer Science #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="0">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-code text-white text-2xl"></i>
+                            </div>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold">Popular</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Computer Science</h3>
+                        <p class="text-gray-600 mb-4">Master programming, algorithms, AI, and software development.</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1 text-gray-500">
+                                <i class="ki-filled ki-calendar"></i> 4 Years
+                            </span>
+                            <span class="flex items-center gap-1 text-feu-green-600 font-medium">
+                                <i class="ki-filled ki-verify"></i> CHED
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {# Information Technology #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="100">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-technology-4 text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Information Technology</h3>
+                        <p class="text-gray-600 mb-4">Learn IT infrastructure, networking, and systems administration.</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1 text-gray-500">
+                                <i class="ki-filled ki-calendar"></i> 4 Years
+                            </span>
+                            <span class="flex items-center gap-1 text-feu-green-600 font-medium">
+                                <i class="ki-filled ki-verify"></i> CHED
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {# Computer Engineering #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="200">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-setting-2 text-white text-2xl"></i>
+                            </div>
+                            <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">Board Exam</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Computer Engineering</h3>
+                        <p class="text-gray-600 mb-4">Combine hardware and software engineering for innovative solutions.</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1 text-gray-500">
+                                <i class="ki-filled ki-calendar"></i> 5 Years
+                            </span>
+                            <span class="flex items-center gap-1 text-feu-green-600 font-medium">
+                                <i class="ki-filled ki-verify"></i> PRC
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {# Electronics Engineering #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="300">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-electricity text-white text-2xl"></i>
+                            </div>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-bold">Board Exam</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Electronics Engineering</h3>
+                        <p class="text-gray-600 mb-4">Design electronic systems and telecommunications infrastructure.</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1 text-gray-500">
+                                <i class="ki-filled ki-calendar"></i> 5 Years
+                            </span>
+                            <span class="flex items-center gap-1 text-feu-green-600 font-medium">
+                                <i class="ki-filled ki-verify"></i> PRC
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {# Entertainment & Multimedia #}
+                    <div class="program-card group" data-aos="fade-up" data-aos-delay="400">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-picture text-white text-2xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">BS Entertainment & Multimedia</h3>
+                        <p class="text-gray-600 mb-4">Create digital content, games, and interactive media experiences.</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1 text-gray-500">
+                                <i class="ki-filled ki-calendar"></i> 4 Years
+                            </span>
+                            <span class="flex items-center gap-1 text-feu-green-600 font-medium">
+                                <i class="ki-filled ki-verify"></i> CHED
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {# Basic Education #}
+                    <div class="program-card bg-gradient-to-br from-feu-green-50 to-feu-green-100 border-feu-green-200 group" data-aos="fade-up" data-aos-delay="500">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-600 to-feu-green-700 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="ki-filled ki-teacher text-white text-2xl"></i>
+                            </div>
+                            <span class="px-3 py-1 bg-feu-green-100 text-feu-green-700 rounded-full text-xs font-bold">K-12</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Basic Education Department</h3>
+                        <p class="text-gray-600 mb-4">Junior High School (Grades 7-10) and Senior High School (Grades 11-12) with STEM, ABM, and HUMSS tracks.</p>
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="flex items-center gap-1 text-gray-500">
+                                <i class="ki-filled ki-calendar"></i> Grades 7-12
+                            </span>
+                            <span class="flex items-center gap-1 text-feu-green-600 font-medium">
+                                <i class="ki-filled ki-verify"></i> DepEd
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                {# CTA Button #}
+                <div class="text-center mt-12" data-aos="fade-up">
+                    <a href="{{ path('app_admission_apply') }}" class="btn-green">
+                        <i class="ki-filled ki-rocket"></i>
+                        Apply for Your Program
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        {# ===== ARIES Services Section ===== #}
+        <section class="py-20 lg:py-28 bg-white" id="services">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-abstract-26"></i>
+                        ARIES Features
+                    </span>
+                    <h2 class="section-title">
+                        Smart Enrollment<br>
+                        <span class="section-title-gradient">Made Simple</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Discover the powerful features of ARIES that make your enrollment journey seamless and efficient.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 lg:gap-6">
+                    {# Feature 1 - Online Application #}
+                    <a href="{{ path('app_admission_apply') }}" class="service-card group" data-aos="fade-up" data-aos-delay="0">
+                        <div class="service-icon bg-gradient-to-br from-feu-green-500 to-feu-green-600 shadow-lg shadow-feu-green-500/30">
+                            <i class="ki-filled ki-notepad-edit text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Online Application</h3>
+                        <p class="text-gray-500 text-sm mt-1">Apply anytime, anywhere</p>
+                    </a>
+                    
+                    {# Feature 2 - Document Upload #}
+                    <div class="service-card group" data-aos="fade-up" data-aos-delay="100">
+                        <div class="service-icon bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/30">
+                            <i class="ki-filled ki-folder-up text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Document Upload</h3>
+                        <p class="text-gray-500 text-sm mt-1">Secure file submission</p>
+                    </div>
+                    
+                    {# Feature 3 - Status Tracking #}
+                    <a href="{{ path('app_admission_status') }}" class="service-card group" data-aos="fade-up" data-aos-delay="200">
+                        <div class="service-icon bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg shadow-purple-500/30">
+                            <i class="ki-filled ki-delivery-time text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Status Tracking</h3>
+                        <p class="text-gray-500 text-sm mt-1">Real-time updates</p>
+                    </a>
+                    
+                    {# Feature 4 - Email Notifications #}
+                    <div class="service-card group" data-aos="fade-up" data-aos-delay="300">
+                        <div class="service-icon bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
+                            <i class="ki-filled ki-notification-on text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Email Alerts</h3>
+                        <p class="text-gray-500 text-sm mt-1">Instant notifications</p>
+                    </div>
+                    
+                    {# Feature 5 - Multi-Campus #}
+                    <div class="service-card group" data-aos="fade-up" data-aos-delay="400">
+                        <div class="service-icon bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/30">
+                            <i class="ki-filled ki-geolocation text-white text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">Multi-Campus</h3>
+                        <p class="text-gray-500 text-sm mt-1">3 locations, 1 system</p>
+                    </div>
+                    
+                    {# Feature 6 - 24/7 Access #}
+                    <div class="service-card group bg-gradient-to-br from-feu-gold-50 to-feu-gold-100 border-feu-gold-200" data-aos="fade-up" data-aos-delay="500">
+                        <div class="service-icon bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 shadow-lg shadow-feu-gold-400/30">
+                            <i class="ki-filled ki-time text-feu-green-800 text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900 group-hover:text-feu-green-700 transition-colors">24/7 Access</h3>
+                        <p class="text-gray-500 text-sm mt-1">Always available</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# ===== How to Enroll Section ===== #}
+        <section class="py-20 lg:py-28 bg-gray-50" id="steps">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-routing-2"></i>
+                        Simple Process
+                    </span>
+                    <h2 class="section-title">
+                        Enroll in<br>
+                        <span class="section-title-gradient">4 Easy Steps</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Our streamlined digital process makes enrollment quick and hassle-free.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 max-w-6xl mx-auto">
+                    {# Step 1 #}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center" data-aos="fade-up" data-aos-delay="0">
+                        <div class="w-16 h-16 rounded-2xl bg-feu-green-100 flex items-center justify-center mx-auto mb-5">
+                            <i class="ki-filled ki-notepad-edit text-feu-green-600 text-2xl"></i>
+                        </div>
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-feu-green-600 text-white text-sm font-bold mb-4">1</div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Quick Apply</h3>
+                        <p class="text-gray-600 text-sm">Submit your basic information — name, email, and preferred program.</p>
+                    </div>
+                    
+                    {# Step 2 #}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-16 h-16 rounded-2xl bg-feu-gold-100 flex items-center justify-center mx-auto mb-5">
+                            <i class="ki-filled ki-sms text-feu-gold-600 text-2xl"></i>
+                        </div>
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-feu-gold-500 text-white text-sm font-bold mb-4">2</div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Verify Email</h3>
+                        <p class="text-gray-600 text-sm">Check your inbox and click the verification link to continue.</p>
+                    </div>
+                    
+                    {# Step 3 #}
+                    <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-16 h-16 rounded-2xl bg-feu-green-100 flex items-center justify-center mx-auto mb-5">
+                            <i class="ki-filled ki-document text-feu-green-600 text-2xl"></i>
+                        </div>
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-feu-green-600 text-white text-sm font-bold mb-4">3</div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">Complete Enrollment</h3>
+                        <p class="text-gray-600 text-sm">Fill out the enrollment form and upload your required documents.</p>
+                    </div>
+                    
+                    {# Step 4 #}
+                    <div class="bg-gradient-to-br from-feu-gold-50 to-feu-gold-100 rounded-2xl p-6 border border-feu-gold-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-center" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-16 h-16 rounded-2xl bg-feu-gold-200 flex items-center justify-center mx-auto mb-5">
+                            <i class="ki-filled ki-verify text-feu-gold-700 text-2xl"></i>
+                        </div>
+                        <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-feu-gold-500 text-white text-sm font-bold mb-4">
+                            <i class="ki-filled ki-check text-sm"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 mb-3">You're Enrolled! 🎉</h3>
+                        <p class="text-gray-700 text-sm">Receive your Student Admission Number. Welcome to FEU Tech!</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-12" data-aos="fade-up">
+                    <a href="{{ path('app_admission_apply') }}" class="btn-green">
+                        <i class="ki-filled ki-rocket"></i>
+                        Start Your Application Now
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        {# ===== Requirements Section ===== #}
+        <section class="py-20 lg:py-28 bg-white" id="requirements">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="section-header" data-aos="fade-up">
+                    <span class="section-badge">
+                        <i class="ki-filled ki-document"></i>
+                        Requirements
+                    </span>
+                    <h2 class="section-title">
+                        What to<br>
+                        <span class="section-title-gradient">Prepare</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Have these documents ready for enrollment after your application is verified.
+                    </p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                    {# Tertiary Requirements #}
+                    <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow" data-aos="fade-up" data-aos-delay="0">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center shadow-lg">
+                                <i class="ki-filled ki-user-tick text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">Tertiary (College)</h3>
+                                <p class="text-sm text-gray-500">Freshmen & Transferees</p>
+                            </div>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-green-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">Grade 12 Report Card / Form 137</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-green-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">Certificate of Good Moral Character</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-green-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">PSA Birth Certificate</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-green-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">2x2 ID Photo (White Background)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-green-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">Valid Government ID</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    {# BED Requirements #}
+                    <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow" data-aos="fade-up" data-aos-delay="100">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center shadow-lg">
+                                <i class="ki-filled ki-teacher text-feu-green-800 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900">Basic Education (K-12)</h3>
+                                <p class="text-sm text-gray-500">Junior & Senior High School</p>
+                            </div>
+                        </div>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-gold-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-gold-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">Report Card (Form 138)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-gold-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-gold-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">PSA Birth Certificate</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-gold-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-gold-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">Certificate of Good Moral Character</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-gold-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-gold-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">2x2 ID Photo (White Background)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-feu-gold-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="ki-filled ki-check text-feu-gold-600 text-xs"></i>
+                                </div>
+                                <span class="text-gray-700">Parent/Guardian Valid ID</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# ===== CTA Section ===== #}
+        <section class="cta-section py-20 lg:py-28" id="contact">
+            <div class="container mx-auto px-4 lg:px-8 relative z-10">
+                <div class="max-w-4xl mx-auto text-center">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-8" data-aos="fade-up">
+                        <i class="ki-filled ki-rocket text-feu-gold-400"></i>
+                        <span class="text-sm text-white font-semibold">Start Your Journey Today</span>
+                    </div>
+                    
+                    <h2 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-6" data-aos="fade-up" data-aos-delay="100">
+                        Ready to Become a<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-feu-gold-400 to-feu-gold-300">FEU Tamaraw?</span>
+                    </h2>
+                    
+                    <p class="text-lg text-white/70 mb-10 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                        Join thousands of students who have started their journey to success at FEU Tech, FEU Diliman, and FEU Alabang. 
+                        Your future begins here.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4" data-aos="fade-up" data-aos-delay="300">
+                        <a href="{{ path('app_admission_apply') }}" class="btn-primary w-full sm:w-auto">
+                            <i class="ki-filled ki-notepad-edit"></i>
+                            Apply for Admission
+                        </a>
+                        <a href="{{ path('app_admission_status') }}" class="btn-secondary w-full sm:w-auto">
+                            <i class="ki-filled ki-magnifier"></i>
+                            Check Application Status
+                        </a>
+                    </div>
+                    
+                    {# Contact Info #}
+                    <div class="mt-12 pt-8 border-t border-white/10" data-aos="fade-up" data-aos-delay="400">
+                        <p class="text-white/50 text-sm mb-4">Need assistance? Contact our admissions team:</p>
+                        <div class="flex flex-wrap items-center justify-center gap-6">
+                            <a href="mailto:aries@feu.edu.ph" class="flex items-center gap-2 text-white/70 hover:text-feu-gold-400 transition-colors">
+                                <i class="ki-filled ki-sms"></i>
+                                aries@feu.edu.ph
+                            </a>
+                            <a href="tel:+6328281611" class="flex items-center gap-2 text-white/70 hover:text-feu-gold-400 transition-colors">
+                                <i class="ki-filled ki-phone"></i>
+                                (02) 8281-1611
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {# Footer #}
+    {% include 'layouts/_public_footer.html.twig' %}
+    
+    {# Back to Top Button #}
+    <button class="back-to-top" id="backToTop" aria-label="Back to top">
+        <i class="ki-filled ki-arrow-up text-xl"></i>
+    </button>
+    
+    {# Cookie Consent Banner #}
+    <div class="cookie-consent" id="cookieConsent">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-feu-green-100 flex items-center justify-center flex-shrink-0">
+                        <i class="ki-filled ki-shield-tick text-feu-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-900 mb-1">We value your privacy</h4>
+                        <p class="text-sm text-gray-600">We use cookies to enhance your browsing experience and analyze site traffic. By clicking "Accept", you consent to our use of cookies.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <button class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors" id="cookieDecline">Decline</button>
+                    <button class="px-6 py-2 text-sm font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 rounded-lg transition-colors" id="cookieAccept">Accept All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+{# Swiper.js for Carousel #}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+{# AOS (Animate On Scroll) #}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== Initialize AOS =====
+    AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 50
+    });
+    
+    // ===== Hero Carousel =====
+    const heroSwiper = new Swiper('.hero-swiper', {
+        loop: true,
+        autoplay: {
+            delay: 6000,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true
+        },
+        effect: 'fade',
+        fadeEffect: {
+            crossFade: true
+        },
+        speed: 1000,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev'
+        },
+        keyboard: {
+            enabled: true
+        }
+    });
+    
+    // ===== Stats Counter Animation =====
+    const statNumbers = document.querySelectorAll('.stat-number');
+    const observerOptions = {
+        threshold: 0.5,
+        rootMargin: '0px'
+    };
+    
+    const countUp = (element, target) => {
+        let current = 0;
+        const increment = target / 60;
+        const duration = 2000;
+        const stepTime = duration / 60;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target.toLocaleString();
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current).toLocaleString();
+            }
+        }, stepTime);
+    };
+    
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.dataset.count);
+                countUp(entry.target, target);
+                statsObserver.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    statNumbers.forEach(stat => statsObserver.observe(stat));
+    
+    // ===== News Tabs =====
+    const newsTabs = document.querySelectorAll('.news-tab');
+    const newsCards = document.querySelectorAll('.news-card');
+    
+    newsTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Update active tab
+            newsTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            const category = tab.dataset.tab;
+            
+            // Filter cards
+            newsCards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                    card.style.animation = 'fadeIn 0.3s ease-out';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // ===== Back to Top Button =====
+    const backToTop = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', () => {
+        if (window.pageYOffset > 500) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+    });
+    
+    backToTop.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+    
+    // ===== Cookie Consent =====
+    const cookieConsent = document.getElementById('cookieConsent');
+    const cookieAccept = document.getElementById('cookieAccept');
+    const cookieDecline = document.getElementById('cookieDecline');
+    
+    // Check if user has already made a choice
+    if (!localStorage.getItem('cookieConsent')) {
+        setTimeout(() => {
+            cookieConsent.classList.add('show');
+        }, 2000);
+    }
+    
+    cookieAccept.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'accepted');
+        cookieConsent.classList.remove('show');
+    });
+    
+    cookieDecline.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'declined');
+        cookieConsent.classList.remove('show');
+    });
+    
+    // ===== Smooth Scroll for Anchor Links =====
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href !== '#') {
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    const headerHeight = 80;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+    
+    // ===== Video Card Click Handler =====
+    document.querySelectorAll('.video-card').forEach(card => {
+        card.addEventListener('click', () => {
+            // In production, this would open a video modal
+            console.log('Video clicked - implement modal');
+        });
+    });
+    
+    // ===== Lazy Load Images =====
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                    }
+                    imageObserver.unobserve(img);
+                }
+            });
+        });
+        
+        document.querySelectorAll('img[data-src]').forEach(img => {
+            imageObserver.observe(img);
+        });
+    }
+});
+</script>
+{% endblock %}

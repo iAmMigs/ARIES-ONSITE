@@ -1,17 +1,811 @@
+{# templates/base.html.twig #}
+{# ============================================================================
+   ARIES - Admission, Registration, Information, and Enrollment System
+   Base Layout Template with Metronic v9.4.0 Integration
+   FEU Tech Tamaraw Theme (Green & Gold)
+   
+   Browser Support: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+   Responsive: Mobile-first, supports all device sizes
+   ============================================================================ #}
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+<html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" dir="ltr" lang="{{ app.request.locale|default('en') }}">
+<head>
+    {# ===== Meta Tags for SEO & Device Compatibility ===== #}
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
+    <meta name="description" content="ARIES - Admission, Registration, Information, and Enrollment System for FEU Tech – Institute of Technology"/>
+    <meta name="author" content="FEU Tech – Institute of Technology"/>
+    <meta name="theme-color" content="#1a4d2e"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="format-detection" content="telephone=no"/>
+    
+    {# Open Graph / Social Media #}
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="{% block og_title %}ARIES - FEU Tech Online Enrollment System{% endblock %}"/>
+    <meta property="og:description" content="{% block og_description %}FEU Tech – Institute of Technology Admission and Enrollment System{% endblock %}"/>
+    
+    <title>{% block title %}{% endblock %} | ARIES - FEU Tech Enrollment</title>
+    
+    {# ===== Favicon & App Icons ===== #}
+    <link rel="shortcut icon" href="{{ asset('metronic/media/app/favicon.ico') }}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('metronic/media/app/apple-touch-icon.png') }}"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('metronic/media/app/favicon-32x32.png') }}"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('metronic/media/app/favicon-16x16.png') }}"/>
+    
+    {# ===== Preconnect for Performance ===== #}
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com"/>
+    
+    {# ===== Google Fonts - Inter ===== #}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    
+    {# ===== Tailwind CSS v3 CDN with FEU Tech Custom Config ===== #}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // FEU Tech Tamaraw Colors
+                        'feu-green': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#40916c',
+                            600: '#2d6a4f',
+                            700: '#1a4d2e',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        'feu-gold': {
+                            50: '#fefce8',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#f0c14b',
+                            500: '#d4a017',
+                            600: '#b8860b',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                        },
+                        // Metronic semantic colors mapped
+                        'primary': '#1a4d2e',
+                        'primary-foreground': '#ffffff',
+                        'accent': '#d4a017',
+                        'background': '#f9fafb',
+                        'foreground': '#111827',
+                        'muted': '#6b7280',
+                        'muted-foreground': '#9ca3af',
+                        'border': '#e5e7eb',
+                        'success': '#22c55e',
+                        'warning': '#f59e0b',
+                        'danger': '#ef4444',
+                        'info': '#3b82f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                    },
+                    screens: {
+                        'xs': '475px',
+                        'sm': '640px',
+                        'md': '768px',
+                        'lg': '1024px',
+                        'xl': '1280px',
+                        '2xl': '1536px',
+                    },
+                    spacing: {
+                        '4.5': '1.125rem',
+                        '5.5': '1.375rem',
+                        '6.5': '1.625rem',
+                        '7.5': '1.875rem',
+                    },
+                    fontSize: {
+                        '2xs': ['0.625rem', { lineHeight: '0.75rem' }],
+                        '2sm': ['0.8125rem', { lineHeight: '1.125rem' }],
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                    },
+                    boxShadow: {
+                        'feu': '0 10px 40px -10px rgba(26, 77, 46, 0.3)',
+                        'gold': '0 10px 40px -10px rgba(212, 160, 23, 0.3)',
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'fade-in-up': 'fadeInUp 0.4s ease-out',
+                        'fade-in-down': 'fadeInDown 0.4s ease-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeInDown: {
+                            '0%': { opacity: '0', transform: 'translateY(-20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' },
+                        },
+                        scaleIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.9)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    
+    {# ===== Metronic v9.4.0 Vendor Libraries ===== #}
+    <link href="{{ asset('metronic/vendors/apexcharts/apexcharts.css') }}" rel="stylesheet"/>
+    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+    
+    {# ===== Metronic Core Styles ===== #}
+    <link href="{{ asset('metronic/css/styles.css') }}" rel="stylesheet"/>
+    
+    {# ===== ARIES Theme CSS (External) ===== #}
+    <link href="{{ asset('assets/css/aries-theme.css') }}" rel="stylesheet"/>
+    
+    {# ===== Critical Inline Styles for Performance ===== #}
+    <style>
+        /* CSS Custom Properties - FEU Tech Theme */
+        :root {
+            /* Primary Colors */
+            --feu-green-50: #f0fdf4;
+            --feu-green-100: #dcfce7;
+            --feu-green-200: #bbf7d0;
+            --feu-green-500: #40916c;
+            --feu-green-600: #2d6a4f;
+            --feu-green-700: #1a4d2e;
+            
+            /* Gold Accent */
+            --feu-gold-400: #f0c14b;
+            --feu-gold-500: #d4a017;
+            --feu-gold-600: #b8860b;
+            
+            /* Metronic Overrides */
+            --primary: #1a4d2e;
+            --primary-hover: #2d6a4f;
+            --primary-foreground: #ffffff;
+            
+            /* Layout Variables */
+            --kt-header-height: 64px;
+            --kt-sidebar-width: 280px;
+            --kt-sidebar-width-collapsed: 78px;
+        }
+        
+        /* Smooth Scrolling with reduced motion support */
+        @media (prefers-reduced-motion: no-preference) {
+            html { scroll-behavior: smooth; }
+        }
+        
+        /* Focus visible for accessibility */
+        :focus-visible {
+            outline: 2px solid var(--feu-green-600);
+            outline-offset: 2px;
+        }
+        
+        /* Base body styles */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        
+        /* FEU Primary Button */
+        .btn-feu-primary {
+            background: linear-gradient(135deg, var(--feu-green-700) 0%, var(--feu-green-600) 100%);
+            color: white;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-feu-primary:hover {
+            background: linear-gradient(135deg, var(--feu-green-600) 0%, var(--feu-green-500) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(26, 77, 46, 0.3);
+        }
+        
+        .btn-feu-primary:active {
+            transform: translateY(0);
+        }
+        
+        /* FEU Gold Button */
+        .btn-feu-gold {
+            background: linear-gradient(135deg, var(--feu-gold-600) 0%, var(--feu-gold-500) 100%);
+            color: var(--feu-green-700);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-feu-gold:hover {
+            background: linear-gradient(135deg, var(--feu-gold-500) 0%, var(--feu-gold-400) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(212, 160, 23, 0.3);
+        }
+        
+        /* ARIES Gradient Background */
+        .aries-gradient {
+            background: linear-gradient(135deg, var(--feu-green-700) 0%, var(--feu-green-600) 100%);
+        }
+        
+        /* Form Input Styles */
+        .form-input:focus,
+        .form-control:focus,
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--feu-green-600) !important;
+            box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.15) !important;
+            outline: none;
+        }
+        
+        /* Toast Notification Container */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        
+        .toast {
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            max-width: 400px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast-success {
+            background: linear-gradient(135deg, rgba(240, 253, 244, 0.95), rgba(220, 252, 231, 0.95));
+            border: 1px solid #86efac;
+        }
+        
+        .toast-error {
+            background: linear-gradient(135deg, rgba(254, 242, 242, 0.95), rgba(254, 226, 226, 0.95));
+            border: 1px solid #fca5a5;
+        }
+        
+        .toast-info {
+            background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(219, 234, 254, 0.95));
+            border: 1px solid #93c5fd;
+        }
+        
+        .toast-warning {
+            background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.95));
+            border: 1px solid #fcd34d;
+        }
+        
+        /* Loading spinner */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Utility text colors */
+        .text-feu-green { color: var(--feu-green-600); }
+        .text-feu-gold { color: var(--feu-gold-500); }
+        .bg-feu-green { background-color: var(--feu-green-600); }
+        .bg-feu-gold { background-color: var(--feu-gold-500); }
+        
+        /* Animation delays for staggered effects */
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-600 { animation-delay: 600ms; }
+        .delay-700 { animation-delay: 700ms; }
+        
+        /* Responsive toast positioning */
+        @media (max-width: 640px) {
+            .toast-container {
+                left: 16px;
+                right: 16px;
+                top: auto;
+                bottom: 20px;
+            }
+            
+            .toast {
+                min-width: auto;
+                width: 100%;
+                transform: translateY(120%);
+            }
+            
+            .toast.show {
+                transform: translateY(0);
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .no-print,
+            .toast-container { display: none !important; }
+        }
+    </style>
+    
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="antialiased text-base text-gray-900 bg-gray-50 font-sans min-h-screen {% block body_class %}{% endblock %}">
+    {# ===== Toast Notification Container ===== #}
+    <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
+    
+    {# ===== Metronic Theme Mode Script (must be before content) ===== #}
+    <script>
+        (function() {
+            const defaultThemeMode = 'light';
+            let themeMode = localStorage.getItem('kt-theme') || 
+                           document.documentElement.getAttribute('data-kt-theme-mode') || 
+                           defaultThemeMode;
+            
+            if (themeMode === 'system') {
+                themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            
+            document.documentElement.classList.add(themeMode);
+        })();
+    </script>
 
-        {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+    {# ===== Main Content Area ===== #}
+    {% block body %}{% endblock %}
+
+    {# ===== Metronic v9.4.0 Core JavaScript ===== #}
+    <script src="{{ asset('metronic/vendors/apexcharts/apexcharts.min.js') }}"></script>
+    <script src="{{ asset('metronic/vendors/@form-validation/form-validation.bundle.js') }}"></script>
+    <script src="{{ asset('metronic/js/core.bundle.js') }}"></script>
+    
+    {# ===== ARIES Core JavaScript Module ===== #}
+    <script>
+        /**
+         * ARIES Core JavaScript Module v2.0
+         * Enhanced Metronic KTUI integration with full component initialization
+         * @version 2.0.0
+         * @author ARIES Development Team
+         */
+        (function() {
+            'use strict';
+            
+            /**
+             * Metronic KTUI Component Registry
+             * Lists all available components from core.bundle.js and ktui.min.js
+             */
+            var KT_COMPONENTS = [
+                'KTComponents',  // Master initializer
+                'KTMenu',        // Dropdown menus
+                'KTDrawer',      // Sidebar drawers
+                'KTModal',       // Modal dialogs
+                'KTStepper',     // Multi-step forms
+                'KTToggle',      // Toggle switches
+                'KTTabs',        // Tab panels
+                'KTScrollable',  // Scrollable containers
+                'KTScrollto',    // Scroll to anchor
+                'KTSticky',      // Sticky elements
+                'KTTooltip',     // Tooltips
+                'KTDropdown',    // Dropdowns
+                'KTCollapse',    // Collapsible panels
+                'KTAccordion',   // Accordion panels
+                'KTImageInput',  // Image upload preview
+                'KTPasswordMeter', // Password strength
+                'KTDatepicker'   // Date picker
+            ];
+            
+            /**
+             * Initialize all Metronic KTUI components
+             * Uses feature detection for graceful degradation
+             */
+            function initKTComponents() {
+                // Primary: Use master initializer if available
+                if (typeof KTComponents !== 'undefined' && typeof KTComponents.init === 'function') {
+                    KTComponents.init();
+                    console.log('[ARIES] Metronic KTComponents initialized');
+                    return;
+                }
+                
+                // Fallback: Initialize individual components
+                var initializedCount = 0;
+                KT_COMPONENTS.forEach(function(componentName) {
+                    if (typeof window[componentName] !== 'undefined') {
+                        var component = window[componentName];
+                        if (typeof component.init === 'function') {
+                            try {
+                                component.init();
+                                initializedCount++;
+                            } catch (e) {
+                                console.warn('[ARIES] Failed to init ' + componentName + ':', e.message);
+                            }
+                        }
+                    }
+                });
+                
+                if (initializedCount > 0) {
+                    console.log('[ARIES] Initialized ' + initializedCount + ' KT components individually');
+                }
+            }
+            
+            /**
+             * Initialize ARIES-specific enhancements
+             */
+            function initARIESEnhancements() {
+                // Auto-initialize tooltips with data-kt-tooltip
+                document.querySelectorAll('[data-kt-tooltip="true"]').forEach(function(el) {
+                    if (typeof KTTooltip !== 'undefined') {
+                        KTTooltip.getInstance(el) || new KTTooltip(el);
+                    }
+                });
+                
+                // Auto-initialize steppers with data-kt-stepper
+                document.querySelectorAll('[data-kt-stepper="true"]').forEach(function(el) {
+                    if (typeof KTStepper !== 'undefined') {
+                        KTStepper.getInstance(el) || KTStepper.createInstances();
+                    }
+                });
+                
+                // Initialize scrollspy for single-page navigation
+                initScrollSpy();
+                
+                // Initialize form enhancements
+                initFormEnhancements();
+            }
+            
+            /**
+             * ScrollSpy for smooth section highlighting
+             */
+            function initScrollSpy() {
+                var sections = document.querySelectorAll('section[id]');
+                var navLinks = document.querySelectorAll('a[href^="#"]');
+                
+                if (sections.length === 0 || navLinks.length === 0) return;
+                
+                var observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (entry.isIntersecting) {
+                            navLinks.forEach(function(link) {
+                                link.classList.remove('active', 'text-feu-green-700');
+                                if (link.getAttribute('href') === '#' + entry.target.id) {
+                                    link.classList.add('active', 'text-feu-green-700');
+                                }
+                            });
+                        }
+                    });
+                }, { threshold: 0.3 });
+                
+                sections.forEach(function(section) {
+                    observer.observe(section);
+                });
+            }
+            
+            /**
+             * Enhanced form handling with validation feedback
+             */
+            function initFormEnhancements() {
+                // Real-time validation feedback
+                document.querySelectorAll('input, select, textarea').forEach(function(field) {
+                    field.addEventListener('blur', function() {
+                        validateField(this);
+                    });
+                    
+                    field.addEventListener('input', function() {
+                        this.classList.remove('border-red-400', 'is-invalid');
+                        var errorMsg = this.parentElement.querySelector('.error-message');
+                        if (errorMsg) errorMsg.remove();
+                    });
+                });
+            }
+            
+            /**
+             * Validate individual form field
+             */
+            function validateField(field) {
+                if (!field.hasAttribute('required') && !field.value) return true;
+                
+                var isValid = true;
+                var errorMsg = '';
+                
+                // Required check
+                if (field.hasAttribute('required') && !field.value.trim()) {
+                    isValid = false;
+                    errorMsg = 'This field is required';
+                }
+                
+                // Email validation
+                if (field.type === 'email' && field.value) {
+                    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(field.value)) {
+                        isValid = false;
+                        errorMsg = 'Please enter a valid email address';
+                    }
+                }
+                
+                // Phone validation
+                if (field.type === 'tel' && field.value) {
+                    var phoneRegex = /^[0-9+\-\s()]{10,15}$/;
+                    if (!phoneRegex.test(field.value)) {
+                        isValid = false;
+                        errorMsg = 'Please enter a valid phone number';
+                    }
+                }
+                
+                // Apply visual feedback
+                if (!isValid) {
+                    field.classList.add('border-red-400', 'is-invalid');
+                    showFieldError(field, errorMsg);
+                } else {
+                    field.classList.remove('border-red-400', 'is-invalid');
+                    field.classList.add('border-green-400');
+                    setTimeout(function() {
+                        field.classList.remove('border-green-400');
+                    }, 2000);
+                }
+                
+                return isValid;
+            }
+            
+            /**
+             * Show field-level error message
+             */
+            function showFieldError(field, message) {
+                var existing = field.parentElement.querySelector('.error-message');
+                if (existing) existing.remove();
+                
+                var errorEl = document.createElement('span');
+                errorEl.className = 'error-message text-xs text-red-500 mt-1 block';
+                errorEl.textContent = message;
+                field.parentElement.appendChild(errorEl);
+            }
+            
+            // Initialize on DOM Ready
+            document.addEventListener('DOMContentLoaded', function() {
+                initKTComponents();
+                initARIESEnhancements();
+                console.log('[ARIES] Frontend initialized successfully');
+            });
+            
+            /**
+             * Toast Notification System
+             * @param {string} message - The message to display
+             * @param {string} type - Type: 'success', 'error', 'warning', 'info'
+             * @param {number} duration - Duration in milliseconds (default: 4000)
+             */
+            window.showToast = function(message, type, duration) {
+                type = type || 'info';
+                duration = duration || 4000;
+                
+                var container = document.getElementById('toastContainer');
+                if (!container) {
+                    // Create toast container if it doesn't exist
+                    container = document.createElement('div');
+                    container.id = 'toastContainer';
+                    container.className = 'fixed top-4 right-4 z-[9999] flex flex-col gap-2';
+                    document.body.appendChild(container);
+                }
+                
+                var toast = document.createElement('div');
+                toast.className = 'toast toast-' + type + ' flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg transform translate-x-full opacity-0 transition-all duration-300';
+                toast.setAttribute('role', 'alert');
+                
+                // Style based on type
+                var typeStyles = {
+                    success: 'bg-green-50 border border-green-200',
+                    error: 'bg-red-50 border border-red-200',
+                    warning: 'bg-amber-50 border border-amber-200',
+                    info: 'bg-blue-50 border border-blue-200'
+                };
+                toast.className += ' ' + (typeStyles[type] || typeStyles.info);
+                
+                var icons = {
+                    success: '<i class="ki-filled ki-check-circle text-xl text-green-600"></i>',
+                    error: '<i class="ki-filled ki-cross-circle text-xl text-red-600"></i>',
+                    warning: '<i class="ki-filled ki-information-3 text-xl text-amber-600"></i>',
+                    info: '<i class="ki-filled ki-information-2 text-xl text-blue-600"></i>'
+                };
+                
+                toast.innerHTML = (icons[type] || icons.info) + 
+                    '<span class="text-sm font-medium text-gray-800">' + escapeHtml(message) + '</span>' +
+                    '<button type="button" class="ml-auto text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">' +
+                    '<i class="ki-filled ki-cross text-sm"></i></button>';
+                
+                container.appendChild(toast);
+                
+                // Trigger animation
+                requestAnimationFrame(function() {
+                    toast.classList.remove('translate-x-full', 'opacity-0');
+                });
+                
+                // Auto-remove
+                setTimeout(function() {
+                    toast.classList.add('translate-x-full', 'opacity-0');
+                    setTimeout(function() {
+                        if (toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 300);
+                }, duration);
+                
+                return toast;
+            };
+            
+            /**
+             * Escape HTML to prevent XSS
+             */
+            function escapeHtml(text) {
+                var div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            /**
+             * Modal Helper - Uses KTModal if available, fallback to custom
+             */
+            window.showModal = function(options) {
+                options = options || {};
+                var title = options.title || 'Notice';
+                var content = options.content || '';
+                var type = options.type || 'info';
+                var onConfirm = options.onConfirm;
+                var onCancel = options.onCancel;
+                
+                // Try to use KTModal if available
+                if (typeof KTModal !== 'undefined') {
+                    var modalId = 'aries-modal-' + Date.now();
+                    var modalHtml = createModalHtml(modalId, title, content, type, !!onConfirm);
+                    document.body.insertAdjacentHTML('beforeend', modalHtml);
+                    
+                    var modalEl = document.getElementById(modalId);
+                    var modal = new KTModal(modalEl);
+                    
+                    // Bind events
+                    modalEl.querySelector('[data-modal-confirm]')?.addEventListener('click', function() {
+                        if (onConfirm) onConfirm();
+                        modal.hide();
+                        setTimeout(function() { modalEl.remove(); }, 300);
+                    });
+                    
+                    modalEl.querySelector('[data-modal-cancel]')?.addEventListener('click', function() {
+                        if (onCancel) onCancel();
+                        modal.hide();
+                        setTimeout(function() { modalEl.remove(); }, 300);
+                    });
+                    
+                    modal.show();
+                    return modal;
+                }
+                
+                // Fallback: Use browser confirm/alert
+                if (onConfirm) {
+                    if (confirm(title + '\n\n' + content)) {
+                        onConfirm();
+                    } else if (onCancel) {
+                        onCancel();
+                    }
+                } else {
+                    alert(title + '\n\n' + content);
+                }
+            };
+            
+            /**
+             * Create modal HTML structure
+             */
+            function createModalHtml(id, title, content, type, hasConfirm) {
+                var iconColors = { success: 'text-green-500', error: 'text-red-500', warning: 'text-amber-500', info: 'text-blue-500' };
+                var icons = { success: 'ki-check-circle', error: 'ki-cross-circle', warning: 'ki-information-3', info: 'ki-information-2' };
+                
+                return '<div id="' + id + '" class="modal fixed inset-0 z-[9999] flex items-center justify-center p-4" data-kt-modal="true">' +
+                    '<div class="modal-backdrop absolute inset-0 bg-black/50" data-modal-cancel></div>' +
+                    '<div class="modal-content relative bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform scale-95 opacity-0 transition-all duration-200">' +
+                    '<div class="text-center">' +
+                    '<i class="ki-filled ' + (icons[type] || icons.info) + ' text-4xl ' + (iconColors[type] || iconColors.info) + ' mb-4"></i>' +
+                    '<h3 class="text-lg font-semibold text-gray-900 mb-2">' + escapeHtml(title) + '</h3>' +
+                    '<p class="text-gray-600 mb-6">' + content + '</p>' +
+                    '<div class="flex gap-3 justify-center">' +
+                    (hasConfirm ? '<button type="button" data-modal-cancel class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>' : '') +
+                    '<button type="button" data-modal-confirm class="px-4 py-2 text-sm font-medium text-white bg-feu-green-700 rounded-lg hover:bg-feu-green-600 transition-colors">' + (hasConfirm ? 'Confirm' : 'OK') + '</button>' +
+                    '</div></div></div></div>';
+            }
+            
+            /**
+             * Form Validation Helper
+             * @param {HTMLFormElement} form - The form element to validate
+             * @returns {boolean} - True if valid
+             */
+            window.validateForm = function(form) {
+                var isValid = true;
+                var firstInvalid = null;
+                var requiredFields = form.querySelectorAll('[required]');
+                
+                requiredFields.forEach(function(field) {
+                    if (!validateField(field) && isValid) {
+                        isValid = false;
+                        firstInvalid = field;
+                    }
+                });
+                
+                // Focus first invalid field
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                return isValid;
+            };
+            
+            /**
+             * Loading State Helper
+             */
+            window.setLoading = function(element, isLoading, loadingText) {
+                if (isLoading) {
+                    element.dataset.originalText = element.innerHTML;
+                    element.disabled = true;
+                    element.innerHTML = '<i class="ki-filled ki-loading-circle animate-spin mr-2"></i>' + (loadingText || 'Loading...');
+                    element.classList.add('opacity-75', 'cursor-not-allowed');
+                } else {
+                    element.disabled = false;
+                    element.innerHTML = element.dataset.originalText || element.innerHTML;
+                    element.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            };
+            
+            /**
+             * Copy to Clipboard Helper
+             */
+            window.copyToClipboard = function(text, successMessage) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showToast(successMessage || 'Copied to clipboard!', 'success', 2000);
+                }).catch(function() {
+                    showToast('Failed to copy', 'error');
+                });
+            };
+            
+            /**
+             * Debounce Helper for performance
+             */
+            window.debounce = function(func, wait) {
+                var timeout;
+                return function() {
+                    var context = this, args = arguments;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function() {
+                        func.apply(context, args);
+                    }, wait);
+                };
+            };
+            
+        })();
+    </script>
+
+    {% block javascripts %}{% endblock %}
+</body>
 </html>

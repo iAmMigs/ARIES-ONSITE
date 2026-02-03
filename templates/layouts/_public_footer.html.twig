@@ -1,0 +1,299 @@
+{# templates/layouts/_public_footer.html.twig #}
+{# ARIES Public Site Footer - ARIES Digital University Theme - Enhanced Metronic UI #}
+<style>
+    /* Footer Metronic Enhancements */
+    .footer-main {
+        position: relative;
+        overflow: hidden;
+    }
+    .footer-main::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -100px;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.05) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .footer-main::after {
+        content: '';
+        position: absolute;
+        bottom: -150px;
+        left: -150px;
+        width: 350px;
+        height: 350px;
+        background: radial-gradient(circle, rgba(26, 77, 46, 0.1) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .footer-link {
+        position: relative;
+        transition: all 0.2s ease;
+    }
+    .footer-link::before {
+        content: '';
+        position: absolute;
+        left: -12px;
+        top: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #fbbf24, transparent);
+        transform: translateY(-50%);
+        transition: width 0.3s ease;
+    }
+    .footer-link:hover::before {
+        width: 8px;
+    }
+    .social-icon {
+        position: relative;
+        overflow: hidden;
+    }
+    .social-icon::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(26, 77, 46, 0.8), rgba(45, 106, 79, 0.9));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: inherit;
+    }
+    .social-icon:hover::before {
+        opacity: 1;
+    }
+    .social-icon i {
+        position: relative;
+        z-index: 1;
+    }
+    .newsletter-input:focus {
+        box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+    }
+    .footer-badge {
+        animation: footerBadgePulse 3s ease-in-out infinite;
+    }
+    @keyframes footerBadgePulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+</style>
+
+<footer class="footer-main bg-gray-900 text-gray-300" id="contact">
+    {# Newsletter Section #}
+    <div class="bg-gradient-to-r from-feu-green-700 via-feu-green-600 to-feu-green-700 py-10 lg:py-12 relative">
+        <div class="container mx-auto px-4 lg:px-8 relative z-10">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full mb-4">
+                    <i class="ki-filled ki-notification-status text-feu-gold-400"></i>
+                    <span class="text-sm font-medium text-white">Stay Updated</span>
+                </div>
+                <h3 class="text-2xl lg:text-3xl font-bold text-white mb-3">Get Admission Updates</h3>
+                <p class="text-white/70 mb-6 max-w-xl mx-auto">Subscribe to receive the latest news about enrollment schedules, requirements, and important announcements.</p>
+                <form class="flex flex-col sm:flex-row items-center gap-3 max-w-md mx-auto">
+                    <div class="relative flex-1 w-full">
+                        <i class="ki-filled ki-sms absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="email" placeholder="Enter your email" class="newsletter-input w-full pl-11 pr-4 py-3.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-feu-gold-400 transition-all">
+                    </div>
+                    <button type="submit" class="w-full sm:w-auto px-6 py-3.5 bg-feu-gold-400 hover:bg-feu-gold-300 text-feu-green-900 font-bold rounded-xl transition-all duration-200 hover:-translate-y-0.5 shadow-lg shadow-feu-gold-400/25 flex items-center justify-center gap-2">
+                        <span>Subscribe</span>
+                        <i class="ki-filled ki-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 lg:px-8 py-16 relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            {# Brand Column - Enhanced FEU Style #}
+            <div class="lg:col-span-1">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 shadow-lg shadow-feu-green-600/30">
+                        <i class="ki-filled ki-abstract-26 text-feu-gold-400 text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-extrabold text-white block">ARIES</span>
+                        <span class="text-xs text-feu-gold-400 font-medium tracking-wide">DIGITAL UNIVERSITY</span>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+                    Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Tech, FEU Diliman, and FEU Alabang.
+                </p>
+                
+                {# Social Icons - Facebook Only #}
+                <div class="flex items-center gap-2 mb-6">
+                    <a href="https://facebook.com/FEabordo" target="_blank" rel="noopener" class="social-icon w-10 h-10 flex items-center justify-center rounded-xl bg-gray-800 text-gray-400 hover:text-white transition-all duration-200" aria-label="Facebook">
+                        <i class="ki-filled ki-facebook text-lg"></i>
+                    </a>
+                </div>
+                
+                {# Trust Badges #}
+                <div class="footer-badge inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl">
+                    <i class="ki-filled ki-shield-tick text-feu-gold-400"></i>
+                    <span class="text-xs text-gray-300 font-medium">Secured & CHED Accredited</span>
+                </div>
+            </div>
+
+            {# Quick Links - Enhanced #}
+            <div>
+                <h4 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <i class="ki-filled ki-bookmark text-feu-gold-400 text-sm"></i>
+                    Quick Links
+                </h4>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="{{ path('app_home') }}" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-home text-xs opacity-60"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_home') }}#programs" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-book text-xs opacity-60"></i>
+                            Programs
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('') }}" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-notepad-edit text-xs opacity-60"></i>
+                            Apply Now
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('') }}" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-magnifier text-xs opacity-60"></i>
+                            Check Status
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-message-question text-xs opacity-60"></i>
+                            FAQs
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {# Programs - Enhanced #}
+            <div>
+                <h4 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <i class="ki-filled ki-teacher text-feu-gold-400 text-sm"></i>
+                    Programs
+                </h4>
+                <ul class="space-y-3">
+                    <li>
+                        <a href="{{ path('app_home') }}#programs" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-code text-xs opacity-60"></i>
+                            Computer Science
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_home') }}#programs" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-technology-4 text-xs opacity-60"></i>
+                            Information Technology
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_home') }}#programs" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-setting-2 text-xs opacity-60"></i>
+                            Computer Engineering
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_home') }}#programs" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2">
+                            <i class="ki-filled ki-electricity text-xs opacity-60"></i>
+                            Electronics Engineering
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_home') }}#programs" class="footer-link text-sm text-gray-400 hover:text-feu-gold-400 transition-colors flex items-center gap-2 group">
+                            <i class="ki-filled ki-plus text-xs opacity-60"></i>
+                            View All Programs 
+                            <i class="ki-filled ki-arrow-right text-[10px] transition-transform group-hover:translate-x-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            {# Contact Info - Enhanced #}
+            <div>
+                <h4 class="text-white font-bold mb-6 flex items-center gap-2">
+                    <i class="ki-filled ki-phone text-feu-gold-400 text-sm"></i>
+                    Our Campuses
+                </h4>
+                <ul class="space-y-4">
+                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-feu-green-900/50 flex-shrink-0">
+                            <i class="ki-filled ki-geolocation text-feu-gold-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm text-gray-400 leading-relaxed">
+                            <strong class="text-gray-300">FEU Tech Manila</strong><br>
+                            P. Paredes St., Sampaloc, Manila
+                        </span>
+                    </li>
+                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900/50 flex-shrink-0">
+                            <i class="ki-filled ki-geolocation text-blue-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm text-gray-400 leading-relaxed">
+                            <strong class="text-gray-300">FEU Diliman</strong><br>
+                            Regalado Ave., Fairview, QC
+                        </span>
+                    </li>
+                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-900/50 flex-shrink-0">
+                            <i class="ki-filled ki-geolocation text-purple-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm text-gray-400 leading-relaxed">
+                            <strong class="text-gray-300">FEU Alabang</strong><br>
+                            Alabang-Zapote Rd., Las Piñas
+                        </span>
+                    </li>
+                    <li class="flex items-center gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-feu-green-900/50 flex-shrink-0">
+                            <i class="ki-filled ki-sms text-feu-gold-400 text-sm"></i>
+                        </div>
+                        <a href="mailto:aries@feu.edu.ph" class="text-sm text-gray-400 hover:text-feu-gold-400 transition-colors">aries@feu.edu.ph</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# Copyright Bar - Enhanced #}
+    <div class="border-t border-gray-800 bg-gray-900/80 backdrop-blur-sm">
+        <div class="container mx-auto px-4 lg:px-8 py-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-6 h-6 rounded bg-gradient-to-br from-feu-green-600 to-feu-green-700 flex items-center justify-center">
+                            <i class="ki-filled ki-abstract-26 text-feu-gold-400 text-[10px]"></i>
+                        </div>
+                        <span class="text-xs text-gray-500 font-medium">ARIES</span>
+                    </div>
+                    <span class="text-gray-700">|</span>
+                    <p class="text-sm text-gray-500">
+                        &copy; {{ "now"|date("Y") }} Far Eastern University. All rights reserved.
+                    </p>
+                </div>
+                <div class="flex items-center gap-4 sm:gap-6 flex-wrap justify-center">
+                    <a href="#" class="text-sm text-gray-500 hover:text-feu-gold-400 transition-colors flex items-center gap-1">
+                        <i class="ki-filled ki-shield text-[10px]"></i>
+                        Privacy Policy
+                    </a>
+                    <a href="#" class="text-sm text-gray-500 hover:text-feu-gold-400 transition-colors flex items-center gap-1">
+                        <i class="ki-filled ki-document text-[10px]"></i>
+                        Terms of Service
+                    </a>
+                    <a href="#" class="text-sm text-gray-500 hover:text-feu-gold-400 transition-colors flex items-center gap-1">
+                        <i class="ki-filled ki-lock text-[10px]"></i>
+                        Data Policy
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
