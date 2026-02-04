@@ -118,9 +118,15 @@
     .service-icon { width: 70px; height: 70px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; transition: all 0.3s ease; }
     .service-card:hover .service-icon { transform: scale(1.1) rotate(5deg); }
     
+    /*  */
+
     /* ===== Buttons ===== */
     .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 700; color: #1a4d2e; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); border: none; cursor: pointer; }
+    .btn-primaryinv { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 700; color: #f59e0b; background: linear-gradient(135deg, #347357 0%, #1a4d2e 100%); border-radius: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(1, 121, 27, 0.5); border: none; cursor: pointer; }
+
     .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5); }
+    .btn-primaryinv:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(1, 190, 42, 0.5); }
+
     .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; color: white; background: transparent; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 0.875rem; transition: all 0.3s ease; }
     .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.5); }
     .btn-green { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 700; color: white; background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 100%); border-radius: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(26, 77, 46, 0.3); }
@@ -193,11 +199,11 @@
             <div class="hero-content container mx-auto px-4 lg:px-8">
                 <div class="max-w-4xl" data-aos="fade-up">
                     <h1 class="text-5xl md:text-6xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
-                        Start your campus life with <span class="text-feu-gold-400">FEU</span>
+                        Start your campus life with <span class="text-feu-gold-500">FEU</span>
                     </h1>
                     
                     <p class="text-xl md:text-2xl text-white/80 mb-12 font-medium">
-                        Choose the FEU campus that you want to enroll in.
+                        Choose an FEU campus to start with.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
@@ -205,312 +211,14 @@
                         <a href="{{ path('app_admission_apply') }}" class="btn-primary px-8 py-4 text-lg" id="btn-diliman">
                             <i class="ki-filled ki-geolocation"></i> FEU Diliman
                         </a>
-                        <a href="{{ path('app_admission_apply') }}" class="btn-secondary px-8 py-4 text-lg" id="btn-alabang">
+                        <a href="{{ path('app_admission_apply') }}" class="btn-primaryinv px-8 py-4 text-lg" id="btn-alabang">
                             <i class="ki-filled ki-geolocation"></i> FEU Alabang
                         </a>
                     </div>
                 </div>
             </div>
         </section>
-
-        {# ===== About ARIES Section ===== #}
-        <section class="py-20 lg:py-28 bg-white" id="about">
-            <div class="container mx-auto px-4 lg:px-8">
-                <div class="section-header" data-aos="fade-up">
-                    <span class="section-badge">
-                        <i class="ki-filled ki-abstract-26"></i>
-                        About ARIES
-                    </span>
-                    <h2 class="section-title">
-                        What is
-                        <span class="section-title-gradient">ARIES?</span>
-                    </h2>
-                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                        ARIES (Admission, Registration, Information & Enrollment System) is FEU's comprehensive digital platform 
-                        for both <strong>Tertiary</strong> and <strong>Basic Education Department (BED)</strong> students across 
-                        <strong>FEU Tech Manila</strong>, <strong>FEU Diliman</strong>, and <strong>FEU Alabang</strong>.
-                    </p>
-                </div>
-                
-                {# Features Grid #}
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-20">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="0">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-cloud text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">100% Cloud-Based</h3>
-                        <p class="text-gray-600">Complete your entire enrollment from anywhere in the world, anytime you want.</p>
-                    </div>
-                    
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-shield-tick text-feu-green-800 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">Bank-Level Security</h3>
-                        <p class="text-gray-600">Your personal data is protected with enterprise-grade encryption and security.</p>
-                    </div>
-                    
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-green-500 to-feu-green-600 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-delivery-time text-white text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">Real-Time Tracking</h3>
-                        <p class="text-gray-600">Monitor your application status with instant updates and email notifications.</p>
-                    </div>
-                    
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-feu-gold-400 to-feu-gold-500 flex items-center justify-center mb-5 shadow-lg">
-                            <i class="ki-filled ki-message-question text-feu-green-800 text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-3">24/7 Support</h3>
-                        <p class="text-gray-600">Get help whenever you need it through our dedicated support channels.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        {# ===== Our Campuses Section ===== #}
-        <section class="py-20 lg:py-28 bg-white" id="campuses">
-            <div class="container mx-auto px-4 lg:px-8">
-                <div class="section-header" data-aos="fade-up">
-                    <span class="section-badge">
-                        <i class="ki-filled ki-geolocation"></i>
-                        Our Campuses
-                    </span>
-                    <h2 class="section-title">
-                        Three Campuses,<br>
-                        <span class="section-title-gradient">One FEU Family</span>
-                    </h2>
-                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                        Choose from our strategic locations across Metro Manila. Each campus is designed to provide 
-                        quality education tailored to your needs.
-                    </p>
-                </div>
-                
-                <div class="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-                    {# FEU Tech Manila #}
-                    <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="0">
-                        <div class="relative h-48 overflow-hidden">
-                            <img src="{{ asset('images/hero/pic1.jpg') }}" alt="FEU Tech Manila Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-t from-feu-green-900/90 to-transparent"></div>
-                            <div class="absolute bottom-4 left-4 right-4">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-feu-gold-400 text-feu-green-900 text-xs font-bold rounded-full">
-                                    <i class="ki-filled ki-star"></i> Main Campus
-                                </span>
-                            </div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">FEU Tech Manila</h3>
-                            <p class="text-sm text-gray-500 mb-4 flex items-start gap-2">
-                                <i class="ki-filled ki-geolocation text-feu-green-600 flex-shrink-0 mt-0.5"></i>
-                                P. Paredes St., Sampaloc, Manila
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {# FEU Diliman #}
-                    <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="100">
-                        <div class="relative h-48 overflow-hidden">
-                            <img src="{{ asset('images/hero/pic2.jpg') }}" alt="FEU Diliman Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-t from-feu-green-900/90 to-transparent"></div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">FEU Diliman</h3>
-                            <p class="text-sm text-gray-500 mb-4 flex items-start gap-2">
-                                <i class="ki-filled ki-geolocation text-feu-green-600 flex-shrink-0 mt-0.5"></i>
-                                Regalado Ave., North Fairview, Quezon City
-                            </p>
-                        </div>
-                    </div>
-                    
-                    {# FEU Tech Alabang #}
-                    <div class="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 group" data-aos="fade-up" data-aos-delay="200">
-                        <div class="relative h-48 overflow-hidden">
-                            <img src="{{ asset('images/hero/pic3.jpg') }}" alt="FEU Alabang Campus" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-t from-feu-green-900/90 to-transparent"></div>
-                        </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">FEU Tech Alabang</h3>
-                            <p class="text-sm text-gray-500 mb-4 flex items-start gap-2">
-                                <i class="ki-filled ki-geolocation text-feu-green-600 flex-shrink-0 mt-0.5"></i>
-                                Alabang-Zapote Road, Las Piñas City
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        {# ===== Senior High School Tracks Section ===== #}
-        <section class="py-20 lg:py-28 bg-white" id="Tracks">
-            <div class="container mx-auto px-4 lg:px-8">
-                <div class="section-header" data-aos="fade-up">
-                    <span class="section-badge">
-                        <i class="ki-filled ki-book"></i>
-                        Basic Education Department
-                    </span>
-                    <h2 class="section-title">
-                        Senior High School<br>
-                        <span class="section-title-gradient">Academic Tracks</span>
-                    </h2>
-                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Prepare for your college journey with our specialized Senior High School tracks available at FEU Diliman and FEU Alabang.
-                    </p>
-                </div>
-                
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-                    
-                    {# 1. STEM - Science, Technology, Engineering, and Mathematics #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="0">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-technology-4 text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">STEM</h3>
-                        <p class="text-gray-600 text-sm mb-4">Science, Technology, Engineering, and Mathematics</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 2. ABM - Accountancy, Business, and Management #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="100">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-chart-pie-3 text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">ABM</h3>
-                        <p class="text-gray-600 text-sm mb-4">Accountancy, Business, and Management</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 3. HUMSS - Humanities and Social Sciences #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="200">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-people text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">HUMSS</h3>
-                        <p class="text-gray-600 text-sm mb-4">Humanities and Social Sciences</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 4. GAS - General Academic Strand #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="300">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-book text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">GAS</h3>
-                        <p class="text-gray-600 text-sm mb-4">General Academic Strand</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 5. SPORTS TRACK (Diliman Only) #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="400">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-trophy text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Sports Track</h3>
-                        <p class="text-gray-600 text-sm mb-4">Athletic and Sports Development</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-green-50 text-feu-green-700 text-xs rounded-lg font-bold border border-feu-green-100">FEU Diliman</span>
-                        </div>
-                    </div>
-
-                    {# 6. CSMA (Alabang Only) #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="500">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-code text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">CSMA</h3>
-                        <p class="text-gray-600 text-sm mb-4">Computer Science, Multimedia, and Animation</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 7. ENG (Alabang Only) #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="600">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-setting-2 text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">ENG</h3>
-                        <p class="text-gray-600 text-sm mb-4">Engineering Strand</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 8. HA - Health Allied (Alabang Only) #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="700">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-heart text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">HA</h3>
-                        <p class="text-gray-600 text-sm mb-4">Health Allied Strand</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 9. BAE (Alabang Only) #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="800">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-bank text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">BAE</h3>
-                        <p class="text-gray-600 text-sm mb-4">Business, Accountancy, and Entrepreneurship</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                    {# 10. SSH (Alabang Only) #}
-                    <div class="program-card group" data-aos="fade-up" data-aos-delay="900">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                <i class="ki-filled ki-abstract-26 text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">SSH</h3>
-                        <p class="text-gray-600 text-sm mb-4">Social Sciences and Humanities</p>
-                        <div class="flex flex-wrap gap-2 mt-auto">
-                            <span class="px-2 py-1 bg-feu-gold-50 text-feu-gold-700 text-xs rounded-lg font-bold border border-feu-gold-100">FEU Alabang</span>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
     </main>
-
-    {# Footer #}
-    {% include 'layouts/_public_footer.html.twig' %}
 {% endblock %}
 
 {% block javascripts %}
@@ -590,25 +298,6 @@ document.addEventListener('DOMContentLoaded', function() {
             heroSwiper.autoplay.start();
         });
     }
-
-    // ===== Smooth Scroll for Anchor Links =====
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            if (href !== '#') {
-                e.preventDefault();
-                const target = document.querySelector(href);
-                if (target) {
-                    const headerHeight = 80;
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            }
-        });
-    });
 });
 </script>
 {% endblock %}
