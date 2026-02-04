@@ -1,0 +1,942 @@
+{# templates/admission/apply.html.twig #}
+{# Unified Application Form - Modern Design with Campus Logic #}
+{# BED: FEU Diliman (Elementary, JHS, SHS) & FEU Alabang (SHS only) #}
+{# Tertiary: FEU Tech only #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Apply Now - ARIES{% endblock %}
+{% block og_title %}Apply Now - FEU Enrollment{% endblock %}
+{% block og_description %}Start your academic journey at FEU{% endblock %}
+
+{% block stylesheets %}
+<link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
+<link rel="stylesheet" href="{{ asset('css/base.css') }}?v=2">
+<link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
+<link rel="stylesheet" href="{{ asset('css/components.css') }}?v=2">
+<link rel="stylesheet" href="{{ asset('css/pages/admission.css') }}?v=18">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Campus Selector Styles */
+    .campus-selector-row { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+    .campus-option {
+        flex: 1;
+        min-width: 280px;
+        max-width: 350px;
+        background: #fff;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        opacity: 0.7;
+        position: relative;
+    }
+    .campus-option:hover { border-color: var(--primary-color); opacity: 0.9; transform: translateY(-2px); }
+    
+    /* SELECTED STATE - GREEN HIGHLIGHT */
+    .campus-option.selected {
+        border-color: #1a4d2e !important; /* FEU Green */
+        background: #f0fdf4 !important;   /* Very light green background */
+        opacity: 1 !important;
+        box-shadow: 0 10px 20px rgba(26, 77, 46, 0.15);
+    }
+    .campus-option.selected::after {
+        content: '\2713'; /* Checkmark */
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        color: #1a4d2e;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .campus-option i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block; transition: color 0.3s; }
+    
+    /* Icon color when selected */
+    .campus-option.selected i { color: #1a4d2e; }
+    
+    .campus-option h4 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-dark); }
+    .campus-option p { font-size: 0.9rem; color: var(--text-muted); margin: 0; line-height: 1.4; }
+    
+    /* Hide filtered options */
+    .edu-option.hidden { display: none !important; }
+    .section-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); transition: all 0.3s ease; }
+
+    /* Additional Form Styles */
+    .form-section-title { font-weight: 600; color: var(--text-dark); margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-top: 1.5rem; }
+    .checklist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
+    .checklist-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s; cursor: pointer; }
+    .checklist-item:hover { border-color: var(--primary-color); background: var(--bg-light); }
+    .checklist-item input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: var(--primary-color); cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block body %}
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div class="apply-container">
+    {# ===== Sidebar Brand Panel ===== #}
+    <aside class="brand-panel" role="complementary" aria-label="Application progress sidebar">
+        <div class="brand-content">
+            <div>
+                <a href="{{ path('app_home') }}" class="brand-logo" title="Go to Homepage">
+                    <div class="brand-logo-icon">
+                        <i class="ki-filled ki-abstract-26" aria-hidden="true"></i>
+                    </div>
+                    <div class="brand-logo-text">
+                        <h2>ARIES</h2>
+                        <p>FEU Enrollment</p>
+                    </div>
+                </a>
+                
+                <h1 class="brand-title">Start Your<br><span>Academic Journey</span></h1>
+                <p class="brand-subtitle">Join the FEU Family. Complete this comprehensive application to begin your enrollment process.</p>
+                
+                {# Progress Indicator #}
+                <div class="brand-progress-modern">
+                    <div class="progress-label-row">
+                        <span class="progress-label">Application Progress</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: 20%;"></div>
+                    </div>
+                    <div class="progress-milestones">
+                        <span class="milestone active">Profile</span>
+                        <span class="milestone">Education</span>
+                        <span class="milestone">Parents</span>
+                        <span class="milestone">Reqs</span>
+                    </div>
+                </div>
+                
+                <nav class="progress-steps" aria-label="Application steps">
+                    <div class="step-item" aria-current="step">
+                        <div class="step-circle active">1</div>
+                        <div class="step-info active">
+                            <h3>Student Details</h3>
+                            <p>Personal & Contact Info</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle inactive">2</div>
+                        <div class="step-info inactive">
+                            <h3>Academic History</h3>
+                            <p>Previous School Info</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-circle inactive">3</div>
+                        <div class="step-info inactive">
+                            <h3>Parent Details</h3>
+                            <p>Family Information</p>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            
+            <div class="brand-footer">
+                <p>Need help? <a href="mailto:aries@feu.edu.ph">aries@feu.edu.ph</a></p>
+            </div>
+        </div>
+    </aside>
+    
+    {# ===== Main Form Panel ===== #}
+    <main class="form-panel" id="main-content">
+        {# Mobile Header #}
+        <header class="mobile-header">
+            <a href="{{ path('app_home') }}" title="Back to Home" aria-label="Back to homepage">
+                <i class="ki-filled ki-arrow-left text-lg" aria-hidden="true"></i>
+            </a>
+            <div class="mobile-logo">
+                <div class="mobile-logo-icon">
+                    <i class="ki-filled ki-abstract-26" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <span class="mobile-logo-text">ARIES</span>
+                    <span class="mobile-logo-sub">FEU</span>
+                </div>
+            </div>
+            <span style="width: 40px;"></span>
+        </header>
+        
+        <div class="form-wrapper">
+            <div class="form-container">
+                <div class="form-header">
+                    <h1>Registration Form</h1>
+                    <p>Select your campus and fill out the details.</p>
+                </div>
+                
+                <form id="applyForm" action="{{ path('app_admission_apply_submit') }}" method="POST" novalidate>
+                    {# Hidden Inputs #}
+                    <input type="hidden" name="campus_selected" id="campusSelected" value="{{ selected_campus|default('') }}">
+                    <input type="hidden" name="education_level" id="educationLevel" value="">
+                    <input type="hidden" name="education_type" id="educationType" value="">
+                    <input type="hidden" name="application_type" id="applicationType" value="">
+
+                    {# ===== Section 0: Campus Selection ===== #}
+                    <section class="form-section animate-section" aria-labelledby="campus-select-title">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-map" aria-hidden="true"></i></div>
+                            <div>
+                                <h3 class="section-title" id="campus-select-title">Select Campus</h3>
+                                <p class="section-subtitle">Where do you intend to enroll?</p>
+                            </div>
+                        </div>
+
+                        <div class="campus-selector-row">
+                            {# FEU Diliman Button #}
+                            <div class="campus-option" data-value="feu_diliman" role="button" tabindex="0">
+                                <i class="ki-filled ki-bank" aria-hidden="true"></i>
+                                <h4>FEU Diliman</h4>
+                                <p>Quezon City<br><small>Kinder, JHS, SHS, College</small></p>
+                            </div>
+                            
+                            {# FEU Alabang Button #}
+                            <div class="campus-option" data-value="feu_alabang" role="button" tabindex="0">
+                                <i class="ki-filled ki-geolocation" aria-hidden="true"></i>
+                                <h4>FEU Alabang</h4>
+                                <p>Muntinlupa<br><small>SHS & College Only</small></p>
+                            </div>
+                        </div>
+                        <div class="error-message" id="campusError" style="text-align:center; margin-top: 0.5rem;"><i class="ki-filled ki-information-2"></i><span>Please select a campus first</span></div>
+                    </section>
+
+                    {# ===== Section 1: Education Selector ===== #}
+                    <section class="form-section animate-section section-disabled" id="levelSection" aria-labelledby="applying-title">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-graduation-cap" aria-hidden="true"></i></div>
+                            <div>
+                                <h3 class="section-title" id="applying-title">Intended Grade / Level</h3>
+                                <p class="section-subtitle">Select the level you are applying for</p>
+                            </div>
+                        </div>
+                        
+                        <div class="education-selector" id="educationSelector" role="radiogroup">
+                            {# Elementary (Diliman Only) #}
+                            <div class="edu-option diliman-only" data-level="elementary" data-type="bed" tabindex="0" role="radio">
+                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book" aria-hidden="true"></i></div></div>
+                                <span class="edu-label">Elementary</span>
+                                <span class="edu-sublabel">(Kinder - Grade 6)</span>
+                            </div>
+                            {# Junior High (Diliman Only) #}
+                            <div class="edu-option diliman-only" data-level="junior_high" data-type="bed" tabindex="0" role="radio">
+                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book-open" aria-hidden="true"></i></div></div>
+                                <span class="edu-label">Junior High</span>
+                                <span class="edu-sublabel">(Grade 7 - 10)</span>
+                            </div>
+                            {# Senior High (Both) #}
+                            <div class="edu-option" data-level="senior_high" data-type="bed" tabindex="0" role="radio">
+                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-teacher" aria-hidden="true"></i></div></div>
+                                <span class="edu-label">Senior High</span>
+                                <span class="edu-sublabel">(Grade 11 - 12)</span>
+                            </div>
+                            {# Collegiate (Both) #}
+                            <div class="edu-option" data-level="collegiate" data-type="tertiary" tabindex="0" role="radio">
+                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-brifecase-tick" aria-hidden="true"></i></div></div>
+                                <span class="edu-label">College</span>
+                                <span class="edu-sublabel">(Undergraduate)</span>
+                            </div>
+                        </div>
+                        <div class="error-message" id="educationLevelError" role="alert"><i class="ki-filled ki-information-2"></i><span>Please select a level</span></div>
+                        
+                        {# Selected Level Display #}
+                        <div class="selected-level-display" id="selectedLevelDisplay">
+                            <div class="selected-level-info">
+                                <i class="ki-filled ki-check-circle" aria-hidden="true"></i>
+                                <span id="selectedLevelText">No level selected</span>
+                            </div>
+                            <button type="button" class="btn-change" id="changeLevelBtn">Change</button>
+                        </div>
+                    </section>
+
+                    {# ===== Section 2: Application Type ===== #}
+                    <section class="form-section animate-section conditional-section" id="applicationTypeSection">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-document" aria-hidden="true"></i></div>
+                            <div>
+                                <h3 class="section-title">Application Type</h3>
+                                <p class="section-subtitle">Your student status</p>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <div class="app-type-badge" id="appTypeBadge">
+                                    <i class="ki-filled ki-user-tick" id="appTypeIcon"></i>
+                                    <span id="appTypeText">Freshman</span>
+                                </div>
+                                <button type="button" class="btn-link-sm" id="changeTypeBtn">Change</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# ===== Section 3: Grade Specifics (BED Only) ===== #}
+                    <section class="form-section animate-section conditional-section" id="bedSection">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-book-open"></i></div>
+                            <div>
+                                <h3 class="section-title">Grade Level Details</h3>
+                                <p class="section-subtitle">Specifics for your enrollment</p>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="gradeLevel">Grade Level <span class="required">*</span></label>
+                                <select name="grade_level" id="gradeLevel" class="form-control select-styled">
+                                    <option value="">Select grade level</option>
+                                </select>
+                                <div class="error-message" id="gradeLevelError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                            
+                            {# SHS Strand #}
+                            <div class="form-group" id="strandSection" style="display: none;">
+                                <label class="form-label" for="strand">SHS Track & Strand <span class="required">*</span></label>
+                                <select name="strand" id="strand" class="form-control select-styled">
+                                    <option value="">Select track and strand</option>
+                                    <optgroup label="Academic Track">
+                                        <option value="STEM">STEM (Science, Tech, Eng, Math)</option>
+                                        <option value="ABM">ABM (Accountancy, Business, Mgt)</option>
+                                        <option value="HUMSS">HUMSS (Humanities & Social Sciences)</option>
+                                        <option value="GAS">GAS (General Academic Strand)</option>
+                                        <option value="SPORTS" class="diliman-only" style="display:none;">Sports Track</option>
+                                    </optgroup>
+                                    <optgroup label="TVL Track">
+                                        <option value="TVL-ICT">TVL - ICT</option>
+                                        <option value="TVL-HE">TVL - Home Economics</option>
+                                    </optgroup>
+                                </select>
+                                <div class="error-message" id="strandError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# ===== Section 4: Student Details ===== #}
+                    <section class="form-section animate-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-profile-circle"></i></div>
+                            <div>
+                                <h3 class="section-title">Student Details</h3>
+                                <p class="section-subtitle">Personal Information</p>
+                            </div>
+                        </div>
+                        
+                        {# Name Fields #}
+                        <div class="form-group">
+                            <label class="form-label">Full Name <span class="required">*</span></label>
+                            <div class="name-row">
+                                <div class="name-field">
+                                    <input type="text" name="last_name" id="lastName" class="form-control" placeholder="Last Name" required>
+                                    <span class="field-label">Last Name*</span>
+                                    <div class="error-message" id="lastNameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                                </div>
+                                <div class="name-field">
+                                    <input type="text" name="first_name" id="firstName" class="form-control" placeholder="First Name" required>
+                                    <span class="field-label">First Name*</span>
+                                    <div class="error-message" id="firstNameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                                </div>
+                                <div class="name-field">
+                                    <input type="text" name="middle_name" id="middleName" class="form-control" placeholder="Middle Name">
+                                    <span class="field-label">Middle Name</span>
+                                </div>
+                                <div class="name-field suffix-field">
+                                    <select name="suffix" class="form-control">
+                                        <option value="">Suffix</option>
+                                        <option value="Jr.">Jr.</option>
+                                        <option value="Sr.">Sr.</option>
+                                        <option value="II">II</option>
+                                        <option value="III">III</option>
+                                    </select>
+                                    <span class="field-label">Suffix</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Contact, Birthday, Gender #}
+                        <div class="form-row three-cols">
+                            <div class="form-group">
+                                <label class="form-label" for="contactNumber">Mobile Number <span class="required">*</span></label>
+                                <div class="input-wrapper">
+                                    <i class="ki-filled ki-phone input-icon-left"></i>
+                                    <input type="tel" name="contact_number" id="contactNumber" class="form-control has-icon" placeholder="09XX XXX XXXX" maxlength="11" required>
+                                </div>
+                                <div class="error-message" id="contactError"><i class="ki-filled ki-information-2"></i><span>Invalid Format</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="birthday">Birthday <span class="required">*</span></label>
+                                <input type="date" name="birthday" id="birthday" class="form-control" required>
+                                <div class="error-message" id="birthdayError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="gender">Gender <span class="required">*</span></label>
+                                <select name="gender" id="gender" class="form-control select-styled" required>
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                                <div class="error-message" id="genderError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <div class="input-wrapper">
+                                <i class="ki-filled ki-sms input-icon-left"></i>
+                                <input type="email" name="email" id="email" class="form-control has-icon" placeholder="email@example.com">
+                            </div>
+                            <div class="error-message" id="emailError"><i class="ki-filled ki-information-2"></i><span>Invalid Email</span></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="homeAddress">Home Address <span class="required">*</span></label>
+                            <textarea name="home_address" id="homeAddress" class="form-control" rows="2" placeholder="House No., Street, Barangay, City, Province" required></textarea>
+                            <div class="error-message" id="homeAddressError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                        </div>
+                    </section>
+
+                    {# ===== Section 5: Academic History ===== #}
+                    <section class="form-section animate-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-book-square"></i></div>
+                            <div>
+                                <h3 class="section-title">Academic History</h3>
+                                <p class="section-subtitle">Previous School Information</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="prevSchool">Previous School Name <span class="required">*</span></label>
+                            <input type="text" name="prev_school" id="prevSchool" class="form-control" required>
+                            <div class="error-message" id="prevSchoolError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="schoolAddress">School Address <span class="required">*</span></label>
+                            <input type="text" name="school_address" id="schoolAddress" class="form-control" required>
+                            <div class="error-message" id="schoolAddressError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="schoolEmail">School's Email Address <span class="required">*</span></label>
+                                <input type="email" name="school_email" id="schoolEmail" class="form-control" required>
+                                <div class="error-message" id="schoolEmailError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="schoolContact">School Contact Number <span class="required">*</span></label>
+                                <input type="tel" name="school_contact" id="schoolContact" class="form-control" required>
+                                <div class="error-message" id="schoolContactError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {# ===== Section 6: Parent Details ===== #}
+                    <section class="form-section animate-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-people"></i></div>
+                            <div>
+                                <h3 class="section-title">Parent / Guardian Details</h3>
+                                <p class="section-subtitle">Family Background</p>
+                            </div>
+                        </div>
+
+                        <h4 class="form-section-title">Father's Information</h4>
+                        <div class="form-row three-cols">
+                            <div class="form-group">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="father_lastname" id="fatherLastname" class="form-control" required>
+                                <div class="error-message" id="fatherLastnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                <input type="tel" name="father_contact" id="fatherContact" class="form-control" required>
+                                <div class="error-message" id="fatherContactError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                        </div>
+
+                        <h4 class="form-section-title mt-4">Mother's Information</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="mother_firstname" id="motherFirstname" class="form-control" required>
+                                <div class="error-message" id="motherFirstnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="mother_lastname" id="motherLastname" class="form-control" required>
+                                <div class="error-message" id="motherLastnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                <input type="tel" name="mother_contact" id="motherContact" class="form-control" required>
+                                <div class="error-message" id="motherContactError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
+                            </div>
+                        </div>
+
+                        <h4 class="form-section-title mt-4">Guardian (If not living with parents)</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Guardian Name</label>
+                                <input type="text" name="guardian_name" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contact Number</label>
+                                <input type="tel" name="guardian_contact" class="form-control">
+                            </div>
+                        </div>
+                    </section>
+
+                    {# ===== Section 7: Mandatory Requirements (Checklist) ===== #}
+                    <section class="form-section animate-section">
+                        <div class="section-header">
+                            <div class="section-icon"><i class="ki-filled ki-folder-check"></i></div>
+                            <div>
+                                <h3 class="section-title">Requirements Checklist</h3>
+                                <p class="section-subtitle">Ensure you have the following documents</p>
+                            </div>
+                        </div>
+                        
+                        <div class="checklist-grid">
+                            <label class="checklist-item">
+                                <input type="checkbox" name="req_psa" value="1">
+                                <span>PSA Birth Certificate</span>
+                            </label>
+                            <label class="checklist-item">
+                                <input type="checkbox" name="req_card" value="1">
+                                <span>Report Card (Form 138)</span>
+                            </label>
+                            <label class="checklist-item">
+                                <input type="checkbox" name="req_moral" value="1">
+                                <span>Good Moral Certificate</span>
+                            </label>
+                            <label class="checklist-item">
+                                <input type="checkbox" name="req_lrn" value="1">
+                                <span>Learner Reference Number (LRN)</span>
+                            </label>
+                            <label class="checklist-item">
+                                <input type="checkbox" name="req_id_pic" value="1">
+                                <span>2x2 ID Pictures</span>
+                            </label>
+                            <label class="checklist-item" id="reqEscContainer" style="display:none;">
+                                <input type="checkbox" name="req_esc" value="1">
+                                <span>ESC/QVR Certificate</span>
+                            </label>
+                        </div>
+                        <p class="form-text mt-2 text-muted text-sm">Note: Please bring original copies and photocopies for verification.</p>
+                    </section>
+                    
+                    {# ===== Privacy Agreement ===== #}
+                    <div class="privacy-section animate-section">
+                        <label class="privacy-checkbox" id="privacyLabel">
+                            <input type="checkbox" name="privacy_consent" id="privacyConsent" value="1" required>
+                            <div class="checkbox-box"><i class="ki-filled ki-check" aria-hidden="true"></i></div>
+                            <div class="checkbox-content">
+                                <strong><i class="ki-filled ki-shield-tick" aria-hidden="true"></i> Data Privacy Agreement</strong>
+                                <p>I agree to the collection and processing of my personal data in accordance with the Data Privacy Act of 2012 and FEU's privacy policy.</p>
+                            </div>
+                        </label>
+                        <div class="error-message" id="privacyError" role="alert"><i class="ki-filled ki-information-2"></i><span>You must agree to the privacy terms</span></div>
+                    </div>
+                    
+                    {# Submit Button #}
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span id="submitText">Submit Application</span>
+                        <i class="ki-filled ki-arrow-right" id="submitIcon" aria-hidden="true"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        {# Fixed Footer #}
+        <footer class="form-footer-fixed">
+            <div class="footer-content">
+                <p>© {{ "now"|date("Y") }} Far Eastern University. All rights reserved.</p>
+            </div>
+        </footer>
+    </main>
+</div>
+
+{# ===== MODALS ===== #}
+{# Tertiary Modal #}
+<div class="modal-overlay" id="tertiaryModal" role="dialog" aria-modal="true">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 id="tertiaryModalTitle">Application Type for <span id="tertiaryLevelName">Collegiate</span></h2>
+            <button type="button" class="modal-close" id="closeTertiaryModal"><i class="ki-filled ki-cross"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-options">
+                <button type="button" class="modal-option" data-value="freshman">
+                    <div class="option-icon"><i class="ki-filled ki-user-tick"></i></div>
+                    <span>Freshman</span><p>First-time college student</p>
+                </button>
+                <button type="button" class="modal-option" data-value="transferee">
+                    <div class="option-icon"><i class="ki-filled ki-arrow-right-left"></i></div>
+                    <span>Transferee</span><p>From another university</p>
+                </button>
+                <button type="button" class="modal-option" data-value="second_degree">
+                    <div class="option-icon"><i class="ki-filled ki-medal-star"></i></div>
+                    <span>Second Degree</span><p>Already have a bachelor's degree</p>
+                </button>
+                <button type="button" class="modal-option" data-value="cross_enrollee">
+                    <div class="option-icon"><i class="ki-filled ki-document"></i></div>
+                    <span>Cross Enrollee</span><p>Taking specific subjects only</p>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# BED Modal #}
+<div class="modal-overlay" id="bedModal" role="dialog" aria-modal="true">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h2 id="bedModalTitle">Application Type for <span id="bedLevelName">Elementary</span></h2>
+            <button type="button" class="modal-close" id="closeBedModal"><i class="ki-filled ki-cross"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-options two-cols">
+                <button type="button" class="modal-option" data-value="new_student">
+                    <div class="option-icon"><i class="ki-filled ki-user-tick"></i></div>
+                    <span>New Student</span><p>First time enrolling</p>
+                </button>
+                <button type="button" class="modal-option" data-value="transferee">
+                    <div class="option-icon"><i class="ki-filled ki-arrow-right-left"></i></div>
+                    <span>Transferee</span><p>From another school</p>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+(function() {
+    'use strict';
+    
+    // --- Elements ---
+    const form = document.getElementById('applyForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const submitIcon = document.getElementById('submitIcon');
+    
+    // Campus Selector
+    const campusOptions = document.querySelectorAll('.campus-option');
+    const campusInput = document.getElementById('campusSelected');
+    const levelSection = document.getElementById('levelSection');
+    
+    // Education Selection
+    const eduOptions = document.querySelectorAll('.edu-option');
+    const eduLevelInput = document.getElementById('educationLevel');
+    const eduTypeInput = document.getElementById('educationType');
+    const educationSelector = document.getElementById('educationSelector');
+    const selectedLevelDisplay = document.getElementById('selectedLevelDisplay');
+    const changeLevelBtn = document.getElementById('changeLevelBtn');
+    const selectedLevelText = document.getElementById('selectedLevelText');
+    
+    // App Type
+    const applicationTypeInput = document.getElementById('applicationType');
+    const applicationTypeSection = document.getElementById('applicationTypeSection');
+    const changeTypeBtn = document.getElementById('changeTypeBtn');
+    const appTypeText = document.getElementById('appTypeText');
+    const appTypeIcon = document.getElementById('appTypeIcon');
+    
+    // Campus & Sections
+    const bedSection = document.getElementById('bedSection');
+    const strandSection = document.getElementById('strandSection');
+    const gradeLevelSelect = document.getElementById('gradeLevel');
+    const reqEscContainer = document.getElementById('reqEscContainer');
+    
+    // Modals
+    const tertiaryModal = document.getElementById('tertiaryModal');
+    const bedModal = document.getElementById('bedModal');
+    const closeTertiaryModal = document.getElementById('closeTertiaryModal');
+    const closeBedModal = document.getElementById('closeBedModal');
+    const tertiaryLevelName = document.getElementById('tertiaryLevelName');
+    const bedLevelName = document.getElementById('bedLevelName');
+
+    let selectedLevel = null;
+    let selectedType = null;
+    let selectedAppType = null;
+
+    const gradeLevels = {
+        elementary: ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'],
+        junior_high: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
+        senior_high: ['Grade 11', 'Grade 12']
+    };
+
+    const appTypeLabels = {
+        freshman: { text: 'Freshman', icon: 'ki-user-tick' },
+        transferee: { text: 'Transferee', icon: 'ki-arrow-right-left' },
+        second_degree: { text: 'Second Degree', icon: 'ki-medal-star' },
+        cross_enrollee: { text: 'Cross Enrollee', icon: 'ki-document' },
+        new_student: { text: 'New Student', icon: 'ki-user-tick' }
+    };
+
+    function initSelect2() {
+        $('.select-styled').select2({ width: '100%', minimumResultsForSearch: 10 });
+    }
+
+    // --- Campus Selection Logic ---
+    function initCampus() {
+        const preSelected = campusInput.value;
+        if(preSelected) {
+            selectCampus(preSelected);
+        }
+    }
+
+    campusOptions.forEach(opt => {
+        opt.addEventListener('click', function() {
+            const val = this.dataset.value;
+            selectCampus(val);
+        });
+        
+        opt.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                const val = this.dataset.value;
+                selectCampus(val);
+            }
+        });
+    });
+
+    function selectCampus(campusValue) {
+        // Visual Update
+        campusOptions.forEach(c => {
+            c.classList.remove('selected');
+            c.setAttribute('aria-checked', 'false');
+        });
+        
+        // Find by data-value matching exactly what's passed
+        const selectedBtn = document.querySelector(`.campus-option[data-value="${campusValue}"]`);
+        if(selectedBtn) {
+            selectedBtn.classList.add('selected');
+            selectedBtn.setAttribute('aria-checked', 'true');
+        }
+
+        // State Update
+        campusInput.value = campusValue;
+        document.getElementById('campusError').style.display = 'none';
+
+        // Unlock Level Section
+        levelSection.classList.remove('section-disabled');
+
+        // Filter Educational Levels
+        eduOptions.forEach(opt => {
+            if (campusValue === 'feu_alabang') {
+                if (opt.classList.contains('diliman-only')) {
+                    opt.classList.add('hidden');
+                } else {
+                    opt.classList.remove('hidden');
+                }
+            } else {
+                opt.classList.remove('hidden');
+            }
+        });
+        
+        // Reset selected level if it is now hidden
+        const currentLevel = document.querySelector('.edu-option.selected');
+        if(currentLevel && currentLevel.classList.contains('hidden')) {
+            resetLevelSelection();
+        }
+        
+        // Handle Sports Track visibility
+        const sportsOption = document.querySelector('.diliman-only[value="SPORTS"]'); 
+        if(sportsOption) {
+            // Note: For select2/native select visibility
+            sportsOption.style.display = (campusValue === 'feu_diliman') ? 'block' : 'none';
+        }
+    }
+    
+    function resetLevelSelection() {
+        eduOptions.forEach(o => o.classList.remove('selected'));
+        selectedLevel = null;
+        selectedType = null;
+        eduLevelInput.value = '';
+        eduTypeInput.value = '';
+        selectedLevelDisplay.classList.remove('active');
+        educationSelector.classList.remove('collapsed');
+        applicationTypeSection.classList.remove('active');
+        bedSection.classList.remove('active');
+    }
+
+    // --- Education Option Selection ---
+    eduOptions.forEach(opt => {
+        opt.addEventListener('click', function() {
+            if(!campusInput.value) {
+                document.getElementById('campusError').style.display = 'block';
+                return;
+            }
+            eduOptions.forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedLevel = this.dataset.level;
+            selectedType = this.dataset.type;
+            
+            // Open Modal
+            if(selectedType === 'tertiary') {
+                tertiaryLevelName.textContent = selectedLevel === 'graduate' ? 'Graduate School' : 'Collegiate';
+                tertiaryModal.classList.add('active');
+            } else {
+                bedLevelName.textContent = selectedLevel === 'elementary' ? 'Elementary' : (selectedLevel === 'junior_high' ? 'Junior High' : 'Senior High');
+                bedModal.classList.add('active');
+            }
+        });
+    });
+
+    // Close Modals
+    [closeTertiaryModal, closeBedModal].forEach(btn => btn.addEventListener('click', closeModal));
+    function closeModal() {
+        tertiaryModal.classList.remove('active');
+        bedModal.classList.remove('active');
+        if (!selectedAppType) { 
+            eduOptions.forEach(o => o.classList.remove('selected'));
+            selectedLevel = null;
+        }
+    }
+
+    // App Type Selection (Inside Modal)
+    document.querySelectorAll('.modal-option').forEach(opt => {
+        opt.addEventListener('click', function() {
+            selectedAppType = this.dataset.value;
+            closeModal();
+            updateFormState();
+        });
+    });
+
+    function updateFormState() {
+        eduLevelInput.value = selectedLevel;
+        eduTypeInput.value = selectedType;
+        applicationTypeInput.value = selectedAppType;
+
+        selectedLevelDisplay.classList.add('active');
+        educationSelector.classList.add('collapsed');
+        selectedLevelText.textContent = selectedLevel.replace('_', ' ').toUpperCase();
+        
+        applicationTypeSection.classList.add('active');
+        const info = appTypeLabels[selectedAppType];
+        if(info) {
+            appTypeText.textContent = info.text;
+            appTypeIcon.className = `ki-filled ${info.icon}`;
+        }
+
+        if (selectedType === 'bed') {
+            bedSection.classList.add('active');
+            updateGradeDropdown();
+            
+            if (selectedLevel === 'senior_high') {
+                strandSection.style.display = 'block';
+                if (selectedAppType === 'transferee') reqEscContainer.style.display = 'flex';
+                else reqEscContainer.style.display = 'none';
+            } else {
+                strandSection.style.display = 'none';
+                reqEscContainer.style.display = 'none';
+            }
+        } else {
+            bedSection.classList.remove('active');
+        }
+    }
+
+    function updateGradeDropdown() {
+        gradeLevelSelect.innerHTML = '<option value="">Select grade level</option>';
+        const levels = gradeLevels[selectedLevel] || [];
+        levels.forEach(lvl => {
+            const val = lvl.toLowerCase().replace(' ', '_');
+            gradeLevelSelect.add(new Option(lvl, val));
+        });
+    }
+
+    // Change Buttons
+    changeLevelBtn.addEventListener('click', resetLevelSelection);
+    changeTypeBtn.addEventListener('click', () => {
+        if(selectedType === 'tertiary') tertiaryModal.classList.add('active');
+        else bedModal.classList.add('active');
+    });
+
+    // Validations
+    function validateField(input, errorId) {
+        const isValid = input.value.trim() !== '';
+        const errorEl = document.getElementById(errorId);
+        if(errorEl) {
+            if(!isValid) {
+                input.classList.add('is-invalid');
+                errorEl.classList.add('show');
+            } else {
+                input.classList.remove('is-invalid');
+                errorEl.classList.remove('show');
+            }
+        }
+        return isValid;
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        let isValid = true;
+
+        if(!campusInput.value) {
+            document.getElementById('campusError').style.display = 'block';
+            isValid = false;
+        }
+
+        ['lastName', 'firstName', 'contactNumber', 'birthday', 'gender', 'homeAddress', 
+         'prevSchool', 'schoolAddress', 'schoolEmail', 'schoolContact', 
+         'fatherLastname', 'fatherContact', 'motherFirstname', 'motherLastname', 'motherContact'
+        ].forEach(id => {
+            const el = document.getElementById(id);
+            if(el && !validateField(el, id + 'Error')) isValid = false;
+        });
+
+        if(selectedType === 'bed' && !gradeLevelSelect.value) {
+            document.getElementById('gradeLevelError').classList.add('show');
+            isValid = false;
+        }
+        
+        if(!document.getElementById('privacyConsent').checked) {
+            document.getElementById('privacyError').classList.add('show');
+            isValid = false;
+        }
+
+        if(isValid) {
+            submitBtn.disabled = true;
+            submitText.textContent = 'Submitting...';
+            submitIcon.className = 'ki-filled ki-loading-circle animate-spin';
+            form.submit();
+        } else {
+            const firstError = document.querySelector('.error-message.show, .is-invalid');
+            if(firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+    });
+
+    // Modals Close Logic (Overlay click)
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    });
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        initSelect2();
+        initCampus(); // This checks the value from URL and auto-selects
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
+    });
+
+})();
+</script>
+{% endblock %}

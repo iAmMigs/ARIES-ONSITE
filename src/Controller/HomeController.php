@@ -14,10 +14,6 @@ class HomeController extends AbstractController
         return $this->render('home/index.html.twig');
     }
 
-    // --- DUMMY ROUTES FOR FRONTEND MOCKUP ---
-    
-    #[Route('/apply', name: 'app_admission_apply')]
-    public function apply(): Response { return new Response('Apply Page Coming Soon'); }
 
     #[Route('/status', name: 'app_admission_status')]
     public function status(): Response { return new Response('Status Page Coming Soon'); }
