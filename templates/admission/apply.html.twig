@@ -80,6 +80,13 @@
     /* File Upload Styles */
     .file-upload-group { margin-bottom: 1.25rem; }
     .file-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+    
+    /* Disabled Button Styles */
+    .btn-submit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: var(--text-muted) !important;
+    }
 </style>
 {% endblock %}
 
@@ -101,6 +108,7 @@
                 </a>
                 
                 <h1 class="brand-title">Start Your<br><span>Academic Journey</span></h1>
+                
                 <p class="brand-subtitle">Join the FEU Family. Complete this comprehensive application to begin your enrollment process.</p>
                 
                 {# Progress Indicator #}
@@ -551,11 +559,17 @@
                     </section>
                     
                     
-                    {# Submit Button #}
-                    <button type="submit" class="btn-submit" id="submitBtn">
-                        <span id="submitText">Submit Application</span>
-                        <i class="ki-filled ki-arrow-right" id="submitIcon" aria-hidden="true"></i>
-                    </button>
+                    {# Submit Button Area #}
+                    <div class="submit-area" style="text-align: center; margin-top: 2rem;">
+                        <button type="submit" class="btn-submit" id="submitBtn" disabled style="opacity: 0.5; cursor: not-allowed;">
+                            <span id="submitText">Submit Application</span>
+                            <i class="ki-filled ki-arrow-right" id="submitIcon" aria-hidden="true"></i>
+                        </button>
+                        {# Red text error message #}
+                        <div id="submitErrorMessage" style="color: #dc2626; font-size: 0.9rem; margin-top: 0.75rem; font-weight: 500; display: block;">
+                            <i class="ki-filled ki-information-2"></i> Please fill out all required details to proceed.
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -630,11 +644,13 @@
 <script>
 (function() {
     'use strict';
+
     // --- Elements ---
     const form = document.getElementById('applyForm');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
     const submitIcon = document.getElementById('submitIcon');
+    const submitErrorMessage = document.getElementById('submitErrorMessage');
     
     // Campus Selector
     const campusOptions = document.querySelectorAll('.campus-option');
@@ -649,7 +665,7 @@
     const selectedLevelDisplay = document.getElementById('selectedLevelDisplay');
     const changeLevelBtn = document.getElementById('changeLevelBtn');
     const selectedLevelText = document.getElementById('selectedLevelText');
-    
+
     // App Type
     const applicationTypeInput = document.getElementById('applicationType');
     const applicationTypeSection = document.getElementById('applicationTypeSection');
@@ -661,6 +677,7 @@
     const bedSection = document.getElementById('bedSection');
     const strandSection = document.getElementById('strandSection');
     const gradeLevelSelect = document.getElementById('gradeLevel');
+    const strandSelect = document.getElementById('strand'); // Added explicit reference
     
     // Requirements
     const reqEscContainer = document.getElementById('reqEscContainer');
@@ -668,7 +685,7 @@
 
     // Mobile Field
     const studentMobileContainer = document.getElementById('studentMobileContainer');
-    
+
     // Modals
     const tertiaryModal = document.getElementById('tertiaryModal');
     const bedModal = document.getElementById('bedModal');
@@ -682,7 +699,6 @@
     let selectedAppType = null;
 
     // --- DATA MAPPING ---
-    // Strands based on your specific images
     const strandData = {
         feu_alabang: {
             'SHS_ABM': 'ABM - Accountancy, Business and Management',
@@ -709,6 +725,7 @@
         junior_high: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
         senior_high: ['Grade 11', 'Grade 12']
     };
+
     const appTypeLabels = {
         freshman: { text: 'Freshman', icon: 'ki-user-tick' },
         transferee: { text: 'Transferee', icon: 'ki-arrow-right-left' },
@@ -719,36 +736,51 @@
 
     function initSelect2() {
         $('.select-styled').select2({ width: '100%', minimumResultsForSearch: 10 });
+        
+        // Add change listener to Select2 elements to trigger validation
+        $('.select-styled').on('change', function() {
+            checkGlobalValidity();
+        });
+    }
+
+    function scrollToSection(elementId) {
+        const el = document.getElementById(elementId);
+        if(el) {
+            setTimeout(() => {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
     }
 
     // --- Campus Selection Logic ---
     function initCampus() {
         const preSelected = campusInput.value;
         if(preSelected) {
-            selectCampus(preSelected);
+            selectCampus(preSelected, false); // Don't scroll on init
         }
     }
 
     campusOptions.forEach(opt => {
         opt.addEventListener('click', function() {
             const val = this.dataset.value;
-            selectCampus(val);
+            selectCampus(val, true);
         });
         
         opt.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 const val = this.dataset.value;
-                selectCampus(val);
+                selectCampus(val, true);
             }
         });
     });
 
-    function selectCampus(campusValue) {
+    function selectCampus(campusValue, shouldScroll = true) {
         campusOptions.forEach(c => {
             c.classList.remove('selected');
             c.setAttribute('aria-checked', 'false');
         });
+
         const selectedBtn = document.querySelector(`.campus-option[data-value="${campusValue}"]`);
         if(selectedBtn) {
             selectedBtn.classList.add('selected');
@@ -758,7 +790,7 @@
         campusInput.value = campusValue;
         document.getElementById('campusError').style.display = 'none';
         levelSection.classList.remove('section-disabled');
-        
+
         // Hide options irrelevant to campus
         eduOptions.forEach(opt => {
             if (campusValue === 'feu_alabang') {
@@ -778,6 +810,11 @@
         }
 
         updateStrands(campusValue);
+        checkGlobalValidity(); // Update progress bar
+
+        if(shouldScroll) {
+            scrollToSection('levelSection');
+        }
     }
     
     function updateStrands(campus) {
@@ -799,7 +836,8 @@
         educationSelector.classList.remove('collapsed');
         applicationTypeSection.classList.remove('active');
         bedSection.classList.remove('active');
-        studentMobileContainer.style.display = 'block'; 
+        studentMobileContainer.style.display = 'block';
+        checkGlobalValidity();
     }
 
     // --- Education Option Selection ---
@@ -827,6 +865,7 @@
 
     // Close Modals
     [closeTertiaryModal, closeBedModal].forEach(btn => btn.addEventListener('click', closeModal));
+
     function closeModal() {
         tertiaryModal.classList.remove('active');
         bedModal.classList.remove('active');
@@ -861,15 +900,18 @@
             appTypeIcon.className = `ki-filled ${info.icon}`;
         }
 
-        // Logic for Mobile Visibility based on Prompt
+        // Logic for Mobile Visibility
         updateMobileFieldVisibility();
 
         if (selectedType === 'bed') {
             bedSection.classList.add('active');
+            gradeLevelSelect.setAttribute('required', 'required');
             updateGradeDropdown();
-            
+
             if (selectedLevel === 'senior_high') {
                 strandSection.style.display = 'block';
+                strandSelect.setAttribute('required', 'required');
+                
                 // ESC logic
                 if (selectedAppType === 'transferee') {
                     reqEscContainer.style.display = 'block';
@@ -880,21 +922,34 @@
                 }
             } else {
                 strandSection.style.display = 'none';
+                strandSelect.removeAttribute('required');
                 reqEscContainer.style.display = 'none';
                 reqEscInput.required = false;
             }
+            
+            // Auto Scroll to Grade specifics
+            scrollToSection('bedSection');
+
         } else {
             bedSection.classList.remove('active');
+            gradeLevelSelect.removeAttribute('required');
+            strandSelect.removeAttribute('required');
+            
+            // Auto Scroll to Student Details
+            scrollToSection('section-student');
         }
+        
+        checkGlobalValidity();
     }
 
     function updateMobileFieldVisibility() {
-        // "mobile number field should not appear for kinder to grade 6"
-        // "for grades 7 to shs it is optional"
+        const input = document.getElementById('contactNumber');
         if (selectedLevel === 'elementary') {
             studentMobileContainer.style.display = 'none';
+            input.removeAttribute('required');
         } else {
             studentMobileContainer.style.display = 'block';
+            // Optional for 7-SHS as per your prompt in code ("Mobile Number (Optional)"), so no required attr needed
         }
     }
 
@@ -907,7 +962,6 @@
         });
     }
 
-    // Change Buttons
     changeLevelBtn.addEventListener('click', resetLevelSelection);
     changeTypeBtn.addEventListener('click', () => {
         if(selectedType === 'tertiary') tertiaryModal.classList.add('active');
@@ -916,14 +970,12 @@
 
     // Validations
     function validateField(input, errorId) {
-        // Skip validation if the field's container or parent section is hidden
-        if (input.offsetParent === null) return true;
-
-        // Skip validation if field is not required and empty
+        if (input.offsetParent === null) return true; // Hidden fields are valid
         if (!input.hasAttribute('required') && input.value.trim() === '') return true;
 
         const isValid = input.value.trim() !== '';
         const errorEl = document.getElementById(errorId);
+        
         if(errorEl) {
             if(!isValid) {
                 input.classList.add('is-invalid');
@@ -938,45 +990,19 @@
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        let isValid = true;
-
-        if(!campusInput.value) {
-            document.getElementById('campusError').style.display = 'block';
-            isValid = false;
-        }
-
-        // Validate standard fields
-        ['lastName', 'firstName', 'birthday', 'gender', 'homeAddress', 
-         'prevSchool', 'schoolAddress', 'schoolEmail', 'schoolContact', 
-         'fatherLastname', 'fatherContact', 'motherFirstname', 'motherLastname', 'motherContact'
-        ].forEach(id => {
-            const el = document.getElementById(id);
-            if(el && !validateField(el, id + 'Error')) isValid = false;
-        });
-
-        // Validate File Uploads
-        ['reqPsa', 'reqCard', 'reqMoral'].forEach(id => {
-             const el = document.getElementById(id);
-             if(el && !validateField(el, id + 'Error')) isValid = false;
-        });
         
-        // Conditional validations
-        if (reqEscInput.required && !validateField(reqEscInput, 'reqEscError')) isValid = false;
-
-        if(selectedType === 'bed' && !gradeLevelSelect.value) {
-            document.getElementById('gradeLevelError').classList.add('show');
-            isValid = false;
-        }
-
-        if(isValid) {
-            submitBtn.disabled = true;
-            submitText.textContent = 'Submitting...';
-            submitIcon.className = 'ki-filled ki-loading-circle animate-spin';
-            form.submit();
-        } else {
-            const firstError = document.querySelector('.error-message.show, .is-invalid');
+        // Force check validity one last time
+        if (!checkGlobalValidity()) {
+            // Find first error and scroll
+            const firstError = document.querySelector('.error-message.show, .is-invalid, .campus-selector-row');
             if(firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
+            return;
         }
+
+        submitBtn.disabled = true;
+        submitText.textContent = 'Submitting...';
+        submitIcon.className = 'ki-filled ki-loading-circle animate-spin';
+        form.submit();
     });
 
     // Modals Close Logic
@@ -989,7 +1015,6 @@
     // --- Scroll Spy for Sidebar ---
     function initScrollSpy() {
         const steps = document.querySelectorAll('.step-item');
-        
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1022,41 +1047,79 @@
         });
     }
 
-    // --- Dynamic Progress Bar ---
-    function initProgressBar() {
+    // --- GLOBAL VALIDITY & PROGRESS BAR ---
+    function checkGlobalValidity() {
+        // 1. Inputs to track
+        let totalItems = 0;
+        let filledItems = 0;
+
+        // A. Custom Selectors (Campus & Level)
+        totalItems++; // Campus is always required
+        if (campusInput.value) filledItems++;
+
+        totalItems++; // Education Level is always required
+        if (eduLevelInput.value) filledItems++;
+
+        // B. BED Specifics (Grade & Strand)
+        if (selectedType === 'bed') {
+            // Grade Level
+            totalItems++;
+            if (gradeLevelSelect.value) filledItems++;
+
+            // Strand (Only if SHS)
+            if (selectedLevel === 'senior_high') {
+                totalItems++;
+                if (strandSelect.value) filledItems++;
+            }
+        }
+
+        // C. Standard Form Fields
+        const allRequired = Array.from(form.querySelectorAll('input[required]:not(:disabled), select[required]:not(:disabled), textarea[required]:not(:disabled)'));
+        
+        // Filter only visible fields
+        const visibleRequired = allRequired.filter(el => {
+            // Check if element is visible and its parent section is visible
+            return el.offsetParent !== null && 
+                   el.id !== 'campusSelected' && 
+                   el.id !== 'educationLevel' &&
+                   el.id !== 'gradeLevel' && // Handled manually above
+                   el.id !== 'strand';       // Handled manually above
+        });
+
+        totalItems += visibleRequired.length;
+
+        visibleRequired.forEach(field => {
+            if (field.type === 'checkbox' || field.type === 'radio') {
+                if (field.checked) filledItems++;
+            } else if (field.type === 'file') {
+                if (field.files.length > 0) filledItems++;
+            } else {
+                if (field.value.trim() !== '') filledItems++;
+            }
+        });
+
+        // Update Progress Bar
         const progressBar = document.getElementById('mainProgressBar');
-        
-        const updateProgress = () => {
-            const allRequired = Array.from(form.querySelectorAll('input[required]:not(:disabled), select[required]:not(:disabled), textarea[required]:not(:disabled)'));
-            
-            const visibleRequired = allRequired.filter(el => {
-                return el.offsetParent !== null; // Check visibility
-            });
+        const percent = totalItems === 0 ? 0 : Math.round((filledItems / totalItems) * 100);
+        progressBar.style.width = `${percent}%`;
 
-            if (visibleRequired.length === 0) return; 
+        // Update Submit Button State
+        // We require 100% completion to unlock
+        const isComplete = (filledItems >= totalItems) && totalItems > 0;
 
-            let filledCount = 0;
-            visibleRequired.forEach(field => {
-                if (field.type === 'checkbox' || field.type === 'radio') {
-                    if (field.checked) filledCount++;
-                } else if (field.type === 'file') {
-                    if (field.files.length > 0) filledCount++;
-                } else {
-                    if (field.value.trim() !== '') filledCount++;
-                }
-            });
+        if (isComplete) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            submitErrorMessage.style.display = 'none';
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.5';
+            submitBtn.style.cursor = 'not-allowed';
+            submitErrorMessage.style.display = 'block';
+        }
 
-            const percent = Math.round((filledCount / visibleRequired.length) * 100);
-            progressBar.style.width = `${percent}%`;
-        };
-
-        form.addEventListener('input', updateProgress);
-        form.addEventListener('change', updateProgress);
-        
-        const observer = new MutationObserver(updateProgress);
-        observer.observe(form, { attributes: true, childList: true, subtree: true });
-        
-        updateProgress();
+        return isComplete;
     }
 
     // Initialize
@@ -1064,8 +1127,15 @@
         initSelect2();
         initCampus();
         initScrollSpy();
-        initProgressBar();
         
+        // Listeners for real-time validation
+        form.addEventListener('input', checkGlobalValidity);
+        form.addEventListener('change', checkGlobalValidity);
+        
+        // Run once on load
+        checkGlobalValidity();
+        
+        // Animation Observer
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -1073,6 +1143,7 @@
         }, { threshold: 0.1 });
         document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
     });
+
 })();
 </script>
 {% endblock %}
