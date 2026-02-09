@@ -1,0 +1,437 @@
+/**
+ * ============================================================================
+ * ARIES 2.0 - Admin Dashboard Styles
+ * Based on admission.css variables
+ * ============================================================================
+ */
+
+:root {
+    --sidebar-width: 280px;
+    --sidebar-width-collapsed: 80px;
+    --header-height: 70px;
+    --admin-bg: #f3f4f6;
+    /* Reuse variables from admission.css where possible */
+    --feu-green: #1a4d2e;
+    --feu-green-dark: #0d3320;
+    --feu-accent: #fbbf24;
+}
+
+body {
+    background-color: var(--admin-bg);
+    overflow: hidden; /* Prevent body scroll, handle inside containers */
+}
+
+/* ===== Layout Container ===== */
+.admin-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    transition: all 0.3s ease;
+}
+
+/* ===== Sidebar ===== */
+.admin-sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, var(--feu-green) 0%, var(--feu-green-dark) 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    position: relative;
+    z-index: 20;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+}
+
+/* Collapsed State */
+.admin-container.sidebar-collapsed .admin-sidebar {
+    width: var(--sidebar-width-collapsed);
+}
+
+.admin-container.sidebar-collapsed .logo-text,
+.admin-container.sidebar-collapsed .nav-item span {
+    display: none;
+    opacity: 0;
+}
+
+.admin-container.sidebar-collapsed .sidebar-header {
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.admin-container.sidebar-collapsed .logo-icon {
+    margin-right: 0;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--feu-accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.logo-icon i {
+    color: var(--feu-green-dark);
+    font-size: 1.25rem;
+}
+
+.logo-text h2 {
+    font-size: 1.25rem;
+    color: white;
+    margin: 0;
+    font-weight: 800;
+}
+
+.logo-text p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.7);
+    margin: 0;
+}
+
+/* Toggle Button */
+.btn-toggle-sidebar {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-toggle-sidebar:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 10px;
+    overflow-y: auto;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+    min-width: 30px; /* fixed width for alignment */
+}
+
+.nav-item span {
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+.nav-item:hover {
+    color: white;
+    background: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+    color: var(--feu-accent);
+    background: rgba(255,255,255,0.15);
+    font-weight: 700;
+    border-left: 3px solid var(--feu-accent);
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ===== Main Content ===== */
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Header */
+.admin-header {
+    height: var(--header-height);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.page-title {
+    font-size: 1.25rem;
+    color: #1e293b;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    padding: 8px 12px 8px 36px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    width: 250px;
+    outline: none;
+}
+
+.search-box i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.admin-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    cursor: pointer;
+}
+
+/* Content Body */
+.admin-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+}
+
+/* ===== Data Table Styles ===== */
+.table-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+}
+
+.data-table th,
+.data-table td {
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.data-table th {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Column Specifics */
+.col-img {
+    width: 80px;
+    text-align: center;
+}
+
+.col-action {
+    width: 80px;
+    text-align: right;
+}
+
+/* 1. Student Image (Left Column) */
+.student-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    background: #f1f5f9;
+}
+
+.student-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Student Info */
+.student-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-info strong {
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.student-info small {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* Badges */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.badge-outline {
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+
+.badge-primary {
+    background: rgba(26, 77, 46, 0.1);
+    color: var(--feu-green);
+}
+
+.badge-warning {
+    background: rgba(251, 191, 36, 0.1);
+    color: #b45309;
+}
+
+/* Status Indicators */
+.status {
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.status-pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+.status-verified {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.text-mono {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 700;
+    color: #475569;
+}
+
+/* 2. Edit Button (Far Right Column) */
+.data-table td:last-child {
+    text-align: right;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edit:hover {
+    background: var(--feu-green);
+    color: white;
+    border-color: var(--feu-green);
+    box-shadow: 0 4px 10px rgba(26, 77, 46, 0.2);
+}
+
+.filter-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.filter-wrapper i {
+    position: absolute;
+    left: 10px;
+    color: var(--feu-green);
+    pointer-events: none;
+    font-size: 1.1rem;
+}
+
+.form-select-sm {
+    padding: 8px 12px 8px 36px; /* Space for icon */
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #1e293b;
+    background-color: white;
+    cursor: pointer;
+    outline: none;
+    min-width: 160px;
+    appearance: none; /* Removes default browser arrow */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 20px;
+    transition: all 0.2s;
+}
+
+.form-select-sm:hover {
+    border-color: var(--feu-green);
+}
+
+.form-select-sm:focus {
+    border-color: var(--feu-green);
+    box-shadow: 0 0 0 3px rgba(26, 77, 46, 0.1);
+}
