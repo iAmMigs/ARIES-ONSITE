@@ -10,7 +10,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin')]
 class AdminController extends AbstractController
 {
-    #[Route('/', name: 'app_admin_dashboard')]
+    #[Route('/diliman', name: 'app_admin_dashboard')]
     public function index(Request $request): Response
     {
 
@@ -23,9 +23,9 @@ class AdminController extends AbstractController
                 'email' => 'miguelosinada@email.com',
                 'grade' => 'Grade 11',
                 'track' => 'STEM',
-                'status' => 'Pending',
+                'status' => 'Pending Examination',
                 'date' => 'Feb 08, 2026',
-                'avatar' => '300-10.png'
+                'avatar' => '300-11.png'
             ],
             [
                 'id' => 2,
@@ -34,18 +34,18 @@ class AdminController extends AbstractController
                 'email' => 'mark.fischbach@email.com',
                 'grade' => 'Grade 12',
                 'track' => 'ABM',
-                'status' => 'Verified',
+                'status' => 'Enrolled',
                 'date' => 'Feb 07, 2026',
                 'avatar' => '300-2.png'
             ],
             [
                 'id' => 3,
                 'student_id' => '2025500003',
-                'name' => 'Reyes, Miguel',
+                'name' => 'Reyes, Mary Jane',
                 'email' => 'miguel.reyes@email.com',
                 'grade' => 'Grade 3',
                 'track' => null, // Elementary has no track
-                'status' => 'Pending',
+                'status' => 'Pending Examination',
                 'date' => 'Feb 09, 2026',
                 'avatar' => '300-1.png'
             ],
@@ -63,7 +63,7 @@ class AdminController extends AbstractController
         $availableGrades = array_unique(array_column($allRegistrations, 'grade'));
         sort($availableGrades);
 
-        return $this->render('admin/diliman_dashboard.html.twig', [
+        return $this->render('admin-onsite/diliman/diliman_dashboard.html.twig', [
             'registrations' => $filteredRegistrations,
             'current_filter' => $gradeFilter,
             'available_grades' => $availableGrades

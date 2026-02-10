@@ -155,7 +155,7 @@
                     <p>Select your campus and fill out the details.</p>
                 </div>
                 
-                <form id="applyForm" action="{{ path('app_admission_apply_submit') }}" method="POST" enctype="multipart/form-data" novalidate>
+                <form id="applyForm" action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" novalidate>
                     <input type="hidden" name="campus_selected" id="campusSelected" value="{{ selected_campus|default('') }}">
                     <input type="hidden" name="education_level" id="educationLevel" value="">
                     <input type="hidden" name="education_type" id="educationType" value="">
@@ -198,6 +198,11 @@
                         </div>
                         
                         <div class="education-selector" id="educationSelector" role="radiogroup">
+                            <div class="edu-option diliman-only" data-level="elementary" data-type="bed" tabindex="0" role="radio">
+                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book" aria-hidden="true"></i></div></div>
+                                <span class="edu-label">Elementary</span>
+                                <span class="edu-sublabel">(Kinder - Grade 6)</span>
+                            </div>
                             <div class="edu-option diliman-only" data-level="elementary" data-type="bed" tabindex="0" role="radio">
                                 <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book" aria-hidden="true"></i></div></div>
                                 <span class="edu-label">Elementary</span>
@@ -817,15 +822,6 @@
         $('.select-styled').on('change', function() {
             checkGlobalValidity();
         });
-    }
-
-    function scrollToSection(elementId) {
-        const el = document.getElementById(elementId);
-        if(el) {
-            setTimeout(() => {
-                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
-        }
     }
 
     // --- Campus Selection Logic ---
