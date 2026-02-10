@@ -7,10 +7,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/diliman-admin')]
-class AdminDilimanController extends AbstractController
+#[Route('/alabang-admin')]
+class AdminAlabangController extends AbstractController
 {
-    #[Route('/', name: 'app_admin_diliman_dashboard')]
+    #[Route('/', name: 'app_admin_alabang_dashboard')]
     public function index(Request $request): Response
     {
 
@@ -62,20 +62,20 @@ class AdminDilimanController extends AbstractController
         $availableGrades = array_unique(array_column($allRegistrations, 'grade'));
         sort($availableGrades);
 
-        return $this->render('admin-onsite/diliman/diliman_dashboard.html.twig', [
+        return $this->render('admin-onsite/alabang/alabang_dashboard.html.twig', [
             'registrations' => $filteredRegistrations,
             'current_filter' => $gradeFilter,
             'available_grades' => $availableGrades
         ]);
     }
 
-    #[Route('/registration/{id}/edit', name: 'app_admin_diliman_registration_edit')]
+    #[Route('/registration/{id}/edit', name: 'app_admin_alabang_registration_edit')]
     public function edit(int $id): Response
     {
         return new Response("To Do Skibidi");
     }
 
-    #[Route('/registration/{id}/view', name: 'app_admin_diliman_registration_view')]
+    #[Route('/registration/{id}/view', name: 'app_admin_alabang_registration_view')]
     public function view(int $id): Response
     {
         return new Response("To Do Skibidi");

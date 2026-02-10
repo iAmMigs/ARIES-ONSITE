@@ -24,12 +24,12 @@
         <div class="sidebar-header">
             <div class="sidebar-logo">
                 <div class="logo-icon"><i class="ki-filled ki-abstract-26"></i></div>
-                <div class="logo-text"><h2>ARIES</h2><p>Diliman - Admin Console</p></div>
+                <div class="logo-text"><h2>ARIES</h2><p>Alabang - Admin Console</p></div>
             </div>
             <button class="btn-toggle-sidebar" id="sidebarToggle"><i class="ki-filled ki-double-left"></i></button>
         </div>
         <nav class="sidebar-nav">
-            <a href="{{ path('app_admin_diliman_dashboard') }}" class="nav-item active"><i class="ki-filled ki-people"></i><span>Registrations</span></a>
+            <a href="{{ path('app_admin_alabang_dashboard') }}" class="nav-item active"><i class="ki-filled ki-people"></i><span>Registrations</span></a>
         </nav>
     </aside>
 
@@ -45,7 +45,7 @@
             </h1>
             
             <div class="header-actions">
-                <form method="get" action="{{ path('app_admin_diliman_dashboard') }}" class="filter-form">
+                <form method="get" action="{{ path('app_admin_alabang_dashboard') }}" class="filter-form">
                     <div class="filter-wrapper">
                         <i class="ki-filled ki-filter"></i>
                         <select name="grade" onchange="this.form.submit()" class="form-select-sm">
@@ -59,7 +59,7 @@
                     </div>
                 </form>
 
-                <form method="get" action="{{ path('app_admin_diliman_dashboard') }}" class="filter-form">
+                <form method="get" action="{{ path('app_admin_alabang_dashboard') }}" class="filter-form">
                     <div class="filter-wrapper">
                         <i class="ki-filled ki-calendar"></i>
                         <select name="date" onchange="this.form.submit()" class="form-select-sm">
@@ -120,11 +120,11 @@
                                 </td>
                                 <td>{{ reg.date }}</td>
                                 <td class="col-action">
-                                    <a href="{{ path('app_admin_diliman_registration_view', {'id': reg.id}) }}" class="btn-icon btn-view" title="View">
+                                    <a href="{{ path('app_admin_alabang_registration_edit', {'id': reg.id}) }}" class="btn-icon btn-edit" title="View">
                                         <i class="ki-filled ki-eye"></i>
                                     </a>
                                     
-                                    <a href="{{ path('app_admin_registration_edit', {'id': reg.id}) }}" class="btn-icon btn-edit" title="Edit">
+                                    <a href="{{ path('app_admin_alabang_registration_edit', {'id': reg.id}) }}" class="btn-icon btn-edit" title="Edit">
                                         <i class="ki-filled ki-pencil"></i>
                                     </a>
                                 </td>
