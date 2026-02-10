@@ -9,8 +9,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Attribute\Route;
 use Psr\Log\LoggerInterface;
 
-#[Route('/admission')]
-class AdmissionController extends AbstractController
+#[Route('/enrollment')]
+class EnrollmentController extends AbstractController
 {
     /**
      * Returns the specific SHS strands for each campus based on your requirements.
@@ -41,19 +41,19 @@ class AdmissionController extends AbstractController
         return $strands[$campus] ?? [];
     }
 
-    #[Route('/apply', name: 'app_admission_apply', methods: ['GET'])]
+    #[Route('/apply', name: 'app_enrollment_apply', methods: ['GET'])]
     public function apply(Request $request): Response
     {
         // Capture the campus passed from the homepage (e.g. ?campus=feu_diliman)
         $selectedCampus = $request->query->get('campus');
 
-        return $this->render('admission/apply.html.twig', [
+        return $this->render('enrollment-onsite/enroll.html.twig', [
             'selected_campus' => $selectedCampus,
             'available_strands' => $selectedCampus ? $this->getStrandsByCampus($selectedCampus) : []
         ]);
     }
 
-    #[Route('/apply/submit', name: 'app_admission_apply_submit', methods: ['POST'])]
+    #[Route('/apply/submit', name: 'app_enrollment_apply_submit', methods: ['POST'])]
     public function submit(Request $request, LoggerInterface $logger): Response
     {
         // 1. Extract Application Context
@@ -77,7 +77,7 @@ class AdmissionController extends AbstractController
             // Note: 'esc' might be optional depending on logic, strict check applied here for standard docs
             if ($key !== 'esc' && !$file instanceof UploadedFile) {
                 $this->addFlash('error', "The " . strtoupper($key) . " document is required.");
-                return $this->redirectToRoute('app_admission_apply', ['campus' => $campus]);
+                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
             }
         }
 
@@ -170,7 +170,7 @@ class AdmissionController extends AbstractController
             
             if (!array_key_exists($strand, $validStrands)) {
                 $this->addFlash('error', 'Invalid strand selected for this campus.');
-                return $this->redirectToRoute('app_admission_apply', ['campus' => $campus]);
+                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
             }
         }
 
