@@ -7,14 +7,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/admin')]
-class AdminController extends AbstractController
+#[Route('/diliman-admin')]
+class AdminDilimanController extends AbstractController
 {
-    #[Route('/diliman', name: 'app_admin_dashboard')]
+    #[Route('/', name: 'app_admin_dashboard')]
     public function index(Request $request): Response
     {
 
-        //Sample data
         $allRegistrations = [
             [
                 'id' => 1,
