@@ -349,26 +349,80 @@
 
                         {# Extra Personal Details #}
                         <div class="form-row three-cols">
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label class="form-label">Citizenship <span class="required">*</span></label>
-                                <select name="citizenship" class="form-control select-styled" required>
+                                <select name="citizenship" id="citizenship" class="form-control select-styled" required>
                                     <option value="Filipino">Filipino</option>
                                     <option value="Dual">Dual Citizen</option>
                                     <option value="Foreign">Foreign National</option>
                                 </select>
                             </div>
+                            
+                            {# --- OPTIONAL: Civil Status (From data.pdf) --- #}
+                            <div class="form-group">
+                                <label class="form-label">Civil Status</label>
+                                <select name="civil_status" class="form-control select-styled">
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                    <option value="Widowed">Widowed</option>
+                                    <option value="Separated">Separated</option>
+                                </select>
+                            </div>
+
                             <div class="form-group">
                                 <label class="form-label">Religion</label>
                                 <input type="text" name="religion" class="form-control" placeholder="Optional">
                             </div>
+                        </div>
+
+                        {# --- OPTIONAL: Additional Student Info Row (From student.html.twig) --- #}
+                        <div class="form-row three-cols">
                             <div class="form-group">
                                 <label class="form-label">Mother Tongue <span class="required">*</span></label>
                                 <input type="text" name="mother_tongue" class="form-control" required placeholder="e.g. Tagalog">
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Birth Order</label>
+                                <select name="birth_order" class="form-control select-styled">
+                                    <option value="">Select</option>
+                                    <option value="1">1st (Eldest)</option>
+                                    <option value="2">2nd</option>
+                                    <option value="3">3rd</option>
+                                    <option value="4">4th</option>
+                                    <option value="5">5th</option>
+                                    <option value="youngest">Youngest</option>
+                                    <option value="only">Only Child</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Working Student?</label>
+                                <select name="working_student" class="form-control select-styled">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
                         </div>
-                        
-                        {# Birth Place #}
-                         <div class="form-row three-cols">
+
+                        {# --- OPTIONAL: Visa Info (Hidden by default, shown via script if Foreign) --- #}
+                        <div class="form-row" id="visaSection" style="display:none;">
+                            <div class="form-group">
+                                <label class="form-label">Passport Number</label>
+                                <input type="text" name="passport_no" class="form-control" placeholder="For foreign nationals">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Visa Type</label>
+                                <select name="visa_type" class="form-control select-styled">
+                                    <option value="">Select Visa</option>
+                                    <option value="9f">Student Visa (9F)</option>
+                                    <option value="tourist">Tourist Visa</option>
+                                    <option value="special">Special Resident Retiree's Visa</option>
+                                    <option value="immigrant">Immigrant Visa</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {# Birth Place - Kept original structure but cleaned up #}
+                        <div class="form-row three-cols">
                              <div class="form-group">
                                 <label class="form-label">Birth Country</label>
                                 <input type="text" name="birth_country" class="form-control" value="Philippines">
@@ -377,16 +431,27 @@
                                 <label class="form-label">Birth Province</label>
                                 <input type="text" name="birth_province" class="form-control">
                             </div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label class="form-label">Birth City/Municipality</label>
                                 <input type="text" name="birth_place" class="form-control">
                             </div>
-                         </div>
-                         
-                        <div class="form-row">
-                             <div class="form-group">
+                        </div>
+                        
+                        {# LRN & Socials #}
+                        <div class="form-row three-cols">
+                            <div class="form-group">
                                 <label class="form-label">LRN (Learner Reference No.)</label>
                                 <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN" maxlength="12">
+                            </div>
+                            {# --- OPTIONAL: Indigenous Group --- #}
+                            <div class="form-group">
+                                <label class="form-label">Indigenous Group</label>
+                                <input type="text" name="indigenous_group" class="form-control" placeholder="If applicable">
+                            </div>
+                            {# --- OPTIONAL: Facebook Account --- #}
+                            <div class="form-group">
+                                <label class="form-label">Facebook Account</label>
+                                <input type="text" name="fb_account" class="form-control" placeholder="Profile URL or Username">
                             </div>
                         </div>
 
@@ -413,7 +478,7 @@
                             </div>
                         </div>
                         
-                         <div class="form-row three-cols">
+                        <div class="form-row three-cols">
                              <div class="form-group">
                                 <label class="form-label">City/Municipality <span class="required">*</span></label>
                                 <input type="text" name="address_city" id="addressCity" class="form-control" required>
@@ -425,6 +490,44 @@
                              <div class="form-group">
                                 <label class="form-label">Zip Code <span class="required">*</span></label>
                                 <input type="text" name="address_zip" id="addressZip" class="form-control" required maxlength="4">
+                            </div>
+                        </div>
+
+                        {# --- OPTIONAL: Permanent Address (Hidden if same as current) --- #}
+                        <div class="form-section-title mt-4" style="display:flex; align-items:center; justify-content:space-between;">
+                            <span>Permanent Address</span>
+                            <div class="form-check" style="font-size: 0.9rem; font-weight: normal;">
+                                <input class="form-check-input" type="checkbox" value="1" id="sameAsCurrent" name="same_as_current" checked>
+                                <label class="form-check-label" for="sameAsCurrent">
+                                    Same as Current Address
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="permanentAddressBlock" style="display:none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Street Address</label>
+                                    <input type="text" name="perm_address_street" class="form-control" placeholder="House No., Street Name">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Barangay</label>
+                                    <input type="text" name="perm_address_barangay" class="form-control">
+                                </div>
+                            </div>
+                            <div class="form-row three-cols">
+                                <div class="form-group">
+                                    <label class="form-label">City/Municipality</label>
+                                    <input type="text" name="perm_address_city" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Province</label>
+                                    <input type="text" name="perm_address_province" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Zip Code</label>
+                                    <input type="text" name="perm_address_zip" class="form-control" maxlength="4">
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -476,6 +579,24 @@
                         </div>
 
                         <h4 class="form-section-title">Father's Information</h4>
+                        {# --- ADDED: Status & OFW (From guardian.html.twig) --- #}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select name="father_status" class="form-control select-styled">
+                                    <option value="Living">Living</option>
+                                    <option value="Deceased">Deceased</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">OFW?</label>
+                                <select name="father_ofw" class="form-control select-styled">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="form-row three-cols">
                             <div class="form-group">
                                 <label class="form-label">Last Name <span class="required">*</span></label>
@@ -487,37 +608,73 @@
                                 <input type="text" name="father_firstname" id="fatherFirstname" class="form-control" required>
                                 <div class="error-message" id="fatherFirstnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
                             </div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label class="form-label">Middle Name</label>
                                 <input type="text" name="father_middlename" class="form-control">
                             </div>
                         </div>
-                         <div class="form-row three-cols">
+                        
+                        <div class="form-row three-cols">
                             <div class="form-group">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
                                 <input type="tel" name="father_contact" id="fatherContact" class="form-control" required>
                             </div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label class="form-label">Email Address</label>
                                 <input type="email" name="father_email" class="form-control">
                             </div>
-                             <div class="form-group">
-                                <label class="form-label">Occupation <span class="required">*</span></label>
-                                <input type="text" name="father_occupation" class="form-control" required>
+                            <div class="form-group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" class="form-control">
                             </div>
                         </div>
-                        <div class="form-row">
+
+                        {# --- ADDED: Employment & Income --- #}
+                        <div class="form-row three-cols">
+                            <div class="form-group">
+                                <label class="form-label">Employer/Company</label>
+                                <input type="text" name="father_employer" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Monthly Income</label>
+                                <select name="father_income" class="form-control select-styled">
+                                    <option value="">Select Range</option>
+                                    <option value="below_20k">Below 20,000</option>
+                                    <option value="20k_40k">20,000 - 40,000</option>
+                                    <option value="40k_60k">40,000 - 60,000</option>
+                                    <option value="above_60k">Above 60,000</option>
+                                </select>
+                            </div>
                              <div class="form-group">
                                 <label class="form-label">Highest Education</label>
-                                <select name="father_education" class="form-control">
+                                <select name="father_education" class="form-control select-styled">
                                     <option value="">Select</option>
                                     <option value="College">College</option>
                                     <option value="High School">High School</option>
+                                    <option value="Post Grad">Post Graduate</option>
                                 </select>
                             </div>
                         </div>
 
                         <h4 class="form-section-title mt-4">Mother's Information</h4>
+                        {# --- ADDED: Status & OFW --- #}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select name="mother_status" class="form-control select-styled">
+                                    <option value="Living">Living</option>
+                                    <option value="Deceased">Deceased</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">OFW?</label>
+                                <select name="mother_ofw" class="form-control select-styled">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="form-row three-cols">
                             <div class="form-group">
                                 <label class="form-label">Last Name (Maiden) <span class="required">*</span></label>
@@ -539,22 +696,38 @@
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
                                 <input type="tel" name="mother_contact" id="motherContact" class="form-control" required>
                             </div>
-                             <div class="form-group">
+                            <div class="form-group">
                                 <label class="form-label">Email Address</label>
                                 <input type="email" name="mother_email" class="form-control">
                             </div>
                              <div class="form-group">
-                                <label class="form-label">Occupation <span class="required">*</span></label>
-                                <input type="text" name="mother_occupation" class="form-control" required>
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" class="form-control">
                             </div>
                         </div>
-                        <div class="form-row">
+                        {# --- ADDED: Employment & Income --- #}
+                        <div class="form-row three-cols">
+                            <div class="form-group">
+                                <label class="form-label">Employer/Company</label>
+                                <input type="text" name="mother_employer" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Monthly Income</label>
+                                <select name="mother_income" class="form-control select-styled">
+                                    <option value="">Select Range</option>
+                                    <option value="below_20k">Below 20,000</option>
+                                    <option value="20k_40k">20,000 - 40,000</option>
+                                    <option value="40k_60k">40,000 - 60,000</option>
+                                    <option value="above_60k">Above 60,000</option>
+                                </select>
+                            </div>
                              <div class="form-group">
                                 <label class="form-label">Highest Education</label>
-                                <select name="mother_education" class="form-control">
+                                <select name="mother_education" class="form-control select-styled">
                                     <option value="">Select</option>
                                     <option value="College">College</option>
                                     <option value="High School">High School</option>
+                                    <option value="Post Grad">Post Graduate</option>
                                 </select>
                             </div>
                         </div>
@@ -594,6 +767,24 @@
                                 <label class="form-label">Address</label>
                                 <input type="text" name="emergency_address" class="form-control" placeholder="Complete address">
                          </div>
+
+
+                        {# --- ADDED: Siblings Section (Optional) --- #}
+                        <h4 class="form-section-title mt-4">Siblings</h4>
+                        <div id="siblingsContainer">
+                            <div class="form-row">
+                                <div class="form-group" style="width:100%">
+                                    <label class="form-label">Number of Siblings</label>
+                                    <input type="number" name="siblings_count" class="form-control" placeholder="0">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="width:100%">
+                                    <label class="form-label">Name of Sibling/s studying in FEU (if any)</label>
+                                    <input type="text" name="sibling_feu" class="form-control" placeholder="Full Name">
+                                </div>
+                            </div>
+                        </div>
                     </section>
 
                     {# ===== Section 7: Submission of Documents ===== #}
@@ -1209,6 +1400,36 @@
             });
         }, { threshold: 0.1 });
         document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
+
+        // --- ADDED: Permanent Address Toggle ---
+        const sameAsCurrent = document.getElementById('sameAsCurrent');
+        const permBlock = document.getElementById('permanentAddressBlock');
+        
+        if(sameAsCurrent && permBlock) {
+            sameAsCurrent.addEventListener('change', function() {
+                if(this.checked) {
+                    permBlock.style.display = 'none';
+                    // Optional: Clear required attributes from hidden fields if strictly validating
+                } else {
+                    permBlock.style.display = 'block';
+                }
+            });
+        }
+
+        // --- ADDED: Visa Section Toggle ---
+        const citizenshipSelect = document.getElementById('citizenship');
+        const visaSection = document.getElementById('visaSection');
+        
+        if(citizenshipSelect && visaSection) {
+            citizenshipSelect.addEventListener('change', function() {
+                if(this.value === 'Foreign' || this.value === 'Dual') {
+                    visaSection.style.display = 'flex'; // or 'block' depending on layout
+                } else {
+                    visaSection.style.display = 'none';
+                }
+            });
+        }
+
     });
 
 })();
