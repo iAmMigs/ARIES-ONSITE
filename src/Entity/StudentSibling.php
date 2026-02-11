@@ -26,5 +26,16 @@ class StudentSibling
     private ?int $age = null;
 
     public function getId(): ?int { return $this->id; }
+
     public function setStudentProfile(?StudentProfile $studentProfile): static { $this->studentProfile = $studentProfile; return $this; }
+    public function getStudentProfile(): ?StudentProfile { return $this->studentProfile; }
+
+    public function getName(): ?string { return $this->name; }
+    public function setName(string $name): static { $this->name = $name; return $this; }
+
+    public function getSchoolOrCompany(): ?string { return $this->schoolOrCompany; }
+    public function setSchoolOrCompany(?string $schoolOrCompany): static { $this->schoolOrCompany = $schoolOrCompany; return $this; }
+
+    public function getAge(): ?int { return $this->age; }
+    public function setAge(?int $age): static { $this->age = $age; return $this; }
 }

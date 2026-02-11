@@ -26,5 +26,16 @@ class StudentSchool
     private ?string $yearGraduated = null;
 
     public function getId(): ?int { return $this->id; }
+
     public function setStudentProfile(?StudentProfile $studentProfile): static { $this->studentProfile = $studentProfile; return $this; }
+    public function getStudentProfile(): ?StudentProfile { return $this->studentProfile; }
+
+    public function getSchoolName(): ?string { return $this->schoolName; }
+    public function setSchoolName(string $schoolName): static { $this->schoolName = $schoolName; return $this; }
+
+    public function getLevel(): ?string { return $this->level; }
+    public function setLevel(string $level): static { $this->level = $level; return $this; }
+
+    public function getYearGraduated(): ?string { return $this->yearGraduated; }
+    public function setYearGraduated(?string $yearGraduated): static { $this->yearGraduated = $yearGraduated; return $this; }
 }

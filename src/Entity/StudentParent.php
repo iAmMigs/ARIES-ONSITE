@@ -39,4 +39,10 @@ class StudentParent
 
     public function getRelationship(): ?string { return $this->relationship; }
     public function setRelationship(string $relationship): static { $this->relationship = $relationship; return $this; }
+
+    public function getOccupation(): ?string { return $this->occupation; }
+    public function setOccupation(?string $occupation): static { $this->occupation = $occupation; return $this; }
+
+    public function getContactNumber(): ?string { return $this->contactNumber; }
+    public function setContactNumber(?string $contactNumber): static { $this->contactNumber = $contactNumber; return $this; }
 }
