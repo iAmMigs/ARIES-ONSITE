@@ -8,7 +8,7 @@
 :root {
     --sidebar-width: 280px;
     --sidebar-width-collapsed: 80px;
-    --header-height: 70px;
+    --header-height: 100px;
     --admin-bg: #f3f4f6;
     /* Reuse variables from admission.css where possible */
     --feu-green: #1a4d2e;
@@ -18,14 +18,14 @@
 
 body {
     background-color: var(--admin-bg);
-    overflow: hidden; /* Prevent body scroll, handle inside containers */
+    overflow-x: hidden; /* Only prevent horizontal scroll */
 }
 
 /* ===== Layout Container ===== */
 .admin-container {
     display: flex;
     width: 100vw;
-    height: 100vh;
+    min-height: 100vh; /* Allow container to grow with content */
     transition: all 0.3s ease;
 }
 
@@ -37,7 +37,9 @@ body {
     display: flex;
     flex-direction: column;
     transition: width 0.3s ease;
-    position: relative;
+    position: sticky; /* Stick to top while scrolling */
+    top: 0;
+    height: 100vh; /* Full viewport height */
     z-index: 20;
     box-shadow: 4px 0 15px rgba(0,0,0,0.1);
 }
@@ -179,7 +181,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    min-width: 0; /* Prevent flex overflow */
 }
 
 /* Header */
@@ -239,7 +241,7 @@ body {
 .admin-content {
     flex: 1;
     padding: 30px;
-    overflow-y: auto;
+    /* Removed overflow-y: auto to allow main window scroll */
 }
 
 /* ===== Data Table Styles ===== */
