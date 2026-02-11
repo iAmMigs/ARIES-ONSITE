@@ -1,26 +1,19 @@
-{# templates/admin/dashboard.html.twig #}
+{# templates/admin-onsite/diliman/diliman_dashboard.html.twig #}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIES Admin | Registration Management</title>
+    <title>ARIES Admin | Diliman Dashboard</title>
     <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
     <link rel="stylesheet" href="{{ asset('css/variables.css') }}">
     <link rel="stylesheet" href="{{ asset('css/base.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin.css') }}">
-
-    <link rel="shortcut icon" href="{{ asset('metronic/media/app/favicon.ico') }}"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('metronic/media/app/apple-touch-icon.png') }}"/>
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('metronic/media/app/favicon-32x32.png') }}"/>
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('metronic/media/app/favicon-16x16.png') }}"/>
 </head>
 <body>
 
 <div class="admin-container" id="adminContainer">
-    {# ... Sidebar code remains the same ... #}
     <aside class="admin-sidebar">
-        {# (Sidebar content omitted for brevity, stick with your previous code) #}
         <div class="sidebar-header">
             <div class="sidebar-logo">
                 <div class="logo-icon"><i class="ki-filled ki-abstract-26"></i></div>
@@ -55,15 +48,6 @@
                                     {{ grade }}
                                 </option>
                             {% endfor %}
-                        </select>
-                    </div>
-                </form>
-
-                <form method="get" action="{{ path('app_admin_diliman_dashboard') }}" class="filter-form">
-                    <div class="filter-wrapper">
-                        <i class="ki-filled ki-calendar"></i>
-                        <select name="date" onchange="this.form.submit()" class="form-select-sm">
-                            <option value="">All Dates</option>
                         </select>
                     </div>
                 </form>
@@ -120,18 +104,17 @@
                                 </td>
                                 <td>{{ reg.date }}</td>
                                 <td class="col-action">
-                                    <a href="{{ path('app_admin_diliman_registration_view', {'id': reg.id}) }}" class="btn-icon btn-view" title="View">
+                                    <a href="{{ path('app_admin_diliman_registration_view', {'id': reg.id}) }}" class="btn-icon btn-edit" title="View">
                                         <i class="ki-filled ki-eye"></i>
                                     </a>
-                                    
-                                    <a href="{{ path('app_admin_registration_edit', {'id': reg.id}) }}" class="btn-icon btn-edit" title="Edit">
+                                    <a href="{{ path('app_admin_diliman_registration_edit', {'id': reg.id}) }}" class="btn-icon btn-edit" title="Edit">
                                         <i class="ki-filled ki-pencil"></i>
                                     </a>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="7" style="text-align:center; padding: 2rem;">No applicants found for this level.</td>
+                                <td colspan="7" style="text-align:center; padding: 2rem;">No applicants found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
