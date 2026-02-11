@@ -19,22 +19,23 @@ class AdminDilimanController extends AbstractController
         $allRegistrations = $repository->findBy(['campus' => 'feu_diliman'], ['id' => 'DESC']);
 
         $gradeFilter = $request->query->get('grade');
-        
-        $filteredRegistrations = array_filter($allRegistrations, function($reg) use ($gradeFilter) {
-            if (!$gradeFilter) return true;
-            return $reg->getGradeLevel() === $gradeFilter;
-        });
+        if ($gradeFilter) {
+            $registrations = array_filter($allRegistrations, fn($r) => $r->getGradeLevel() === $gradeFilter);
+        } else {
+            $registrations = $allRegistrations;
+        }
 
         $availableGrades = array_unique(array_map(fn($r) => $r->getGradeLevel(), $allRegistrations));
         sort($availableGrades);
 
         return $this->render('admin-onsite/diliman/diliman_dashboard.html.twig', [
-            'registrations' => $filteredRegistrations,
+            'registrations' => $registrations,
             'current_filter' => $gradeFilter,
             'available_grades' => $availableGrades
         ]);
     }
 
+    // --- FEATURE 1: Polling Route ---
     #[Route('/table-content', name: 'app_admin_diliman_table_content')]
     public function tableContent(StudentProfileRepository $repository): Response
     {
@@ -49,19 +50,13 @@ class AdminDilimanController extends AbstractController
     public function edit(int $id, StudentProfileRepository $repository, Request $request, EntityManagerInterface $em): Response
     {
         $registration = $repository->find($id);
-        
-        if (!$registration) {
-            throw $this->createNotFoundException('Registration not found');
-        }
+        if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
-            $status = $request->request->get('status');
-            if ($status) {
-                $registration->setStatus($status);
-                $em->flush();
-                $this->addFlash('success', 'Registration updated successfully.');
-                return $this->redirectToRoute('app_admin_diliman_dashboard');
-            }
+            $registration->setStatus($request->request->get('status'));
+            $em->flush();
+            $this->addFlash('success', 'Status updated.');
+            return $this->redirectToRoute('app_admin_diliman_dashboard');
         }
 
         return $this->render('admin-onsite/diliman/edit_registration.html.twig', [
@@ -73,16 +68,14 @@ class AdminDilimanController extends AbstractController
     public function view(int $id, StudentProfileRepository $repository): Response
     {
         $registration = $repository->find($id);
-
-        if (!$registration) {
-            throw $this->createNotFoundException('Registration not found');
-        }
+        if (!$registration) throw $this->createNotFoundException();
 
         return $this->render('admin-onsite/diliman/view_registration.html.twig', [
             'registration' => $registration
         ]);
     }
 
+    // --- FEATURE 3: Delete Route ---
     #[Route('/registration/{id}/delete', name: 'app_admin_diliman_delete', methods: ['POST'])]
     public function delete(int $id, StudentProfileRepository $repository, EntityManagerInterface $em): Response
     {
@@ -91,7 +84,7 @@ class AdminDilimanController extends AbstractController
         if ($registration) {
             $em->remove($registration);
             $em->flush();
-            $this->addFlash('success', 'Registration record deleted permanently.');
+            $this->addFlash('success', 'Registration deleted successfully.');
         }
         
         return $this->redirectToRoute('app_admin_diliman_dashboard');

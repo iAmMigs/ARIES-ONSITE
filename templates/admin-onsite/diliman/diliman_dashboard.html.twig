@@ -80,15 +80,75 @@
                 <div class="table-responsive">
                     <table class="data-table">
                         <thead>
-                            <tr>
-                                <th class="col-img">Photo</th>
-                                <th>Student ID</th>
-                                <th>Full Name</th>
-                                <th>Level / Strand</th>
-                                <th>Status</th>
-                                <th>Date Applied</th>
-                                <th class="col-action">Action</th>
+                            <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+                                <th class="min-w-100px">Photo</th> {# Column 1 #}
+                                <th class="min-w-125px">Student ID</th> {# Column 2 #}
+                                <th class="min-w-125px">Full Name</th> {# Column 3 #}
+                                <th class="min-w-125px">Level / Strand</th> {# Column 4 #}
+                                <th class="min-w-125px">Status</th> {# Column 5 #}
+                                <th class="min-w-125px">Date Applied</th> {# Column 6 #}
+                                <th class="text-center min-w-150px">Actions</th> {# Column 7 - Centered #}
                             </tr>
+
+                            {% for registration in registrations %}
+                            <tr>
+                                <td class="col-img">
+                                    <div class="symbol symbol-40px overflow-hidden me-3">
+                                        <div class="symbol-label fs-3 bg-light-primary text-primary fw-bold">
+                                            {{ registration.firstName|first|upper }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="text-gray-800 fw-bold">{{ registration.studentNumber }}</span>
+                                    <br>
+                                    <span class="text-muted fs-8">AdCon: {{ registration.adConNumber }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <a href="#" class="text-gray-800 text-hover-primary mb-1 fw-bold">{{ registration.lastName }}, {{ registration.firstName }}</a>
+                                        <span class="text-gray-400 fs-7">{{ registration.personalEmail }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="badge badge-light fw-bolder">{{ registration.gradeLevel }}</div>
+                                    {% if registration.strand %}
+                                        <div class="badge badge-light-primary fw-bolder mt-1">{{ registration.strand }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if registration.status == 'Enrolled' %}
+                                        <span class="badge badge-light-success">Enrolled</span>
+                                    {% elseif registration.status == 'Pending' %}
+                                        <span class="badge badge-light-warning">Pending</span>
+                                    {% else %}
+                                        <span class="badge badge-light-info">{{ registration.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ registration.schoolYearStart }}</td>
+                                <td class="text-end">
+                                    <a href="{{ path('app_admin_diliman_registration_view', {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+                                        <i class="ki-filled ki-eye fs-3"></i>
+                                    </a>
+                                    <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+                                        <i class="ki-filled ki-pencil fs-3"></i>
+                                    </a>
+                                    
+                                    {# Delete Button (Feature 3) #}
+                                    <form method="post" action="{{ path('app_admin_diliman_delete', {'id': registration.id}) }}" class="d-inline-block" onsubmit="return confirm('⚠️ Warning: Are you sure you want to PERMANENTLY delete this registration?\n\nThis action cannot be undone.');">
+                                        <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
+                                            <i class="ki-filled ki-trash fs-3"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-gray-500">
+                                    No registrations found.
+                                </td>
+                            </tr>
+                            {% endfor %}
                         </thead>
                         {# Added Stimulus Controller for Polling (Real-time updates) #}
                         <tbody data-controller="poll" 

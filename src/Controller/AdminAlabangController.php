@@ -16,32 +16,33 @@ class AdminAlabangController extends AbstractController
     #[Route('/', name: 'app_admin_alabang_dashboard')]
     public function index(Request $request, StudentProfileRepository $repository): Response
     {
-        // 1. Fetch Real Data from DB
+        // Initial load of the page
         $allRegistrations = $repository->findBy(['campus' => 'feu_alabang'], ['id' => 'DESC']);
 
+        // Filter Logic
         $gradeFilter = $request->query->get('grade');
-        
-        // 2. Filter logic (PHP-side for simplicity, or convert to QueryBuilder)
-        $filteredRegistrations = array_filter($allRegistrations, function($reg) use ($gradeFilter) {
-            if (!$gradeFilter) return true;
-            return $reg->getGradeLevel() === $gradeFilter;
-        });
+        if ($gradeFilter) {
+            $registrations = array_filter($allRegistrations, fn($r) => $r->getGradeLevel() === $gradeFilter);
+        } else {
+            $registrations = $allRegistrations;
+        }
 
-        // 3. Get unique grades for dropdown
+        // Get unique grades for the dropdown
         $availableGrades = array_unique(array_map(fn($r) => $r->getGradeLevel(), $allRegistrations));
         sort($availableGrades);
 
         return $this->render('admin-onsite/alabang/alabang_dashboard.html.twig', [
-            'registrations' => $filteredRegistrations,
+            'registrations' => $registrations,
             'current_filter' => $gradeFilter,
             'available_grades' => $availableGrades
         ]);
     }
 
-    // New: Route for Real-time Polling
+    // --- FEATURE 1: Real-time Polling Route ---
     #[Route('/table-content', name: 'app_admin_alabang_table_content')]
     public function tableContent(StudentProfileRepository $repository): Response
     {
+        // This returns ONLY the HTML for the table rows
         $registrations = $repository->findBy(['campus' => 'feu_alabang'], ['id' => 'DESC']);
         
         return $this->render('admin-onsite/alabang/_table_rows.html.twig', [
@@ -53,20 +54,13 @@ class AdminAlabangController extends AbstractController
     public function edit(int $id, StudentProfileRepository $repository, Request $request, EntityManagerInterface $em): Response
     {
         $registration = $repository->find($id);
-        
-        if (!$registration) {
-            throw $this->createNotFoundException('Registration not found');
-        }
+        if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
-            // Handle edit logic here (e.g. status update)
-            $status = $request->request->get('status');
-            if ($status) {
-                $registration->setStatus($status);
-                $em->flush();
-                $this->addFlash('success', 'Registration updated successfully.');
-                return $this->redirectToRoute('app_admin_alabang_dashboard');
-            }
+            $registration->setStatus($request->request->get('status'));
+            $em->flush();
+            $this->addFlash('success', 'Status updated.');
+            return $this->redirectToRoute('app_admin_alabang_dashboard');
         }
 
         return $this->render('admin-onsite/alabang/edit_registration.html.twig', [
@@ -78,16 +72,14 @@ class AdminAlabangController extends AbstractController
     public function view(int $id, StudentProfileRepository $repository): Response
     {
         $registration = $repository->find($id);
-
-        if (!$registration) {
-            throw $this->createNotFoundException('Registration not found');
-        }
+        if (!$registration) throw $this->createNotFoundException();
 
         return $this->render('admin-onsite/alabang/view_registration.html.twig', [
             'registration' => $registration
         ]);
     }
 
+    // --- FEATURE 3: Delete Registration ---
     #[Route('/registration/{id}/delete', name: 'app_admin_alabang_delete', methods: ['POST'])]
     public function delete(int $id, StudentProfileRepository $repository, EntityManagerInterface $em): Response
     {
@@ -96,9 +88,7 @@ class AdminAlabangController extends AbstractController
         if ($registration) {
             $em->remove($registration);
             $em->flush();
-            $this->addFlash('success', 'Registration record deleted permanently.');
-        } else {
-            $this->addFlash('error', 'Registration not found.');
+            $this->addFlash('success', 'Registration deleted successfully.');
         }
         
         return $this->redirectToRoute('app_admin_alabang_dashboard');

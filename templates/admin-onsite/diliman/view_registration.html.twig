@@ -20,6 +20,14 @@
             margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .profile-avatar-lg { width: 120px; height: 120px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-color); }
+        /* Add style for fallback avatar */
+        .profile-avatar-fallback {
+            width: 120px; height: 120px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; font-weight: 700; color: white;
+            background-color: var(--primary-color, #1a4d2e);
+        }
+
         .profile-main h1 { margin: 0 0 0.5rem 0; font-size: 1.75rem; color: var(--text-dark); }
         .profile-badges { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
         .profile-right-section { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 1.5rem; min-width: 200px; }
@@ -61,16 +69,23 @@
 <body>
 
 <div class="admin-container" id="adminContainer">
-    <aside class="admin-sidebar">
+    <aside class="admin-sidebar" style="display: flex; flex-direction: column;">
         <div class="sidebar-header">
             <div class="sidebar-logo">
                 <div class="logo-icon"><i class="ki-filled ki-abstract-26"></i></div>
                 <div class="logo-text"><h2>ARIES</h2><p>Diliman - Admin Console</p></div>
             </div>
+            <button class="btn-toggle-sidebar" id="sidebarToggle"><i class="ki-filled ki-double-left"></i></button>
         </div>
-        <nav class="sidebar-nav">
+        <nav class="sidebar-nav" style="flex-grow: 1;">
             <a href="{{ path('app_admin_diliman_dashboard') }}" class="nav-item active"><i class="ki-filled ki-people"></i><span>Registrations</span></a>
         </nav>
+        <div class="sidebar-footer" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="{{ path('app_logout') }}" class="nav-item" style="color: #fca5a5; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; transition: all 0.2s; text-decoration: none;">
+                <i class="ki-filled ki-exit-right"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
     </aside>
 
     <main class="admin-main">
@@ -86,16 +101,25 @@
 
         <div class="admin-content">
             <div class="profile-header-card">
-                <img src="{{ asset('metronic/media/avatars/' ~ registration.avatar) }}" alt="Student" class="profile-avatar-lg">
-                <div class="profile-main">
-                    <h1>{{ registration.last_name }}, {{ registration.first_name }} {{ registration.suffix }}</h1>
-                    <div class="profile-badges">
-                        <span class="badge badge-outline">{{ registration.student_id }}</span>
-                        <span class="badge badge-outline" title="AdCon Number">{{ registration.adcon_number }}</span>
-                        <span class="badge badge-primary">{{ registration.grade }}</span>
-                        {% if registration.track %}<span class="badge badge-secondary">{{ registration.track }}</span>{% endif %}
+                {# --- FIXED AVATAR LOGIC --- #}
+                {% if registration.profilePicture %}
+                    <img src="{{ asset(registration.profilePicture) }}" alt="Student" class="profile-avatar-lg">
+                {% else %}
+                    <div class="profile-avatar-fallback">
+                        {{ registration.firstName|first|upper }}
                     </div>
-                    <div class="text-muted"><i class="ki-filled ki-sms"></i> {{ registration.email }}</div>
+                {% endif %}
+                {# -------------------------- #}
+
+                <div class="profile-main">
+                    <h1>{{ registration.lastName }}, {{ registration.firstName }} {{ registration.extensionName }}</h1>
+                    <div class="profile-badges">
+                        <span class="badge badge-outline">{{ registration.studentNumber }}</span>
+                        <span class="badge badge-outline" title="AdCon Number">{{ registration.adConNumber }}</span>
+                        <span class="badge badge-primary">{{ registration.gradeLevel }}</span>
+                        {% if registration.strand %}<span class="badge badge-secondary">{{ registration.strand }}</span>{% endif %}
+                    </div>
+                    <div class="text-muted"><i class="ki-filled ki-sms"></i> {{ registration.personalEmail }}</div>
                 </div>
                 
                 <div class="profile-right-section">
@@ -109,14 +133,8 @@
 
                     <div class="exam-score-box">
                         <div class="score-label">Entrance Exam Score</div>
-                        {% if registration.exam_score %}
-                            <div class="score-value">
-                                {{ registration.exam_score }}<span class="score-total">/100</span>
-                            </div>
-                            <div class="score-date">Date: {{ registration.exam_date }}</div>
-                        {% else %}
-                            <div class="score-pending">No score yet</div>
-                        {% endif %}
+                        {# Placeholder Score #}
+                        <div class="score-pending">No score yet</div>
                     </div>
                 </div>
             </div>
@@ -125,49 +143,31 @@
                 <div class="info-left">
                     <div class="card-section">
                         <div class="card-title"><i class="ki-filled ki-user"></i> Personal Information</div>
-                        <div class="data-row"><span class="data-label">Full Name</span><span class="data-value">{{ registration.first_name }} {{ registration.middle_name }} {{ registration.last_name }} {{ registration.suffix }}</span></div>
-                        <div class="data-row"><span class="data-label">Birth Date</span><span class="data-value">{{ registration.birthday|date('F d, Y') }}</span></div>
-                        <div class="data-row"><span class="data-label">Birth Place</span><span class="data-value">{{ registration.birth_place }}, {{ registration.birth_province }}</span></div>
-                        <div class="data-row"><span class="data-label">Country</span><span class="data-value">{{ registration.birth_country }}</span></div>
+                        <div class="data-row"><span class="data-label">Full Name</span><span class="data-value">{{ registration.firstName }} {{ registration.middleName }} {{ registration.lastName }} {{ registration.extensionName }}</span></div>
+                        <div class="data-row"><span class="data-label">Birth Date</span><span class="data-value">{{ registration.birthDate ? registration.birthDate|date('F d, Y') : '--' }}</span></div>
                         <div class="data-row"><span class="data-label">Gender</span><span class="data-value">{{ registration.gender }}</span></div>
-                        <div class="data-row"><span class="data-label">Civil Status</span><span class="data-value">{{ registration.civil_status }}</span></div>
+                        <div class="data-row"><span class="data-label">Civil Status</span><span class="data-value">{{ registration.civilStatus }}</span></div>
                         <div class="data-row"><span class="data-label">Citizenship</span><span class="data-value">{{ registration.citizenship }}</span></div>
                         <div class="data-row"><span class="data-label">Religion</span><span class="data-value">{{ registration.religion }}</span></div>
-                        <div class="data-row"><span class="data-label">Mother Tongue</span><span class="data-value">{{ registration.mother_tongue }}</span></div>
-                        <div class="data-row"><span class="data-label">LRN</span><span class="data-value text-mono">{{ registration.lrn }}</span></div>
                     </div>
 
                     <div class="card-section">
                         <div class="card-title"><i class="ki-filled ki-map"></i> Address & Contact</div>
-                        <div class="data-row"><span class="data-label">Mobile</span><span class="data-value">{{ registration.contact_number }}</span></div>
-                        <div class="data-row"><span class="data-label">Landline</span><span class="data-value">{{ registration.landline_number ?: '--' }}</span></div>
-                        <div class="data-row"><span class="data-label">Street</span><span class="data-value">{{ registration.address_street }}</span></div>
-                        <div class="data-row"><span class="data-label">Barangay</span><span class="data-value">{{ registration.address_barangay }}</span></div>
-                        <div class="data-row"><span class="data-label">City / Province</span><span class="data-value">{{ registration.address_city }}, {{ registration.address_province }}</span></div>
-                        <div class="data-row"><span class="data-label">Zip Code</span><span class="data-value">{{ registration.address_zip }}</span></div>
+                        <div class="data-row"><span class="data-label">Mobile</span><span class="data-value">{{ registration.mobileNumber }}</span></div>
+                        <div class="data-row"><span class="data-label">Email</span><span class="data-value">{{ registration.personalEmail }}</span></div>
                     </div>
 
                     <div class="card-section">
                         <div class="card-title"><i class="ki-filled ki-people"></i> Family Background</div>
-                        <h4 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
-                            Father 
-                            {% if registration.father_ofw %}<span class="tag-ofw">OFW</span>{% endif %}
-                            {% if registration.father_deceased %}<span class="tag-deceased">Deceased</span>{% endif %}
-                        </h4>
-                        <div class="data-row"><span class="data-label">Name</span><span class="data-value">{{ registration.father_name }}</span></div>
-                        <div class="data-row"><span class="data-label">Occupation</span><span class="data-value">{{ registration.father_occupation }}</span></div>
-                        <div class="data-row"><span class="data-label">Contact</span><span class="data-value">{{ registration.father_contact }}</span></div>
-                        
-                        <div class="separator my-4 border-b border-dashed border-gray-200"></div>
-                        
-                        <h4 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
-                            Mother
-                            {% if registration.mother_ofw %}<span class="tag-ofw">OFW</span>{% endif %}
-                            {% if registration.mother_deceased %}<span class="tag-deceased">Deceased</span>{% endif %}
-                        </h4>
-                        <div class="data-row"><span class="data-label">Name</span><span class="data-value">{{ registration.mother_name }}</span></div>
-                        <div class="data-row"><span class="data-label">Occupation</span><span class="data-value">{{ registration.mother_occupation }}</span></div>
-                        <div class="data-row"><span class="data-label">Contact</span><span class="data-value">{{ registration.mother_contact }}</span></div>
+                        {% for parent in registration.parents %}
+                            <h4 class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">{{ parent.relationship }}</h4>
+                            <div class="data-row"><span class="data-label">Name</span><span class="data-value">{{ parent.name }}</span></div>
+                            <div class="data-row"><span class="data-label">Occupation</span><span class="data-value">{{ parent.occupation }}</span></div>
+                            <div class="data-row"><span class="data-label">Contact</span><span class="data-value">{{ parent.contactNumber }}</span></div>
+                            <div class="separator my-4 border-b border-dashed border-gray-200"></div>
+                        {% else %}
+                            <p class="text-muted text-sm italic">No parent information available.</p>
+                        {% endfor %}
                     </div>
                     
                     <div class="card-section">
@@ -176,8 +176,7 @@
                             <div class="sibling-item">
                                 <div class="sibling-name">{{ sibling.name }}</div>
                                 <div class="sibling-meta">
-                                    <span>{{ sibling.occupation }}</span>
-                                    <span>{{ sibling.school }}</span>
+                                    <span>{{ sibling.schoolOrCompany }}</span>
                                 </div>
                             </div>
                         {% else %}
@@ -189,34 +188,29 @@
                 <div class="info-right">
                     <div class="card-section">
                         <div class="card-title"><i class="ki-filled ki-book-open"></i> Admission Info</div>
-                        <div class="data-row"><span class="data-label">Application Type</span><span class="data-value badge badge-light">{{ registration.application_type }}</span></div>
-                        <div class="data-row"><span class="data-label">School Year</span><span class="data-value">{{ registration.school_year }}</span></div>
-                        <div class="data-row"><span class="data-label">Term</span><span class="data-value">{{ registration.term }}</span></div>
-                        <div class="data-row"><span class="data-label">Date Applied</span><span class="data-value">{{ registration.date }}</span></div>
+                        <div class="data-row"><span class="data-label">School Year</span><span class="data-value">{{ registration.schoolYearStart }}</span></div>
+                        <div class="data-row"><span class="data-label">Status</span><span class="data-value badge badge-light">{{ registration.status }}</span></div>
                     </div>
 
                     <div class="card-section">
                         <div class="card-title"><i class="ki-filled ki-teacher"></i> Education History</div>
-                        <div class="data-row"><span class="data-label">Previous School</span><span class="data-value">{{ registration.prev_school }}</span></div>
-                        <div class="data-row"><span class="data-label">Address</span><span class="data-value">{{ registration.school_address }}</span></div>
-                    </div>
-
-                    <div class="card-section">
-                        <div class="card-title"><i class="ki-filled ki-shield-tick"></i> Emergency Contact</div>
-                        <div class="data-row"><span class="data-label">Name</span><span class="data-value">{{ registration.emergency_name }}</span></div>
-                        <div class="data-row"><span class="data-label">Relation</span><span class="data-value">{{ registration.emergency_relationship }}</span></div>
-                        <div class="data-row"><span class="data-label">Contact</span><span class="data-value text-primary">{{ registration.emergency_contact }}</span></div>
+                        {% for school in registration.previousSchools %}
+                            <div class="data-row"><span class="data-label">Previous School</span><span class="data-value">{{ school.schoolName }}</span></div>
+                            <div class="data-row"><span class="data-label">Level</span><span class="data-value">{{ school.level }}</span></div>
+                        {% else %}
+                            <p class="text-muted text-sm">No education history.</p>
+                        {% endfor %}
                     </div>
 
                     <div class="card-section">
                         <div class="card-title"><i class="ki-filled ki-folder-added"></i> Documents</div>
                         <div class="doc-list">
-                            {% for type, file in registration.documents %}
-                            <a href="#" class="doc-item">
+                            {% for req in registration.requirements %}
+                            <a href="{{ asset(req.filePath) }}" target="_blank" class="doc-item">
                                 <div class="doc-icon"><i class="ki-filled ki-file"></i></div>
                                 <div style="flex:1; overflow:hidden;">
-                                    <div class="text-sm font-bold text-gray-800 uppercase">{{ type }}</div>
-                                    <div class="text-xs text-muted truncate">{{ file }}</div>
+                                    <div class="text-sm font-bold text-gray-800 uppercase">{{ req.documentType }}</div>
+                                    <div class="text-xs text-muted truncate">View File</div>
                                 </div>
                                 <i class="ki-filled ki-eye text-gray-400"></i>
                             </a>
@@ -230,5 +224,21 @@
         </div>
     </main>
 </div>
+
+<script>
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const container = document.getElementById('adminContainer');
+    if(toggleBtn){
+        toggleBtn.addEventListener('click', () => {
+            container.classList.toggle('sidebar-collapsed');
+            const icon = toggleBtn.querySelector('i');
+            if(container.classList.contains('sidebar-collapsed')) {
+                icon.classList.remove('ki-double-left'); icon.classList.add('ki-double-right');
+            } else {
+                icon.classList.remove('ki-double-right'); icon.classList.add('ki-double-left');
+            }
+        });
+    }
+</script>
 </body>
 </html>

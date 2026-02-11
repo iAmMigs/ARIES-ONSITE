@@ -53,6 +53,13 @@ class StudentProfile
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $civilStatus = null;
 
+    // --- Contact Information (ADDED) ---
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $personalEmail = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $mobileNumber = null;
+
     // --- Application Details ---
     #[ORM\Column(length: 20)]
     private ?string $gradeLevel = null;
@@ -65,6 +72,9 @@ class StudentProfile
 
     #[ORM\Column(length: 20)]
     private ?string $status = 'Pending';
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $profilePicture = null;
 
     // --- Relationships ---
     #[ORM\OneToMany(mappedBy: 'studentProfile', targetEntity: StudentSchool::class, cascade: ['persist', 'remove'])]
@@ -125,6 +135,14 @@ class StudentProfile
     public function getCivilStatus(): ?string { return $this->civilStatus; }
     public function setCivilStatus(?string $civilStatus): static { $this->civilStatus = $civilStatus; return $this; }
 
+    // --- Added Contact Methods ---
+    public function getPersonalEmail(): ?string { return $this->personalEmail; }
+    public function setPersonalEmail(?string $personalEmail): static { $this->personalEmail = $personalEmail; return $this; }
+
+    public function getMobileNumber(): ?string { return $this->mobileNumber; }
+    public function setMobileNumber(?string $mobileNumber): static { $this->mobileNumber = $mobileNumber; return $this; }
+    // -----------------------------
+
     public function getGradeLevel(): ?string { return $this->gradeLevel; }
     public function setGradeLevel(string $gradeLevel): static { $this->gradeLevel = $gradeLevel; return $this; }
 
@@ -136,6 +154,9 @@ class StudentProfile
 
     public function getStatus(): ?string { return $this->status; }
     public function setStatus(string $status): static { $this->status = $status; return $this; }
+
+    public function getProfilePicture(): ?string { return $this->profilePicture; }
+    public function setProfilePicture(?string $profilePicture): static { $this->profilePicture = $profilePicture; return $this; }
 
     /**
      * @return Collection<int, StudentSchool>
