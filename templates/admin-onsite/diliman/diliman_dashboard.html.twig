@@ -13,7 +13,8 @@
 <body>
 
 <div class="admin-container" id="adminContainer">
-    <aside class="admin-sidebar">
+    {# Sidebar with Flexbox for Bottom Alignment #}
+    <aside class="admin-sidebar" style="display: flex; flex-direction: column;">
         <div class="sidebar-header">
             <div class="sidebar-logo">
                 <div class="logo-icon"><i class="ki-filled ki-abstract-26"></i></div>
@@ -21,9 +22,19 @@
             </div>
             <button class="btn-toggle-sidebar" id="sidebarToggle"><i class="ki-filled ki-double-left"></i></button>
         </div>
-        <nav class="sidebar-nav">
+        
+        {# Main Nav grows to push logout to bottom #}
+        <nav class="sidebar-nav" style="flex-grow: 1;">
             <a href="{{ path('app_admin_diliman_dashboard') }}" class="nav-item active"><i class="ki-filled ki-people"></i><span>Registrations</span></a>
         </nav>
+
+        {# Logout Button at Bottom #}
+        <div class="sidebar-footer" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <a href="{{ path('app_logout') }}" class="nav-item" style="color: #fca5a5; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; transition: all 0.2s; text-decoration: none;">
+                <i class="ki-filled ki-exit-right"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
     </aside>
 
     <main class="admin-main">
@@ -56,9 +67,11 @@
                     <i class="ki-filled ki-magnifier"></i>
                     <input type="text" placeholder="Search student...">
                 </div>
+                
                 <div class="admin-profile">
                     <img src="{{ asset('metronic/media/avatars/300-1.png') }}" alt="Admin">
                 </div>
+                {# Logout button removed from here #}
             </div>
         </header>
 
@@ -77,46 +90,11 @@
                                 <th class="col-action">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for reg in registrations %}
-                            <tr>
-                                <td class="col-img">
-                                    <div class="student-avatar">
-                                        <img src="{{ asset('metronic/media/avatars/' ~ reg.avatar) }}" alt="Photo">
-                                    </div>
-                                </td>
-                                <td><span class="text-mono">{{ reg.student_id }}</span></td>
-                                <td>
-                                    <div class="student-info">
-                                        <strong>{{ reg.name }}</strong>
-                                        <small>{{ reg.email }}</small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge badge-outline">{{ reg.grade }}</span>
-                                    {% if reg.track %}
-                                        <span class="badge badge-primary">{{ reg.track }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% set statusClass = reg.status == 'Enrolled' ? 'status-verified' : 'status-pending' %}
-                                    <span class="status {{ statusClass }}">{{ reg.status }}</span>
-                                </td>
-                                <td>{{ reg.date }}</td>
-                                <td class="col-action">
-                                    <a href="{{ path('app_admin_diliman_registration_view', {'id': reg.id}) }}" class="btn-icon btn-edit" title="View">
-                                        <i class="ki-filled ki-eye"></i>
-                                    </a>
-                                    <a href="{{ path('app_admin_diliman_registration_edit', {'id': reg.id}) }}" class="btn-icon btn-edit" title="Edit">
-                                        <i class="ki-filled ki-pencil"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="7" style="text-align:center; padding: 2rem;">No applicants found.</td>
-                            </tr>
-                            {% endfor %}
+                        {# Added Stimulus Controller for Polling (Real-time updates) #}
+                        <tbody data-controller="poll" 
+                               data-poll-url-value="{{ path('app_admin_diliman_table_content') }}"
+                               data-poll-refresh-interval-value="5000">
+                            {% include 'admin-onsite/diliman/_table_rows.html.twig' %}
                         </tbody>
                     </table>
                 </div>

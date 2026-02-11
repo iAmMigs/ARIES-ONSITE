@@ -15,15 +15,15 @@ security:
             security: false
         main:
             lazy: true
-            # This must match the provider name above
             provider: app_admin_provider
             form_login:
                 login_path: app_auth_login
                 check_path: app_auth_login
                 enable_csrf: true
+                # THIS IS THE KEY CHANGE:
+                default_target_path: app_admin_dispatch
             logout:
                 path: app_logout
-                # Where to go after logout
                 target: app_home
 
     access_control:

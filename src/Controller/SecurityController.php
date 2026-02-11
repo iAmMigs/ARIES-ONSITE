@@ -13,9 +13,9 @@ class SecurityController extends AbstractController
     #[Route('/login', name: 'app_auth_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-        // 1. If already logged in, redirect based on their ASSIGNED CAMPUS
+        // If already logged in, let the dispatcher handle it
         if ($this->getUser()) {
-            return $this->redirectToDashboard($this->getUser());
+            return $this->redirectToRoute('app_admin_dispatch');
         }
 
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -33,24 +33,21 @@ class SecurityController extends AbstractController
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 
-    /**
-     * STRICT REDIRECTION LOGIC
-     * Checks the actual 'campus' property in the database, not the email address.
-     */
-    private function redirectToDashboard(mixed $user): Response
+    #[Route('/admin/dispatch', name: 'app_admin_dispatch')]
+    public function dispatch(): Response
     {
-        // Ensure we are dealing with our AdminUser entity
+        $user = $this->getUser();
+
+        // 1. Safety Check: If not an AdminUser, kick them out
         if (!$user instanceof AdminUser) {
             return $this->redirectToRoute('app_home');
         }
 
-        // Get the specific value saved in the database (e.g., 'feu_alabang')
-        $assignedCampus = $user->getCampus();
-
-        return match ($assignedCampus) {
-            'feu_diliman' => $this->redirectToRoute('app_admin_diliman_dashboard'),
+        // 2. Strict Campus Redirection
+        return match ($user->getCampus()) {
             'feu_alabang' => $this->redirectToRoute('app_admin_alabang_dashboard'),
-            default => $this->redirectToRoute('app_home'), // Unknown/Invalid campus -> Kick to Home
+            'feu_diliman' => $this->redirectToRoute('app_admin_diliman_dashboard'),
+            default       => $this->redirectToRoute('app_home'),
         };
     }
 }
