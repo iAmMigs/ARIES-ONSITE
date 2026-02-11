@@ -1,0 +1,49 @@
+{% for registration in registrations %}
+<tr>
+    <td>
+        <span class="text-gray-800 fw-bold">{{ registration.adConNumber }}</span>
+    </td>
+    <td>
+        <div class="d-flex align-items-center">
+            <div class="d-flex justify-content-start flex-column">
+                <span class="text-gray-800 fw-bold text-hover-primary mb-1 fs-6">
+                    {{ registration.lastName }}, {{ registration.firstName }}
+                </span>
+                <span class="text-gray-400 fw-semibold d-block fs-7">{{ registration.gradeLevel }}</span>
+            </div>
+        </div>
+    </td>
+    <td>
+        {% if registration.status == 'Enrolled' %}
+            <span class="badge badge-light-success fs-7 fw-bold">Enrolled</span>
+        {% elseif registration.status == 'Pending' %}
+            <span class="badge badge-light-warning fs-7 fw-bold">Pending</span>
+        {% else %}
+            <span class="badge badge-light-info fs-7 fw-bold">{{ registration.status }}</span>
+        {% endif %}
+    </td>
+    <td class="text-end">
+        {# Dynamic Route generation based on campus or hardcoded per file #}
+        {% set edit_route = 'app_admin_alabang_registration_edit' %}
+        {% set delete_route = 'app_admin_alabang_delete' %}
+        
+        {# If this file is shared, logic is needed. Assuming separate files for now: #}
+        
+        <a href="{{ path(edit_route, {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
+            <i class="ki-filled ki-pencil fs-2"></i>
+        </a>
+        
+        <form method="post" action="{{ path(delete_route, {'id': registration.id}) }}" class="d-inline-block" onsubmit="return confirm('Are you sure? This is permanent and cannot be undone.');">
+            <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
+                <i class="ki-filled ki-trash fs-2"></i>
+            </button>
+        </form>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="4" class="text-center text-gray-400 py-5">
+        No registrations found.
+    </td>
+</tr>
+{% endfor %}
