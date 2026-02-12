@@ -180,6 +180,9 @@ class ApplicantBed
     #[ORM\OneToMany(mappedBy: 'applicant', targetEntity: ApplicantBedRequirement::class, cascade: ['persist', 'remove'])]
     private Collection $requirements;
 
+    #[ORM\Column(name: 'created_at', type: Types::DATETIME_IMMUTABLE)]
+    private ?\DateTimeImmutable $createdAt = null;
+
     public function __construct()
     {
         $this->guardians = new ArrayCollection();
@@ -261,7 +264,14 @@ class ApplicantBed
     public function setPhotoSlug(?string $p): static { $this->photoSlug = $p; return $this; }
     public function getPhotoSlug(): ?string { return $this->photoSlug; }
 
+    
+
+
     // Address Setters & Getters
+
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }
+    
     public function setCurrentRegion(?string $v): static { $this->currentRegion = $v; return $this; }
     public function getCurrentRegion(): ?string { return $this->currentRegion; }
     public function setCurrentProvince(?string $v): static { $this->currentProvince = $v; return $this; }

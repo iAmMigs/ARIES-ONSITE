@@ -1,240 +1,162 @@
-{# templates/admin-onsite/diliman/view_registration.html.twig #}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIES Admin | View Applicant</title>
-    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
-    <link rel="stylesheet" href="{{ asset('css/variables.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/base.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/admin.css') }}">
-    <style>
-        /* RESTORED ORIGINAL CARD DESIGN */
-        body { background-color: #f9f9f9; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .header-left { display: flex; align-items: center; gap: 1rem; }
-        
-        .profile-header-card {
-            background: white; border-radius: 12px; padding: 2rem;
-            display: flex; gap: 2rem; align-items: flex-start;
-            margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        .profile-avatar-lg { 
-            width: 120px; height: 120px; border-radius: 12px; object-fit: cover;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); flex-shrink: 0;
-        }
-        .profile-info { flex-grow: 1; }
-        .profile-name { font-size: 1.75rem; font-weight: 800; color: #1e1e2d; margin-bottom: 0.5rem; }
-        .profile-meta { display: flex; gap: 1.5rem; color: #7e8299; font-size: 0.95rem; font-weight: 500; }
-        .profile-meta i { color: #a1a5b7; margin-right: 0.25rem; }
-        
-        .section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-        .info-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 100%; }
-        .info-card-title { font-size: 1.1rem; font-weight: 700; color: #181c32; margin-bottom: 1.5rem; border-bottom: 1px solid #eff2f5; padding-bottom: 1rem; }
-        
-        .info-row { display: flex; margin-bottom: 1rem; }
-        .info-label { width: 140px; color: #7e8299; font-weight: 600; font-size: 0.9rem; }
-        .info-value { color: #181c32; font-weight: 700; font-size: 0.95rem; flex: 1; }
+{% extends 'base.html.twig' %}
 
-        .doc-item { 
-            display: flex; align-items: center; gap: 1rem; padding: 1rem; 
-            border: 1px solid #eff2f5; border-radius: 8px; margin-bottom: 0.75rem;
-            transition: all 0.2s; text-decoration: none; color: inherit;
-        }
-        .doc-item:hover { background-color: #f9f9f9; border-color: #e4e6ef; }
-        .doc-icon { width: 40px; height: 40px; background: #f1faff; color: #009ef7; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
-    </style>
-</head>
-<body>
+{% block title %}View Registration{% endblock %}
 
-<div class="admin-container" id="adminContainer">
-    {# Sidebar #}
-    <aside class="admin-sidebar" style="display: flex; flex-direction: column;">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="logo-icon"><i class="ki-filled ki-abstract-26"></i></div>
-                <div class="logo-text"><h2>ARIES</h2><p>Diliman - Admin Console</p></div>
-            </div>
-            <button class="btn-toggle-sidebar" id="sidebarToggle"><i class="ki-filled ki-double-left"></i></button>
-        </div>
-        <nav class="sidebar-nav" style="flex-grow: 1;">
-            <a href="{{ path('app_admin_diliman_dashboard') }}" class="nav-item active">
-                <i class="ki-filled ki-arrow-left"></i><span>Back to List</span>
+{% block body %}
+<div class="bg-gray-100 min-h-screen p-8">
+    {# Header with Back Button #}
+    <div class="max-w-7xl mx-auto mb-6 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{{ path('app_admin_diliman_registrations') }}" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-feu-green-700 hover:border-feu-green-600 transition-all shadow-sm">
+                <i class="ki-filled ki-arrow-left"></i>
             </a>
-        </nav>
-        <div class="sidebar-footer" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
-            <a href="{{ path('app_logout') }}" class="nav-item" style="color: #fca5a5; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; transition: all 0.2s; text-decoration: none;">
-                <i class="ki-filled ki-exit-right"></i><span>Sign Out</span>
-            </a>
+            <h1 class="text-2xl font-bold text-gray-800">Applicant Profile</h1>
         </div>
-    </aside>
+        <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.id}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
+            <i class="ki-filled ki-pencil mr-2"></i> Edit Details
+        </a>
+    </div>
 
-    <main class="admin-main">
-        <header class="admin-header">
-            <div class="header-left">
-                <h1 class="page-title m-0">Applicant Details</h1>
-            </div>
-            <div class="header-actions">
-                <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.id}) }}" class="btn btn-primary btn-sm fw-bold">
-                    <i class="ki-filled ki-pencil"></i> Edit Status
-                </a>
-            </div>
-        </header>
-
-        <div class="admin-content">
-            {# 1. TOP PROFILE CARD #}
-            <div class="profile-header-card">
-                {# Photo #}
+    <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
+        {# --- 1. APPLICANT DETAILS CARD (Horizontal) --- #}
+        <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50"></div>
+            
+            {# Profile Picture #}
+            <div class="flex-shrink-0">
                 {% if registration.photoSlug %}
-                    <img src="{{ asset(registration.photoSlug) }}" alt="Avatar" class="profile-avatar-lg">
+                    <img src="{{ asset(registration.photoSlug) }}" class="w-40 h-40 rounded-2xl object-cover border-4 border-white shadow-lg">
                 {% else %}
-                    <div class="profile-avatar-lg d-flex align-items-center justify-content-center bg-light-primary text-primary fw-bold fs-1">
-                        {{ registration.firstName|first|upper }}
+                    <div class="w-40 h-40 rounded-2xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-5xl font-bold border-4 border-white shadow-lg">
+                        {{ registration.firstName|first }}
                     </div>
                 {% endif %}
+            </div>
 
-                <div class="profile-info">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="profile-name">{{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}</div>
-                            <div class="profile-meta mb-3">
-                                <span><i class="ki-filled ki-sms"></i> {{ registration.personalEmail }}</span>
-                                <span><i class="ki-filled ki-phone"></i> {{ registration.mobileNumber }}</span>
-                            </div>
-                        </div>
-                        <div class="d-flex flex-column align-items-end gap-2">
-                            {# Status Badge #}
-                            {% if registration.admissionStatus == 'Enrolled' %}
-                                <span class="badge badge-light-success fw-bolder px-3 py-2 fs-7">Enrolled</span>
-                            {% elseif registration.admissionStatus == 'P' or registration.admissionStatus == 'Pending' %}
-                                <span class="badge badge-light-warning fw-bolder px-3 py-2 fs-7">Pending</span>
-                            {% else %}
-                                <span class="badge badge-light-info fw-bolder px-3 py-2 fs-7">{{ registration.admissionStatus }}</span>
-                            {% endif %}
-                            
-                            <span class="badge badge-light fw-bold text-muted border border-gray-300">AdCon: {{ registration.adCon }}</span>
-                        </div>
+            {# Main Info #}
+            <div class="flex-grow pt-2">
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">{{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}</h2>
+                
+                <div class="flex flex-wrap gap-3 mb-6">
+                    <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
+                        <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
                     </div>
+                    <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
+                        <span class="text-xs text-gray-400 uppercase mr-1">AdCon</span> {{ registration.adCon }}
+                    </div>
+                    <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">
+                        {{ registration.gradeLevel }}
+                    </div>
+                </div>
 
-                    <div class="d-flex gap-2 mt-2">
-                        <span class="badge badge-light-primary fw-bold px-3 py-2">
-                            <i class="ki-filled ki-book text-primary fs-8 me-1"></i> {{ registration.gradeLevel }}
-                        </span>
-                        {% if registration.trackStrand %}
-                        <span class="badge badge-light-warning fw-bold px-3 py-2">
-                            <i class="ki-filled ki-teacher text-warning fs-8 me-1"></i> {{ registration.trackStrand }}
-                        </span>
-                        {% endif %}
-                    </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-sm text-gray-600">
+                    <div class="flex items-center gap-2"><i class="ki-filled ki-sms text-feu-green-600"></i> {{ registration.personalEmail }}</div>
+                    <div class="flex items-center gap-2"><i class="ki-filled ki-phone text-feu-green-600"></i> {{ registration.mobileNumber }}</div>
                 </div>
             </div>
 
-            {# 2. DETAILS GRID #}
-            <div class="section-grid">
-                {# Left Col #}
-                <div class="d-flex flex-column gap-4">
-                    <div class="info-card">
-                        <h3 class="info-card-title">Personal Information</h3>
-                        <div class="info-row">
-                            <span class="info-label">Full Name:</span>
-                            <span class="info-value">{{ registration.firstName }} {{ registration.middleName }} {{ registration.lastName }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Student ID:</span>
-                            <span class="info-value text-primary">{{ registration.studentNumber }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Date of Birth:</span>
-                            <span class="info-value">{{ registration.birthDate ? registration.birthDate|date('F j, Y') : '-' }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Gender:</span>
-                            <span class="info-value">{{ registration.gender == 'M' ? 'Male' : 'Female' }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Religion:</span>
-                            <span class="info-value">{{ registration.religion }}</span>
-                        </div>
+            {# Exam Status (Right Side) #}
+            <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[180px]">
+                <div class="text-xs font-bold text-gray-400 uppercase mb-2">Examination Status</div>
+                {% if registration.examScore %}
+                    <div class="text-3xl font-black text-feu-green-700">{{ registration.examScore }}<span class="text-lg text-gray-400 font-normal">/100</span></div>
+                    <div class="text-xs text-green-600 font-bold mt-1 bg-green-100 px-2 py-0.5 rounded-full inline-block">PASSED</div>
+                {% else %}
+                    <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg font-bold text-sm border border-yellow-200">
+                        <i class="ki-filled ki-time mr-1"></i> Pending Exam
                     </div>
+                {% endif %}
+            </div>
+        </div>
 
-                    <div class="info-card">
-                        <h3 class="info-card-title">Address & Contact</h3>
-                        <div class="info-row">
-                            <span class="info-label">Current Address:</span>
-                            <span class="info-value">
-                                {{ registration.currentAddress }}, {{ registration.currentBarangay }}<br>
-                                {{ registration.currentCity }}, {{ registration.currentProvince }}
-                            </span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Zip Code:</span>
-                            <span class="info-value">{{ registration.currentZip }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Landline:</span>
-                            <span class="info-value">{{ registration.landLineNumber|default('-') }}</span>
-                        </div>
-                    </div>
+        {# --- 2. DETAILS GRID --- #}
+        <div class="col-span-12 lg:col-span-8 space-y-6">
+            {# Personal Info #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-user text-feu-green-600"></i> Personal Information
+                </h3>
+                <div class="grid grid-cols-2 gap-y-4 gap-x-8">
+                    <div><div class="text-xs text-gray-400 uppercase font-bold">Gender</div><div class="font-medium text-gray-800">{{ registration.gender }}</div></div>
+                    <div><div class="text-xs text-gray-400 uppercase font-bold">Birthday</div><div class="font-medium text-gray-800">{{ registration.birthDate|date('F j, Y') }}</div></div>
+                    <div><div class="text-xs text-gray-400 uppercase font-bold">Religion</div><div class="font-medium text-gray-800">{{ registration.religion }}</div></div>
+                    <div><div class="text-xs text-gray-400 uppercase font-bold">Civil Status</div><div class="font-medium text-gray-800">{{ registration.civilStatus }}</div></div>
                 </div>
+            </div>
 
-                {# Right Col #}
-                <div class="d-flex flex-column gap-4">
-                    <div class="info-card">
-                        <h3 class="info-card-title">Academic Details</h3>
-                        <div class="info-row">
-                            <span class="info-label">School Year:</span>
-                            <span class="info-value">{{ registration.schoolYearOfEntry }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Entry Level:</span>
-                            <span class="info-value">{{ registration.gradeLevel }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Education Type:</span>
-                            <span class="info-value">{{ registration.educationType }}</span>
-                        </div>
+            {# Address #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-map text-feu-green-600"></i> Address
+                </h3>
+                <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
+                <div class="mt-2 text-sm text-gray-500">
+                    {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }} {{ registration.currentZip }}
+                </div>
+            </div>
+
+            {# Family #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
+                </h3>
+                {# Assume parents/siblings are iterable or fields #}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <div class="text-xs text-feu-gold-600 font-bold uppercase mb-2">Father</div>
+                        <div class="font-bold text-gray-800">{{ registration.fatherName|default('N/A') }}</div>
+                        <div class="text-sm text-gray-500">{{ registration.fatherOccupation|default('-') }}</div>
                     </div>
-
-                    <div class="info-card">
-                        <h3 class="info-card-title">Submitted Documents</h3>
-                        {% if registration.requirements|length > 0 %}
-                            {% for req in registration.requirements %}
-                            <a href="{{ asset(req.storedFileName) }}" target="_blank" class="doc-item">
-                                <div class="doc-icon"><i class="ki-filled ki-file"></i></div>
-                                <div style="flex:1; overflow:hidden;">
-                                    <div class="text-sm font-bold text-gray-800 uppercase">{{ req.requirement }}</div>
-                                    <div class="text-xs text-muted truncate">View File</div>
-                                </div>
-                                <i class="ki-filled ki-eye text-gray-400"></i>
-                            </a>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center py-4 text-muted border border-dashed rounded">
-                                No documents uploaded.
-                            </div>
-                        {% endif %}
+                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                        <div class="text-xs text-feu-gold-600 font-bold uppercase mb-2">Mother</div>
+                        <div class="font-bold text-gray-800">{{ registration.motherName|default('N/A') }}</div>
+                        <div class="text-sm text-gray-500">{{ registration.motherOccupation|default('-') }}</div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
-</div>
 
-<script>
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const container = document.getElementById('adminContainer');
-    if(toggleBtn){
-        toggleBtn.addEventListener('click', () => {
-            container.classList.toggle('sidebar-collapsed');
-            const icon = toggleBtn.querySelector('i');
-            if(container.classList.contains('sidebar-collapsed')) {
-                icon.classList.remove('ki-double-left'); icon.classList.add('ki-double-right');
-            } else {
-                icon.classList.remove('ki-double-right'); icon.classList.add('ki-double-left');
-            }
-        });
-    }
-</script>
-</body>
-</html>
+        {# --- 3. SIDEBAR GRID --- #}
+        <div class="col-span-12 lg:col-span-4 space-y-6">
+            {# Documents #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
+                </h3>
+                <div class="space-y-3">
+                    {% for req in registration.requirements %}
+                    <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <i class="ki-filled ki-file text-lg"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                            <div class="text-xs text-gray-400">Click to view</div>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="text-center py-6 text-gray-400 text-sm italic">No documents found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# System Info #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-setting-2 text-feu-green-600"></i> System Info
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Applied On</span>
+                        <span class="font-medium text-gray-800">{{ registration.createdAt|date('M d, Y h:i A') }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">School Year</span>
+                        <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
