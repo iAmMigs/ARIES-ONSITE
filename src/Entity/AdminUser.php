@@ -38,46 +38,30 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $profilePicture = null;
 
+    // --- ADDED CAMPUS FIELD ---
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $campus = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): static { $this->email = $email; return $this; }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string { return (string) $this->email; }
 
-    /**
-     * @see UserInterface
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_ADMIN';
         return array_unique($roles);
     }
 
     public function setRoles(array $roles): static { $this->roles = $roles; return $this; }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): string { return $this->password; }
     public function setPassword(string $password): static { $this->password = $password; return $this; }
 
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void {
-        // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
-    }
-
-    // --- New Getters/Setters ---
+    public function eraseCredentials(): void { }
 
     public function getFirstName(): ?string { return $this->firstName; }
     public function setFirstName(string $firstName): static { $this->firstName = $firstName; return $this; }
@@ -88,7 +72,10 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function getProfilePicture(): ?string { return $this->profilePicture; }
     public function setProfilePicture(?string $profilePicture): static { $this->profilePicture = $profilePicture; return $this; }
 
-    // Helper for Full Name
+    // --- ADDED GETTER AND SETTER FOR CAMPUS ---
+    public function getCampus(): ?string { return $this->campus; }
+    public function setCampus(?string $campus): static { $this->campus = $campus; return $this; }
+
     public function getFullName(): string {
         return $this->firstName . ' ' . $this->lastName;
     }

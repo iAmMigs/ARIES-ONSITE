@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Entity\AdminUser; // <--- CHANGED FROM User
+use App\Entity\AdminUser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -34,14 +34,14 @@ class CreateAdminsCommand extends Command
                 'password' => 'admin123',
                 'first' => 'Admin',
                 'last' => 'Diliman',
-                'campus' => 'diliman'
+                'campus' => 'feu_diliman' // UPDATED: Matches SecurityController match case
             ],
             [
                 'email' => 'admin@feualabang.edu.ph',
                 'password' => 'admin123',
                 'first' => 'Admin',
                 'last' => 'Alabang',
-                'campus' => 'alabang'
+                'campus' => 'feu_alabang' // UPDATED: Matches SecurityController match case
             ]
         ];
 
@@ -49,16 +49,23 @@ class CreateAdminsCommand extends Command
             // 1. Check if user exists
             $existingUser = $this->entityManager->getRepository(AdminUser::class)->findOneBy(['email' => $adminData['email']]);
 
+            // Optional: Update existing user if they lack campus data
             if ($existingUser) {
-                $io->warning(sprintf('AdminUser %s already exists. Skipping.', $adminData['email']));
+                if (!$existingUser->getCampus()) {
+                    $existingUser->setCampus($adminData['campus']);
+                    $io->note(sprintf('Updated campus for existing admin: %s', $adminData['email']));
+                } else {
+                    $io->warning(sprintf('AdminUser %s already exists. Skipping.', $adminData['email']));
+                }
                 continue;
             }
 
             // 2. Create new AdminUser
             $user = new AdminUser();
             $user->setEmail($adminData['email']);
-            $user->setFirstName($adminData['first']); // New Field
-            $user->setLastName($adminData['last']);   // New Field
+            $user->setFirstName($adminData['first']);
+            $user->setLastName($adminData['last']);
+            $user->setCampus($adminData['campus']); // ADDED: Save the campus
             $user->setRoles(['ROLE_ADMIN']);
             
             // Hash the password

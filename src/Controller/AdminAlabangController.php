@@ -2,22 +2,23 @@
 
 namespace App\Controller;
 
-use App\Entity\StudentProfile;
-use App\Repository\StudentProfileRepository;
+use App\Entity\ApplicantBed;
+use App\Repository\ApplicantBedRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\ApplicantDeletionService;
 
 #[Route('/alabang-admin')]
 class AdminAlabangController extends AbstractController
 {
     #[Route('/', name: 'app_admin_alabang_dashboard')]
-    public function index(Request $request, StudentProfileRepository $repository): Response
+    public function index(Request $request, ApplicantBedRepository $repository): Response
     {
-        // Initial load of the page
-        $allRegistrations = $repository->findBy(['campus' => 'feu_alabang'], ['id' => 'DESC']);
+        // Use the constant for filtering (matches 'FALAB' in db)
+        $allRegistrations = $repository->findBy(['campus' => ApplicantBed::CAMPUS_ALABANG], ['id' => 'DESC']);
 
         // Filter Logic
         $gradeFilter = $request->query->get('grade');
@@ -38,12 +39,10 @@ class AdminAlabangController extends AbstractController
         ]);
     }
 
-    // --- FEATURE 1: Real-time Polling Route ---
     #[Route('/table-content', name: 'app_admin_alabang_table_content')]
-    public function tableContent(StudentProfileRepository $repository): Response
+    public function tableContent(ApplicantBedRepository $repository): Response
     {
-        // This returns ONLY the HTML for the table rows
-        $registrations = $repository->findBy(['campus' => 'feu_alabang'], ['id' => 'DESC']);
+        $registrations = $repository->findBy(['campus' => ApplicantBed::CAMPUS_ALABANG], ['id' => 'DESC']);
         
         return $this->render('admin-onsite/alabang/_table_rows.html.twig', [
             'registrations' => $registrations
@@ -51,13 +50,14 @@ class AdminAlabangController extends AbstractController
     }
 
     #[Route('/registration/{id}/edit', name: 'app_admin_alabang_registration_edit')]
-    public function edit(int $id, StudentProfileRepository $repository, Request $request, EntityManagerInterface $em): Response
+    public function edit(int $id, ApplicantBedRepository $repository, Request $request, EntityManagerInterface $em): Response
     {
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
-            $registration->setStatus($request->request->get('status'));
+            // Updated to setAdmissionStatus
+            $registration->setAdmissionStatus($request->request->get('status'));
             $em->flush();
             $this->addFlash('success', 'Status updated.');
             return $this->redirectToRoute('app_admin_alabang_dashboard');
@@ -69,7 +69,7 @@ class AdminAlabangController extends AbstractController
     }
 
     #[Route('/registration/{id}/view', name: 'app_admin_alabang_registration_view')]
-    public function view(int $id, StudentProfileRepository $repository): Response
+    public function view(int $id, ApplicantBedRepository $repository): Response
     {
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
@@ -79,16 +79,22 @@ class AdminAlabangController extends AbstractController
         ]);
     }
 
-    // --- FEATURE 3: Delete Registration ---
     #[Route('/registration/{id}/delete', name: 'app_admin_alabang_delete', methods: ['POST'])]
-    public function delete(int $id, StudentProfileRepository $repository, EntityManagerInterface $em): Response
+    public function delete(
+        int $id, 
+        ApplicantBedRepository $repository, 
+        ApplicantDeletionService $deletionService // Inject the service
+    ): Response
     {
         $registration = $repository->find($id);
         
         if ($registration) {
-            $em->remove($registration);
-            $em->flush();
-            $this->addFlash('success', 'Registration deleted successfully.');
+            // Use the service to handle file cleanup + db removal
+            $deletionService->deleteApplicant($registration);
+            
+            $this->addFlash('success', 'Registration and associated files deleted successfully.');
+        } else {
+            $this->addFlash('error', 'Registration not found.');
         }
         
         return $this->redirectToRoute('app_admin_alabang_dashboard');

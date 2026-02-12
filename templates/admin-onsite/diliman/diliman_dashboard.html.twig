@@ -13,7 +13,6 @@
 <body>
 
 <div class="admin-container" id="adminContainer">
-    {# Sidebar with Flexbox for Bottom Alignment #}
     <aside class="admin-sidebar" style="display: flex; flex-direction: column;">
         <div class="sidebar-header">
             <div class="sidebar-logo">
@@ -23,12 +22,10 @@
             <button class="btn-toggle-sidebar" id="sidebarToggle"><i class="ki-filled ki-double-left"></i></button>
         </div>
         
-        {# Main Nav grows to push logout to bottom #}
         <nav class="sidebar-nav" style="flex-grow: 1;">
             <a href="{{ path('app_admin_diliman_dashboard') }}" class="nav-item active"><i class="ki-filled ki-people"></i><span>Registrations</span></a>
         </nav>
 
-        {# Logout Button at Bottom #}
         <div class="sidebar-footer" style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
             <a href="{{ path('app_logout') }}" class="nav-item" style="color: #fca5a5; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; transition: all 0.2s; text-decoration: none;">
                 <i class="ki-filled ki-exit-right"></i>
@@ -55,7 +52,7 @@
                         <select name="grade" onchange="this.form.submit()" class="form-select-sm">
                             <option value="">All Levels</option>
                             {% for grade in available_grades %}
-                                <option value="{{ grade }}" {{ current_filter == grade ? 'selected' : '' }}>
+                               <option value="{{ grade }}" {{ current_filter == grade ? 'selected' : '' }}>
                                     {{ grade }}
                                 </option>
                             {% endfor %}
@@ -71,86 +68,25 @@
                 <div class="admin-profile">
                     <img src="{{ asset('metronic/media/avatars/300-1.png') }}" alt="Admin">
                 </div>
-                {# Logout button removed from here #}
             </div>
         </header>
 
         <div class="admin-content">
             <div class="table-card">
                 <div class="table-responsive">
-                    <table class="data-table">
+                    <table class="data-table align-middle gs-0 gy-4">
                         <thead>
                             <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
-                                <th class="min-w-100px">Photo</th> {# Column 1 #}
-                                <th class="min-w-125px">Student ID</th> {# Column 2 #}
-                                <th class="min-w-125px">Full Name</th> {# Column 3 #}
-                                <th class="min-w-125px">Level / Strand</th> {# Column 4 #}
-                                <th class="min-w-125px">Status</th> {# Column 5 #}
-                                <th class="min-w-125px">Date Applied</th> {# Column 6 #}
-                                <th class="text-center min-w-150px">Actions</th> {# Column 7 - Centered #}
+                                <th class="min-w-100px ps-4">Photo</th>
+                                <th class="min-w-125px">Student ID</th>
+                                <th class="min-w-125px">AdCon</th>
+                                <th class="min-w-200px">Full Name</th>
+                                <th class="min-w-150px">Level / Strand</th>
+                                <th class="min-w-125px">Status</th>
+                                <th class="min-w-125px">Date Applied</th>
+                                <th class="text-center min-w-150px pe-4">Actions</th>
                             </tr>
-
-                            {% for registration in registrations %}
-                            <tr>
-                                <td class="col-img">
-                                    <div class="symbol symbol-40px overflow-hidden me-3">
-                                        <div class="symbol-label fs-3 bg-light-primary text-primary fw-bold">
-                                            {{ registration.firstName|first|upper }}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="text-gray-800 fw-bold">{{ registration.studentNumber }}</span>
-                                    <br>
-                                    <span class="text-muted fs-8">AdCon: {{ registration.adConNumber }}</span>
-                                </td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <a href="#" class="text-gray-800 text-hover-primary mb-1 fw-bold">{{ registration.lastName }}, {{ registration.firstName }}</a>
-                                        <span class="text-gray-400 fs-7">{{ registration.personalEmail }}</span>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="badge badge-light fw-bolder">{{ registration.gradeLevel }}</div>
-                                    {% if registration.strand %}
-                                        <div class="badge badge-light-primary fw-bolder mt-1">{{ registration.strand }}</div>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if registration.status == 'Enrolled' %}
-                                        <span class="badge badge-light-success">Enrolled</span>
-                                    {% elseif registration.status == 'Pending' %}
-                                        <span class="badge badge-light-warning">Pending</span>
-                                    {% else %}
-                                        <span class="badge badge-light-info">{{ registration.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ registration.schoolYearStart }}</td>
-                                <td class="text-end">
-                                    <a href="{{ path('app_admin_diliman_registration_view', {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
-                                        <i class="ki-filled ki-eye fs-3"></i>
-                                    </a>
-                                    <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1">
-                                        <i class="ki-filled ki-pencil fs-3"></i>
-                                    </a>
-                                    
-                                    {# Delete Button (Feature 3) #}
-                                    <form method="post" action="{{ path('app_admin_diliman_delete', {'id': registration.id}) }}" class="d-inline-block" onsubmit="return confirm('⚠️ Warning: Are you sure you want to PERMANENTLY delete this registration?\n\nThis action cannot be undone.');">
-                                        <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm">
-                                            <i class="ki-filled ki-trash fs-3"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-gray-500">
-                                    No registrations found.
-                                </td>
-                            </tr>
-                            {% endfor %}
                         </thead>
-                        {# Added Stimulus Controller for Polling (Real-time updates) #}
                         <tbody data-controller="poll" 
                                data-poll-url-value="{{ path('app_admin_diliman_table_content') }}"
                                data-poll-refresh-interval-value="5000">

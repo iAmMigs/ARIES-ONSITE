@@ -8,7 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantBedRepository::class)]
 #[ORM\Table(name: 'bed_applicants')]
@@ -25,7 +24,7 @@ class ApplicantBed
     public const EDUCATION_PRIMARY = 'Primary';
     public const EDUCATION_SECONDARY = 'Secondary';
 
-    //Grade Levels
+    // Grade Levels
     public const GRADE_KINDER = 'kinder';
     public const GRADE_1 = 'grade_1';
     public const GRADE_2 = 'grade_2';
@@ -39,8 +38,6 @@ class ApplicantBed
     public const GRADE_10 = 'grade_10';
     public const GRADE_11 = 'grade_11';
     public const GRADE_12 = 'grade_12';
-
-
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -200,33 +197,71 @@ class ApplicantBed
     public function getEducationType(): ?string { return $this->educationType; }
     public function setEducationType(?string $type): static { $this->educationType = $type; return $this; }
     public function setCampus(string $c): static { $this->campus = $c; return $this; }
+    public function getCampus(): ?string { return $this->campus; }
+    public function getGradeLevel(): ?string { return $this->gradeLevel; }
     public function setGradeLevel(?string $l): static { $this->gradeLevel = $l; return $this; }
+    
+    // --- ADDED GETTER FOR TRACK STRAND ---
+    public function getTrackStrand(): ?string { return $this->trackStrand; }
     public function setTrackStrand(?string $s): static { $this->trackStrand = $s; return $this; }
+    
     public function setLastName(string $n): static { $this->lastName = $n; return $this; }
     public function getLastName(): ?string { return $this->lastName; }
     public function setFirstName(string $n): static { $this->firstName = $n; return $this; }
     public function getFirstName(): ?string { return $this->firstName; }
     public function setMiddleName(?string $n): static { $this->middleName = $n; return $this; }
+    public function getMiddleName(): ?string { return $this->middleName; }
     public function setExtensionName(?string $n): static { $this->extensionName = $n; return $this; }
+    public function getExtensionName(): ?string { return $this->extensionName; }
     public function setBirthDate(?\DateTimeInterface $d): static { $this->birthDate = $d; return $this; }
+    public function getBirthDate(): ?\DateTimeInterface { return $this->birthDate; }
     public function setBirthPlace(?string $p): static { $this->birthPlace = $p; return $this; }
+    public function getBirthPlace(): ?string { return $this->birthPlace; }
     public function setGender(?string $g): static { $this->gender = $g; return $this; }
+    public function getGender(): ?string { return $this->gender; }
     public function setReligion(?string $r): static { $this->religion = $r; return $this; }
+    public function getReligion(): ?string { return $this->religion; }
     public function setCitizenship(?string $c): static { $this->citizenship = $c; return $this; }
+    public function getCitizenship(): ?string { return $this->citizenship; }
     public function setIndigenousGroup(?string $i): static { $this->indigenousGroup = $i; return $this; }
+    public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
     public function setLrn(?string $l): static { $this->lrn = $l; return $this; }
+    public function getLrn(): ?string { return $this->lrn; }
+    
     public function setAdmissionStatus(string $s): static { $this->admissionStatus = $s; return $this; }
-    public function setAdmissionDate(?\DateTimeInterface $d): static { $this->admissionDate = $d; return $this; }
-    public function setSchoolYearOfEntry(?string $y): static { $this->schoolYearOfEntry = $y; return $this; }
-    public function setEnrollmentStep(int $s): static { $this->enrollmentStep = $s; return $this; }
-    public function setMobileNumber(string $n): static { $this->mobileNumber = $n; return $this; }
-    public function setLandLineNumber(?string $n): static { $this->landLineNumber = $n; return $this; }
-    public function setPersonalEmail(string $e): static { $this->personalEmail = $e; return $this; }
-    public function setVisaType(?string $v): static { $this->visaType = $v; return $this; }
-    public function setPassportNumber(?string $p): static { $this->passportNumber = $p; return $this; }
-    public function setPhotoSlug(?string $p): static { $this->photoSlug = $p; return $this; }
+    public function getAdmissionStatus(): string { return $this->admissionStatus; }
 
-    // Address Setters
+    public function setAdmissionDate(?\DateTimeInterface $d): static { $this->admissionDate = $d; return $this; }
+    public function getAdmissionDate(): ?\DateTimeInterface { return $this->admissionDate; }
+    
+    // --- ADDED GETTER FOR SCHOOL YEAR ---
+    public function getSchoolYearOfEntry(): ?string { return $this->schoolYearOfEntry; }
+    public function setSchoolYearOfEntry(?string $y): static { $this->schoolYearOfEntry = $y; return $this; }
+    
+    public function setEnrollmentStep(int $s): static { $this->enrollmentStep = $s; return $this; }
+    public function getEnrollmentStep(): int { return $this->enrollmentStep; }
+    
+    // --- CONTACT INFO GETTERS (ADDED) ---
+    public function getMobileNumber(): ?string { return $this->mobileNumber; }
+    public function setMobileNumber(string $n): static { $this->mobileNumber = $n; return $this; }
+    
+    public function getLandLineNumber(): ?string { return $this->landLineNumber; }
+    public function setLandLineNumber(?string $n): static { $this->landLineNumber = $n; return $this; }
+    
+    // --- ADDED GETTER FOR PERSONAL EMAIL (FIX FOR ERROR) ---
+    public function getPersonalEmail(): ?string { return $this->personalEmail; }
+    public function setPersonalEmail(string $e): static { $this->personalEmail = $e; return $this; }
+    
+    public function getVisaType(): ?string { return $this->visaType; }
+    public function setVisaType(?string $v): static { $this->visaType = $v; return $this; }
+    
+    public function getPassportNumber(): ?string { return $this->passportNumber; }
+    public function setPassportNumber(?string $p): static { $this->passportNumber = $p; return $this; }
+    
+    public function setPhotoSlug(?string $p): static { $this->photoSlug = $p; return $this; }
+    public function getPhotoSlug(): ?string { return $this->photoSlug; }
+
+    // Address Setters & Getters
     public function setCurrentRegion(?string $v): static { $this->currentRegion = $v; return $this; }
     public function getCurrentRegion(): ?string { return $this->currentRegion; }
     public function setCurrentProvince(?string $v): static { $this->currentProvince = $v; return $this; }
@@ -241,17 +276,25 @@ class ApplicantBed
     public function getCurrentZip(): ?string { return $this->currentZip; }
 
     public function setPermanentRegion(?string $v): static { $this->permanentRegion = $v; return $this; }
+    public function getPermanentRegion(): ?string { return $this->permanentRegion; }
     public function setPermanentProvince(?string $v): static { $this->permanentProvince = $v; return $this; }
+    public function getPermanentProvince(): ?string { return $this->permanentProvince; }
     public function setPermanentCity(?string $v): static { $this->permanentCity = $v; return $this; }
+    public function getPermanentCity(): ?string { return $this->permanentCity; }
     public function setPermanentBarangay(?string $v): static { $this->permanentBarangay = $v; return $this; }
+    public function getPermanentBarangay(): ?string { return $this->permanentBarangay; }
     public function setPermanentAddress(?string $v): static { $this->permanentAddress = $v; return $this; }
+    public function getPermanentAddress(): ?string { return $this->permanentAddress; }
     public function setPermanentZip(?string $v): static { $this->permanentZip = $v; return $this; }
+    public function getPermanentZip(): ?string { return $this->permanentZip; }
 
     // Collections
     public function addGuardian(ApplicantBedGuardian $g): static {
         if (!$this->guardians->contains($g)) { $this->guardians->add($g); $g->setApplicant($this); }
         return $this;
     }
+    public function getGuardians(): Collection { return $this->guardians; }
+
     public function addSibling(ApplicantBedSibling $s): static {
         if (!$this->siblings->contains($s)) { $this->siblings->add($s); $s->setApplicant($this); }
         return $this;
@@ -264,6 +307,8 @@ class ApplicantBed
         if (!$this->requirements->contains($r)) { $this->requirements->add($r); $r->setApplicant($this); }
         return $this;
     }
+    public function getRequirements(): Collection { return $this->requirements; }
+    
     public function isSeniorHigh(): bool
     {
         return in_array($this->gradeLevel, [self::GRADE_11, self::GRADE_12]);

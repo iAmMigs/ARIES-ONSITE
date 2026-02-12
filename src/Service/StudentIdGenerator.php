@@ -2,15 +2,16 @@
 
 namespace App\Service;
 
-use App\Repository\StudentProfileRepository;
+use App\Entity\ApplicantBed;
+use App\Repository\ApplicantBedRepository;
 
 class StudentIdGenerator
 {
-    private StudentProfileRepository $studentRepository;
+    private ApplicantBedRepository $applicantBedRepository;
 
-    public function __construct(StudentProfileRepository $studentRepository)
+    public function __construct(ApplicantBedRepository $applicantBedRepository)
     {
-        $this->studentRepository = $studentRepository;
+        $this->applicantBedRepository = $applicantBedRepository;
     }
 
     public function generateStudentNumber(string $campus, string $yearStart): string
@@ -22,9 +23,12 @@ class StudentIdGenerator
         // Example: 2025 + 5 = "20255"
         $prefix = $yearStart . $typeCode;
 
-        // 3. Find the latest student for this specific Campus, Year, and Type to increment series
-        // We use the repository method created earlier
-        $latestStudent = $this->studentRepository->findLatestForGeneration($campus, $yearStart, $typeCode);
+        // 3. Map Campus String to Entity Code
+        // We must convert 'feu_alabang' to 'FALAB' (or FDIL) to query the database correctly
+        $campusCode = ($campus === 'feu_alabang') ? ApplicantBed::CAMPUS_ALABANG : ApplicantBed::CAMPUS_DILIMAN;
+
+        // 4. Find the latest student for this specific Campus, Year, and Type to increment series
+        $latestStudent = $this->applicantBedRepository->findLatestForGeneration($campusCode, $prefix);
 
         $nextSeries = 1;
 
@@ -32,22 +36,25 @@ class StudentIdGenerator
             $latestId = $latestStudent->getStudentNumber();
             // Remove prefix to get the raw series number
             // Prefix length is 5 (4 for year + 1 for type)
-            $rawSeries = substr($latestId, 5); 
-            $nextSeries = (int)$rawSeries + 1;
+            // Ensure the ID actually has the length to avoid errors
+            if (strlen($latestId) > strlen($prefix)) {
+                $rawSeries = substr($latestId, strlen($prefix)); 
+                $nextSeries = (int)$rawSeries + 1;
+            }
         }
 
-        // 4. Format based on Campus Rules
+        // 5. Format based on Campus Rules
         if ($campus === 'feu_alabang') {
             // 11 Digits total. Prefix is 5 digits. Series needs to be 6 digits.
             // 20255 + 000001
-            return $prefix . str_pad($nextSeries, 6, '0', STR_PAD_LEFT);
+            return $prefix . str_pad((string)$nextSeries, 6, '0', STR_PAD_LEFT);
         } elseif ($campus === 'feu_diliman') {
             // 9 Digits total. Prefix is 5 digits. Series needs to be 4 digits.
             // 20255 + 0001
-            return $prefix . str_pad($nextSeries, 4, '0', STR_PAD_LEFT);
+            return $prefix . str_pad((string)$nextSeries, 4, '0', STR_PAD_LEFT);
         }
 
-        // Fallback (Should not happen if validation is strict)
-        return $prefix . str_pad($nextSeries, 6, '0', STR_PAD_LEFT);
+        // Fallback
+        return $prefix . str_pad((string)$nextSeries, 6, '0', STR_PAD_LEFT);
     }
 }

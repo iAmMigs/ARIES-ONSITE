@@ -1,11 +1,11 @@
 {% for registration in registrations %}
-<tr>
+<tr class="border-bottom border-gray-200">
     {# Col 1: Photo #}
-    <td class="col-img">
+    <td class="ps-4">
         <div class="symbol symbol-40px overflow-hidden me-3">
             <div class="symbol-label">
-                {% if registration.profilePicture %}
-                    <img src="{{ asset(registration.profilePicture) }}" alt="Student" class="w-100 h-100 object-fit-cover"/>
+                {% if registration.photoSlug %}
+                    <img src="{{ asset(registration.photoSlug) }}" alt="Student" class="w-100 h-100 object-fit-cover"/>
                 {% else %}
                     <div class="symbol-label fs-3 bg-light-success text-success fw-bold d-flex align-items-center justify-content-center h-100 w-100">
                         {{ registration.firstName|first|upper }}
@@ -17,63 +17,77 @@
 
     {# Col 2: Student ID #}
     <td>
-        <span class="text-gray-800 fw-bold">{{ registration.studentNumber }}</span>
-        <span class="text-muted d-block fs-8">AdCon: {{ registration.adConNumber }}</span>
+        <span class="text-gray-800 fw-bolder fs-6">{{ registration.studentNumber }}</span>
     </td>
 
-    {# Col 3: Full Name #}
+    {# Col 3: AdCon #}
+    <td>
+        <span class="badge badge-light-dark fw-bolder fs-7 px-3 py-2">{{ registration.adCon }}</span>
+    </td>
+
+    {# Col 4: Full Name #}
     <td>
         <div class="d-flex flex-column">
-            <span class="text-gray-800 fw-bold mb-1">
+            <a href="#" class="text-gray-800 text-hover-success mb-1 fs-6 fw-bolder">
                 {{ registration.lastName }}, {{ registration.firstName }}
-            </span>
-            <span class="text-gray-400 fs-7">{{ registration.personalEmail }}</span>
+            </a>
         </div>
     </td>
 
-    {# Col 4: Level #}
+    {# Col 5: Level / Strand #}
     <td>
-        <div class="badge badge-light fw-bolder">{{ registration.gradeLevel }}</div>
-        {% if registration.strand %}
-            <div class="badge badge-light-primary fw-bolder mt-1">{{ registration.strand }}</div>
-        {% endif %}
+        <div class="d-flex flex-column gap-2 align-items-start">
+            <span class="badge badge-light-success fw-bolder fs-7 px-3 py-2">
+                {{ registration.gradeLevel }}
+            </span>
+            {% if registration.trackStrand %}
+                <span class="badge badge-light-warning fw-bolder fs-7 px-3 py-2">
+                    {{ registration.trackStrand }}
+                </span>
+            {% endif %}
+        </div>
     </td>
 
-    {# Col 5: Status #}
+    {# Col 6: Status #}
     <td>
-        {% if registration.status == 'Enrolled' %}
-            <span class="badge badge-light-success fw-bold">Enrolled</span>
-        {% elseif registration.status == 'Pending' %}
-            <span class="badge badge-light-warning fw-bold">Pending</span>
+        {% if registration.admissionStatus == 'Enrolled' %}
+            <span class="badge badge-light-success fw-bolder fs-7 px-3 py-2">Enrolled</span>
+        {% elseif registration.admissionStatus == 'P' or registration.admissionStatus == 'Pending' %}
+            <span class="badge badge-light-warning fw-bolder fs-7 px-3 py-2">Pending</span>
         {% else %}
-            <span class="badge badge-light-info fw-bold">{{ registration.status }}</span>
+            <span class="badge badge-light-info fw-bolder fs-7 px-3 py-2">{{ registration.admissionStatus }}</span>
         {% endif %}
     </td>
 
-    {# Col 6: Date #}
+    {# Col 7: Date #}
     <td>
-        <span class="text-gray-600 fw-bold">{{ registration.schoolYearStart }}</span>
+        <span class="text-gray-600 fw-bold fs-7">{{ registration.schoolYearOfEntry }}</span>
     </td>
 
-    {# Col 7: Actions (CENTERED) #}
-    <td class="text-center">
-        <div class="d-flex justify-content-center gap-2">
-            <a href="{{ path('app_admin_alabang_registration_view', {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="View">
+    {# Col 8: Actions #}
+    <td class="text-center pe-4">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <a href="{{ path('app_admin_alabang_registration_view', {'id': registration.id}) }}" 
+               class="btn btn-icon btn-bg-light btn-active-color-success btn-sm" 
+               title="View Details">
                 <i class="ki-filled ki-eye fs-3"></i>
             </a>
             
-            <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.id}) }}" class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" title="Edit">
+            <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.id}) }}" 
+               class="btn btn-icon btn-bg-light btn-active-color-success btn-sm" 
+               title="Edit Status">
                 <i class="ki-filled ki-pencil fs-3"></i>
             </a>
             
-            <form method="post" action="{{ path('app_admin_alabang_delete', {'id': registration.id}) }}" onsubmit="return confirm('Delete this record?');" style="margin:0;">
-                <button type="submit" class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" title="Delete">
+            <form method="post" action="{{ path('app_admin_alabang_delete', {'id': registration.id}) }}" 
+                  onsubmit="return confirm('Delete this record permanently?');" class="m-0 p-0">
+                <button type="submit" 
+                        class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" 
+                        title="Delete">
                     <i class="ki-filled ki-trash fs-3"></i>
                 </button>
             </form>
         </div>
     </td>
 </tr>
-{% else %}
-<tr><td colspan="7" class="text-center py-5 text-gray-500">No registrations found.</td></tr>
 {% endfor %}

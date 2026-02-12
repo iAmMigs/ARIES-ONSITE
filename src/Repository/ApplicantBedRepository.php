@@ -15,4 +15,17 @@ class ApplicantBedRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, ApplicantBed::class);
     }
+
+    public function findLatestForGeneration(string $campusCode, string $prefix): ?ApplicantBed
+    {
+        return $this->createQueryBuilder('a')
+            ->where('a.studentNumber LIKE :prefix')
+            ->andWhere('a.campus = :campus')
+            ->setParameter('prefix', $prefix . '%')
+            ->setParameter('campus', $campusCode)
+            ->orderBy('a.studentNumber', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
