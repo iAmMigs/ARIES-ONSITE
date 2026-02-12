@@ -177,14 +177,38 @@
                     <div class="row g-4 mt-4">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label class="form-label">Admission Status</label>
+                                <select name="admission_status" class="form-select">
+                                    <option value="Freshman">Freshman</option>
+                                    <option value="Transferee">Transferee</option>
+                                    <option value="Cross Enrollee">Cross Enrollee</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {# --- NEW FIELD: Education Type (Primary/Secondary) --- #}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Education Type</label>
+                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="Primary">Primary (Kinder - Grade 6)</option>
+                                    <option value="Secondary">Secondary (Grade 7 - Grade 12)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {# --- UPDATED: Grade Level (Dynamic) --- #}
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label class="form-label">Grade Level <span class="required">*</span></label>
                                 <select name="grade_level" id="gradeLevel" class="form-select" required onchange="updateStrands()">
-                                    <option value="">Select Level</option>
-                                    {# Options populated by JS - NO TERTIARY #}
+                                    <option value="">Select Education Type First</option>
                                 </select>
                             </div>
                         </div>
                         
+                        {# --- UPDATED: Strand (Only for 11/12) --- #}
                         <div class="col-md-6" id="strandGroup" style="display:none;">
                             <div class="form-group">
                                 <label class="form-label">Strand <span class="required">*</span></label>
@@ -197,18 +221,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">LRN (Learner Reference No.)</label>
-                                <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN">
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Admission Status</label>
-                                <select name="admission_status" class="form-select">
-                                    <option value="Freshman">Freshman</option>
-                                    <option value="Transferee">Transferee</option>
-                                    <option value="Cross Enrollee">Cross Enrollee</option>
-                                </select>
+                                <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}">
                             </div>
                         </div>
                     </div>
@@ -270,7 +283,6 @@
                     </div>
 
                     <div class="row g-4 mt-2">
-                        {# REMOVED CIVIL STATUS #}
                         <div class="col-md-6">
                             <label class="form-label">Religion</label>
                             <input type="text" name="religion" class="form-control">
@@ -290,7 +302,6 @@
                             <label class="form-label">Indigenous Group</label>
                             <input type="text" name="indigenous_group" class="form-control" placeholder="If applicable">
                         </div>
-                        {# REMOVED WORKING STUDENT #}
                     </div>
 
                     {# VISA SECTION #}
@@ -323,7 +334,7 @@
                     <div class="row g-4 mb-5">
                         <div class="col-md-4">
                             <label class="form-label">Mobile Number <span class="required">*</span></label>
-                            <input type="tel" name="contact_number" class="form-control" required placeholder="09xxxxxxxxx">
+                            <input type="tel" name="contact_number" class="form-control" required placeholder="09xxxxxxxxx" maxlength="11" minlength="11" pattern="\d{11}">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Email Address <span class="required">*</span></label>
@@ -377,7 +388,6 @@
                         <label class="form-check-label text-sm" for="sameAsCurrent">Same as Current Address</label>
                     </div>
 
-                    {# DETAILED PERMANENT ADDRESS FORM (Matches Current Address) #}
                     <div id="permanentAddressBlock" style="display:none;">
                         <div class="row g-3">
                             <div class="col-md-3">
@@ -408,16 +418,16 @@
                                 <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
                                 <input type="text" name="perm_address" class="form-control">
                             </div>
-                                <div class="col-md-12 mt-2">
-                                    <label class="form-label">Zip Code <span class="required">*</span></label>
-                                    <input type="text" name="perm_zip" id="perm_zip" class="form-control" placeholder="Enter Zip Code">
-                                </div>
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label">Zip Code <span class="required">*</span></label>
+                                <input type="text" name="perm_zip" id="perm_zip" class="form-control" placeholder="Enter Zip Code">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {# --- CARD 4: FAMILY BACKGROUND (Spaced out & Designed Checkboxes) --- #}
+            {# --- CARD 4: FAMILY BACKGROUND --- #}
             <div class="card mb-5 animate-section">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-people text-feu-green-600 fs-1"></i>STEP 4 : Family Background</h3>
@@ -427,7 +437,7 @@
                     {# Father #}
                     <div class="bg-gray-50 p-5 rounded mb-5">
                         <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Father's Information</h6>
-                        <div class="row g-4 mb-4"> {# Added gap for spacing #}
+                        <div class="row g-4 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label">Last Name <span class="required">*</span></label>
                                 <input type="text" name="father_lastname" class="form-control" placeholder="Last Name" required>
@@ -444,7 +454,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="father_contact" class="form-control" placeholder="Contact No." required>
+                                <input type="tel" name="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label d-block">Status</label>
@@ -468,7 +478,7 @@
                         <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Mother's Information</h6>
                         <div class="row g-4 mb-4">
                             <div class="col-md-6">
-                                <label class="form-label">Maiden Name <span class="required">*</span></label> {# Changed Label #}
+                                <label class="form-label">Maiden Name <span class="required">*</span></label>
                                 <input type="text" name="mother_lastname" class="form-control" placeholder="Maiden Name" required>
                             </div>
                             <div class="col-md-6">
@@ -483,7 +493,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="mother_contact" class="form-control" placeholder="Contact No." required>
+                                <input type="tel" name="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label d-block">Status</label>
@@ -516,7 +526,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="guardian_contact" class="form-control" placeholder="Contact No." required>
+                                <input type="tel" name="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
                         </div>
                     </div>
@@ -593,14 +603,47 @@
 </div>
 
 <script>
-    // --- Requirement 2: Data Dictionaries (Kinder to SHS only) ---
+    // --- Data Dictionaries (Kinder to SHS only) ---
     const strandData = {
         'feu_alabang': ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'],
         'feu_diliman': ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track']
     };
-    const gradeData = {
-        'feu_alabang': ['SHS'], 
-        'feu_diliman': ['Kinder', 'GRS', 'JHS', 'SHS']
+
+    const numericFields = ['lrn', 'contact_number', 'father_contact', 'mother_contact', 'guardian_contact'];
+
+    numericFields.forEach(fieldName => {
+        const input = document.querySelector(`[name="${fieldName}"]`);
+        if (input) {
+            input.addEventListener('input', function() {
+                // Remove any non-numeric characters immediately
+                this.value = this.value.replace(/\D/g, '');
+                
+                // Force re-validation for the submit button lock
+                checkForm(); 
+            });
+        }
+    });
+
+    
+    // --- NEW: Dynamic Grade Dictionary ---
+    const educationGrades = {
+        'Primary': [
+            {val: 'kinder', label: 'Kindergarten'},
+            {val: 'grade_1', label: 'Grade 1'},
+            {val: 'grade_2', label: 'Grade 2'},
+            {val: 'grade_3', label: 'Grade 3'},
+            {val: 'grade_4', label: 'Grade 4'},
+            {val: 'grade_5', label: 'Grade 5'},
+            {val: 'grade_6', label: 'Grade 6'}
+        ],
+        'Secondary': [
+            {val: 'grade_7', label: 'Grade 7'},
+            {val: 'grade_8', label: 'Grade 8'},
+            {val: 'grade_9', label: 'Grade 9'},
+            {val: 'grade_10', label: 'Grade 10'},
+            {val: 'grade_11', label: 'Grade 11'},
+            {val: 'grade_12', label: 'Grade 12'}
+        ]
     };
 
     let currentCampus = '{{ selected_campus|default("") }}';
@@ -618,27 +661,32 @@
     // --- Core Logic ---
     function selectCampus(campus) {
         currentCampus = campus;
+        // Visual toggle
         document.querySelectorAll('.campus-option').forEach(opt => opt.classList.remove('active'));
         const activeOpt = document.querySelector(`.campus-option input[value="${campus}"]`).parentElement;
         activeOpt.classList.add('active');
         activeOpt.querySelector('input').checked = true;
 
-        updateGradeLevels();
-        updateStrands(); 
+        // Reset
+        document.getElementById('educationType').value = "";
+        updateGradeLevels(); 
     }
 
     function updateGradeLevels() {
+        const type = document.getElementById('educationType').value;
         const select = document.getElementById('gradeLevel');
+        
         select.innerHTML = '<option value="">Select Level</option>';
-        if(!currentCampus) return;
-
-        const levels = gradeData[currentCampus] || [];
-        levels.forEach(lvl => {
-            const opt = document.createElement('option');
-            opt.value = lvl;
-            opt.textContent = lvl;
-            select.appendChild(opt);
-        });
+        
+        if (type && educationGrades[type]) {
+            educationGrades[type].forEach(grade => {
+                const opt = document.createElement('option');
+                opt.value = grade.val;
+                opt.textContent = grade.label;
+                select.appendChild(opt);
+            });
+        }
+        updateStrands();
     }
 
     function updateStrands() {
@@ -648,7 +696,8 @@
         
         select.innerHTML = '<option value="">Select Option</option>';
 
-        if(grade === 'SHS') {
+        // Show Strand ONLY if Grade 11 or 12
+        if(grade === 'grade_11' || grade === 'grade_12') {
             strandGroup.style.display = 'block';
             select.setAttribute('required', 'required');
             
@@ -734,6 +783,8 @@
                 i.setAttribute('required', 'required');
             }
         });
+        // Force re-validation
+        document.getElementById('enrollmentForm').dispatchEvent(new Event('change'));
     }
 
     function toggleParentStatus(currentId, otherId) {

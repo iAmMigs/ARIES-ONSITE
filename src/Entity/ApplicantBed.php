@@ -21,6 +21,27 @@ class ApplicantBed
     public const GENDER_MALE = 'M';
     public const GENDER_FEMALE = 'F';
 
+    // Education Levels
+    public const EDUCATION_PRIMARY = 'Primary';
+    public const EDUCATION_SECONDARY = 'Secondary';
+
+    //Grade Levels
+    public const GRADE_KINDER = 'kinder';
+    public const GRADE_1 = 'grade_1';
+    public const GRADE_2 = 'grade_2';
+    public const GRADE_3 = 'grade_3';
+    public const GRADE_4 = 'grade_4';
+    public const GRADE_5 = 'grade_5';
+    public const GRADE_6 = 'grade_6';
+    public const GRADE_7 = 'grade_7';
+    public const GRADE_8 = 'grade_8';
+    public const GRADE_9 = 'grade_9';
+    public const GRADE_10 = 'grade_10';
+    public const GRADE_11 = 'grade_11';
+    public const GRADE_12 = 'grade_12';
+
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::BIGINT)]
@@ -34,6 +55,9 @@ class ApplicantBed
 
     #[ORM\Column(name: 'campus', length: 10)]
     private ?string $campus = null;
+
+    #[ORM\Column(name: 'education_type', length: 20, nullable: true)]
+    private ?string $educationType = null;
 
     #[ORM\Column(name: 'grade_level', length: 15, nullable: true)]
     private ?string $gradeLevel = null;
@@ -173,6 +197,8 @@ class ApplicantBed
     public function setAdCon(string $adCon): static { $this->adCon = $adCon; return $this; }
     public function getStudentNumber(): ?string { return $this->studentNumber; }
     public function setStudentNumber(?string $num): static { $this->studentNumber = $num; return $this; }
+    public function getEducationType(): ?string { return $this->educationType; }
+    public function setEducationType(?string $type): static { $this->educationType = $type; return $this; }
     public function setCampus(string $c): static { $this->campus = $c; return $this; }
     public function setGradeLevel(?string $l): static { $this->gradeLevel = $l; return $this; }
     public function setTrackStrand(?string $s): static { $this->trackStrand = $s; return $this; }
@@ -237,5 +263,9 @@ class ApplicantBed
     public function addRequirement(ApplicantBedRequirement $r): static {
         if (!$this->requirements->contains($r)) { $this->requirements->add($r); $r->setApplicant($this); }
         return $this;
+    }
+    public function isSeniorHigh(): bool
+    {
+        return in_array($this->gradeLevel, [self::GRADE_11, self::GRADE_12]);
     }
 }

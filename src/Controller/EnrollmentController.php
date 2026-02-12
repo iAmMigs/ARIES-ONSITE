@@ -58,6 +58,7 @@ class EnrollmentController extends AbstractController
         $applicant->setAdmissionDate(new \DateTime());
 
         // --- 3. ACADEMIC INFO ---
+        $applicant->setEducationType($request->request->get('education_type'));
         $applicant->setGradeLevel($request->request->get('grade_level'));
         $applicant->setTrackStrand($request->request->get('strand'));
         $applicant->setLrn($request->request->get('lrn'));
