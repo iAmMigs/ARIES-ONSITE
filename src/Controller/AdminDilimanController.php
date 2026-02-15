@@ -17,9 +17,9 @@ class AdminDilimanController extends AbstractController
     #[Route('/', name: 'app_admin_diliman_dashboard')]
     public function dashboard(ApplicantBedRepository $repository): Response
     {
-        // Calculate Stats for Dashboard
+        // FIXED: Count by adCon instead of id
         $qb = $repository->createQueryBuilder('a')
-            ->select('count(a.id)')
+            ->select('count(a.adCon)') 
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN);
 
@@ -34,12 +34,12 @@ class AdminDilimanController extends AbstractController
         $month = (clone $qb)->andWhere('a.createdAt >= :month')
             ->setParameter('month', new \DateTime('first day of this month'))->getQuery()->getSingleScalarResult();
 
-        // Chart Data (Simple daily count for last 7 days)
+        // Chart Data
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
             $count = $repository->createQueryBuilder('a')
-                ->select('count(a.id)')
+                ->select('count(a.adCon)') // FIXED
                 ->where('a.campus = :campus')
                 ->andWhere('a.createdAt BETWEEN :start AND :end')
                 ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
@@ -62,7 +62,7 @@ class AdminDilimanController extends AbstractController
         $qb = $repository->createQueryBuilder('a')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
-            ->orderBy('a.id', 'DESC');
+            ->orderBy('a.createdAt', 'DESC'); // FIXED: Sort by createdAt instead of id
 
         // Filters
         if ($grade = $request->query->get('grade')) {
@@ -89,10 +89,11 @@ class AdminDilimanController extends AbstractController
         ]);
     }
 
+    // UPDATED: Parameter is now string $id (which corresponds to adCon)
     #[Route('/registration/{id}/view', name: 'app_admin_diliman_registration_view')]
-    public function view(int $id, ApplicantBedRepository $repository): Response
+    public function view(string $id, ApplicantBedRepository $repository): Response
     {
-        $registration = $repository->find($id);
+        $registration = $repository->find($id); // find() works with PK (adCon)
         if (!$registration) throw $this->createNotFoundException();
 
         return $this->render('admin-onsite/diliman/view_registration.html.twig', [
@@ -101,18 +102,18 @@ class AdminDilimanController extends AbstractController
     }
 
     #[Route('/registration/{id}/edit', name: 'app_admin_diliman_registration_edit')]
-    public function edit(int $id, ApplicantBedRepository $repository, Request $request, EntityManagerInterface $em): Response
+    public function edit(string $id, ApplicantBedRepository $repository, Request $request, EntityManagerInterface $em): Response
     {
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
-            // Manual mapping of fields based on your previous twig
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
             $registration->setMiddleName($request->request->get('middle_name'));
-            // ... map other fields similarly ...
             $registration->setAdmissionStatus($request->request->get('status'));
+            $registration->setGradeLevel($request->request->get('grade'));
+            $registration->setTrackStrand($request->request->get('track'));
             
             $em->flush();
             $this->addFlash('success', 'Registration updated successfully.');
@@ -125,7 +126,7 @@ class AdminDilimanController extends AbstractController
     }
 
     #[Route('/registration/{id}/delete', name: 'app_admin_diliman_delete', methods: ['POST'])]
-    public function delete(int $id, ApplicantBedRepository $repository, ApplicantDeletionService $service): Response
+    public function delete(string $id, ApplicantBedRepository $repository, ApplicantDeletionService $service): Response
     {
         $registration = $repository->find($id);
         if ($registration) {

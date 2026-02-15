@@ -7,138 +7,56 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ApplicantBedRequirementRepository::class)]
-#[ORM\Table(name: 'bed_applicant_requirements')]
+#[ORM\Table(name: 'bed_requirements')]
+#[ORM\HasLifecycleCallbacks]
 class ApplicantBedRequirement
 {
+    // Composite Primary Key: Applicant (ad_con) + Slug
+    
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\ManyToOne(inversedBy: 'requirements')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'requirements')]
+    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $adCon = null;
+    #[ORM\Id]
+    #[ORM\Column(name: 'Slug', type: Types::STRING, length: 100)]
+    private ?string $Slug = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $requirement = null;
+    #[ORM\Column(name: 'Requirement', type: Types::STRING, length: 100)]
+    private ?string $Requirement = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $storedFileName = null;
+    #[ORM\Column(name: 'StoredFileName', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $StoredFileName = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $slug = null;
+    #[ORM\Column(name: 'Status', type: Types::STRING, length: 1, options: ['default' => 'P'])]
+    private string $Status = 'P'; // P=Pending, S=Submitted, V=Verified
 
-    #[ORM\Column(length: 50)]
-    private ?string $status = null;
+    #[ORM\Column(name: 'IsRequired', type: Types::BOOLEAN)]
+    private bool $IsRequired = true;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $dateSubmitted = null;
+    #[ORM\Column(name: 'DateSubmitted', type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $DateSubmitted = null;
 
-    #[ORM\Column]
-    private ?bool $isRequired = null;
+    // --- GETTERS & SETTERS ---
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getApplicant(): ?ApplicantBed
-    {
-        return $this->applicant;
-    }
-
-    public function setApplicant(?ApplicantBed $applicant): static
-    {
-        $this->applicant = $applicant;
-
-        return $this;
-    }
-
-    public function getAdCon(): ?string
-    {
-        return $this->adCon;
-    }
-
-    public function setAdCon(string $adCon): static
-    {
-        $this->adCon = $adCon;
-
-        return $this;
-    }
-
-    public function getRequirement(): ?string
-    {
-        return $this->requirement;
-    }
-
-    public function setRequirement(string $requirement): static
-    {
-        $this->requirement = $requirement;
-
-        return $this;
-    }
-
-    // --- FIX: Added Missing Getter ---
-    public function getStoredFileName(): ?string
-    {
-        return $this->storedFileName;
-    }
-
-    public function setStoredFileName(?string $storedFileName): static
-    {
-        $this->storedFileName = $storedFileName;
-
-        return $this;
-    }
-
-    public function getSlug(): ?string
-    {
-        return $this->slug;
-    }
-
-    public function setSlug(?string $slug): static
-    {
-        $this->slug = $slug;
-
-        return $this;
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    public function getDateSubmitted(): ?\DateTimeInterface
-    {
-        return $this->dateSubmitted;
-    }
-
-    public function setDateSubmitted(?\DateTimeInterface $dateSubmitted): static
-    {
-        $this->dateSubmitted = $dateSubmitted;
-
-        return $this;
-    }
-
-    public function isIsRequired(): ?bool
-    {
-        return $this->isRequired;
-    }
-
-    public function setIsRequired(bool $isRequired): static
-    {
-        $this->isRequired = $isRequired;
-
-        return $this;
-    }
+    public function getApplicant(): ?ApplicantBed { return $this->applicant; }
+    public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
+    
+    public function getSlug(): ?string { return $this->Slug; }
+    public function setSlug(string $Slug): static { $this->Slug = $Slug; return $this; }
+    
+    public function getRequirement(): ?string { return $this->Requirement; }
+    public function setRequirement(string $Requirement): static { $this->Requirement = $Requirement; return $this; }
+    
+    public function getStoredFileName(): ?string { return $this->StoredFileName; }
+    public function setStoredFileName(?string $StoredFileName): static { $this->StoredFileName = $StoredFileName; return $this; }
+    
+    public function getStatus(): string { return $this->Status; }
+    public function setStatus(string $Status): static { $this->Status = $Status; return $this; }
+    
+    public function isRequired(): bool { return $this->IsRequired; }
+    public function setIsRequired(bool $IsRequired): static { $this->IsRequired = $IsRequired; return $this; }
+    
+    public function getDateSubmitted(): ?\DateTimeInterface { return $this->DateSubmitted; }
+    public function setDateSubmitted(?\DateTimeInterface $DateSubmitted): static { $this->DateSubmitted = $DateSubmitted; return $this; }
 }

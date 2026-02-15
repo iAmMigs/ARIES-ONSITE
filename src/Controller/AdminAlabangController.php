@@ -17,9 +17,9 @@ class AdminAlabangController extends AbstractController
     #[Route('/', name: 'app_admin_alabang_dashboard')]
     public function dashboard(ApplicantBedRepository $repository): Response
     {
-        // Calculate Stats
+        // FIXED: Count by adCon
         $qb = $repository->createQueryBuilder('a')
-            ->select('count(a.id)')
+            ->select('count(a.adCon)')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG);
 
@@ -36,7 +36,7 @@ class AdminAlabangController extends AbstractController
         for ($i = 6; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
             $count = $repository->createQueryBuilder('a')
-                ->select('count(a.id)')
+                ->select('count(a.adCon)') // FIXED
                 ->where('a.campus = :campus')
                 ->andWhere('a.createdAt BETWEEN :start AND :end')
                 ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
@@ -58,7 +58,7 @@ class AdminAlabangController extends AbstractController
         $qb = $repository->createQueryBuilder('a')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
-            ->orderBy('a.id', 'DESC');
+            ->orderBy('a.createdAt', 'DESC'); // FIXED
 
         if ($grade = $request->query->get('grade')) {
             $qb->andWhere('a.gradeLevel = :grade')->setParameter('grade', $grade);
@@ -73,9 +73,8 @@ class AdminAlabangController extends AbstractController
         ]);
     }
 
-    // View, Edit, Delete are structurally identical to Diliman, mapped to Alabang routes
     #[Route('/registration/{id}/view', name: 'app_admin_alabang_registration_view')]
-    public function view(int $id, ApplicantBedRepository $repository): Response
+    public function view(string $id, ApplicantBedRepository $repository): Response
     {
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
@@ -83,14 +82,16 @@ class AdminAlabangController extends AbstractController
     }
 
     #[Route('/registration/{id}/edit', name: 'app_admin_alabang_registration_edit')]
-    public function edit(int $id, ApplicantBedRepository $repository, Request $request, EntityManagerInterface $em): Response
+    public function edit(string $id, ApplicantBedRepository $repository, Request $request, EntityManagerInterface $em): Response
     {
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
             $registration->setAdmissionStatus($request->request->get('status'));
-            // ... map other fields ...
+            $registration->setGradeLevel($request->request->get('grade'));
+            $registration->setTrackStrand($request->request->get('track'));
+            
             $em->flush();
             $this->addFlash('success', 'Updated.');
             return $this->redirectToRoute('app_admin_alabang_registrations');
@@ -99,7 +100,7 @@ class AdminAlabangController extends AbstractController
     }
 
     #[Route('/registration/{id}/delete', name: 'app_admin_alabang_delete', methods: ['POST'])]
-    public function delete(int $id, ApplicantBedRepository $repository, ApplicantDeletionService $service): Response
+    public function delete(string $id, ApplicantBedRepository $repository, ApplicantDeletionService $service): Response
     {
         $registration = $repository->find($id);
         if ($registration) $service->deleteApplicant($registration);

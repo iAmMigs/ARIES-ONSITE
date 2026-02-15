@@ -233,8 +233,8 @@
                                 <label class="form-label">Education Type</label>
                                 <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
                                     <option value="">Select Type</option>
-                                    <option value="Primary">Primary (Kinder - Grade 6)</option>
-                                    <option value="Secondary">Secondary (Grade 7 - Grade 12)</option>
+                                    <option value="Primary">Primary (Elementary)</option>
+                                    <option value="Secondary">Secondary (High School)</option>
                                 </select>
                             </div>
                         </div>
@@ -884,7 +884,7 @@
                 </div>
                  <div class="col-md-3">
                     <label class="form-label text-xs">Student No.</label>
-                    <input type="text" name="sibling_student_no[]" class="form-control form-control-sm" placeholder="(If FEU)">
+                    <input type="text" name="sibling_student_no[]" class="form-control form-control-sm" placeholder="20xxxxxx">
                 </div>
             </div>`;
         container.insertAdjacentHTML('beforeend', row);

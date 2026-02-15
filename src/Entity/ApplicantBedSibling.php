@@ -10,34 +10,40 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'bed_siblings')]
 class ApplicantBedSibling
 {
+    // Composite Primary Key: Applicant (ad_con) + SiblingName
+    
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
-    private ?int $id = null;
-
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'siblings')]
-    #[ORM\JoinColumn(name: 'applicant_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
-    #[ORM\Column(name: 'ad_con', type: 'string', length: 15, nullable: true)]
-    private ?string $adCon = null;
-
-    #[ORM\Column(name: 'SiblingName', type: 'string', length: 255)]
+    #[ORM\Id]
+    #[ORM\Column(name: 'SiblingName', type: Types::STRING, length: 255)]
     private ?string $SiblingName = null;
 
-    #[ORM\Column(name: 'School', type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(name: 'School', type: Types::STRING, length: 255, nullable: true)]
     private ?string $School = null;
 
-    #[ORM\Column(name: 'IsFeuStudent', type: 'boolean', options: ['default' => false])]
+    #[ORM\Column(name: 'IsFeuStudent', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $IsFeuStudent = false;
 
-    #[ORM\Column(name: 'FeuStudentNo', type: 'string', length: 20, nullable: true)]
+    #[ORM\Column(name: 'FeuStudentNo', type: Types::STRING, length: 50, nullable: true)]
     private ?string $FeuStudentNo = null;
 
-    public function setApplicant(?ApplicantBed $a): static { $this->applicant = $a; return $this; }
-    public function setAdCon(?string $v): static { $this->adCon = $v; return $this; }
-    public function setSiblingName(string $v): static { $this->SiblingName = $v; return $this; }
-    public function setSchool(?string $v): static { $this->School = $v; return $this; }
-    public function setIsFeuStudent(bool $v): static { $this->IsFeuStudent = $v; return $this; }
-    public function setFeuStudentNo(?string $v): static { $this->FeuStudentNo = $v; return $this; }
+    // --- GETTERS & SETTERS ---
+
+    public function getApplicant(): ?ApplicantBed { return $this->applicant; }
+    public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
+    
+    public function getSiblingName(): ?string { return $this->SiblingName; }
+    public function setSiblingName(string $SiblingName): static { $this->SiblingName = $SiblingName; return $this; }
+    
+    public function getSchool(): ?string { return $this->School; }
+    public function setSchool(?string $School): static { $this->School = $School; return $this; }
+    
+    public function isFeuStudent(): bool { return $this->IsFeuStudent; }
+    public function setIsFeuStudent(bool $IsFeuStudent): static { $this->IsFeuStudent = $IsFeuStudent; return $this; }
+    
+    public function getFeuStudentNo(): ?string { return $this->FeuStudentNo; }
+    public function setFeuStudentNo(?string $FeuStudentNo): static { $this->FeuStudentNo = $FeuStudentNo; return $this; }
 }

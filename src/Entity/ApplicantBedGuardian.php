@@ -10,47 +10,52 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'bed_guardians')]
 class ApplicantBedGuardian
 {
+    // Composite Primary Key: Applicant (ad_con) + Relationship
+    
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: Types::INTEGER)]
-    private ?int $id = null;
-
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'guardians')]
-    #[ORM\JoinColumn(name: 'applicant_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
-    #[ORM\Column(name: 'ad_con', type: 'string', length: 15, nullable: true)]
-    private ?string $adCon = null;
-
-    #[ORM\Column(name: 'Relationship', type: 'string', length: 20, nullable: false)]
+    #[ORM\Id]
+    #[ORM\Column(name: 'Relationship', type: Types::STRING, length: 20)]
     private ?string $Relationship = null;
 
-    #[ORM\Column(name: 'ParentName', type: 'string', length: 255, nullable: false)]
+    #[ORM\Column(name: 'ParentName', type: Types::STRING, length: 255, nullable: true)]
     private ?string $ParentName = null;
 
-    #[ORM\Column(name: 'Occupation', type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(name: 'Occupation', type: Types::STRING, length: 100, nullable: true)]
     private ?string $Occupation = null;
 
-    #[ORM\Column(name: 'ContactNo', type: 'string', length: 20, nullable: true)]
+    #[ORM\Column(name: 'ContactNo', type: Types::STRING, length: 50, nullable: true)]
     private ?string $ContactNo = null;
 
-    #[ORM\Column(name: 'Deceased', type: 'boolean', options: ['default' => false])]
+    #[ORM\Column(name: 'IsDeceased', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $Deceased = false;
 
-    #[ORM\Column(name: 'OFW', type: 'boolean', options: ['default' => false])]
+    #[ORM\Column(name: 'IsOFW', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $OFW = false;
-    
-    #[ORM\Column(name: 'IsPrimaryContact', type: 'boolean', options: ['default' => false])]
-    private bool $IsPrimaryContact = false;
 
-    public function setApplicant(?ApplicantBed $a): static { $this->applicant = $a; return $this; }
-    public function setAdCon(?string $v): static { $this->adCon = $v; return $this; }
-    public function setRelationship(string $v): static { $this->Relationship = $v; return $this; }
+    // --- GETTERS & SETTERS ---
+
+    public function getApplicant(): ?ApplicantBed { return $this->applicant; }
+    public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
+    
     public function getRelationship(): ?string { return $this->Relationship; }
-    public function setParentName(string $v): static { $this->ParentName = $v; return $this; }
-    public function setOccupation(?string $v): static { $this->Occupation = $v; return $this; }
-    public function setContactNo(?string $v): static { $this->ContactNo = $v; return $this; }
-    public function setDeceased(bool $v): static { $this->Deceased = $v; return $this; }
-    public function setOFW(bool $v): static { $this->OFW = $v; return $this; }
-    public function setIsPrimaryContact(bool $v): static { $this->IsPrimaryContact = $v; return $this; }
+    public function setRelationship(string $Relationship): static { $this->Relationship = $Relationship; return $this; }
+    
+    public function getParentName(): ?string { return $this->ParentName; }
+    public function setParentName(?string $ParentName): static { $this->ParentName = $ParentName; return $this; }
+    
+    public function getOccupation(): ?string { return $this->Occupation; }
+    public function setOccupation(?string $Occupation): static { $this->Occupation = $Occupation; return $this; }
+    
+    public function getContactNo(): ?string { return $this->ContactNo; }
+    public function setContactNo(?string $ContactNo): static { $this->ContactNo = $ContactNo; return $this; }
+    
+    public function isDeceased(): bool { return $this->Deceased; }
+    public function setDeceased(bool $Deceased): static { $this->Deceased = $Deceased; return $this; }
+    
+    public function isOFW(): bool { return $this->OFW; }
+    public function setOFW(bool $OFW): static { $this->OFW = $OFW; return $this; }
 }

@@ -24,9 +24,6 @@ class AdminUserRepository extends ServiceEntityRepository implements PasswordUpg
         parent::__construct($registry, AdminUser::class);
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof AdminUser) {
