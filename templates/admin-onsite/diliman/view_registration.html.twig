@@ -12,13 +12,13 @@
             </a>
             <h1 class="text-2xl font-bold text-gray-800">Applicant Profile</h1>
         </div>
-        <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.id}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
+        <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.studentNumber}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
             <i class="ki-filled ki-pencil mr-2"></i> Edit Details
         </a>
     </div>
 
     <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
-        {# --- 1. APPLICANT DETAILS CARD (Horizontal) --- #}
+        {# --- 1. APPLICANT CARD --- #}
         <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50"></div>
             
@@ -41,12 +41,14 @@
                     <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
                         <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
                     </div>
-                    <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
-                        <span class="text-xs text-gray-400 uppercase mr-1">AdCon</span> {{ registration.adCon }}
-                    </div>
                     <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">
                         {{ registration.gradeLevel }}
                     </div>
+                    {% if registration.trackStrand %}
+                    <div class="px-3 py-1 rounded-lg bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100">
+                        {{ registration.trackStrand }}
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-sm text-gray-600">
@@ -55,17 +57,10 @@
                 </div>
             </div>
 
-            {# Exam Status (Right Side) #}
-            <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[180px]">
-                <div class="text-xs font-bold text-gray-400 uppercase mb-2">Examination Status</div>
-                {% if registration.examScore %}
-                    <div class="text-3xl font-black text-feu-green-700">{{ registration.examScore }}<span class="text-lg text-gray-400 font-normal">/100</span></div>
-                    <div class="text-xs text-green-600 font-bold mt-1 bg-green-100 px-2 py-0.5 rounded-full inline-block">PASSED</div>
-                {% else %}
-                    <div class="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg font-bold text-sm border border-yellow-200">
-                        <i class="ki-filled ki-time mr-1"></i> Pending Exam
-                    </div>
-                {% endif %}
+            {# Status #}
+            <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
+                <div class="text-xs font-bold text-gray-400 uppercase mb-2">Status</div>
+                <div class="text-lg font-bold text-feu-green-700">{{ registration.admissionStatus }}</div>
             </div>
         </div>
 
@@ -79,15 +74,16 @@
                 <div class="grid grid-cols-2 gap-y-4 gap-x-8">
                     <div><div class="text-xs text-gray-400 uppercase font-bold">Gender</div><div class="font-medium text-gray-800">{{ registration.gender }}</div></div>
                     <div><div class="text-xs text-gray-400 uppercase font-bold">Birthday</div><div class="font-medium text-gray-800">{{ registration.birthDate|date('F j, Y') }}</div></div>
+                    <div><div class="text-xs text-gray-400 uppercase font-bold">Birth Place</div><div class="font-medium text-gray-800">{{ registration.birthPlace }}</div></div>
                     <div><div class="text-xs text-gray-400 uppercase font-bold">Religion</div><div class="font-medium text-gray-800">{{ registration.religion }}</div></div>
-                    <div><div class="text-xs text-gray-400 uppercase font-bold">Civil Status</div><div class="font-medium text-gray-800">{{ registration.civilStatus }}</div></div>
+                    <div><div class="text-xs text-gray-400 uppercase font-bold">Citizenship</div><div class="font-medium text-gray-800">{{ registration.citizenship }}</div></div>
                 </div>
             </div>
 
             {# Address #}
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                    <i class="ki-filled ki-map text-feu-green-600"></i> Address
+                    <i class="ki-filled ki-map text-feu-green-600"></i> Current Address
                 </h3>
                 <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
                 <div class="mt-2 text-sm text-gray-500">
@@ -95,30 +91,70 @@
                 </div>
             </div>
 
-            {# Family #}
+            {# Family / Guardians (Loop) #}
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                     <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
                 </h3>
-                {# Assume parents/siblings are iterable or fields #}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for guardian in registration.guardians %}
                     <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                        <div class="text-xs text-feu-gold-600 font-bold uppercase mb-2">Father</div>
-                        <div class="font-bold text-gray-800">{{ registration.fatherName|default('N/A') }}</div>
-                        <div class="text-sm text-gray-500">{{ registration.fatherOccupation|default('-') }}</div>
+                        <div class="text-xs text-feu-gold-600 font-bold uppercase mb-2">{{ guardian.relationship }}</div>
+                        <div class="font-bold text-gray-800">{{ guardian.parentName }}</div>
+                        <div class="text-sm text-gray-500 mt-1">{{ guardian.occupation }}</div>
+                        <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ guardian.contactNo }}</div>
                     </div>
-                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                        <div class="text-xs text-feu-gold-600 font-bold uppercase mb-2">Mother</div>
-                        <div class="font-bold text-gray-800">{{ registration.motherName|default('N/A') }}</div>
-                        <div class="text-sm text-gray-500">{{ registration.motherOccupation|default('-') }}</div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
+
+            {# Siblings (Loop) #}
+            {% if registration.siblings|length > 0 %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-profile-user text-feu-green-600"></i> Siblings
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead>
+                            <tr class="text-xs text-gray-400 uppercase border-b border-gray-100"><th class="py-2">Name</th><th class="py-2">School</th><th class="py-2">FEU ID</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            {% for sibling in registration.siblings %}
+                            <tr>
+                                <td class="py-2 font-medium text-gray-800">{{ sibling.siblingName }}</td>
+                                <td class="py-2 text-gray-500">{{ sibling.school }}</td>
+                                <td class="py-2 text-gray-500">{{ sibling.feuStudentNo|default('-') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         {# --- 3. SIDEBAR GRID --- #}
         <div class="col-span-12 lg:col-span-4 space-y-6">
-            {# Documents #}
+            {# Education History (Schools) #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
+                </h3>
+                <div class="space-y-4">
+                    {% for school in registration.schools %}
+                    <div class="relative pl-4 border-l-2 border-gray-200">
+                        <div class="text-sm font-bold text-gray-800">{{ school.school }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Year End: {{ school.yearEnd }}</div>
+                        <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
+                    </div>
+                    {% else %}
+                        <div class="text-sm text-gray-400 italic">No history provided.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Documents (Requirements) #}
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                     <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
@@ -131,7 +167,9 @@
                         </div>
                         <div class="overflow-hidden">
                             <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                            <div class="text-xs text-gray-400">Click to view</div>
+                            <div class="text-xs text-gray-400">
+                                {% if req.status == 'S' %}Submitted{% else %}Pending{% endif %}
+                            </div>
                         </div>
                     </a>
                     {% else %}

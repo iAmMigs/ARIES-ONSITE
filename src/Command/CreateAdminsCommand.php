@@ -34,22 +34,20 @@ class CreateAdminsCommand extends Command
                 'password' => 'admin123',
                 'first' => 'Admin',
                 'last' => 'Diliman',
-                'campus' => 'feu_diliman' // UPDATED: Matches SecurityController match case
+                'campus' => 'feu_diliman'
             ],
             [
                 'email' => 'admin@feualabang.edu.ph',
                 'password' => 'admin123',
                 'first' => 'Admin',
                 'last' => 'Alabang',
-                'campus' => 'feu_alabang' // UPDATED: Matches SecurityController match case
+                'campus' => 'feu_alabang'
             ]
         ];
 
         foreach ($admins as $adminData) {
-            // 1. Check if user exists
             $existingUser = $this->entityManager->getRepository(AdminUser::class)->findOneBy(['email' => $adminData['email']]);
 
-            // Optional: Update existing user if they lack campus data
             if ($existingUser) {
                 if (!$existingUser->getCampus()) {
                     $existingUser->setCampus($adminData['campus']);
@@ -60,15 +58,13 @@ class CreateAdminsCommand extends Command
                 continue;
             }
 
-            // 2. Create new AdminUser
             $user = new AdminUser();
             $user->setEmail($adminData['email']);
             $user->setFirstName($adminData['first']);
             $user->setLastName($adminData['last']);
-            $user->setCampus($adminData['campus']); // ADDED: Save the campus
+            $user->setCampus($adminData['campus']);
             $user->setRoles(['ROLE_ADMIN']);
             
-            // Hash the password
             $hashedPassword = $this->passwordHasher->hashPassword($user, $adminData['password']);
             $user->setPassword($hashedPassword);
 

@@ -10,11 +10,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'bed_siblings')]
 class ApplicantBedSibling
 {
-    // Composite Primary Key: Applicant (ad_con) + SiblingName
+    // Composite Primary Key: Applicant (student_number) + SiblingName
     
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'siblings')]
-    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
     #[ORM\Id]
@@ -29,8 +29,6 @@ class ApplicantBedSibling
 
     #[ORM\Column(name: 'FeuStudentNo', type: Types::STRING, length: 50, nullable: true)]
     private ?string $FeuStudentNo = null;
-
-    // --- GETTERS & SETTERS ---
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }

@@ -7,7 +7,7 @@
                 {% if registration.photoSlug %}
                     <img src="{{ asset(registration.photoSlug) }}" alt="Student" class="w-100 h-100 object-fit-cover"/>
                 {% else %}
-                    <div class="symbol-label fs-3 bg-light-success text-success fw-bold d-flex align-items-center justify-content-center h-100 w-100">
+                    <div class="symbol-label fs-3 bg-light-primary text-primary fw-bold d-flex align-items-center justify-content-center h-100 w-100">
                         {{ registration.firstName|first|upper }}
                     </div>
                 {% endif %}
@@ -20,15 +20,12 @@
         <span class="text-gray-800 fw-bolder fs-6">{{ registration.studentNumber }}</span>
     </td>
 
-    {# Col 3: AdCon #}
-    <td>
-        <span class="badge badge-light-dark fw-bolder fs-7 px-3 py-2">{{ registration.adCon }}</span>
-    </td>
+    {# REMOVED ADCON COLUMN #}
 
     {# Col 4: Full Name #}
     <td>
         <div class="d-flex flex-column">
-            <a href="#" class="text-gray-800 text-hover-success mb-1 fs-6 fw-bolder">
+            <a href="#" class="text-gray-800 text-hover-primary mb-1 fs-6 fw-bolder">
                 {{ registration.lastName }}, {{ registration.firstName }}
             </a>
         </div>
@@ -37,7 +34,7 @@
     {# Col 5: Level / Strand #}
     <td>
         <div class="d-flex flex-column gap-2 align-items-start">
-            <span class="badge badge-light-success fw-bolder fs-7 px-3 py-2">
+            <span class="badge badge-light-primary fw-bolder fs-7 px-3 py-2">
                 {{ registration.gradeLevel }}
             </span>
             {% if registration.trackStrand %}
@@ -61,25 +58,26 @@
 
     {# Col 7: Date #}
     <td>
-        <span class="text-gray-600 fw-bold fs-7">{{ registration.schoolYearOfEntry }}</span>
+        <span class="text-gray-600 fw-bold fs-7">{{ registration.createdAt|date('M d, Y') }}</span>
     </td>
 
     {# Col 8: Actions #}
     <td class="text-center pe-4">
         <div class="d-flex justify-content-center align-items-center gap-2">
-            <a href="{{ path('app_admin_alabang_registration_view', {'id': registration.id}) }}" 
-               class="btn btn-icon btn-bg-light btn-active-color-success btn-sm" 
+            {# USING studentNumber #}
+            <a href="{{ path('app_admin_alabang_registration_view', {'id': registration.studentNumber}) }}" 
+               class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" 
                title="View Details">
                 <i class="ki-filled ki-eye fs-3"></i>
             </a>
             
-            <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.id}) }}" 
-               class="btn btn-icon btn-bg-light btn-active-color-success btn-sm" 
+            <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.studentNumber}) }}" 
+               class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" 
                title="Edit Status">
                 <i class="ki-filled ki-pencil fs-3"></i>
             </a>
             
-            <form method="post" action="{{ path('app_admin_alabang_delete', {'id': registration.id}) }}" 
+            <form method="post" action="{{ path('app_admin_diliman_delete', {'id': registration.studentNumber}) }}" 
                   onsubmit="return confirm('Delete this record permanently?');" class="m-0 p-0">
                 <button type="submit" 
                         class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" 

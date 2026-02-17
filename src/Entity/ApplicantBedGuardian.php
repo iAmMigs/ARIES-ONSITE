@@ -10,11 +10,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'bed_guardians')]
 class ApplicantBedGuardian
 {
-    // Composite Primary Key: Applicant (ad_con) + Relationship
+    // Composite Primary Key: Applicant (student_number) + Relationship
     
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'guardians')]
-    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
     #[ORM\Id]
@@ -35,8 +35,6 @@ class ApplicantBedGuardian
 
     #[ORM\Column(name: 'IsOFW', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $OFW = false;
-
-    // --- GETTERS & SETTERS ---
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }

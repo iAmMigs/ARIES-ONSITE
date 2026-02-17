@@ -66,20 +66,22 @@
 
     {# Col 8: Actions #}
     <td class="text-center pe-4">
+        {# Removed opacity/hover classes to ensure visibility #}
         <div class="d-flex justify-content-center align-items-center gap-2">
-            <a href="{{ path('app_admin_diliman_registration_view', {'id': registration.id}) }}" 
+            {# UPDATED: Used registration.adCon #}
+            <a href="{{ path('app_admin_diliman_registration_view', {'id': registration.adCon}) }}" 
                class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" 
                title="View Details">
                 <i class="ki-filled ki-eye fs-3"></i>
             </a>
             
-            <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.id}) }}" 
+            <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.adCon}) }}" 
                class="btn btn-icon btn-bg-light btn-active-color-primary btn-sm" 
                title="Edit Status">
                 <i class="ki-filled ki-pencil fs-3"></i>
             </a>
             
-            <form method="post" action="{{ path('app_admin_diliman_delete', {'id': registration.id}) }}" 
+            <form method="post" action="{{ path('app_admin_diliman_delete', {'id': registration.adCon}) }}" 
                   onsubmit="return confirm('Delete this record permanently?');" class="m-0 p-0">
                 <button type="submit" 
                         class="btn btn-icon btn-bg-light btn-active-color-danger btn-sm" 

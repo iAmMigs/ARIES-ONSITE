@@ -11,7 +11,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: ApplicantBedRepository::class)]
 #[ORM\Table(name: 'bed_applicants')]
-#[UniqueEntity(fields: ['adCon'], message: 'This Admission Control Number already exists.')]
+#[UniqueEntity(fields: ['studentNumber'], message: 'This Student Number already exists.')]
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBed
 {
@@ -19,16 +19,16 @@ class ApplicantBed
     public const CAMPUS_ALABANG = 'FALAB';
     public const STATUS_PENDING = 'P';
     
+    public const GENDER_MALE = 'M';
+    public const GENDER_FEMALE = 'F';
+
     // Admission Types (Filtered for Basic Ed)
     public const TYPE_FRESHMAN = 'Freshman';
     public const TYPE_TRANSFEREE = 'Transferee';
 
-    // --- PRIMARY KEY ---
+    // --- PRIMARY KEY (Student Number) ---
     #[ORM\Id]
-    #[ORM\Column(name: 'ad_con', length: 20, unique: true)]
-    private ?string $adCon = null;
-
-    #[ORM\Column(name: 'student_number', length: 20, unique: true, nullable: true)]
+    #[ORM\Column(name: 'student_number', length: 20, unique: true)]
     private ?string $studentNumber = null;
 
     #[ORM\Column(name: 'campus', length: 10)]
@@ -38,8 +38,6 @@ class ApplicantBed
     private ?\DateTimeImmutable $createdAt = null;
 
     // --- RELATIONSHIPS (OneToMany) ---
-    // Note: mappedBy refers to the property in the child entity holding the ApplicantBed object
-    
     #[ORM\OneToMany(mappedBy: 'applicant', targetEntity: ApplicantBedGuardian::class, cascade: ['persist', 'remove'])]
     private Collection $guardians;
 
@@ -68,7 +66,7 @@ class ApplicantBed
     #[ORM\Column(length: 10, nullable: true)] private ?string $extensionName = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $birthDate = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $birthPlace = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $birthCountry = null; // Added from CSV
+    #[ORM\Column(length: 255, nullable: true)] private ?string $birthCountry = null;
     #[ORM\Column(length: 10, nullable: true)] private ?string $gender = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
@@ -120,9 +118,6 @@ class ApplicantBed
 
     // --- GETTERS & SETTERS ---
 
-    public function getAdCon(): ?string { return $this->adCon; }
-    public function setAdCon(string $v): static { $this->adCon = $v; return $this; }
-    
     public function getStudentNumber(): ?string { return $this->studentNumber; }
     public function setStudentNumber(?string $v): static { $this->studentNumber = $v; return $this; }
 
@@ -227,7 +222,6 @@ class ApplicantBed
     public function getAdmissionDate(): ?\DateTimeInterface { return $this->admissionDate; }
     public function setAdmissionDate(?\DateTimeInterface $d): static { $this->admissionDate = $d; return $this; }
 
-    // Address Getters/Setters
     public function getCurrentRegion(): ?string { return $this->currentRegion; }
     public function setCurrentRegion(?string $v): static { $this->currentRegion = $v; return $this; }
     public function getCurrentProvince(): ?string { return $this->currentProvince; }

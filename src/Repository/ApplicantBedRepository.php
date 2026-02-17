@@ -16,9 +16,9 @@ class ApplicantBedRepository extends ServiceEntityRepository
         parent::__construct($registry, ApplicantBed::class);
     }
 
-    public function findByAdCon(string $adCon): ?ApplicantBed
+    public function findByStudentNumber(string $studentNumber): ?ApplicantBed
     {
-        return $this->find($adCon); // Works because adCon is now the PK
+        return $this->find($studentNumber);
     }
 
     public function findLatestForGeneration(string $campusCode, string $prefix): ?ApplicantBed

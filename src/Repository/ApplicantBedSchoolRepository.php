@@ -16,11 +16,11 @@ class ApplicantBedSchoolRepository extends ServiceEntityRepository
         parent::__construct($registry, ApplicantBedSchool::class);
     }
 
-    public function findByApplicant(string $adCon): array
+    public function findByStudentNumber(string $studentNumber): array
     {
         return $this->createQueryBuilder('s')
-            ->where('s.applicant = :adCon')
-            ->setParameter('adCon', $adCon)
+            ->where('s.applicant = :studentNumber')
+            ->setParameter('studentNumber', $studentNumber)
             ->getQuery()
             ->getResult();
     }

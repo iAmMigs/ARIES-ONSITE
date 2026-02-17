@@ -14,11 +14,11 @@ class ApplicantBedSchool
     public const LEVEL_JUNIOR_HIGH = 'I';
     public const LEVEL_SENIOR_HIGH = 'S';
 
-    // Composite Primary Key: Applicant (ad_con) + Level
+    // Composite Primary Key: Applicant (student_number) + Level
     
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'schools')]
-    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
     #[ORM\Id]
@@ -30,8 +30,6 @@ class ApplicantBedSchool
 
     #[ORM\Column(name: 'YearEnd', type: Types::INTEGER, nullable: true)]
     private ?int $YearEnd = null;
-
-    // --- GETTERS & SETTERS ---
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }

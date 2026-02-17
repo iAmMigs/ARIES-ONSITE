@@ -11,11 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBedRequirement
 {
-    // Composite Primary Key: Applicant (ad_con) + Slug
+    // Composite Primary Key: Applicant (student_number) + Slug
     
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'requirements')]
-    #[ORM\JoinColumn(name: 'ad_con', referencedColumnName: 'ad_con', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
     #[ORM\Id]
@@ -37,8 +37,6 @@ class ApplicantBedRequirement
     #[ORM\Column(name: 'DateSubmitted', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $DateSubmitted = null;
 
-    // --- GETTERS & SETTERS ---
-
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
     
@@ -47,16 +45,12 @@ class ApplicantBedRequirement
     
     public function getRequirement(): ?string { return $this->Requirement; }
     public function setRequirement(string $Requirement): static { $this->Requirement = $Requirement; return $this; }
-    
     public function getStoredFileName(): ?string { return $this->StoredFileName; }
     public function setStoredFileName(?string $StoredFileName): static { $this->StoredFileName = $StoredFileName; return $this; }
-    
     public function getStatus(): string { return $this->Status; }
     public function setStatus(string $Status): static { $this->Status = $Status; return $this; }
-    
     public function isRequired(): bool { return $this->IsRequired; }
     public function setIsRequired(bool $IsRequired): static { $this->IsRequired = $IsRequired; return $this; }
-    
     public function getDateSubmitted(): ?\DateTimeInterface { return $this->DateSubmitted; }
     public function setDateSubmitted(?\DateTimeInterface $DateSubmitted): static { $this->DateSubmitted = $DateSubmitted; return $this; }
 }

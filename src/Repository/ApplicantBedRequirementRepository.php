@@ -16,21 +16,21 @@ class ApplicantBedRequirementRepository extends ServiceEntityRepository
         parent::__construct($registry, ApplicantBedRequirement::class);
     }
 
-    public function findByAdCon(string $adCon): array
+    public function findByStudentNumber(string $studentNumber): array
     {
         return $this->createQueryBuilder('r')
-            ->where('r.applicant = :adCon')
-            ->setParameter('adCon', $adCon)
+            ->where('r.applicant = :studentNumber')
+            ->setParameter('studentNumber', $studentNumber)
             ->getQuery()
             ->getResult();
     }
 
-    public function getStatusStats(string $adCon): array
+    public function getStatusStats(string $studentNumber): array
     {
         $results = $this->createQueryBuilder('r')
-            ->select('r.Status, COUNT(r.Slug) as count') // FIXED: Count by Slug
-            ->where('r.applicant = :adCon')
-            ->setParameter('adCon', $adCon)
+            ->select('r.Status, COUNT(r.Slug) as count')
+            ->where('r.applicant = :studentNumber')
+            ->setParameter('studentNumber', $studentNumber)
             ->groupBy('r.Status')
             ->getQuery()
             ->getResult();
@@ -61,14 +61,14 @@ class ApplicantBedRequirementRepository extends ServiceEntityRepository
         return $stats;
     }
 
-    public function areAllRequiredVerified(string $adCon): bool
+    public function areAllRequiredVerified(string $studentNumber): bool
     {
         $unverified = $this->createQueryBuilder('r')
-            ->select('COUNT(r.Slug)') // FIXED: Count by Slug
-            ->where('r.applicant = :adCon')
+            ->select('COUNT(r.Slug)')
+            ->where('r.applicant = :studentNumber')
             ->andWhere('r.IsRequired = :required')
             ->andWhere('r.Status NOT IN (:verified)')
-            ->setParameter('adCon', $adCon)
+            ->setParameter('studentNumber', $studentNumber)
             ->setParameter('required', true)
             ->setParameter('verified', ['V', 'W'])
             ->getQuery()

@@ -4,11 +4,10 @@
 
 {% block body %}
 <div class="flex h-screen overflow-hidden bg-gray-50">
-    {# --- SIDEBAR (Same as Dashboard but active state changed) --- #}
     <aside class="w-[280px] bg-feu-green-900 text-white flex flex-col flex-shrink-0 transition-all duration-300 z-50">
         <div class="h-20 flex items-center gap-3 px-6 bg-feu-green-800/50">
             <i class="ki-filled ki-abstract-26 text-3xl text-feu-gold-400"></i>
-            <div><h1 class="text-2xl font-bold tracking-tight">ARIES</h1><p class="text-xs text-feu-green-200 uppercase tracking-wider">Diliman Admin Console</p></div>
+            <div><h1 class="text-2xl font-bold tracking-tight">ARIES</h1><p class="text-xs text-feu-green-200 uppercase tracking-wider">Diliman Admin</p></div>
         </div>
         <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             <a href="{{ path('app_admin_diliman_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-feu-green-100 hover:bg-feu-green-800 transition-all">
@@ -34,12 +33,11 @@
 
         <div class="flex-1 overflow-y-auto p-8">
             <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-                {# Filters #}
                 <div class="p-5 border-b border-gray-200 bg-gray-50/50">
                     <form method="get" class="flex flex-wrap gap-4 items-end">
                         <div class="w-40">
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Education</label>
-                            <select name="edu_level" class="form-select w-full text-sm border-gray-300 rounded-lg focus:ring-feu-green-500 focus:border-feu-green-500" onchange="this.form.submit()">
+                            <select name="edu_level" class="form-select w-full text-sm border-gray-300 rounded-lg" onchange="this.form.submit()">
                                 <option value="">All Levels</option>
                                 <option value="Primary" {{ filters.edu_level|default == 'Primary' ? 'selected' }}>Primary (K-6)</option>
                                 <option value="Secondary" {{ filters.edu_level|default == 'Secondary' ? 'selected' }}>Secondary (7-12)</option>
@@ -62,13 +60,13 @@
                     </form>
                 </div>
 
-                {# Table #}
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-bold border-b border-gray-200">
                                 <th class="px-6 py-4">Photo</th>
                                 <th class="px-6 py-4">Student ID</th>
+                                {# REMOVED ADCON HEADER #}
                                 <th class="px-6 py-4">Full Name</th>
                                 <th class="px-6 py-4">Level / Strand</th>
                                 <th class="px-6 py-4">Status</th>
@@ -87,6 +85,7 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-3 font-mono text-sm text-gray-600">{{ r.studentNumber }}</td>
+                                {# REMOVED ADCON COLUMN #}
                                 <td class="px-6 py-3 font-semibold text-gray-800">{{ r.lastName }}, {{ r.firstName }}</td>
                                 <td class="px-6 py-3">
                                     <div class="flex gap-1">
@@ -97,7 +96,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-3">
-                                    {% if r.admissionStatus == 'Pending' %}
+                                    {% if r.admissionStatus == 'Pending' or r.admissionStatus == 'P' %}
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
                                             <i class="ki-filled ki-time text-[10px] mr-1"></i> Pending Exam
                                         </span>
@@ -109,10 +108,11 @@
                                 </td>
                                 <td class="px-6 py-3 text-sm text-gray-500">{{ r.createdAt|date('M d, Y') }}</td>
                                 <td class="px-6 py-3 text-center">
-                                    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <a href="{{ path('app_admin_diliman_registration_view', {'id': r.id}) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100" title="View"><i class="ki-filled ki-eye"></i></a>
-                                        <a href="{{ path('app_admin_diliman_registration_edit', {'id': r.id}) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100" title="Edit"><i class="ki-filled ki-pencil"></i></a>
-                                        <form method="post" action="{{ path('app_admin_diliman_delete', {'id': r.id}) }}" onsubmit="return confirm('Delete this record?');" style="display:inline;">
+                                    <div class="flex items-center justify-center gap-2">
+                                        {# UPDATED: Use studentNumber #}
+                                        <a href="{{ path('app_admin_diliman_registration_view', {'id': r.studentNumber}) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100" title="View"><i class="ki-filled ki-eye"></i></a>
+                                        <a href="{{ path('app_admin_diliman_registration_edit', {'id': r.studentNumber}) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100" title="Edit"><i class="ki-filled ki-pencil"></i></a>
+                                        <form method="post" action="{{ path('app_admin_diliman_delete', {'id': r.studentNumber}) }}" onsubmit="return confirm('Delete this record?');" style="display:inline;">
                                             <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100" title="Delete"><i class="ki-filled ki-trash"></i></button>
                                         </form>
                                     </div>

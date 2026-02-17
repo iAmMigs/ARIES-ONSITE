@@ -17,9 +17,9 @@ class AdminDilimanController extends AbstractController
     #[Route('/', name: 'app_admin_diliman_dashboard')]
     public function dashboard(ApplicantBedRepository $repository): Response
     {
-        // FIXED: Count by adCon instead of id
+        // Stats: Count by studentNumber
         $qb = $repository->createQueryBuilder('a')
-            ->select('count(a.adCon)') 
+            ->select('count(a.studentNumber)')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN);
 
@@ -39,7 +39,7 @@ class AdminDilimanController extends AbstractController
         for ($i = 6; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
             $count = $repository->createQueryBuilder('a')
-                ->select('count(a.adCon)') // FIXED
+                ->select('count(a.studentNumber)')
                 ->where('a.campus = :campus')
                 ->andWhere('a.createdAt BETWEEN :start AND :end')
                 ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
@@ -62,23 +62,12 @@ class AdminDilimanController extends AbstractController
         $qb = $repository->createQueryBuilder('a')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
-            ->orderBy('a.createdAt', 'DESC'); // FIXED: Sort by createdAt instead of id
+            ->orderBy('a.createdAt', 'DESC');
 
-        // Filters
         if ($grade = $request->query->get('grade')) {
             $qb->andWhere('a.gradeLevel = :grade')->setParameter('grade', $grade);
         }
         
-        if ($eduLevel = $request->query->get('edu_level')) {
-            if ($eduLevel === 'Primary') {
-                $qb->andWhere('a.gradeLevel IN (:levels)')
-                   ->setParameter('levels', ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6']);
-            } elseif ($eduLevel === 'Secondary') {
-                $qb->andWhere('a.gradeLevel IN (:levels)')
-                   ->setParameter('levels', ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12']);
-            }
-        }
-
         if ($date = $request->query->get('date')) {
             $qb->andWhere('a.createdAt LIKE :date')->setParameter('date', "$date%");
         }
@@ -89,11 +78,12 @@ class AdminDilimanController extends AbstractController
         ]);
     }
 
-    // UPDATED: Parameter is now string $id (which corresponds to adCon)
+    // UPDATED: $id here receives the studentNumber string from the URL
     #[Route('/registration/{id}/view', name: 'app_admin_diliman_registration_view')]
     public function view(string $id, ApplicantBedRepository $repository): Response
     {
-        $registration = $repository->find($id); // find() works with PK (adCon)
+        // find($id) works because studentNumber is now the Primary Key
+        $registration = $repository->find($id); 
         if (!$registration) throw $this->createNotFoundException();
 
         return $this->render('admin-onsite/diliman/view_registration.html.twig', [
@@ -108,15 +98,14 @@ class AdminDilimanController extends AbstractController
         if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
+            // Map simple fields
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
-            $registration->setMiddleName($request->request->get('middle_name'));
             $registration->setAdmissionStatus($request->request->get('status'));
             $registration->setGradeLevel($request->request->get('grade'));
-            $registration->setTrackStrand($request->request->get('track'));
             
             $em->flush();
-            $this->addFlash('success', 'Registration updated successfully.');
+            $this->addFlash('success', 'Registration updated.');
             return $this->redirectToRoute('app_admin_diliman_registrations');
         }
 
@@ -131,7 +120,7 @@ class AdminDilimanController extends AbstractController
         $registration = $repository->find($id);
         if ($registration) {
             $service->deleteApplicant($registration);
-            $this->addFlash('success', 'Applicant deleted.');
+            $this->addFlash('success', 'Record deleted.');
         }
         return $this->redirectToRoute('app_admin_diliman_registrations');
     }

@@ -16,24 +16,21 @@ class ApplicantBedSiblingRepository extends ServiceEntityRepository
         parent::__construct($registry, ApplicantBedSibling::class);
     }
 
-    public function findByAdCon(string $adCon): array
+    public function findByStudentNumber(string $studentNumber): array
     {
         return $this->createQueryBuilder('s')
-            ->where('s.applicant = :adCon')
-            ->setParameter('adCon', $adCon)
+            ->where('s.applicant = :studentNumber')
+            ->setParameter('studentNumber', $studentNumber)
             ->getQuery()
             ->getResult();
     }
 
-    /**
-     * Count siblings by applicant
-     */
-    public function countByApplicant(string $adCon): int
+    public function countByApplicant(string $studentNumber): int
     {
         return (int) $this->createQueryBuilder('s')
-            ->select('COUNT(s.SiblingName)') // FIXED: Count by part of the Composite Key
-            ->where('s.applicant = :adCon')
-            ->setParameter('adCon', $adCon)
+            ->select('COUNT(s.SiblingName)')
+            ->where('s.applicant = :studentNumber')
+            ->setParameter('studentNumber', $studentNumber)
             ->getQuery()
             ->getSingleScalarResult();
     }

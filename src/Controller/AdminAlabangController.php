@@ -17,9 +17,8 @@ class AdminAlabangController extends AbstractController
     #[Route('/', name: 'app_admin_alabang_dashboard')]
     public function dashboard(ApplicantBedRepository $repository): Response
     {
-        // FIXED: Count by adCon
         $qb = $repository->createQueryBuilder('a')
-            ->select('count(a.adCon)')
+            ->select('count(a.studentNumber)')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG);
 
@@ -31,12 +30,11 @@ class AdminAlabangController extends AbstractController
         $month = (clone $qb)->andWhere('a.createdAt >= :month')
             ->setParameter('month', new \DateTime('first day of this month'))->getQuery()->getSingleScalarResult();
 
-        // Chart Data
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
             $count = $repository->createQueryBuilder('a')
-                ->select('count(a.adCon)') // FIXED
+                ->select('count(a.studentNumber)')
                 ->where('a.campus = :campus')
                 ->andWhere('a.createdAt BETWEEN :start AND :end')
                 ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
@@ -58,7 +56,7 @@ class AdminAlabangController extends AbstractController
         $qb = $repository->createQueryBuilder('a')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
-            ->orderBy('a.createdAt', 'DESC'); // FIXED
+            ->orderBy('a.createdAt', 'DESC');
 
         if ($grade = $request->query->get('grade')) {
             $qb->andWhere('a.gradeLevel = :grade')->setParameter('grade', $grade);
@@ -90,7 +88,6 @@ class AdminAlabangController extends AbstractController
         if ($request->isMethod('POST')) {
             $registration->setAdmissionStatus($request->request->get('status'));
             $registration->setGradeLevel($request->request->get('grade'));
-            $registration->setTrackStrand($request->request->get('track'));
             
             $em->flush();
             $this->addFlash('success', 'Updated.');
