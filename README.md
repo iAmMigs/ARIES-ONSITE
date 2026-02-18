@@ -10,7 +10,6 @@ A web-based enrollment application for FEU Alabang and FEU Diliman built with Sy
 * **Frontend:**
     * Twig Templates
     * Tailwind CSS (via `symfonycasts/tailwind-bundle`)
-    * Stimulus & Turbo (Hotwire)
 * **Key Libraries:**
     * `doctrine/orm ^3.6` (Data persistence)
     * `symfony/mailer` (Email notifications)
