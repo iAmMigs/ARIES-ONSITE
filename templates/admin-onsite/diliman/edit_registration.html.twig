@@ -277,7 +277,7 @@
                                 {% if school.level == 'P' %}Primary{% elseif school.level == 'I' %}Junior High{% else %}Senior High{% endif %}
                             </div>
                             <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border-gray-300 rounded-lg text-sm mb-1" placeholder="School Name">
-                            <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.yearEnd }}" class="w-full border-gray-300 rounded-lg text-sm" placeholder="Year End">
+                            <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.yearEnd }}" class="w-full border-gray-300 rounded-lg text-sm" placeholder="School Year">
                             <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                         </div>
                         {% else %}
@@ -444,6 +444,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     barangays.disabled = false;
                 });
             }
+        });
+    }
+
+    if(typeof ARIESValidation !== 'undefined') {
+        // 1. Name Fields
+        const nameInputs = document.querySelectorAll('input[name="last_name"], input[name="first_name"], input[name="middle_name"]');
+        nameInputs.forEach(el => ARIESValidation.setupFormatting(el, 'name'));
+
+        // 2. General Text Fields
+        const textInputs = document.querySelectorAll('input[name="birth_place"], input[name="religion"], input[name="current_address"], input[name="permanent_address"]');
+        textInputs.forEach(el => ARIESValidation.setupFormatting(el, 'text'));
+
+        // 3. Dynamic/Array Fields (Guardians & Siblings)
+        // We use a broader selector for these since they are rendered in a loop
+        const arrayInputs = document.querySelectorAll('input[name^="guardians"][type="text"], input[name^="siblings"][type="text"], input[name^="schools"][type="text"]');
+        arrayInputs.forEach(el => {
+            // Determine type based on name content
+            const isName = el.name.includes('[name]') || el.name.includes('parentName') || el.name.includes('SiblingName');
+            ARIESValidation.setupFormatting(el, isName ? 'name' : 'text');
         });
     }
 

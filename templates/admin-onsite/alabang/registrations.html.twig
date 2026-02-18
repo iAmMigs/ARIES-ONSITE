@@ -24,7 +24,8 @@
 
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0">
-            <h2 class="text-xl font-bold text-gray-800">Applicant List</h2>
+            {# RENAMED TITLE #}
+            <h2 class="text-xl font-bold text-gray-800">Student Registration List</h2>
             <div class="flex items-center gap-4">
                 <div class="text-right hidden sm:block"><div class="text-sm font-bold text-gray-900">Admin User</div><div class="text-xs text-gray-500">Administrator</div></div>
                 <img src="{{ asset('metronic/media/avatars/300-1.png') }}" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100">
@@ -75,11 +76,12 @@
                                     {% endif %}
                                 </td>
                                 <td class="px-6 py-3 font-mono text-sm text-gray-600">{{ r.studentNumber }}</td>
-                                {# REMOVED ADCON COLUMN #}
                                 <td class="px-6 py-3 font-semibold text-gray-800">{{ r.lastName }}, {{ r.firstName }}</td>
                                 <td class="px-6 py-3">
                                     <div class="flex gap-1">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">{{ r.gradeLevel }}</span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                            {{ r.gradeLevel|replace({'_': ' '})|title }}
+                                        </span>
                                         {% if r.trackStrand %}
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">{{ r.trackStrand }}</span>
                                         {% endif %}
@@ -91,12 +93,9 @@
                                 <td class="px-6 py-3 text-sm text-gray-500">{{ r.createdAt|date('M d, Y') }}</td>
                                 <td class="px-6 py-3 text-center">
                                     <div class="flex items-center justify-center gap-2">
-                                        {# UPDATED: Use studentNumber #}
                                         <a href="{{ path('app_admin_alabang_registration_view', {'id': r.studentNumber}) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100" title="View"><i class="ki-filled ki-eye"></i></a>
                                         <a href="{{ path('app_admin_alabang_registration_edit', {'id': r.studentNumber}) }}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100" title="Edit"><i class="ki-filled ki-pencil"></i></a>
-                                        <form method="post" action="{{ path('app_admin_alabang_delete', {'id': r.studentNumber}) }}" onsubmit="return confirm('Delete this record?');" style="display:inline;">
-                                            <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100" title="Delete"><i class="ki-filled ki-trash"></i></button>
-                                        </form>
+                                        {# DELETE BUTTON REMOVED #}
                                     </div>
                                 </td>
                             </tr>

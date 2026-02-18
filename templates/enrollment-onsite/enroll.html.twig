@@ -586,7 +586,7 @@
                             <input type="text" name="prev_school_name" class="form-control" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">School Year End</label>
+                            <label class="form-label">School Year</label>
                             <input type="text" name="prev_school_year" class="form-control" placeholder="e.g. 2024">
                         </div>
                     </div>
@@ -907,6 +907,20 @@
         } else {
             updateGradeLevels();
         }
+
+        // Names (Letters + Space only, Title Case)
+        const nameFields = ['last_name', 'first_name', 'middle_name', 'father_firstname', 'father_lastname', 'mother_firstname', 'mother_lastname', 'guardian_name'];
+        nameFields.forEach(name => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el && window.ARIESValidation) ARIESValidation.setupFormatting(el, 'name');
+        });
+
+        // Text Fields (Alphanumeric + Space only, Title Case)
+        const textFields = ['birth_place', 'religion', 'citizenship', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
+        textFields.forEach(name => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el && window.ARIESValidation) ARIESValidation.setupFormatting(el, 'text');
+        });
 
         // Animation Observer
         const observer = new IntersectionObserver((entries) => {
