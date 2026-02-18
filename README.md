@@ -22,7 +22,7 @@ Follow these steps to set up the project locally.
 ### Prerequisites
 * PHP 8.2 or higher
 * Composer
-* MySQL Server
+* XAMPP or any SQL Server
 * Symfony CLI (optional, but recommended)
 
 ### Steps
