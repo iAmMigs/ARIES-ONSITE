@@ -82,8 +82,9 @@ class PopulateAlabangCommand extends Command
             $applicant->setPermanentBarangay($applicant->getCurrentBarangay());
             $applicant->setPermanentAddress($applicant->getCurrentAddress());
             $applicant->setPermanentZip($applicant->getCurrentZip());
+            $applicant->setAdmissionType(rand(0, 1) ? 'Freshman' : 'Transferee');
 
-            $this->addGuardian($applicant, 'Father', $lName . ', Pedro', 'Engineer');
+            $this->addGuardian($applicant, 'Father', 'Smith, Pedro', 'Engineer');
             $this->addGuardian($applicant, 'Mother', 'Santos, Maria', 'Accountant');
 
             $numSiblings = rand(1, 2);

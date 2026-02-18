@@ -59,6 +59,10 @@ class ApplicantBed
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
     #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])] private int $enrollmentStep = 1;
 
+    // --- ADMISSION INFO ---
+    #[ORM\Column(length: 20, nullable: true)] 
+    private ?string $admissionType = null;
+
     // --- NEW: EXAMINATION SCORE ---
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $examinationScore = null;
@@ -254,4 +258,8 @@ class ApplicantBed
     public function setPermanentAddress(?string $v): static { $this->permanentAddress = $v; return $this; }
     public function getPermanentZip(): ?string { return $this->permanentZip; }
     public function setPermanentZip(?string $v): static { $this->permanentZip = $v; return $this; }
+
+    public function getAdmissionType(): ?string { return $this->admissionType; }
+    public function setAdmissionType(?string $t): static { $this->admissionType = $t; return $this; }
+    
 }

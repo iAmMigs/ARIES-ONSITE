@@ -93,6 +93,7 @@ class AdminAlabangController extends AbstractController
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
             $registration->setMiddleName($request->request->get('middle_name'));
+            $registration->setAdmissionType($request->request->get('admission_type'));
             $registration->setPersonalEmail($request->request->get('email'));
             $registration->setMobileNumber($request->request->get('mobile'));
             $registration->setGender($request->request->get('gender'));

@@ -88,9 +88,10 @@ class PopulateDilimanCommand extends Command
             $applicant->setPermanentBarangay($applicant->getCurrentBarangay());
             $applicant->setPermanentAddress($applicant->getCurrentAddress());
             $applicant->setPermanentZip($applicant->getCurrentZip());
+            $applicant->setAdmissionType(rand(0, 1) ? 'Freshman' : 'Transferee');
 
             $this->addGuardian($applicant, 'Mother', 'Reyes, Anna', 'Nurse');
-            $this->addGuardian($applicant, 'Father', $lName . ', John', 'Architect');
+            $this->addGuardian($applicant, 'Father', 'Smith, Pedro', 'Engineer');
 
             $sibling = new ApplicantBedSibling();
             $sibling->setApplicant($applicant);
