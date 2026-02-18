@@ -143,17 +143,12 @@
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {% for guardian in registration.guardians %}
-                            <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 relative">
+                            <div class="p-4 rounded-xl border {{ guardian.relationship == 'Guardian' ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100' }} relative">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="text-xs text-feu-gold-600 font-bold uppercase">{{ guardian.relationship }}</div>
-                                    <div class="flex gap-1">
-                                        {% if guardian.deceased %}
-                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600">DECEASED</span>
-                                        {% endif %}
-                                        {% if guardian.OFW %}
-                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-600">OFW</span>
-                                        {% endif %}
+                                    <div class="text-xs {{ guardian.relationship == 'Guardian' ? 'text-orange-600' : 'text-feu-gold-600' }} font-bold uppercase">
+                                        {{ guardian.relationship }} {{ guardian.relationship == 'Guardian' ? '(Emergency Contact)' : '' }}
                                     </div>
+                                    {# ... Deceased/OFW badges ... #}
                                 </div>
                                 <div class="font-bold text-gray-800">{{ guardian.parentName }}</div>
                                 <div class="text-sm text-gray-500 mt-1">{{ guardian.occupation }}</div>

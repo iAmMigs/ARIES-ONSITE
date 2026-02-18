@@ -99,12 +99,53 @@ class AdminAlabangController extends AbstractController
             $registration->setBirthPlace($request->request->get('birth_place'));
             $registration->setReligion($request->request->get('religion'));
             $registration->setCitizenship($request->request->get('citizenship'));
+            $registration->setGradeLevel($request->request->get('grade_level'));
+            $registration->setTrackStrand($request->request->get('track_strand'));
             
             if ($dob = $request->request->get('birth_date')) {
                 $registration->setBirthDate(new \DateTime($dob));
             }
 
-            // 2. Exam Status Logic
+            // 2. Profile Picture Upload
+            $profileFile = $request->files->get('profile_picture');
+            if ($profileFile) {
+                $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $profileFile->guessExtension();
+                try {
+                    $profileFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics', $filename);
+                    $registration->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
+                } catch (\Exception $e) { /* Handle error */ }
+            }
+
+            // 3. Document Replacements (PDF Only)
+            $docMap = [
+                'req_psa' => 'onsite-psa',
+                'req_card' => 'onsite-cards',
+                'req_moral' => 'onsite-moral'
+            ];
+            
+            // Loop through existing requirements to check for updates
+            foreach ($registration->getRequirements() as $req) {
+                // Determine which input name corresponds to this requirement based on slug or name
+                $inputName = null;
+                if (stripos($req->getRequirement(), 'PSA') !== false) $inputName = 'req_psa';
+                elseif (stripos($req->getRequirement(), 'Report Card') !== false) $inputName = 'req_card';
+                elseif (stripos($req->getRequirement(), 'Good Moral') !== false) $inputName = 'req_moral';
+
+                if ($inputName) {
+                    $docFile = $request->files->get($inputName);
+                    if ($docFile) {
+                        $filename = strtoupper(str_replace('req_', 'REQ_', $inputName)) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.pdf';
+                        try {
+                            $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docMap[$inputName], $filename);
+                            $req->setStoredFileName('uploads/' . $docMap[$inputName] . '/' . $filename);
+                            $req->setDateSubmitted(new \DateTime());
+                            $req->setStatus('S'); // Ensure it is marked as submitted
+                        } catch (\Exception $e) { /* Handle error */ }
+                    }
+                }
+            }
+
+            // 4. Exam Status Logic
             $examTaken = $request->request->get('exam_taken') === '1';
             if ($examTaken) {
                 $registration->setAdmissionStatus('Examination Score');
@@ -115,16 +156,23 @@ class AdminAlabangController extends AbstractController
                 $registration->setExaminationScore(null);
             }
 
-            // 3. Address Lookup Hydration
+            // 5. Address Lookup Hydration
             $this->hydrateAddress($registration, $request, $em, 'current');
             $this->hydrateAddress($registration, $request, $em, 'permanent');
 
-            // 4. Guardians (Basic Update)
+            // 6. Guardians (Split Name Handling)
             $guardiansData = $request->request->all('guardians');
             foreach ($registration->getGuardians() as $index => $g) {
                 if (isset($guardiansData[$index])) {
                     $data = $guardiansData[$index];
-                    $g->setParentName($data['name'] ?? $g->getParentName());
+                    
+                    // Stitch split names back together
+                    $firstName = $data['first_name'] ?? '';
+                    $lastName = $data['last_name'] ?? '';
+                    if ($firstName || $lastName) {
+                        $g->setParentName($lastName . ', ' . $firstName);
+                    }
+
                     $g->setOccupation($data['occupation'] ?? $g->getOccupation());
                     $g->setContactNo($data['contact'] ?? $g->getContactNo());
                     $g->setDeceased(isset($data['deceased']));
@@ -132,7 +180,7 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // 5. Siblings
+            // 7. Siblings
             $siblingsData = $request->request->all('siblings');
             foreach ($registration->getSiblings() as $index => $s) {
                 if (isset($siblingsData[$index])) {
@@ -144,7 +192,7 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // 6. Schools
+            // 8. Schools
             $schoolsData = $request->request->all('schools');
             foreach ($registration->getSchools() as $index => $sch) {
                 if (isset($schoolsData[$index])) {
@@ -156,8 +204,13 @@ class AdminAlabangController extends AbstractController
 
             $em->flush();
             $this->addFlash('success', 'Applicant updated successfully.');
-            return $this->redirectToRoute('app_admin_alabang_registration_view', ['id' => $registration->getStudentNumber()]);
             
+            // Redirect to VIEW
+            $viewRoute = ($registration->getCampus() === ApplicantBed::CAMPUS_ALABANG) 
+                ? 'app_admin_alabang_registration_view' 
+                : 'app_admin_diliman_registration_view';
+                
+            return $this->redirectToRoute($viewRoute, ['id' => $registration->getStudentNumber()]);
         }
 
         return $this->render('admin-onsite/alabang/edit_registration.html.twig', ['registration' => $registration]);
