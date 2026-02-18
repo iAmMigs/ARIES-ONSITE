@@ -1,4 +1,4 @@
-{# templates/layouts/_public_header.html.twig #}
+{# templates/layouts/_public_header_onsite.html.twig #}
 {# ARIES Public Site Header - ARIES Digital University Theme - Enhanced Metronic UI #}
 <style>
     /* Header Metronic Enhancements */
@@ -28,45 +28,60 @@
                     <span class="hidden lg:block text-[10px] text-feu-gold-200/80 -mt-0.5 font-medium tracking-wide">ON-SITE BASIC EDUCATION</span>
                 </div>
             </a>
+
+            {# Desktop: Admin Login Button (Right Aligned) #}
+            <div class="hidden lg:flex items-center">
+                <button type="button" onclick="confirmAdminAccess()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-white/10 hover:bg-white/20 hover:text-feu-gold-400 transition-all border border-transparent hover:border-feu-gold-400/30">
+                    <i class="ki-filled ki-lock-2"></i>
+                    <span>ADMIN</span>
+                </button>
+            </div>
+
+            {# Mobile Menu Toggle #}
+            <button id="mobile-menu-toggle" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg text-white hover:bg-white/10 transition-colors">
+                <i class="ki-filled ki-burger-menu-2 text-2xl" id="menu-icon-open"></i>
+                <i class="ki-filled ki-cross text-2xl hidden" id="menu-icon-close"></i>
+            </button>
         </div>
     </div>
 
-    {# Mobile Menu - INVERTED: Green background, white/gold text #}
+    {# Mobile Menu #}
     <div class="lg:hidden hidden bg-feu-green-800 border-t border-feu-green-700 shadow-xl" id="mobile-menu">
         <div class="container mx-auto px-4 py-4">
-            <div class="flex gap-2 mb-4 pb-4 border-b border-feu-green-700">
-                <a href="{{ path('app_admission_status') }}" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-feu-gold-400/50 rounded-xl text-sm font-medium text-white hover:text-feu-gold-400 transition-all">
-                    <i class="ki-filled ki-magnifier"></i> Check Status
-                </a>
-                <a href="tel:+6328281611" class="flex items-center justify-center w-12 h-12 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-feu-gold-400/50 rounded-xl text-white hover:text-feu-gold-400 transition-all">
-                    <i class="ki-filled ki-phone text-lg"></i>
-                </a>
-            </div>
             
             <nav class="flex flex-col gap-1">
-                <a href="{{ path('app_home') }}#programs" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
-                    <i class="ki-filled ki-book text-lg opacity-60"></i> Programs
-                </a>
-                <a href="{{ path('app_home') }}#requirements" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
-                    <i class="ki-filled ki-document text-lg opacity-60"></i> Requirements
-                </a>
-                <a href="{{ path('app_home') }}#steps" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
-                    <i class="ki-filled ki-routing-2 text-lg opacity-60"></i> How to Enroll
-                </a>
-                <a href="{{ path('app_home') }}#contact" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
-                    <i class="ki-filled ki-sms text-lg opacity-60"></i> Contact
-                </a>
-                <a href="{{ path('app_auth_login') }}" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all">
-                    <i class="ki-filled ki-user text-lg opacity-60"></i> Login
-                </a>
+                {# Mobile Admin Login (Updated to use modal) #}
+                <button type="button" onclick="confirmAdminAccess()" class="mobile-nav-item flex items-center gap-3 text-sm font-medium text-white/80 hover:text-feu-gold-400 hover:bg-white/10 py-3 px-4 rounded-xl transition-all w-full text-left">
+                    <i class="ki-filled ki-lock-2 text-lg opacity-60"></i> Admin Login
+                </button>
             </nav>
         </div>
     </div>
 </header>
 
-<div class="h-[88px] lg:h-[50px]"></div>
+<div class="h-[88px] lg:h-[64px]"></div>
 
+{# Admin Warning Modal Script #}
 <script>
+    function confirmAdminAccess() {
+        // Checks for the globally available showModal (from base.html.twig)
+        if (typeof window.showModal === 'function') {
+            window.showModal({
+                title: '⚠️ Restricted Access',
+                content: 'This portal is strictly for authorized University Administrators only. Unauthorized access is prohibited.',
+                type: 'warning',
+                onConfirm: function() {
+                    window.location.href = "{{ path('app_auth_login') }}";
+                }
+            });
+        } else {
+            // Fallback
+            if(confirm('Restricted Access: Admins Only. Proceed?')) {
+                window.location.href = "{{ path('app_auth_login') }}";
+            }
+        }
+    }
+
     (function() {
         'use strict';
         var toggleBtn = document.getElementById('mobile-menu-toggle');
@@ -74,7 +89,7 @@
         var iconOpen = document.getElementById('menu-icon-open');
         var iconClose = document.getElementById('menu-icon-close');
         var header = document.getElementById('mainHeader');
-
+        
         if (header) {
             window.addEventListener('scroll', function() {
                 if (window.pageYOffset > 50) header.classList.add('scrolled');

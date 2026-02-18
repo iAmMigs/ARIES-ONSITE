@@ -97,10 +97,7 @@
     .feature-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(26, 77, 46, 0.15); border-color: transparent; }
     .feature-card:hover::before { transform: scaleX(1); }
     
-    /* ===== Program Cards ===== */
-    .program-card { background: white; border-radius: 1.25rem; padding: 1.75rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e5e7eb; position: relative; }
-    .program-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 20px 40px rgba(26, 77, 46, 0.12); border-color: #1a4d2e; }
-    
+
     /* ===== Video Showcase ===== */
     .video-card { position: relative; border-radius: 1.25rem; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; }
     .video-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%); z-index: 1; transition: all 0.3s ease; }
@@ -208,11 +205,11 @@
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
                         {# Interactive Buttons with IDs for JS #}
-                        <a href="{{ path('app_enrollment_apply', {'campus': 'feu_diliman'}) }}" class="btn-primary px-8 py-4 text-lg" id="btn-diliman">
-                            <i class="ki-filled ki-geolocation"></i> FEU Diliman
-                        </a>
                         <a href="{{ path('app_enrollment_apply', {'campus': 'feu_alabang'}) }}" class="btn-primaryinv px-8 py-4 text-lg" id="btn-alabang">
                             <i class="ki-filled ki-geolocation"></i> FEU Alabang
+                        </a>
+                        <a href="{{ path('app_enrollment_apply', {'campus': 'feu_diliman'}) }}" class="btn-primary px-8 py-4 text-lg" id="btn-diliman">
+                            <i class="ki-filled ki-geolocation"></i> FEU Diliman
                         </a>
                     </div>
                 </div>

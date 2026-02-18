@@ -86,6 +86,56 @@ const ARIESValidation = (function() {
         min: (min) => `Value must be at least ${min}`,
         max: (max) => `Value must not exceed ${max}`
     };
+
+    // ===== Formatting Helpers =====
+    function toTitleCase(str) {
+        if (!str) return '';
+        return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+    }
+
+    function removeSpecialChars(value) {
+        // Allows letters, numbers, and spaces. Removes everything else.
+        return value.replace(/[^a-zA-Z0-9\s]/g, '');
+    }
+
+    function removeNonAlpha(value) {
+        // Allows letters and spaces only (for Names)
+        return value.replace(/[^a-zA-Z\s]/g, '');
+    }
+
+    // ===== Public Setup Function =====
+    /**
+     * Attaches formatting rules to an input.
+     * @param {HTMLElement} input - The input element
+     * @param {string} type - 'name' (Alpha only) or 'text' (AlphaNumeric)
+     */
+    function setupFormatting(input, type = 'text') {
+        if (!input) return;
+
+        // 1. Real-time: Remove special characters immediately
+        input.addEventListener('input', function() {
+            const cursorStart = this.selectionStart;
+            const originalVal = this.value;
+            
+            let cleanVal;
+            if (type === 'name') {
+                cleanVal = removeNonAlpha(originalVal);
+            } else {
+                cleanVal = removeSpecialChars(originalVal);
+            }
+
+            if (originalVal !== cleanVal) {
+                this.value = cleanVal;
+                // Try to preserve cursor position
+                this.setSelectionRange(cursorStart - 1, cursorStart - 1);
+            }
+        });
+
+        // 2. On Blur: Format to Title Case (e.g. "miGuEl" -> "Miguel")
+        input.addEventListener('blur', function() {
+            this.value = toTitleCase(this.value.trim());
+        });
+    }
     
     // ===== Utility Functions =====
     function isEmpty(value) {
@@ -540,6 +590,16 @@ const ARIESValidation = (function() {
             }
         }
     }
+
+    // ===== Utility Functions =====
+    function isEmpty(value) {
+        return value === null || value === undefined || value.toString().trim() === '';
+    }
+
+    function sanitizeInput(value) {
+        if (typeof value !== 'string') return value;
+        return value.replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim();
+    }
     
     // ===== Public API =====
     return {
@@ -550,6 +610,10 @@ const ARIESValidation = (function() {
         isEmpty,
         sanitizeInput,
         formatPhoneNumber,
+
+        // Formatting
+        toTitleCase,
+        setupFormatting,
         
         // UI helpers
         setValid,

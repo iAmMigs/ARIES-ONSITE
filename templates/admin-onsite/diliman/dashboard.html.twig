@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Diliman Dashboard{% endblock %}
+
+{% block body %}
+<div class="flex h-screen overflow-hidden bg-gray-50">
+    {# --- SIDEBAR --- #}
+    <aside class="w-[280px] bg-feu-green-900 text-white flex flex-col flex-shrink-0 transition-all duration-300 z-50">
+        <div class="h-20 flex items-center gap-3 px-6 bg-feu-green-800/50">
+            <i class="ki-filled ki-abstract-26 text-3xl text-feu-gold-400"></i>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">ARIES</h1>
+                <p class="text-xs text-feu-green-200 uppercase tracking-wider">Diliman Admin Console</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            <a href="{{ path('app_admin_diliman_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-feu-gold-500 text-feu-green-900 font-bold transition-all shadow-lg shadow-feu-gold-500/20">
+                <i class="ki-filled ki-chart-pie-simple text-xl"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ path('app_admin_diliman_registrations') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-feu-green-100 hover:bg-feu-green-800 hover:text-white transition-all">
+                <i class="ki-filled ki-people text-xl"></i>
+                <span>Registrations</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-feu-green-800">
+            <a href="{{ path('app_logout') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-300 hover:bg-red-900/20 hover:text-red-200 transition-all">
+                <i class="ki-filled ki-exit-right text-xl"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+    {# --- MAIN CONTENT --- #}
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {# Header #}
+        <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0">
+            <h2 class="text-xl font-bold text-gray-800">Overview</h2>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-bold text-gray-900">Admin User</div>
+                    <div class="text-xs text-gray-500">Administrator</div>
+                </div>
+                <img src="{{ asset('metronic/media/avatars/300-1.png') }}" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100" alt="Profile">
+            </div>
+        </header>
+
+        {# Scrollable Content #}
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {# Stat Cards #}
+                {% for label, value in {'Today': stats.today, 'This Week': stats.week, 'This Month': stats.month, 'Total Applicants': stats.total} %}
+                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="text-sm text-gray-500 font-medium uppercase tracking-wide mb-2">{{ label }}</div>
+                    <div class="flex items-end gap-2">
+                        <span class="text-4xl font-bold text-feu-green-700">{{ value }}</span>
+                        <span class="text-sm text-gray-400 mb-1">registrations</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {# Chart #}
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <h3 class="text-lg font-bold text-gray-800 mb-6">Registration Trends (Last 7 Days)</h3>
+                <div id="registrationChart" style="height: 350px;"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var options = {
+        series: [{
+            name: 'Registrations',
+            data: {{ chartData|map(d => d.count)|json_encode|raw }}
+        }],
+        chart: { type: 'area', height: 350, toolbar: { show: false } },
+        colors: ['#1a4d2e'],
+        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.9, stops: [0, 90, 100] } },
+        dataLabels: { enabled: false },
+        stroke: { curve: 'smooth', width: 2 },
+        xaxis: { categories: {{ chartData|map(d => d.date)|json_encode|raw }} },
+        tooltip: { y: { formatter: function (val) { return val + " Students" } } }
+    };
+    var chart = new ApexCharts(document.querySelector("#registrationChart"), options);
+    chart.render();
+});
+</script>
+{% endblock %}

@@ -1,638 +1,551 @@
-{# templates/admin-onsite/alabang/edit_registration.html.twig #}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARIES Admin | Edit Registration</title>
-    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
-    <link rel="stylesheet" href="{{ asset('css/variables.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/base.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/admin.css') }}">
-    <style>
-        /* === SCROLL & LAYOUT OVERRIDES === */
-        /* Force scroll on body, ensure height is auto */
-        body { overflow-y: auto !important; height: auto !important; background-color: #f3f4f6; }
-        .admin-container { 
-            min-height: 100vh; 
-            height: auto !important; 
-            overflow: visible !important; 
-            display: flex;
-        }
-        .admin-main { 
-            flex: 1; 
-            min-width: 0; 
-            padding-bottom: 100px; /* Extra space for footer */
-        }
-        .admin-content { 
-            height: auto !important; 
-            overflow: visible !important; 
-            padding: 2rem;
-        }
+{% extends 'base.html.twig' %}
 
-        /* === SIDEBAR (FIXED) === */
-        .admin-sidebar {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            flex-shrink: 0;
-            z-index: 50;
-        }
+{% block title %}Edit Registration{% endblock %}
 
-        /* === GRID SYSTEM === */
-        .page-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 1.5rem;
-            align-items: start;
-        }
-        .col-12 { grid-column: span 12; }
-        .col-8  { grid-column: span 8; }
-        .col-6  { grid-column: span 6; }
-        .col-4  { grid-column: span 4; }
+{% block stylesheets %}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
 
-        /* === CARD DESIGN === */
-        .card-box {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .card-header {
-            padding: 1.25rem 1.5rem;
-            background: #fff;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
-            display: flex; align-items: center; gap: 0.75rem;
-        }
-        .card-title i { color: var(--primary-color); font-size: 1.25rem; }
-        
-        /* Card Body with slight contrast for inputs */
-        .card-body { padding: 1.5rem; background-color: #f8fafc; }
-
-        /* === CLEAR EDITABLE INPUTS === */
-        .form-grid-inner {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 1.25rem;
-        }
-        .span-12 { grid-column: span 12; }
-        .span-6  { grid-column: span 6; }
-        .span-4  { grid-column: span 4; }
-        .span-3  { grid-column: span 3; }
-        .span-2  { grid-column: span 2; }
-
-        .form-group { position: relative; }
-        
-        .form-label {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #64748b; /* Muted label color */
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        /* "Boxed" Input Style - Clear visual indication of editability */
-        .form-control {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #cbd5e1; /* Visible Slate-300 border */
-            border-radius: 8px;
-            font-size: 0.95rem;
-            color: #0f172a;
-            background-color: #ffffff; /* Stark white against gray bg */
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease-in-out;
-        }
-        
-        .form-control:hover:not(:disabled) {
-            border-color: #94a3b8; /* Darker on hover */
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(26, 77, 46, 0.1);
-            outline: none;
-        }
-        
-        /* Disabled Input Style - Clearly different */
-        .form-control:disabled, .form-control[readonly] {
-            background-color: #e2e8f0; /* Grayed out */
-            color: #64748b;
-            border-color: #e2e8f0;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* === HEADER === */
-        .admin-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 2rem 2rem 0;
-            background: transparent;
-        }
-        .header-left { display: flex; align-items: center; gap: 1rem; }
-        .btn-back {
-            width: 42px; height: 42px; border-radius: 12px; background: white;
-            border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center;
-            color: #1e293b; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .btn-back:hover { border-color: var(--primary-color); color: var(--primary-color); transform: translateX(-3px); }
-        .page-title { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text-dark); }
-
-        /* === FOOTER ACTION BAR === */
-        .form-footer {
-            position: fixed;
-            bottom: 0;
-            left: 280px; /* Match sidebar width */
-            right: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(8px);
-            padding: 1.25rem 2rem;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-        }
-        
-        .btn { padding: 0.75rem 1.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; border: none; font-size: 0.95rem; transition: all 0.2s; }
-        
-        .btn-primary { 
-            background: var(--primary-color); 
-            color: white; 
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .btn-primary:hover:not(:disabled) { 
-            background: var(--primary-hover); 
-            transform: translateY(-2px); 
-            box-shadow: 0 4px 12px rgba(26, 77, 46, 0.3);
-        }
-        
-        /* Disabled State for Button */
-        .btn-primary:disabled {
-            background-color: #cbd5e1; /* Gray */
-            color: #f1f5f9;
-            cursor: not-allowed;
-            opacity: 0.6;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        
-        .btn-secondary { background: white; border: 1px solid #e2e8f0; color: #475569; }
-        .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
-
-        /* === SECTIONS === */
-        .sibling-item { background: white; border: 1px solid #e2e8f0; padding: 1.25rem; border-radius: 8px; margin-bottom: 1rem; }
-        .section-sub-title { 
-            font-size: 0.8rem; font-weight: 800; color: var(--primary-color); 
-            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1.25rem; 
-            padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; display: inline-block;
-        }
-
-        @media (max-width: 1200px) { .col-8, .col-4 { grid-column: span 12; } }
-        @media (max-width: 992px) { 
-            .col-6 { grid-column: span 12; } 
-            .form-footer { left: 0; padding: 1rem; } 
-            .admin-header { padding: 1.5rem; }
-            .admin-content { padding: 1.5rem; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="admin-container" id="adminContainer">
-    <aside class="admin-sidebar">
-        <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <div class="logo-icon"><i class="ki-filled ki-abstract-26"></i></div>
-                <div class="logo-text"><h2>ARIES</h2><p>Alabang - Admin Console</p></div>
-            </div>
+{% block body %}
+<div class="flex h-screen overflow-hidden bg-gray-50">
+    {# --- SIDEBAR --- #}
+    <aside class="w-[280px] bg-feu-green-900 text-white flex flex-col flex-shrink-0 transition-all duration-300 z-50">
+        <div class="h-20 flex items-center gap-3 px-6 bg-feu-green-800/50">
+            <i class="ki-filled ki-abstract-26 text-3xl text-feu-gold-400"></i>
+            <div><h1 class="text-2xl font-bold tracking-tight">ARIES</h1><p class="text-xs text-feu-green-200 uppercase tracking-wider">Alabang Admin</p></div>
         </div>
-        <nav class="sidebar-nav">
-            <a href="{{ path('app_admin_alabang_dashboard') }}" class="nav-item active"><i class="ki-filled ki-people"></i><span>Registrations</span></a>
+        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            <a href="{{ path('app_admin_alabang_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-feu-green-100 hover:bg-feu-green-800 transition-all">
+                <i class="ki-filled ki-chart-pie-simple text-xl"></i><span>Dashboard</span>
+            </a>
+            <a href="{{ path('app_admin_alabang_registrations') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-feu-gold-500 text-feu-green-900 font-bold transition-all shadow-lg shadow-feu-gold-500/20">
+                <i class="ki-filled ki-people text-xl"></i><span>Registrations</span>
+            </a>
         </nav>
+        <div class="p-4 border-t border-feu-green-800">
+            <a href="{{ path('app_logout') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-300 hover:bg-red-900/20 transition-all"><i class="ki-filled ki-exit-right text-xl"></i><span>Sign Out</span></a>
+        </div>
     </aside>
 
-    <main class="admin-main">
-        <form method="post" id="editForm">
-            <header class="admin-header">
-                <div class="header-left">
-                    <a href="{{ path('app_admin_alabang_dashboard') }}" class="btn-back" title="Go Back">
-                        <i class="ki-filled ki-arrow-left"></i>
-                    </a>
-                    <h1 class="page-title">Edit Registration</h1>
+    {# --- MAIN CONTENT --- #}
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0">
+            <h2 class="text-xl font-bold text-gray-800">Edit Applicant</h2>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block"><div class="text-sm font-bold text-gray-900">Admin User</div><div class="text-xs text-gray-500">Administrator</div></div>
+                <img src="{{ asset('metronic/media/avatars/300-1.png') }}" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100">
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8">
+            {# ADDED enctype for file upload support #}
+            <form method="post" class="max-w-7xl mx-auto" id="editForm" enctype="multipart/form-data">
+                
+                {# Header Actions #}
+                <div class="mb-6 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <a href="{{ path('app_admin_alabang_registrations') }}" id="btn_discard" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-feu-green-700 hover:border-feu-green-600 transition-all shadow-sm">
+                            <i class="ki-filled ki-arrow-left"></i>
+                        </a>
+                        <span class="text-gray-500 text-sm font-medium">Discard Changes</span>
+                    </div>
+                    <button type="submit" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
+                        <i class="ki-filled ki-check mr-2"></i> Save Changes
+                    </button>
                 </div>
-                <div class="admin-profile"><img src="{{ asset('metronic/media/avatars/300-1.png') }}" alt="Admin"></div>
-            </header>
 
-            <div class="admin-content">
-                <div class="page-grid">
-                    
-                    <div class="card-box col-4">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-setting-2"></i> System Info</h3>
+                <div class="grid grid-cols-12 gap-6">
+                    {# --- 1. APPLICANT CARD (Header) --- #}
+                    <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
+                        
+                        {# Profile Picture (Editable) #}
+                        <div class="flex-shrink-0 relative group">
+                            <div class="w-40 h-40 rounded-2xl overflow-hidden border-4 border-white shadow-lg relative">
+                                <img src="{{ registration.photoSlug ? asset(registration.photoSlug) : asset('metronic/media/avatars/blank.png') }}" class="w-full h-full object-cover">
+                                
+                                {# Hover Overlay for Upload #}
+                                <label class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    <i class="ki-filled ki-pencil text-white text-2xl mb-1"></i>
+                                    <span class="text-xs text-white font-bold uppercase">Change Photo</span>
+                                    <input type="file" name="profile_picture" class="hidden" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
+                                </label>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="form-grid-inner">
-                                <div class="span-12">
-                                    <label class="form-label">AdCon Number</label>
-                                    <input type="text" name="adcon_number" class="form-control" value="{{ registration.adcon_number }}" disabled>
+
+                        <div class="flex-grow pt-2 space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Last Name</label>
+                                    <input type="text" name="last_name" value="{{ registration.lastName }}" class="w-full font-bold text-gray-900 border border-gray-300 bg-gray-50 rounded px-3 py-2 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="Last Name">
                                 </div>
-                                <div class="span-12">
-                                    <label class="form-label">Enrollment Status</label>
-                                    <select name="status" class="form-control">
-                                        {% for s in ['Pending Examination', 'For Assessment', 'Enrolled', 'Dropped'] %}
-                                            <option value="{{ s }}" {{ registration.status == s ? 'selected' : '' }}>{{ s }}</option>
-                                        {% endfor %}
-                                    </select>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">First Name</label>
+                                    <input type="text" name="first_name" value="{{ registration.firstName }}" class="w-full font-bold text-gray-900 border border-gray-300 bg-gray-50 rounded px-3 py-2 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="First Name">
                                 </div>
-                                <div class="span-6">
-                                    <label class="form-label">Exam Score</label>
-                                    <input type="number" name="exam_score" class="form-control" value="{{ registration.exam_score }}" placeholder="0-100">
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Middle Name</label>
+                                    <input type="text" name="middle_name" value="{{ registration.middleName }}" class="w-full font-bold text-gray-900 border border-gray-300 bg-gray-50 rounded px-3 py-2 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="Middle Name">
                                 </div>
-                                <div class="span-6">
-                                    <label class="form-label">Exam Date</label>
-                                    <input type="text" name="exam_date" class="form-control" value="{{ registration.exam_date }}" placeholder="MMM DD, YYYY">
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-3">
+                                <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200 cursor-not-allowed opacity-80">
+                                    <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
                                 </div>
-                                <div class="span-12">
-                                    <label class="form-label">Student ID <span class="text-xs text-gray-400 font-normal ml-1">(Locked)</span></label>
-                                    <input type="text" class="form-control" value="{{ registration.student_id }}" disabled>
+
+                                <select name="admission_type" class="bg-purple-50 text-purple-700 text-sm font-semibold border border-purple-100 rounded-lg px-2 py-1">
+                                    <option value="Freshman" {{ registration.admissionType == 'Freshman' ? 'selected' }}>Freshman</option>
+                                    <option value="Transferee" {{ registration.admissionType == 'Transferee' ? 'selected' }}>Transferee</option>
+                                </select>
+                                                            
+                                {# Editable Grade Level #}
+                                <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1">
+                                    <option value="grade_11" {{ registration.gradeLevel == 'grade_11' ? 'selected' }}>Grade 11</option>
+                                    <option value="grade_12" {{ registration.gradeLevel == 'grade_12' ? 'selected' }}>Grade 12</option>
+                                </select>
+
+                                {# Editable Track #}
+                                <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
+                                    {% for strand in ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'] %}
+                                        <option value="{{ strand }}" {{ registration.trackStrand == strand ? 'selected' }}>{{ strand }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-sms"></i> Email</label>
+                                    <input type="email" name="email" value="{{ registration.personalEmail }}" class="w-full text-sm text-gray-600 border border-gray-400 rounded-lg px-3 py-2.5 mt-1 shadow-sm focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
                                 </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-phone"></i> Mobile</label>
+                                    <input type="text" name="mobile" value="{{ registration.mobileNumber }}" class="w-full text-sm text-gray-600 border border-gray-400 rounded-lg px-3 py-2.5 mt-1 shadow-sm focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Examination Status #}
+                        <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[200px]">
+                            <div class="text-xs font-bold text-gray-400 uppercase mb-3">Examination Status</div>
+                            
+                            <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
+                                <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Examination Score' ? 'checked' : '' }}>
+                                <span class="text-sm font-bold text-gray-700">Exam Taken</span>
+                            </label>
+
+                            <div id="scoreBox" style="display: none;">
+                                <input type="number" step="0.01" name="exam_score" value="{{ registration.examinationScore }}" class="w-full text-center border-gray-400 border-2 rounded-lg text-lg font-bold text-feu-green-700 shadow-inner px-3 py-2" placeholder="00.00">
+                                <div class="text-[10px] text-gray-400 mt-1">Input Examination Score</div>
+                            </div>
+                            <div id="pendingBox" class="text-sm font-bold text-orange-500">
+                                Pending Examination
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-box col-8">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-book-open"></i> Academic Information</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-grid-inner">
-                                <div class="span-4">
-                                    <label class="form-label">Grade Level</label>
-                                    <select name="grade" class="form-control">
-                                        {% for g in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] %}
-                                            <option value="{{ g }}" {{ registration.grade == g ? 'selected' : '' }}>{{ g }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="span-4">
-                                    <label class="form-label">Track / Strand</label>
-                                    <select name="track" class="form-control">
-                                        <option value="">None (Elem/JHS)</option>
-                                        {% for t in ['STEM', 'ABM', 'HUMSS', 'GAS'] %}
-                                            <option value="{{ t }}" {{ registration.track == t ? 'selected' : '' }}>{{ t }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="span-4">
-                                    <label class="form-label">Application Type</label>
-                                    <select name="application_type" class="form-control">
-                                        <option value="Freshman" {{ registration.application_type == 'Freshman' ? 'selected' : '' }}>Freshman</option>
-                                        <option value="Transferee" {{ registration.application_type == 'Transferee' ? 'selected' : '' }}>Transferee</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="span-6">
-                                    <label class="form-label">School Year</label>
-                                    <input type="text" name="school_year" class="form-control" value="{{ registration.school_year }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Term</label>
-                                    <input type="text" name="term" class="form-control" value="{{ registration.term }}">
-                                </div>
-                                
-                                <div class="span-12">
-                                    <label class="form-label">Previous School Name</label>
-                                    <input type="text" name="prev_school" class="form-control" value="{{ registration.prev_school }}">
-                                </div>
-                                <div class="span-12">
-                                    <label class="form-label">Previous School Address</label>
-                                    <input type="text" name="school_address" class="form-control" value="{{ registration.school_address }}">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-box col-12">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-user"></i> Student Personal Details</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-grid-inner">
-                                <div class="span-3">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" name="last_name" class="form-control" value="{{ registration.last_name }}">
-                                </div>
-                                <div class="span-4">
-                                    <label class="form-label">First Name</label>
-                                    <input type="text" name="first_name" class="form-control" value="{{ registration.first_name }}">
-                                </div>
-                                <div class="span-3">
-                                    <label class="form-label">Middle Name</label>
-                                    <input type="text" name="middle_name" class="form-control" value="{{ registration.middle_name }}">
-                                </div>
-                                <div class="span-2">
-                                    <label class="form-label">Suffix</label>
-                                    <input type="text" name="suffix" class="form-control" value="{{ registration.suffix }}">
-                                </div>
-
-                                <div class="span-3">
-                                    <label class="form-label">Birthday</label>
-                                    <input type="date" name="birthday" class="form-control" value="{{ registration.birthday }}">
-                                </div>
-                                <div class="span-3">
-                                    <label class="form-label">Gender</label>
-                                    <select name="gender" class="form-control">
+                    {# --- 2. DETAILS GRID --- #}
+                    <div class="col-span-12 lg:col-span-8 space-y-6">
+                        {# Personal Info #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-user text-feu-green-600"></i> Personal Information
+                            </h3>
+                            <div class="grid grid-cols-2 gap-y-4 gap-x-8">
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Gender</label>
+                                    <select name="gender" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                         <option value="Male" {{ registration.gender == 'Male' ? 'selected' : '' }}>Male</option>
                                         <option value="Female" {{ registration.gender == 'Female' ? 'selected' : '' }}>Female</option>
                                     </select>
                                 </div>
-                                <div class="span-3">
-                                    <label class="form-label">Civil Status</label>
-                                    <select name="civil_status" class="form-control">
-                                        <option value="Single" {{ registration.civil_status == 'Single' ? 'selected' : '' }}>Single</option>
-                                        <option value="Married" {{ registration.civil_status == 'Married' ? 'selected' : '' }}>Married</option>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Birthday</label>
+                                    <input type="date" name="birth_date" value="{{ registration.birthDate|date('Y-m-d') }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Birth Place</label>
+                                    <input type="text" name="birth_place" value="{{ registration.birthPlace }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Religion</label>
+                                    <input type="text" name="religion" value="{{ registration.religion }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
+                                    <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <option value="Filipino" {{ registration.citizenship == 'Filipino' ? 'selected' : '' }}>Filipino</option>
+                                        <option value="Foreign" {{ registration.citizenship == 'Foreign' ? 'selected' : '' }}>Foreign</option>
+                                        <option value="Dual" {{ registration.citizenship == 'Dual' ? 'selected' : '' }}>Dual</option>
                                     </select>
                                 </div>
-                                <div class="span-3">
-                                    <label class="form-label">Citizenship</label>
-                                    <input type="text" name="citizenship" class="form-control" value="{{ registration.citizenship }}">
-                                </div>
+                            </div>
+                        </div>
 
-                                <div class="span-3">
-                                    <label class="form-label">Religion</label>
-                                    <input type="text" name="religion" class="form-control" value="{{ registration.religion }}">
-                                </div>
-                                <div class="span-3">
-                                    <label class="form-label">Mother Tongue</label>
-                                    <input type="text" name="mother_tongue" class="form-control" value="{{ registration.mother_tongue }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Birth Place (City, Prov, Country)</label>
-                                    <div style="display:flex; gap:0.75rem;">
-                                        <input type="text" name="birth_place" class="form-control" value="{{ registration.birth_place }}" placeholder="City">
-                                        <input type="text" name="birth_province" class="form-control" value="{{ registration.birth_province }}" placeholder="Province">
-                                        <input type="text" name="birth_country" class="form-control" value="{{ registration.birth_country }}" placeholder="Country">
+                        {# Address Information #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-map text-feu-green-600"></i> Address Information
+                            </h3>
+                            
+                            {# Current #}
+                            <div class="mb-6">
+                                <div class="text-xs text-gray-400 uppercase font-bold mb-2">Current Address</div>
+                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.currentAddress }}, {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }}</div>
+                                
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">Region</label>
+                                        <select id="addr_region" name="addr_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-control="select2"><option value=""></option></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">Province</label>
+                                        <select id="addr_province" name="addr_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">City</label>
+                                        <select id="addr_city" name="addr_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">Barangay</label>
+                                        <select id="addr_barangay" name="addr_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-box col-6">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-map"></i> Contact & Address</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-grid-inner">
-                                <div class="span-12">
-                                    <label class="form-label">Email Address</label>
-                                    <input type="email" name="email" class="form-control" value="{{ registration.email }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Mobile Number</label>
-                                    <input type="text" name="contact_number" class="form-control" value="{{ registration.contact_number }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Landline</label>
-                                    <input type="text" name="landline_number" class="form-control" value="{{ registration.landline_number }}">
-                                </div>
-                                
-                                <div class="span-12">
-                                    <label class="form-label">Street Address</label>
-                                    <input type="text" name="address_street" class="form-control" value="{{ registration.address_street }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Barangay</label>
-                                    <input type="text" name="address_barangay" class="form-control" value="{{ registration.address_barangay }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">City</label>
-                                    <input type="text" name="address_city" class="form-control" value="{{ registration.address_city }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Province</label>
-                                    <input type="text" name="address_province" class="form-control" value="{{ registration.address_province }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Zip Code</label>
-                                    <input type="text" name="address_zip" class="form-control" value="{{ registration.address_zip }}">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-box col-6">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-people"></i> Family Background</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="section-sub-title">Father's Information</div>
-                            <div class="form-grid-inner mb-4">
-                                <div class="span-12">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" name="father_name" class="form-control" value="{{ registration.father_name }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Contact</label>
-                                    <input type="text" name="father_contact" class="form-control" value="{{ registration.father_contact }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Occupation</label>
-                                    <input type="text" name="father_occupation" class="form-control" value="{{ registration.father_occupation }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Is OFW?</label>
-                                    <select name="father_ofw" class="form-control">
-                                        <option value="0" {{ not registration.father_ofw ? 'selected' : '' }}>No</option>
-                                        <option value="1" {{ registration.father_ofw ? 'selected' : '' }}>Yes</option>
-                                    </select>
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Is Deceased?</label>
-                                    <select name="father_deceased" class="form-control">
-                                        <option value="0" {{ not registration.father_deceased ? 'selected' : '' }}>No</option>
-                                        <option value="1" {{ registration.father_deceased ? 'selected' : '' }}>Yes</option>
-                                    </select>
-                                </div>
+                                <input type="text" name="current_address" value="{{ registration.currentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
+                                <input type="text" name="current_zip" id="addr_zip" value="{{ registration.currentZip }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Zip Code">
                             </div>
 
-                            <div class="section-sub-title" style="margin-top: 1.5rem;">Mother's Information</div>
-                            <div class="form-grid-inner">
-                                <div class="span-12">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" name="mother_name" class="form-control" value="{{ registration.mother_name }}">
+                            {# Permanent #}
+                            <div class="pt-4 border-t border-gray-100">
+                                <div class="text-xs text-gray-400 uppercase font-bold mb-2">Permanent Address</div>
+                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.permanentAddress }}, {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }}</div>
+
+                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">Region</label>
+                                        <select id="perm_region" name="perm_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-control="select2"><option value=""></option></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">Province</label>
+                                        <select id="perm_province" name="perm_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">City</label>
+                                        <select id="perm_city" name="perm_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500">Barangay</label>
+                                        <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                    </div>
                                 </div>
-                                <div class="span-6">
-                                    <label class="form-label">Contact</label>
-                                    <input type="text" name="mother_contact" class="form-control" value="{{ registration.mother_contact }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Occupation</label>
-                                    <input type="text" name="mother_occupation" class="form-control" value="{{ registration.mother_occupation }}">
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Is OFW?</label>
-                                    <select name="mother_ofw" class="form-control">
-                                        <option value="0" {{ not registration.mother_ofw ? 'selected' : '' }}>No</option>
-                                        <option value="1" {{ registration.mother_ofw ? 'selected' : '' }}>Yes</option>
-                                    </select>
-                                </div>
-                                <div class="span-6">
-                                    <label class="form-label">Is Deceased?</label>
-                                    <select name="mother_deceased" class="form-control">
-                                        <option value="0" {{ not registration.mother_deceased ? 'selected' : '' }}>No</option>
-                                        <option value="1" {{ registration.mother_deceased ? 'selected' : '' }}>Yes</option>
-                                    </select>
-                                </div>
+                                <input type="text" name="permanent_address" value="{{ registration.permanentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
+                                <input type="text" name="permanent_zip" id="perm_zip" value="{{ registration.permanentZip }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Zip Code">
                             </div>
                         </div>
-                    </div>
 
-                    <div class="card-box col-12">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-profile-user"></i> Siblings</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-grid-inner">
-                                {% for sibling in registration.siblings %}
-                                    <div class="span-6 sibling-item">
-                                        <div class="form-grid-inner">
-                                            <div class="span-12">
-                                                <label class="form-label">Name</label>
-                                                <input type="text" name="siblings[{{ loop.index0 }}][name]" class="form-control" value="{{ sibling.name }}">
-                                            </div>
-                                            <div class="span-6">
-                                                <label class="form-label">School</label>
-                                                <input type="text" name="siblings[{{ loop.index0 }}][school]" class="form-control" value="{{ sibling.school }}">
-                                            </div>
-                                            <div class="span-6">
-                                                <label class="form-label">Occupation/Grade</label>
-                                                <input type="text" name="siblings[{{ loop.index0 }}][occupation]" class="form-control" value="{{ sibling.occupation }}">
-                                            </div>
+                        {# Family / Guardians (Split Name Logic) #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
+                            </h3>
+                            <div class="space-y-4">
+                                {% for guardian in registration.guardians %}
+                                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 relative">
+                                    <input type="hidden" name="guardians[{{ loop.index0 }}][relationship]" value="{{ guardian.relationship }}">
+                                    
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="text-xs text-feu-gold-600 font-bold uppercase">{{ guardian.relationship }}</div>
+                                        <div class="flex gap-2">
+                                            <label class="inline-flex items-center text-[10px]">
+                                                <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" value="1" {{ guardian.deceased ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                                Deceased
+                                            </label>
+                                            <label class="inline-flex items-center text-[10px]">
+                                                <input type="checkbox" name="guardians[{{ loop.index0 }}][ofw]" value="1" {{ guardian.OFW ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                                OFW
+                                            </label>
                                         </div>
                                     </div>
-                                {% else %}
-                                    <div class="span-12 text-center py-4 text-muted">
-                                        No siblings listed for this student.
+                                    
+                                    {% set nameParts = guardian.parentName|split(',') %}
+                                    {% set lastNameVal = nameParts[0]|trim %}
+                                    {% set firstNameVal = nameParts|length > 1 ? nameParts[1]|trim : '' %}
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold">
+                                                {% if guardian.relationship == 'Mother' %}Maiden Name{% else %}Last Name{% endif %}
+                                            </label>
+                                            <input type="text" name="guardians[{{ loop.index0 }}][last_name]" value="{{ lastNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold">First Name</label>
+                                            <input type="text" name="guardians[{{ loop.index0 }}][first_name]" value="{{ firstNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        </div>
                                     </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
+                                            <input type="text" name="guardians[{{ loop.index0 }}][occupation]" value="{{ guardian.occupation }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
+                                            <input type="text" name="guardians[{{ loop.index0 }}][contact]" value="{{ guardian.contactNo }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="text-center py-4 text-gray-400 italic text-sm">No guardians listed for this applicant.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {# Siblings #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-profile-user text-feu-green-600"></i> Siblings
+                            </h3>
+                            <div class="space-y-2">
+                                {% for sibling in registration.siblings %}
+                                <div class="grid grid-cols-3 gap-2">
+                                    <input type="text" name="siblings[{{ loop.index0 }}][name]" value="{{ sibling.siblingName }}" class="border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Sibling Name">
+                                    <input type="text" name="siblings[{{ loop.index0 }}][school]" value="{{ sibling.school }}" class="border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="School">
+                                    <input type="text" name="siblings[{{ loop.index0 }}][feu_id]" value="{{ sibling.feuStudentNo }}" class="border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="FEU ID (if any)">
+                                </div>
+                                {% else %}
+                                <p class="text-sm text-gray-400 italic">No siblings listed.</p>
                                 {% endfor %}
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-box col-12">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="ki-filled ki-shield-tick"></i> Emergency Contact</h3>
+                    {# --- 3. SIDEBAR GRID --- #}
+                    <div class="col-span-12 lg:col-span-4 space-y-6">
+                        {# Education History #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
+                            </h3>
+                            <div class="space-y-4">
+                                {% for school in registration.schools %}
+                                <div class="relative pl-4 border-l-2 border-gray-200">
+                                    <div class="text-[10px] font-bold text-feu-green-600 uppercase mb-1">
+                                        {% if school.level == 'P' %}Primary{% elseif school.level == 'I' %}Junior High{% else %}Senior High{% endif %}
+                                    </div>
+                                    <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="School Name">
+                                    <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.yearEnd }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="School Year">
+                                    <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
+                                </div>
+                                {% else %}
+                                    <div class="text-sm text-gray-400 italic">No history provided.</div>
+                                {% endfor %}
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="form-grid-inner">
-                                <div class="span-4">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" name="emergency_name" class="form-control" value="{{ registration.emergency_name }}">
+
+                        {# Documents (Editable) #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
+                            </h3>
+                            <div class="space-y-4">
+                                {% for req in registration.requirements %}
+                                    <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 flex items-center justify-center">
+                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-full h-full" alt="PDF">
+                                                </div>
+                                                <div>
+                                                    <div class="text-sm font-bold text-gray-800">{{ req.requirement }}</div>
+                                                    <a href="{{ asset(req.storedFileName) }}" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                                        <i class="ki-filled ki-eye"></i> View Current File
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="text-xs text-gray-400">
+                                                {% if req.status == 'S' %}Submitted{% else %}Pending{% endif %}
+                                            </div>
+                                        </div>
+                                        
+                                        {# File Input Logic #}
+                                        {% set fieldName = '' %}
+                                        {% if 'PSA' in req.requirement %}{% set fieldName = 'req_psa' %}
+                                        {% elseif 'Report Card' in req.requirement %}{% set fieldName = 'req_card' %}
+                                        {% elseif 'Good Moral' in req.requirement %}{% set fieldName = 'req_moral' %}
+                                        {% endif %}
+                                        
+                                        {% if fieldName %}
+                                        <div class="mt-2">
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Replace File (PDF Only)</label>
+                                            <input type="file" name="{{ fieldName }}" accept=".pdf" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                <div class="text-center py-6 text-gray-400 text-sm italic">No documents found.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {# System Info #}
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-setting-2 text-feu-green-600"></i> System Info
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Applied On</span>
+                                    <span class="font-medium text-gray-800">{{ registration.createdAt|date('M d, Y') }}</span>
                                 </div>
-                                <div class="span-4">
-                                    <label class="form-label">Relationship</label>
-                                    <input type="text" name="emergency_relationship" class="form-control" value="{{ registration.emergency_relationship }}">
-                                </div>
-                                <div class="span-4">
-                                    <label class="form-label">Contact No.</label>
-                                    <input type="text" name="emergency_contact" class="form-control" value="{{ registration.emergency_contact }}">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">School Year</span>
+                                    <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                </div> </div>
-
-            <div class="form-footer">
-                <a href="{{ path('app_admin_alabang_dashboard') }}" class="btn btn-secondary">Cancel</a>
-                <button type="button" class="btn btn-primary" id="saveChangesBtn" disabled>Save Changes</button>
-            </div>
-        </form>
+                </div>
+            </form>
+        </div>
     </main>
 </div>
 
+<script src="{{ asset('js/ph-address-lookup.js') }}"></script>
+<script src="{{ asset('js/validation.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- 1. UNSAVED CHANGES PROTECTION ---
+    let isDirty = false;
     const form = document.getElementById('editForm');
-    const saveBtn = document.getElementById('saveChangesBtn');
-    
-    // Store original values for every input
-    const inputs = form.querySelectorAll('input, select, textarea');
-    inputs.forEach(input => {
-        if (input.type === 'checkbox' || input.type === 'radio') {
-            input.dataset.original = input.checked;
-        } else {
-            input.dataset.original = input.value;
-        }
+    const backBtn = document.getElementById('btn_discard'); 
+
+    if(form) {
+        form.addEventListener('change', () => { isDirty = true; });
+        form.addEventListener('input', () => { isDirty = true; });
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(confirm('Are you sure you want to save these changes?')) {
+                isDirty = false;
+                this.submit();
+            }
+        });
+    }
+
+    if(backBtn) {
+        backBtn.addEventListener('click', function(e) {
+            if(isDirty) {
+                if(!confirm('You have unsaved changes. Are you sure you want to discard them and exit?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    }
+
+    window.addEventListener('beforeunload', function(e) {
+        if(isDirty) { e.preventDefault(); e.returnValue = ''; }
     });
 
-    // Change Detection Logic
-    const checkForChanges = () => {
-        let isChanged = false;
-        inputs.forEach(input => {
-            let original = input.dataset.original;
-            let current;
-            
-            if (input.type === 'checkbox' || input.type === 'radio') {
-                current = input.checked.toString();
-                original = original.toString();
-            } else {
-                current = input.value;
-            }
+    // --- 2. EXAM STATUS LOGIC ---
+    const check = document.getElementById('examCheck');
+    const scoreBox = document.getElementById('scoreBox');
+    const pendingBox = document.getElementById('pendingBox');
 
-            if (current !== original) {
-                isChanged = true;
+    function toggleScore() {
+        if(check && check.checked) {
+            scoreBox.style.display = 'block';
+            pendingBox.style.display = 'none';
+        } else if(check) {
+            scoreBox.style.display = 'none';
+            pendingBox.style.display = 'block';
+        }
+    }
+    
+    if(check) {
+        check.addEventListener('change', () => {
+            toggleScore();
+            isDirty = true;
+        });
+        toggleScore();
+    }
+
+    // --- 3. FORMATTING RULES ---
+    if(typeof ARIESValidation !== 'undefined') {
+        const nameInputs = document.querySelectorAll('input[name="last_name"], input[name="first_name"], input[name="middle_name"]');
+        nameInputs.forEach(el => ARIESValidation.setupFormatting(el, 'name'));
+
+        const textInputs = document.querySelectorAll('input[name="birth_place"], input[name="religion"], input[name="current_address"], input[name="permanent_address"]');
+        textInputs.forEach(el => ARIESValidation.setupFormatting(el, 'text'));
+
+        const arrayInputs = document.querySelectorAll('input[name^="guardians"][type="text"], input[name^="siblings"][type="text"], input[name^="schools"][type="text"]');
+        arrayInputs.forEach(el => {
+            const isName = el.name.includes('[name]') || el.name.includes('parentName') || el.name.includes('SiblingName');
+            ARIESValidation.setupFormatting(el, isName ? 'name' : 'text');
+        });
+    }
+
+    // --- 4. ADDRESS LOOKUP ---
+    function setupAddressLookup(prefix) {
+        const regions = document.getElementById(prefix + '_region');
+        const provinces = document.getElementById(prefix + '_province');
+        const cities = document.getElementById(prefix + '_city');
+        const barangays = document.getElementById(prefix + '_barangay');
+
+        if(!regions) return;
+
+        fetch('/api/address/regions').then(r => r.json()).then(data => {
+            data.forEach(r => { regions.innerHTML += `<option value="${r.code}">${r.name}</option>`; });
+        });
+
+        regions.addEventListener('change', function() {
+            provinces.innerHTML = '<option value="">Select Province</option>'; provinces.disabled = true;
+            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            
+            if(this.value) {
+                fetch(`/api/address/provinces/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(p => provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`);
+                    provinces.disabled = false;
+                });
             }
         });
 
-        saveBtn.disabled = !isChanged;
-    };
-
-    // Listen to events
-    form.addEventListener('input', checkForChanges);
-    form.addEventListener('change', checkForChanges);
-
-    // Save with Confirmation
-    saveBtn.addEventListener('click', function() {
-        if (saveBtn.disabled) return;
-
-        // Using the showModal helper from base.html.twig
-        if (typeof window.showModal === 'function') {
-            window.showModal({
-                title: 'Confirm Updates',
-                content: 'Are you sure you want to save the changes made to this student record?',
-                type: 'info',
-                onConfirm: function() {
-                    form.submit();
-                }
-            });
-        } else {
-            // Fallback
-            if (confirm('Are you sure you want to save changes?')) {
-                form.submit();
+        provinces.addEventListener('change', function() {
+            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
+            if(this.value) {
+                fetch(`/api/address/cities/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(c => cities.innerHTML += `<option value="${c.code}">${c.name}</option>`);
+                    cities.disabled = false;
+                });
             }
+        });
+
+        cities.addEventListener('change', function() {
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            if(this.value) {
+                fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(b => barangays.innerHTML += `<option value="${b.name}">${b.name}</option>`);
+                    barangays.disabled = false;
+                });
+            }
+        });
+    }
+
+    setupAddressLookup('addr');
+    setupAddressLookup('perm');
+
+    // --- 5. IMAGE PREVIEW HELPER ---
+    window.previewImage = function(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                const img = input.closest('.group').querySelector('img');
+                if(img) img.src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
         }
-    });
+    }
 });
 </script>
-
-</body>
-</html>
+{% endblock %}

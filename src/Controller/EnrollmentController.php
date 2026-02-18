@@ -2,190 +2,285 @@
 
 namespace App\Controller;
 
+use App\Entity\ApplicantBed;
+use App\Entity\ApplicantBedGuardian;
+use App\Entity\ApplicantBedSibling;
+use App\Entity\ApplicantBedSchool;
+use App\Entity\ApplicantBedRequirement;
+use App\Entity\LookupRegion;
+use App\Entity\LookupProvince;
+use App\Entity\LookupCity;
+use App\Entity\LookupBarangay;
+use App\Service\StudentIdGenerator;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Attribute\Route;
-use Psr\Log\LoggerInterface;
 
 #[Route('/enrollment')]
 class EnrollmentController extends AbstractController
 {
-    /**
-     * Returns the specific SHS strands for each campus based on your requirements.
-     */
-    private function getStrandsByCampus(string $campus): array
-    {
-        $strands = [
-            'feu_alabang' => [
-                'SHS_ABM'   => 'ABM - Accountancy, Business and Management',
-                'SHS_BAE'   => 'BAE - Business And Entrepreneurship',
-                'SHS_CSMA'  => 'CSMA - Computer Studies And Multimedia Arts',
-                'SHS_ENG'   => 'ENG - Engineering',
-                'SHS_GAS'   => 'GAS - General Academic Strand',
-                'SHS_HA'    => 'HA - Health Allied',
-                'SHS_HUMSS' => 'HUMSS - Humanities and Social Sciences',
-                'SHS_SSH'   => 'SSH - Social Sciences And Humanities',
-                'SHS_STEM'  => 'STEM - Science, Technology, Engineering and Mathematics',
-            ],
-            'feu_diliman' => [
-                'SHS_ABM'    => 'ABM - Accountancy, Business and Management',
-                'SHS_GAS'    => 'GAS - General Academic Strand',
-                'SHS_HUMSS'  => 'HUMSS - Humanities and Social Sciences',
-                'SHS_SPORTS' => 'SPORTS - Sports Track',
-                'SHS_STEM'   => 'STEM - Science, Technology, Engineering and Mathematics',
-            ],
-        ];
-
-        return $strands[$campus] ?? [];
-    }
-
     #[Route('/apply', name: 'app_enrollment_apply', methods: ['GET'])]
     public function apply(Request $request): Response
     {
-        // Capture the campus passed from the homepage (e.g. ?campus=feu_diliman)
-        $selectedCampus = $request->query->get('campus');
-
         return $this->render('enrollment-onsite/enroll.html.twig', [
-            'selected_campus' => $selectedCampus,
-            'available_strands' => $selectedCampus ? $this->getStrandsByCampus($selectedCampus) : []
+            'selected_campus' => $request->query->get('campus')
         ]);
     }
 
     #[Route('/apply/submit', name: 'app_enrollment_apply_submit', methods: ['POST'])]
-    public function submit(Request $request, LoggerInterface $logger): Response
+    public function submit(
+        Request $request,
+        EntityManagerInterface $em,
+        StudentIdGenerator $idGenerator
+    ): Response
     {
-        // 1. Extract Application Context
         $campus = $request->request->get('campus_selected');
-        $educationLevel = $request->request->get('education_level');
-        $applicationType = $request->request->get('application_type');
+        $yearStart = date('Y');
 
-        // 2. Validate Mandatory File Uploads
-        $documents = [
-            'psa'   => $request->files->get('req_psa'),
-            'card'  => $request->files->get('req_card'),
-            'moral' => $request->files->get('req_moral'),
-        ];
+        $applicant = new ApplicantBed();
+        
+        // --- 1. IDENTIFIERS (Student Number Only) ---
+        // Removed AdCon generation
+        $studentNo = $idGenerator->generateStudentNumber($campus, $yearStart);
+        $applicant->setStudentNumber($studentNo);
+        
+        $applicant->setCampus($campus == 'feu_alabang' ? ApplicantBed::CAMPUS_ALABANG : ApplicantBed::CAMPUS_DILIMAN);
+        $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
+        $applicant->setEnrollmentStep(1);
+        $applicant->setAdmissionDate(new \DateTime());
 
-        // ESC is conditional, so we handle it separately if needed, or assume front-end handles the requirement
-        if ($request->files->get('req_esc')) {
-            $documents['esc'] = $request->files->get('req_esc');
+        // --- 2. ACADEMIC INFO ---
+        $applicant->setEducationType($request->request->get('education_type'));
+        $applicant->setGradeLevel($request->request->get('grade_level'));
+        $applicant->setTrackStrand($request->request->get('strand'));
+        $applicant->setLrn($request->request->get('lrn'));
+        $applicant->setSchoolYearOfEntry($yearStart . '-' . ($yearStart + 1));
+
+        // --- 3. PERSONAL INFORMATION ---
+        $applicant->setLastName($request->request->get('last_name'));
+        $applicant->setFirstName($request->request->get('first_name'));
+        $applicant->setMiddleName($request->request->get('middle_name'));
+        $applicant->setExtensionName($request->request->get('suffix'));
+        $applicant->setBirthDate(new \DateTime($request->request->get('birthday')));
+        $applicant->setBirthPlace($request->request->get('birth_place'));
+        
+        $gender = $request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE;
+        $applicant->setGender($gender);
+        
+        $applicant->setReligion($request->request->get('religion'));
+        $applicant->setCitizenship($request->request->get('citizenship'));
+        $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
+        
+        if ($request->request->get('citizenship') !== 'Filipino') {
+            $applicant->setPassportNumber($request->request->get('passport_number'));
+            $applicant->setVisaType($request->request->get('visa_type'));
         }
 
-        foreach ($documents as $key => $file) {
-            // Note: 'esc' might be optional depending on logic, strict check applied here for standard docs
-            if ($key !== 'esc' && !$file instanceof UploadedFile) {
-                $this->addFlash('error', "The " . strtoupper($key) . " document is required.");
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+        // --- 4. CONTACT INFORMATION ---
+        $applicant->setMobileNumber($request->request->get('contact_number'));
+        $applicant->setPersonalEmail($request->request->get('email'));
+        $applicant->setLandLineNumber($request->request->get('landline'));
+
+        // --- 5. ADDRESS ---
+        $this->hydrateAddress($applicant, $request, $em, 'current');
+        
+        if ($request->request->get('sameAsCurrent') === 'on') {
+            $applicant->setPermanentRegion($applicant->getCurrentRegion());
+            $applicant->setPermanentProvince($applicant->getCurrentProvince());
+            $applicant->setPermanentCity($applicant->getCurrentCity());
+            $applicant->setPermanentBarangay($applicant->getCurrentBarangay());
+            $applicant->setPermanentAddress($applicant->getCurrentAddress());
+            $applicant->setPermanentZip($applicant->getCurrentZip());
+        } else {
+            $this->hydrateAddress($applicant, $request, $em, 'permanent');
+        }
+
+        // --- 6. GUARDIANS ---
+        $this->handleGuardian($applicant, $request, 'father', $em);
+        $this->handleGuardian($applicant, $request, 'mother', $em);
+        $this->handleGuardian($applicant, $request, 'guardian', $em);
+
+        // --- 7. SIBLINGS ---
+        $siblingNames = $request->request->all()['sibling_name'] ?? [];
+        $siblingSchools = $request->request->all()['sibling_school'] ?? [];
+        $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
+
+        if (is_array($siblingNames)) {
+            foreach ($siblingNames as $index => $name) {
+                if (!empty($name)) {
+                    $sibling = new ApplicantBedSibling();
+                    $sibling->setApplicant($applicant);
+                    $sibling->setSiblingName($name);
+                    $sibling->setSchool($siblingSchools[$index] ?? null);
+                    $sibling->setFeuStudentNo($siblingStudentNos[$index] ?? null);
+                    if (!empty($siblingStudentNos[$index])) {
+                        $sibling->setIsFeuStudent(true);
+                    }
+                    $applicant->addSibling($sibling);
+                    $em->persist($sibling);
+                }
             }
         }
 
-        // 3. Extract Student Details (Expanded based on student.html.twig)
-        $studentData = [
-            // Name
-            'first_name'     => $request->request->get('first_name'),
-            'last_name'      => $request->request->get('last_name'),
-            'middle_name'    => $request->request->get('middle_name'),
-            'suffix'         => $request->request->get('suffix'),
-            
-            // Personal
-            'birthday'       => $request->request->get('birthday'),
-            'age'            => $request->request->get('age'),
-            'gender'         => $request->request->get('gender'),
-            'email'          => $request->request->get('email'),
-            'contact_number' => $request->request->get('contact_number'),
-            
-            // Extended Personal Details
-            'birth_country'  => $request->request->get('birth_country'),
-            'birth_province' => $request->request->get('birth_province'),
-            'birth_place'    => $request->request->get('birth_place'), // City/Municipality
-            'citizenship'    => $request->request->get('citizenship'),
-            'religion'       => $request->request->get('religion'),
-            'mother_tongue'  => $request->request->get('mother_tongue'),
-            'lrn'            => $request->request->get('lrn'),
-            'indigenous_group' => $request->request->get('indigenous_group'),
-            'special_needs'  => $request->request->get('special_needs'),
+        // --- 8. EDUCATION HISTORY ---
+        if ($request->request->get('prev_school_name')) {
+            $school = new ApplicantBedSchool();
+            $school->setApplicant($applicant);
+            $school->setSchool($request->request->get('prev_school_name'));
+            $school->setYearEnd((int)$request->request->get('prev_school_year'));
+            $school->setLevel(ApplicantBedSchool::LEVEL_ELEMENTARY); 
+            $applicant->addSchool($school);
+            $em->persist($school);
+        }
 
-            // Address (Expanded)
-            'address_street'   => $request->request->get('address_street'),
-            'address_barangay' => $request->request->get('address_barangay'),
-            'address_city'     => $request->request->get('address_city'),
-            'address_province' => $request->request->get('address_province'),
-            'address_region'   => $request->request->get('address_region'),
-            'address_zip'      => $request->request->get('address_zip'),
+        // --- 9. FILE UPLOADS ---
+        
+        // 2x2 Picture -> onsite-id-pics
+        $idFile = $request->files->get('req_id_picture');
+        if ($idFile instanceof UploadedFile) {
+            $filename = 'ID-' . $studentNo . '.' . $idFile->guessExtension();
+            try {
+                $folder = 'onsite-id-pics';
+                $idFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $folder, $filename);
+                $applicant->setPhotoSlug('uploads/' . $folder . '/' . $filename);
+            } catch (\Exception $e) { }
+        }
+
+        // Docs
+        $docMap = [
+            'req_psa' => [
+                'label' => 'PSA Birth Certificate', 
+                'folder' => 'onsite-psa'
+            ],
+            'req_card' => [
+                'label' => 'Report Card', 
+                'folder' => 'onsite-cards'
+            ],
+            'req_moral' => [
+                'label' => 'Good Moral Certificate', 
+                'folder' => 'onsite-moral'
+            ]
         ];
 
-        // 4. Extract Parent/Guardian Details (Expanded based on guardian.html.twig)
-        $parentData = [
-            // Father
-            'father_lastname'     => $request->request->get('father_lastname'),
-            'father_firstname'    => $request->request->get('father_firstname'),
-            'father_middlename'   => $request->request->get('father_middlename'),
-            'father_contact'      => $request->request->get('father_contact'),
-            'father_email'        => $request->request->get('father_email'),
-            'father_occupation'   => $request->request->get('father_occupation'),
-            'father_employer'     => $request->request->get('father_employer'),
-            'father_education'    => $request->request->get('father_education'),
-            'father_status'       => $request->request->get('father_status'),
-
-            // Mother
-            'mother_lastname'     => $request->request->get('mother_lastname'),
-            'mother_firstname'    => $request->request->get('mother_firstname'),
-            'mother_middlename'   => $request->request->get('mother_middlename'),
-            'mother_contact'      => $request->request->get('mother_contact'),
-            'mother_email'        => $request->request->get('mother_email'),
-            'mother_occupation'   => $request->request->get('mother_occupation'),
-            'mother_employer'     => $request->request->get('mother_employer'),
-            'mother_education'    => $request->request->get('mother_education'),
-            'mother_status'       => $request->request->get('mother_status'),
-
-            // Guardian
-            'guardian_name'       => $request->request->get('guardian_name'),
-            'guardian_relationship' => $request->request->get('guardian_relationship'),
-            'guardian_contact'    => $request->request->get('guardian_contact'),
-            'guardian_email'      => $request->request->get('guardian_email'),
-            'guardian_occupation' => $request->request->get('guardian_occupation'),
-            'guardian_address'    => $request->request->get('guardian_address'),
-            
-            // Emergency Contact
-            'emergency_name'         => $request->request->get('emergency_name'),
-            'emergency_relationship' => $request->request->get('emergency_relationship'),
-            'emergency_contact'      => $request->request->get('emergency_contact'),
-            'emergency_address'      => $request->request->get('emergency_address'),
-        ];
-
-        // 5. Extract School Records
-        $schoolData = [
-            'prev_school'    => $request->request->get('prev_school'),
-            'school_address' => $request->request->get('school_address'),
-            'school_email'   => $request->request->get('school_email'),
-            'school_contact' => $request->request->get('school_contact'),
-        ];
-
-        // 6. Validate Strand (if applicable)
-        if ($educationLevel === 'senior_high') {
-            $strand = $request->request->get('strand');
-            $validStrands = $this->getStrandsByCampus($campus);
-            
-            if (!array_key_exists($strand, $validStrands)) {
-                $this->addFlash('error', 'Invalid strand selected for this campus.');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+        foreach ($docMap as $field => $config) {
+            $file = $request->files->get($field);
+            if ($file instanceof UploadedFile) {
+                $label = $config['label'];
+                $folderName = $config['folder'];
+                
+                $filename = strtoupper($field) . '-' . $studentNo . '.' . $file->guessExtension();
+                
+                try {
+                    $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $folderName;
+                    $file->move($targetDir, $filename);
+                    
+                    $req = new ApplicantBedRequirement();
+                    $req->setApplicant($applicant);
+                    $req->setRequirement($label);
+                    $req->setStoredFileName('uploads/' . $folderName . '/' . $filename);
+                    $req->setSlug(strtolower(str_replace(' ', '-', $label)));
+                    $req->setStatus('S');
+                    $req->setDateSubmitted(new \DateTime());
+                    $req->setIsRequired(true);
+                    
+                    $applicant->addRequirement($req);
+                    $em->persist($req);
+                } catch (\Exception $e) { }
             }
         }
 
-        // 7. Logging (Updated structure)
-        $logger->info('ARIES Application Received', [
-            'campus' => $campus,
-            'level' => $educationLevel,
-            'type'  => $applicationType,
-            'student' => $studentData['last_name'] . ', ' . $studentData['first_name'],
-            'docs_uploaded' => array_keys($documents)
+        $em->persist($applicant);
+        $em->flush();
+
+        return $this->redirectToRoute('app_enrollment_success', ['studentNumber' => $studentNo]);
+    }
+
+    private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
+    {
+        $prefix = ($type === 'current') ? 'address' : 'perm';
+        $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
+
+        $regionId = $request->request->get($type === 'current' ? 'region' : 'perm_region');
+        $provId = $request->request->get($prefix . '_province');
+        $cityId = $request->request->get($prefix . '_city');
+        $brgyId = $request->request->get($prefix . '_barangay');
+
+        if($regionId) {
+            $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regionId]);
+            if($r) $applicant->{'set'.$fieldPrefix.'Region'}($r->getRegionDesc());
+        }
+        if($provId) {
+            $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provId]);
+            if($p) $applicant->{'set'.$fieldPrefix.'Province'}($p->getProvinceDesc());
+        }
+        if($cityId) {
+            $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityId]);
+            if($c) $applicant->{'set'.$fieldPrefix.'City'}($c->getCityDesc());
+        }
+        if($brgyId) {
+            $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyId); 
+        }
+
+        $applicant->{'set'.$fieldPrefix.'Address'}($request->request->get($type === 'current' ? 'address' : 'perm_address'));
+        $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type === 'current' ? 'address_zip' : 'perm_zip'));
+    }
+
+    private function handleGuardian(ApplicantBed $applicant, Request $request, string $type, EntityManagerInterface $em)
+    {
+        $lname = $request->request->get($type . '_lastname');
+        $fname = $request->request->get($type . '_firstname');
+        $fullname = ($type === 'guardian') 
+            ? $request->request->get('guardian_name') 
+            : (($lname || $fname) ? "$lname, $fname" : '');
+
+        if (empty($fullname) || $fullname === ', ') {
+            return;
+        }
+
+        if ($type === 'father') $relationship = 'Father';
+        elseif ($type === 'mother') $relationship = 'Mother';
+        else $relationship = $request->request->get('guardian_relation') ?: 'Guardian';
+
+        $guardian = null;
+        foreach ($applicant->getGuardians() as $existingGuardian) {
+            if (strcasecmp($existingGuardian->getRelationship(), $relationship) === 0) {
+                $guardian = $existingGuardian;
+                break;
+            }
+        }
+
+        if (!$guardian) {
+            $guardian = new ApplicantBedGuardian();
+            $guardian->setApplicant($applicant);
+            $guardian->setRelationship($relationship);
+            $applicant->addGuardian($guardian);
+        }
+
+        $guardian->setParentName($fullname);
+        $guardian->setOccupation($request->request->get($type . '_occupation'));
+        $guardian->setContactNo($request->request->get($type . '_contact'));
+        
+        if ($request->request->get($type . '_deceased')) $guardian->setDeceased(true);
+        if ($request->request->get($type . '_ofw')) $guardian->setOFW(true);
+
+        $em->persist($guardian);
+    }
+
+    #[Route('/apply/success/{studentNumber}', name: 'app_enrollment_success', methods: ['GET'])]
+    public function success(string $studentNumber, EntityManagerInterface $em): Response
+    {
+        $applicant = $em->getRepository(ApplicantBed::class)->findOneBy(['studentNumber' => $studentNumber]);
+
+        if (!$applicant) {
+            throw $this->createNotFoundException('Application not found.');
+        }
+
+        return $this->render('enrollment-onsite/success.html.twig', [
+            'student_number' => $applicant->getStudentNumber(),
+            'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName()
         ]);
-
-        // Success Feedback
-        $this->addFlash('success', 'Application submitted successfully for ' . strtoupper(str_replace('_', ' ', $campus)));
-
-        return $this->redirectToRoute('app_home'); 
     }
 }

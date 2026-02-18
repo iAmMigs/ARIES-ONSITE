@@ -1,1437 +1,971 @@
-{# templates/admission/apply.html.twig #}
-{# Unified Application Form - Modern Design with Campus Logic #}
-{# BED: FEU Diliman (Elementary, JHS, SHS) & FEU Alabang (SHS only) #}
+{# templates/enrollment-onsite/enroll.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}Application{% endblock %}
-{% block og_title %}Apply Now - FEU Enrollment{% endblock %}
-{% block og_description %}Start your academic journey at FEU{% endblock %}
 
 {% block stylesheets %}
-<link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
-<link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
-<link rel="stylesheet" href="{{ asset('css/base.css') }}?v=2">
-<link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
-<link rel="stylesheet" href="{{ asset('css/components.css') }}?v=2">
-<link rel="stylesheet" href="{{ asset('css/pages/admission.css') }}?v=22">
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<style>
-    /* Campus Selector Styles */
-    .campus-selector-row { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
-    .campus-option {
-        flex: 1; min-width: 280px; max-width: 350px;
-        background: #fff; border: 2px solid var(--border-color);
-        border-radius: 12px; padding: 2rem; text-align: center;
-        cursor: pointer; transition: all 0.3s ease; opacity: 0.7; position: relative;
-    }
-    .campus-option:hover { border-color: var(--primary-color); opacity: 0.9; transform: translateY(-2px); }
-    .campus-option.selected {
-        border-color: #1a4d2e !important; background: #f0fdf4 !important;
-        opacity: 1 !important; box-shadow: 0 10px 20px rgba(26, 77, 46, 0.15);
-    }
-    .campus-option.selected::after {
-        content: '\2713'; position: absolute; top: 10px; right: 15px;
-        color: #1a4d2e; font-size: 1.5rem; font-weight: bold;
-    }
-    .campus-option i { font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block; transition: color 0.3s; }
-    .campus-option.selected i { color: #1a4d2e; }
-    .campus-option h4 { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-dark); }
-    .campus-option p { font-size: 0.9rem; color: var(--text-muted); margin: 0; line-height: 1.4; }
+    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/base.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/pages/admission.css') }}?v=22">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     
-    .edu-option.hidden { display: none !important; }
-    .section-disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); transition: all 0.3s ease; }
-    .form-section-title { font-weight: 600; color: var(--text-dark); margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; margin-top: 1.5rem; }
-    
-    .app-type-container {
-        display: flex; align-items: center; justify-content: space-between;
-        border: 1px solid var(--border-color); padding: 1rem 1.25rem;
-        border-radius: 12px; background: #fff; transition: border-color 0.3s ease;
-    }
-    .app-type-container:hover { border-color: var(--primary-color); }
-    .app-type-info { display: flex; align-items: center; gap: 1rem; }
-    .app-type-info i { font-size: 1.5rem; color: var(--primary-color); }
-    .app-type-info span { font-weight: 600; font-size: 1.05rem; color: var(--text-dark); }
+    <style>
+        :root {
+            --feu-green-dark: #143d24;
+            --feu-green: #1a4d2e;
+            --feu-gold: #d4af37; /* Gold 300 approx */
+        }
 
-    .file-upload-group { margin-bottom: 1.25rem; }
-    .file-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
-    
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; background-color: var(--text-muted) !important; }
-</style>
+        /* --- 1. STICKY HEADER STYLES --- */
+        .aries-sticky-header {
+            position: fixed;
+            top: 0; left: 0; right: 0; z-index: 999;
+            padding: 1.5rem 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+        }
+        .aries-sticky-header.scrolled {
+            padding: 0.75rem 0;
+            background: var(--feu-green-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            align-items: center; justify-content: center; position: relative;
+        }
+        .header-logo-area {
+            position: absolute;
+            left: 0; display: flex; align-items: center; gap: 10px;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .aries-sticky-header.scrolled .header-logo-area { opacity: 1;
+        }
+        
+        .header-title {
+            font-weight: 900;
+            font-size: 1.5rem; color: white; letter-spacing: 2px;
+            opacity: 0; transform: translateY(-10px); transition: all 0.3s;
+        }
+        .aries-sticky-header.scrolled .header-title {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Adjust body padding for sticky header */
+        .page-banner { padding-top: 8rem !important;
+        }
+
+        /* --- 2. FORM & CARD STYLES --- */
+        .text-feu-gold { color: var(--feu-gold) !important;
+        }
+        
+        .campus-selector-row { display: flex;
+        gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .campus-option {
+            background: white;
+            border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; width: 280px;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+        }
+        .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4;
+        ring: 4px solid rgba(26,77,46,0.1); }
+        .campus-option .check-icon {
+            position: absolute;
+            top: 1rem; right: 1rem; width: 24px; height: 24px; background: var(--feu-green-dark);
+            color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transform: scale(0); transition: all 0.3s ease;
+        }
+        .campus-option.active .check-icon { opacity: 1;
+        transform: scale(1); }
+        
+        /* Styled Checkboxes for Family */
+        .status-checkbox-group { display: flex;
+        gap: 10px; }
+        .btn-check-custom { position: absolute; clip: rect(0,0,0,0); pointer-events: none;
+        }
+        .btn-check-label {
+            display: inline-flex;
+            align-items: center; gap: 6px; padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #6b7280;
+            cursor: pointer; transition: all 0.2s; background: white;
+        }
+        .btn-check-custom:checked + .btn-check-label {
+            background-color: #fef3c7;
+            color: #92400e; border-color: #f59e0b;
+        }
+        .btn-check-custom:disabled + .btn-check-label {
+            opacity: 0.5;
+            cursor: not-allowed; background-color: #f3f4f6;
+        }
+
+        /* Sibling Styling */
+        .sibling-row { position: relative;
+        padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem;
+        }
+        .btn-remove-sibling {
+            position: absolute;
+            top: -10px; left: -10px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #ef4444; color: white; border: none;
+            display: flex; align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s;
+        }
+        .btn-remove-sibling:hover { background: #dc2626; transform: scale(1.1);
+        }
+
+        /* Card Adjustments */
+        .card { border: none;
+        border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
+        .card-header { padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px;
+        }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex;
+        align-items: center; gap: 10px; }
+        .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark));
+            color: white;
+            padding: 1rem 3rem; border-radius: 50px; font-weight: 700; border: none;
+            box-shadow: 0 10px 20px rgba(26,77,46,0.2); transition: all 0.3s ease;
+            width: 100%;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(26,77,46,0.3);
+        }
+        .btn-submit:disabled { background: #9ca3af; transform: none; box-shadow: none; cursor: not-allowed;
+        }
+
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 0.75rem 1rem;
+        }
+        .required { color: #dc2626; margin-left: 2px;
+        }
+        
+        .animate-section { opacity: 0;
+        transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .animate-section.visible { opacity: 1;
+        transform: translateY(0); }
+    </style>
 {% endblock %}
 
 {% block body %}
-<a href="#main-content" class="skip-link">Skip to main content</a>
-<div class="apply-container">
-    {# ===== Sidebar Brand Panel ===== #}
-    <aside class="brand-panel" role="complementary" aria-label="Application progress sidebar">
-        <div class="brand-content">
-            <div>
-                <a href="{{ path('app_home') }}" class="brand-logo" title="Go to Homepage">
-                    <div class="brand-logo-icon">
-                        <i class="ki-filled ki-abstract-26" aria-hidden="true"></i>
-                    </div>
-                    <div class="brand-logo-text">
-                        <h2>ARIES</h2>
-                        <p>On-site Basic Education</p>
-                    </div>
-                </a>
-                
-                <h1 class="brand-title">Start Your<br><span>Academic Journey</span></h1>
-                <p class="brand-subtitle">Join the FEU Family. Complete this comprehensive application to begin your enrollment process.</p>
-                
-                {# Progress Indicator #}
-                <div class="brand-progress-modern">
-                    <div class="progress-label-row">
-                        <span class="progress-label">Application Progress</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="mainProgressBar" style="width: 0%;"></div>
-                    </div>
-                    <div class="progress-milestones">
-                        <span class="milestone active">0%</span>
-                        <span class="milestone">25%</span>
-                        <span class="milestone">50%</span>
-                        <span class="milestone">75%</span>
-                        <span class="milestone">100%</span>
-                    </div>
-                </div>
-                
-                <nav class="progress-steps" aria-label="Application steps">
-                    <div class="step-item" data-target="section-student">
-                        <div class="step-circle active">1</div>
-                        <div class="step-info active">
-                            <h3>Student Details</h3>
-                            <p>Personal & Contact Info</p>
-                        </div>
-                    </div>
-                    <div class="step-item" data-target="section-academic">
-                        <div class="step-circle inactive">2</div>
-                        <div class="step-info inactive">
-                            <h3>Academic History</h3>
-                            <p>Previous School Info</p>
-                        </div>
-                    </div>
-                    <div class="step-item" data-target="section-parent">
-                        <div class="step-circle inactive">3</div>
-                        <div class="step-info inactive">
-                            <h3>Parent Details</h3>
-                            <p>Family Information</p>
-                        </div>
-                    </div>
-                    <div class="step-item" data-target="section-documents">
-                        <div class="step-circle inactive">4</div>
-                        <div class="step-info inactive">
-                            <h3>Submission of Documents</h3>
-                            <p>Upload Requirements</p>
-                        </div>
-                    </div>
-                </nav>
-            </div>
+
+{# --- 1. STICKY HEADER --- #}
+<header class="aries-sticky-header" id="stickyHeader">
+    <div class="container mx-auto px-4 header-content">
+        <div class="header-logo-area">
+            <i class="ki-filled ki-abstract-26 text-warning fs-1"></i>
         </div>
-    </aside>
-    
-    {# ===== Main Form Panel ===== #}
-    <main class="form-panel" id="main-content">
-        <header class="mobile-header">
-            <a href="{{ path('app_home') }}" title="Back to Home" aria-label="Back to homepage">
-                <i class="ki-filled ki-arrow-left text-lg" aria-hidden="true"></i>
-            </a>
-            <div class="mobile-logo">
-                <div class="mobile-logo-icon">
-                    <i class="ki-filled ki-abstract-26" aria-hidden="true"></i>
-                </div>
-                <div>
-                    <span class="mobile-logo-text">ARIES</span>
-                    <span class="mobile-logo-sub">FEU</span>
-                </div>
-            </div>
-            <span style="width: 40px;"></span>
-        </header>
+        <div class="header-title">ARIES</div>
+    </div>
+</header>
+
+{# --- BANNER --- #}
+<section class="page-banner bg-gradient-to-r from-feu-green-900 to-feu-green-800 text-white py-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('{{ asset('images/hero/pic1.jpg') }}')] bg-cover bg-center opacity-10"></div>
+    <div class="container mx-auto px-4 relative z-10 text-center pt-10">
+        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-4 animate-fade-in-up">Admissions 2025-2026</span>
+        {# TITLE COLOR CHANGED TO FEU GOLD #}
+        <h1 class="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
+        <p class="text-lg text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
+    </div>
+</section>
+
+<div class="main-content py-16 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-5xl">
         
-        <div class="form-wrapper">
-            <div class="form-container">
-                <div class="form-header">
-                    <h1>Registration Form</h1>
-                    <p>Select your campus and fill out the details.</p>
+        <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate>
+            
+            {# --- CARD 1: ADMISSION DETAILS --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-bank text-feu-green-600 fs-1"></i>STEP 1 : Admission Information</h3>
                 </div>
-                
-                <form id="applyForm" action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" novalidate>
-                    <input type="hidden" name="campus_selected" id="campusSelected" value="{{ selected_campus|default('') }}">
-                    <input type="hidden" name="education_level" id="educationLevel" value="">
-                    <input type="hidden" name="education_type" id="educationType" value="">
-                    <input type="hidden" name="application_type" id="applicationType" value="">
+                <div class="card-body">
+                    <div class="campus-selector-row">
+                        <label class="campus-option {{ selected_campus == 'feu_alabang' ?
+                        'active' : '' }}" onclick="selectCampus('feu_alabang')">
+                            <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
+                            <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
+                            <div class="text-center">
+                                <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
+                                <h5 class="font-bold text-gray-800">FEU Alabang</h5>
+                                <p class="text-xs text-gray-500">Filinvest City, Alabang</p>
+                            </div>
+                        </label>
 
-                    {# ===== Section 0: Campus Selection ===== #}
-                    <section class="form-section animate-section" aria-labelledby="campus-select-title" id="section-campus">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-map" aria-hidden="true"></i></div>
-                            <div>
-                                <h3 class="section-title" id="campus-select-title">Select Campus</h3>
-                                <p class="section-subtitle">Where do you intend to enroll?</p>
+                        <label class="campus-option {{ selected_campus == 'feu_diliman' ?
+                        'active' : '' }}" onclick="selectCampus('feu_diliman')">
+                            <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
+                            <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
+                            <div class="text-center">
+                                <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
+                                <h5 class="font-bold text-gray-800">FEU Diliman</h5>
+                                <p class="text-xs text-gray-500">Diliman, Quezon City</p>
+                            </div>
+                        </label>
+                    </div>
+
+            
+                    <div class="row g-4 mt-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Admission Status</label>
+                                <select name="admission_status" class="form-select">
+                                    <option value="Freshman">Freshman</option>
+                                    <option value="Transferee">Transferee</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="campus-selector-row">
-                            <div class="campus-option" data-value="feu_diliman" role="button" tabindex="0">
-                                <img src="{{ asset('images/hero/diliman.png') }}" alt="Campus Logo" class="w-25 h-25 mb-4 mx-auto object-contain">
-                                <h4>FEU Diliman</h4>
-                                <p>Quezon City<br><small>Kinder, JHS, SHS</small></p>
-                            </div>
-                            
-                            <div class="campus-option" data-value="feu_alabang" role="button" tabindex="0">
-                                <img src="{{ asset('images/hero/alabang.png') }}" alt="Campus Logo" class="w-25 h-25 mb-4 mx-auto object-contain">
-                                <h4>FEU Alabang</h4>
-                                <p>Muntinlupa<br><small>SHS Only</small></p>
+                        {# --- NEW FIELD: Education Type (Primary/Secondary) --- #}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Education Type</label>
+                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="Primary">Primary (Elementary)</option>
+                                    <option value="Secondary">Secondary (High School)</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="error-message" id="campusError" style="text-align:center; margin-top: 0.5rem;"><i class="ki-filled ki-information-2"></i><span>Please select a campus first</span></div>
-                    </section>
 
-                    {# ===== Section 1: Education Selector ===== #}
-                    <section class="form-section animate-section section-disabled" id="levelSection" aria-labelledby="applying-title">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-graduation-cap" aria-hidden="true"></i></div>
-                            <div>
-                                <h3 class="section-title" id="applying-title">Intended Grade / Level</h3>
-                                <p class="section-subtitle">Select the level you are applying for</p>
+                        {# --- UPDATED: Grade Level (Dynamic) --- #}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Grade Level <span class="required">*</span></label>
+                                <select name="grade_level" id="gradeLevel" class="form-select" required onchange="updateStrands()">
+                                    <option value="">Select Education Type First</option>
+                                </select>
                             </div>
                         </div>
                         
-                        <div class="education-selector" id="educationSelector" role="radiogroup">
-                            <div class="edu-option diliman-only" data-level="kinder" data-type="bed" tabindex="0" role="radio">
-                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book" aria-hidden="true"></i></div></div>
-                                <span class="edu-label">Kindergarten</span>
-                                <span class="edu-sublabel">(Kinder)</span>
-                            </div>
-                            <div class="edu-option diliman-only" data-level="elementary" data-type="bed" tabindex="0" role="radio">
-                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book" aria-hidden="true"></i></div></div>
-                                <span class="edu-label">Elementary</span>
-                                <span class="edu-sublabel">(Grade 1 - Grade 6)</span>
-                            </div>
-                            <div class="edu-option diliman-only" data-level="junior_high" data-type="bed" tabindex="0" role="radio">
-                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-book-open" aria-hidden="true"></i></div></div>
-                                <span class="edu-label">Junior High</span>
-                                <span class="edu-sublabel">(Grade 7 - 10)</span>
-                            </div>
-                            <div class="edu-option" data-level="senior_high" data-type="bed" tabindex="0" role="radio">
-                                <div class="edu-circle"><div class="edu-circle-inner"><i class="ki-filled ki-teacher" aria-hidden="true"></i></div></div>
-                                <span class="edu-label">Senior High</span>
-                                <span class="edu-sublabel">(Grade 11 - 12)</span>
-                            </div>
-                        </div>
-                        <div class="error-message" id="educationLevelError" role="alert"><i class="ki-filled ki-information-2"></i><span>Please select a level</span></div>
-                        
-                        <div class="selected-level-display" id="selectedLevelDisplay">
-                            <div class="selected-level-info">
-                                <i class="ki-filled ki-check-circle" aria-hidden="true"></i>
-                                <span id="selectedLevelText">No level selected</span>
-                            </div>
-                            <button type="button" class="btn-change" id="changeLevelBtn">Change</button>
-                        </div>
-                    </section>
-
-                    {# ===== Section 2: Application Type ===== #}
-                    <section class="form-section animate-section conditional-section" id="applicationTypeSection">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-document" aria-hidden="true"></i></div>
-                            <div>
-                                <h3 class="section-title">Application Type</h3>
-                                <p class="section-subtitle">Your student status</p>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="app-type-container">
-                                <div class="app-type-info">
-                                    <i class="ki-filled ki-user-tick" id="appTypeIcon"></i>
-                                    <span id="appTypeText">Freshman</span>
-                                </div>
-                                <button type="button" class="btn-link-sm" id="changeTypeBtn">Change</button>
-                            </div>
-                        </div>
-                    </section>
-
-                    {# ===== Section 3: Grade Specifics (BED Only) ===== #}
-                    <section class="form-section animate-section conditional-section" id="bedSection">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-book-open"></i></div>
-                            <div>
-                                <h3 class="section-title">Grade Level Details</h3>
-                                <p class="section-subtitle">Specifics for your enrollment</p>
-                            </div>
-                        </div>
-                        <div class="form-row">
+                        {# --- UPDATED: Strand (Only for 11/12) --- #}
+                        <div class="col-md-6" id="strandGroup" style="display:none;">
                             <div class="form-group">
-                                <label class="form-label" for="gradeLevel">Grade Level <span class="required">*</span></label>
-                                <select name="grade_level" id="gradeLevel" class="form-control select-styled">
-                                    <option value="">Select grade level</option>
-                                </select>
-                                <div class="error-message" id="gradeLevelError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                            
-                            <div class="form-group" id="strandSection" style="display: none;">
-                                <label class="form-label" for="strand">SHS Track & Strand <span class="required">*</span></label>
-                                <select name="strand" id="strand" class="form-control select-styled">
-                                    <option value="">Select track and strand</option>
-                                </select>
-                                <div class="error-message" id="strandError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {# ===== Section 4: Student Details (Expanded) ===== #}
-                    <section class="form-section animate-section" id="section-student">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-profile-circle"></i></div>
-                            <div>
-                                <h3 class="section-title">Student Details</h3>
-                                <p class="section-subtitle">Personal Information</p>
-                            </div>
-                        </div>
-                        
-                        {# Name Fields #}
-                        <div class="form-group">
-                            <label class="form-label">Full Name <span class="required">*</span></label>
-                            <div class="name-row">
-                                <div class="name-field">
-                                    <input type="text" name="last_name" id="lastName" class="form-control" placeholder="Last Name" required>
-                                    <span class="field-label">Last Name*</span>
-                                    <div class="error-message" id="lastNameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                                </div>
-                                <div class="name-field">
-                                    <input type="text" name="first_name" id="firstName" class="form-control" placeholder="First Name" required>
-                                    <span class="field-label">First Name*</span>
-                                    <div class="error-message" id="firstNameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                                </div>
-                                <div class="name-field">
-                                    <input type="text" name="middle_name" id="middleName" class="form-control" placeholder="Middle Name">
-                                    <span class="field-label">Middle Name</span>
-                                </div>
-                                <div class="name-field suffix-field">
-                                    <select name="suffix" class="form-control">
-                                        <option value="">Suffix</option>
-                                        <option value="Jr.">Jr.</option>
-                                        <option value="Sr.">Sr.</option>
-                                        <option value="II">II</option>
-                                        <option value="III">III</option>
-                                    </select>
-                                    <span class="field-label">Suffix</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# Contact, Birthday, Gender #}
-                        <div class="form-row three-cols">
-                            <div class="form-group" id="studentMobileContainer">
-                                <label class="form-label" for="contactNumber">Mobile Number</label>
-                                <div class="input-wrapper">
-                                    <i class="ki-filled ki-phone input-icon-left"></i>
-                                    <input type="tel" name="contact_number" id="contactNumber" class="form-control has-icon" placeholder="09XX XXX XXXX" maxlength="11">
-                                </div>
-                                <div class="error-message" id="contactError"><i class="ki-filled ki-information-2"></i><span>Invalid Format</span></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="birthday">Birthday <span class="required">*</span></label>
-                                <input type="date" name="birthday" id="birthday" class="form-control" required>
-                                <div class="error-message" id="birthdayError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="form-label" for="gender">Gender <span class="required">*</span></label>
-                                <select name="gender" id="gender" class="form-control select-styled" required>
-                                    <option value="">Select</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
-                                <div class="error-message" id="genderError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                        </div>
-
-                        {# Extra Personal Details #}
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Citizenship <span class="required">*</span></label>
-                                <select name="citizenship" id="citizenship" class="form-control select-styled" required>
-                                    <option value="Filipino">Filipino</option>
-                                    <option value="Dual">Dual Citizen</option>
-                                    <option value="Foreign">Foreign National</option>
-                                </select>
-                            </div>
-                            
-                            {# --- OPTIONAL: Civil Status (From data.pdf) --- #}
-                            <div class="form-group">
-                                <label class="form-label">Civil Status</label>
-                                <select name="civil_status" class="form-control select-styled">
-                                    <option value="Single">Single</option>
-                                    <option value="Married">Married</option>
-                                    <option value="Widowed">Widowed</option>
-                                    <option value="Separated">Separated</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Religion</label>
-                                <input type="text" name="religion" class="form-control" placeholder="Optional">
-                            </div>
-                        </div>
-
-                        {# --- OPTIONAL: Additional Student Info Row (From student.html.twig) --- #}
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Mother Tongue <span class="required">*</span></label>
-                                <input type="text" name="mother_tongue" class="form-control" required placeholder="e.g. Tagalog">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Birth Order</label>
-                                <select name="birth_order" class="form-control select-styled">
-                                    <option value="">Select</option>
-                                    <option value="1">1st (Eldest)</option>
-                                    <option value="2">2nd</option>
-                                    <option value="3">3rd</option>
-                                    <option value="4">4th</option>
-                                    <option value="5">5th</option>
-                                    <option value="youngest">Youngest</option>
-                                    <option value="only">Only Child</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Working Student?</label>
-                                <select name="working_student" class="form-control select-styled">
-                                    <option value="0">No</option>
-                                    <option value="1">Yes</option>
+                                <label class="form-label">Strand <span class="required">*</span></label>
+                                <select name="strand" id="strand" class="form-select">
+                                    <option value="">Select Option</option>
                                 </select>
                             </div>
                         </div>
 
-                        {# --- OPTIONAL: Visa Info (Hidden by default, shown via script if Foreign) --- #}
-                        <div class="form-row" id="visaSection" style="display:none;">
-                            <div class="form-group">
-                                <label class="form-label">Passport Number</label>
-                                <input type="text" name="passport_no" class="form-control" placeholder="For foreign nationals">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Visa Type</label>
-                                <select name="visa_type" class="form-control select-styled">
-                                    <option value="">Select Visa</option>
-                                    <option value="9f">Student Visa (9F)</option>
-                                    <option value="tourist">Tourist Visa</option>
-                                    <option value="special">Special Resident Retiree's Visa</option>
-                                    <option value="immigrant">Immigrant Visa</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {# Birth Place - Kept original structure but cleaned up #}
-                        <div class="form-row three-cols">
-                             <div class="form-group">
-                                <label class="form-label">Birth Country</label>
-                                <input type="text" name="birth_country" class="form-control" value="Philippines">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Birth Province</label>
-                                <input type="text" name="birth_province" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Birth City/Municipality</label>
-                                <input type="text" name="birth_place" class="form-control">
-                            </div>
-                        </div>
-                        
-                        {# LRN & Socials #}
-                        <div class="form-row three-cols">
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">LRN (Learner Reference No.)</label>
-                                <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN" maxlength="12">
+                                <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}">
                             </div>
-                            {# --- OPTIONAL: Indigenous Group --- #}
-                            <div class="form-group">
-                                <label class="form-label">Indigenous Group</label>
-                                <input type="text" name="indigenous_group" class="form-control" placeholder="If applicable">
-                            </div>
-                            {# --- OPTIONAL: Facebook Account --- #}
-                            <div class="form-group">
-                                <label class="form-label">Facebook Account</label>
-                                <input type="text" name="fb_account" class="form-control" placeholder="Profile URL or Username">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="email">Email Address</label>
-                            <div class="input-wrapper">
-                                <i class="ki-filled ki-sms input-icon-left"></i>
-                                <input type="email" name="email" id="email" class="form-control has-icon" placeholder="email@example.com">
-                            </div>
-                            <div class="error-message" id="emailError"><i class="ki-filled ki-information-2"></i><span>Invalid Email</span></div>
-                        </div>
-                        
-                        <h4 class="form-section-title mt-4">Current Address</h4>
-                        {# Address Fields Breakdown #}
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Street Address <span class="required">*</span></label>
-                                <input type="text" name="address_street" id="addressStreet" class="form-control" placeholder="House No., Street Name" required>
-                                <div class="error-message"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Barangay <span class="required">*</span></label>
-                                <input type="text" name="address_barangay" id="addressBarangay" class="form-control" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row three-cols">
-                             <div class="form-group">
-                                <label class="form-label">City/Municipality <span class="required">*</span></label>
-                                <input type="text" name="address_city" id="addressCity" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Province <span class="required">*</span></label>
-                                <input type="text" name="address_province" id="addressProvince" class="form-control" required>
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Zip Code <span class="required">*</span></label>
-                                <input type="text" name="address_zip" id="addressZip" class="form-control" required maxlength="4">
-                            </div>
-                        </div>
-
-                        {# --- OPTIONAL: Permanent Address (Hidden if same as current) --- #}
-                        <div class="form-section-title mt-4" style="display:flex; align-items:center; justify-content:space-between;">
-                            <span>Permanent Address</span>
-                            <div class="form-check" style="font-size: 0.9rem; font-weight: normal;">
-                                <input class="form-check-input" type="checkbox" value="1" id="sameAsCurrent" name="same_as_current" checked>
-                                <label class="form-check-label" for="sameAsCurrent">
-                                    Same as Current Address
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div id="permanentAddressBlock" style="display:none;">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label class="form-label">Street Address</label>
-                                    <input type="text" name="perm_address_street" class="form-control" placeholder="House No., Street Name">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Barangay</label>
-                                    <input type="text" name="perm_address_barangay" class="form-control">
-                                </div>
-                            </div>
-                            <div class="form-row three-cols">
-                                <div class="form-group">
-                                    <label class="form-label">City/Municipality</label>
-                                    <input type="text" name="perm_address_city" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Province</label>
-                                    <input type="text" name="perm_address_province" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Zip Code</label>
-                                    <input type="text" name="perm_address_zip" class="form-control" maxlength="4">
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {# ===== Section 5: Academic History ===== #}
-                    <section class="form-section animate-section" id="section-academic">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-book-square"></i></div>
-                            <div>
-                                <h3 class="section-title">Academic History</h3>
-                                <p class="section-subtitle">Previous School Information</p>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="prevSchool">Previous School Name <span class="required">*</span></label>
-                            <input type="text" name="prev_school" id="prevSchool" class="form-control" required>
-                            <div class="error-message" id="prevSchoolError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="schoolAddress">School Address <span class="required">*</span></label>
-                            <input type="text" name="school_address" id="schoolAddress" class="form-control" required>
-                            <div class="error-message" id="schoolAddressError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label" for="schoolEmail">School's Email Address <span class="required">*</span></label>
-                                <input type="email" name="school_email" id="schoolEmail" class="form-control" required>
-                                <div class="error-message" id="schoolEmailError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label" for="schoolContact">School Contact Number <span class="required">*</span></label>
-                                <input type="tel" name="school_contact" id="schoolContact" class="form-control" required>
-                                <div class="error-message" id="schoolContactError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {# ===== Section 6: Parent Details (Expanded) ===== #}
-                    <section class="form-section animate-section" id="section-parent">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-people"></i></div>
-                            <div>
-                                <h3 class="section-title">Parent / Guardian Details</h3>
-                                <p class="section-subtitle">Family Background</p>
-                            </div>
-                        </div>
-
-                        <h4 class="form-section-title">Father's Information</h4>
-                        {# --- ADDED: Status & OFW (From guardian.html.twig) --- #}
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Status</label>
-                                <select name="father_status" class="form-control select-styled">
-                                    <option value="Living">Living</option>
-                                    <option value="Deceased">Deceased</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">OFW?</label>
-                                <select name="father_ofw" class="form-control select-styled">
-                                    <option value="0">No</option>
-                                    <option value="1">Yes</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Last Name <span class="required">*</span></label>
-                                <input type="text" name="father_lastname" id="fatherLastname" class="form-control" required>
-                                <div class="error-message" id="fatherLastnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">First Name <span class="required">*</span></label>
-                                <input type="text" name="father_firstname" id="fatherFirstname" class="form-control" required>
-                                <div class="error-message" id="fatherFirstnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Middle Name</label>
-                                <input type="text" name="father_middlename" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="father_contact" id="fatherContact" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Email Address</label>
-                                <input type="email" name="father_email" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Occupation</label>
-                                <input type="text" name="father_occupation" class="form-control">
-                            </div>
-                        </div>
-
-                        {# --- ADDED: Employment & Income --- #}
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Employer/Company</label>
-                                <input type="text" name="father_employer" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Monthly Income</label>
-                                <select name="father_income" class="form-control select-styled">
-                                    <option value="">Select Range</option>
-                                    <option value="below_20k">Below 20,000</option>
-                                    <option value="20k_40k">20,000 - 40,000</option>
-                                    <option value="40k_60k">40,000 - 60,000</option>
-                                    <option value="above_60k">Above 60,000</option>
-                                </select>
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Highest Education</label>
-                                <select name="father_education" class="form-control select-styled">
-                                    <option value="">Select</option>
-                                    <option value="College">College</option>
-                                    <option value="High School">High School</option>
-                                    <option value="Post Grad">Post Graduate</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <h4 class="form-section-title mt-4">Mother's Information</h4>
-                        {# --- ADDED: Status & OFW --- #}
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Status</label>
-                                <select name="mother_status" class="form-control select-styled">
-                                    <option value="Living">Living</option>
-                                    <option value="Deceased">Deceased</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">OFW?</label>
-                                <select name="mother_ofw" class="form-control select-styled">
-                                    <option value="0">No</option>
-                                    <option value="1">Yes</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Last Name (Maiden) <span class="required">*</span></label>
-                                <input type="text" name="mother_lastname" id="motherLastname" class="form-control" required>
-                                <div class="error-message" id="motherLastnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">First Name <span class="required">*</span></label>
-                                <input type="text" name="mother_firstname" id="motherFirstname" class="form-control" required>
-                                <div class="error-message" id="motherFirstnameError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Middle Name</label>
-                                <input type="text" name="mother_middlename" class="form-control">
-                            </div>
-                        </div>
-                        <div class="form-row three-cols">
-                             <div class="form-group">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="mother_contact" id="motherContact" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Email Address</label>
-                                <input type="email" name="mother_email" class="form-control">
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Occupation</label>
-                                <input type="text" name="mother_occupation" class="form-control">
-                            </div>
-                        </div>
-                        {# --- ADDED: Employment & Income --- #}
-                        <div class="form-row three-cols">
-                            <div class="form-group">
-                                <label class="form-label">Employer/Company</label>
-                                <input type="text" name="mother_employer" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Monthly Income</label>
-                                <select name="mother_income" class="form-control select-styled">
-                                    <option value="">Select Range</option>
-                                    <option value="below_20k">Below 20,000</option>
-                                    <option value="20k_40k">20,000 - 40,000</option>
-                                    <option value="40k_60k">40,000 - 60,000</option>
-                                    <option value="above_60k">Above 60,000</option>
-                                </select>
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Highest Education</label>
-                                <select name="mother_education" class="form-control select-styled">
-                                    <option value="">Select</option>
-                                    <option value="College">College</option>
-                                    <option value="High School">High School</option>
-                                    <option value="Post Grad">Post Graduate</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <h4 class="form-section-title mt-4">Guardian (If not living with parents)</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Guardian Name</label>
-                                <input type="text" name="guardian_name" class="form-control">
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Relationship</label>
-                                <input type="text" name="guardian_relationship" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Contact Number</label>
-                                <input type="tel" name="guardian_contact" class="form-control">
-                            </div>
-                        </div>
-                        
-                        <h4 class="form-section-title mt-4">Emergency Contact</h4>
-                        <div class="form-row">
-                             <div class="form-group">
-                                <label class="form-label">Full Name <span class="required">*</span></label>
-                                <input type="text" name="emergency_name" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Relationship <span class="required">*</span></label>
-                                <input type="text" name="emergency_relationship" class="form-control" required>
-                            </div>
-                             <div class="form-group">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="emergency_contact" class="form-control" required>
-                            </div>
-                        </div>
-                         <div class="form-group">
-                                <label class="form-label">Address</label>
-                                <input type="text" name="emergency_address" class="form-control" placeholder="Complete address">
-                         </div>
-
-
-                        {# --- ADDED: Siblings Section (Optional) --- #}
-                        <h4 class="form-section-title mt-4">Siblings</h4>
-                        <div id="siblingsContainer">
-                            <div class="form-row">
-                                <div class="form-group" style="width:100%">
-                                    <label class="form-label">Number of Siblings</label>
-                                    <input type="number" name="siblings_count" class="form-control" placeholder="0">
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group" style="width:100%">
-                                    <label class="form-label">Name of Sibling/s studying in FEU (if any)</label>
-                                    <input type="text" name="sibling_feu" class="form-control" placeholder="Full Name">
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {# ===== Section 7: Submission of Documents ===== #}
-                    <section class="form-section animate-section" id="section-documents">
-                        <div class="section-header">
-                            <div class="section-icon"><i class="ki-filled ki-folder-check"></i></div>
-                            <div>
-                                <h3 class="section-title">Submission of Documents</h3>
-                                <p class="section-subtitle">Please upload clear copies of the following documents</p>
-                            </div>
-                        </div>
-                        
-                        <div class="requirements-list">
-                            {# PSA #}
-                            <div class="file-upload-group form-group">
-                                <label class="form-label">PSA Birth Certificate <span class="required">*</span></label>
-                                <input type="file" name="req_psa" id="reqPsa" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
-                                <p class="file-hint">Allowed: PDF, JPG, PNG. Max 5MB.</p>
-                                <div class="error-message" id="reqPsaError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-
-                            {# Report Card #}
-                            <div class="file-upload-group form-group">
-                                <label class="form-label">Report Card (Form 138) <span class="required">*</span></label>
-                                <input type="file" name="req_card" id="reqCard" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
-                                <p class="file-hint">Allowed: PDF, JPG, PNG. Max 5MB.</p>
-                                <div class="error-message" id="reqCardError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-
-                            {# Good Moral #}
-                            <div class="file-upload-group form-group">
-                                <label class="form-label">Good Moral Certificate <span class="required">*</span></label>
-                                <input type="file" name="req_moral" id="reqMoral" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
-                                <p class="file-hint">Allowed: PDF, JPG, PNG. Max 5MB.</p>
-                                <div class="error-message" id="reqMoralError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-
-                            {# ESC (Conditional) #}
-                            <div class="file-upload-group form-group" id="reqEscContainer" style="display:none;">
-                                <label class="form-label">ESC/QVR Certificate <span class="required">*</span></label>
-                                <input type="file" name="req_esc" id="reqEsc" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-                                <p class="file-hint">Allowed: PDF, JPG, PNG. Max 5MB.</p>
-                                <div class="error-message" id="reqEscError"><i class="ki-filled ki-information-2"></i><span>Required</span></div>
-                            </div>
-                        </div>
-                    </section>
-                    
-                    
-                    {# Submit Button Area #}
-                    <div class="submit-area" style="text-align: center; margin-top: 2rem;">
-                        <button type="submit" class="btn-submit" id="submitBtn" disabled style="opacity: 0.5; cursor: not-allowed;">
-                            <span id="submitText">Submit Application</span>
-                            <i class="ki-filled ki-arrow-right" id="submitIcon" aria-hidden="true"></i>
-                        </button>
-                        {# Red text error message #}
-                        <div id="submitErrorMessage" style="color: #dc2626; font-size: 0.9rem; margin-top: 0.75rem; font-weight: 500; display: block;">
-                            <i class="ki-filled ki-information-2"></i> Please fill out all required details to proceed.
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
-        
-        {# Fixed Footer #}
-        <footer class="form-footer-fixed">
-            <div class="footer-content">
-                <p>© {{ "now"|date("Y") }} Far Eastern University. All rights reserved.</p>
-            </div>
-        </footer>
-    </main>
-</div>
 
-{# ===== MODALS ===== #}
-{# Tertiary Modal #}
-<div class="modal-overlay" id="tertiaryModal" role="dialog" aria-modal="true">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h2 id="tertiaryModalTitle">Application Type for <span id="tertiaryLevelName">Collegiate</span></h2>
-            <button type="button" class="modal-close" id="closeTertiaryModal"><i class="ki-filled ki-cross"></i></button>
-        </div>
-        <div class="modal-body">
-            <div class="modal-options">
-                <button type="button" class="modal-option" data-value="freshman">
-                    <div class="option-icon"><i class="ki-filled ki-user-tick"></i></div>
-                    <span>Freshman</span><p>First-time college student</p>
-                </button>
-                <button type="button" class="modal-option" data-value="transferee">
-                    <div class="option-icon"><i class="ki-filled ki-arrow-right-left"></i></div>
-                    <span>Transferee</span><p>From another university</p>
-                </button>
-                <button type="button" class="modal-option" data-value="second_degree">
-                    <div class="option-icon"><i class="ki-filled ki-medal-star"></i></div>
-                    <span>Second Degree</span><p>Already have a bachelor's degree</p>
-                </button>
-                <button type="button" class="modal-option" data-value="cross_enrollee">
-                    <div class="option-icon"><i class="ki-filled ki-document"></i></div>
-                    <span>Cross Enrollee</span><p>Taking specific subjects only</p>
-                </button>
+            {# --- CARD 2: PERSONAL INFORMATION --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-user text-feu-green-600 fs-1"></i>STEP 2 : Personal Information</h3>
+                </div>
+                <div class="card-body">
+                    {# 2x2 Photo Upload #}
+                    <div class="row mb-5 justify-content-center">
+                        <div class="col-md-6">
+                            <div class="file-upload-group p-4 border rounded bg-light text-center">
+                                <label class="form-label d-block mb-3">2x2 ID Picture <span class="required">*</span></label>
+                                <input type="file" name="req_id_picture" id="reqIdPicture" class="form-control" required accept=".jpg,.jpeg,.png">
+                                <p class="text-xs text-gray-500 mt-2">White background, formal attire. Max 5MB.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Last Name <span class="required">*</span></label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="required">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Suffix</label>
+                            <input type="text" name="suffix" class="form-control" placeholder="e.g. Jr.">
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Date of Birth <span class="required">*</span></label>
+                            <input type="date" name="birthday" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Birth Place <span class="required">*</span></label>
+                            <input type="text" name="birth_place" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Gender <span class="required">*</span></label>
+                            <select name="gender" class="form-select" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Religion</label>
+                            <input type="text" name="religion" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Citizenship <span class="required">*</span></label>
+                            <select name="citizenship" id="citizenshipSelect" class="form-select" required>
+                                <option value="Filipino">Filipino</option>
+                                <option value="Foreign">Foreign</option>
+                                <option value="Dual">Dual Citizenship</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-12">
+                            <label class="form-label">Indigenous Group</label>
+                            <input type="text" name="indigenous_group" class="form-control" placeholder="If applicable">
+                        </div>
+                    </div>
+
+                    {# VISA SECTION #}
+                    <div id="visaSection" class="mt-4 p-4 bg-light rounded border border-dashed border-gray-300" style="display: none;">
+                        <h5 class="text-primary fw-bold mb-3">Visa Details (For Foreign/Dual Citizens)</h5>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Passport Number</label>
+                                <input type="text" name="passport_number" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Visa Type</label>
+                                <input type="text" name="visa_type" class="form-control">
+                            </div>
+                             <div class="col-md-4">
+                                <label class="form-label">Visa Status</label>
+                                <input type="text" name="visa" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            {# --- CARD 3: CONTACT & ADDRESS --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-map text-feu-green-600 fs-1"></i>STEP 3 : Contact & Address</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-4">
+                            <label class="form-label">Mobile Number <span class="required">*</span></label>
+                            <input type="tel" name="contact_number" class="form-control" required placeholder="09xxxxxxxxx" maxlength="11" minlength="11" pattern="\d{11}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Landline</label>
+                            <input type="tel" name="landline" class="form-control">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-gray-600 mb-3 border-bottom pb-2">Current Address</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Region <span class="required">*</span></label>
+                            <select id="addr_region" name="region" class="form-select" required data-control="select2" data-placeholder="Select Region">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Province <span class="required">*</span></label>
+                            <select id="addr_province" name="address_province" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">City/Municipality <span class="required">*</span></label>
+                            <select id="addr_city" name="address_city" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Barangay <span class="required">*</span></label>
+                            <select id="addr_barangay" name="address_barangay" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                            <input type="text" name="address" class="form-control" required>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <label class="form-label">Zip Code <span class="required">*</span></label>
+                            <input type="text" name="address_zip" id="addr_zip" class="form-control" required placeholder="Enter Zip Code">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-gray-600 mt-5 mb-3 border-bottom pb-2">Permanent Address</h5>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sameAsCurrent" name="sameAsCurrent" onchange="togglePermanentAddress()" checked>
+                        <label class="form-check-label text-sm" for="sameAsCurrent">Same as Current Address</label>
+                    </div>
+
+                    <div id="permanentAddressBlock" style="display:none;">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Region <span class="required">*</span></label>
+                                <select id="perm_region" name="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Province <span class="required">*</span></label>
+                                <select id="perm_province" name="perm_province" class="form-select" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">City/Municipality <span class="required">*</span></label>
+                                <select id="perm_city" name="perm_city" class="form-select" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Barangay <span class="required">*</span></label>
+                                <select id="perm_barangay" name="perm_barangay" class="form-select" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                                <input type="text" name="perm_address" class="form-control">
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label">Zip Code <span class="required">*</span></label>
+                                <input type="text" name="perm_zip" id="perm_zip" class="form-control" placeholder="Enter Zip Code">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 4: FAMILY BACKGROUND --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-people text-feu-green-600 fs-1"></i>STEP 4 : Family Background</h3>
+                </div>
+                <div class="card-body">
+                    
+                    {# Father #}
+                    <div class="bg-gray-50 p-5 rounded mb-5">
+                        <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Father's Information</h6>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="father_lastname" class="form-control" placeholder="Last Name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="father_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                <input type="tel" name="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label d-block">Status</label>
+                                <div class="status-checkbox-group">
+                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw')">
+                                    <label class="btn-check-label" for="f_deceased">
+                                        <i class="ki-filled ki-cross-circle"></i> Deceased
+                                    </label>
+
+                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased')">
+                                    <label class="btn-check-label" for="f_ofw">
+                                        <i class="ki-filled ki-airplane"></i> OFW
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Mother #}
+                    <div class="bg-gray-50 p-5 rounded mb-5">
+                        <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Mother's Information</h6>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Maiden Name <span class="required">*</span></label>
+                                <input type="text" name="mother_lastname" class="form-control" placeholder="Maiden Name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="mother_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                <input type="tel" name="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label d-block">Status</label>
+                                <div class="status-checkbox-group">
+                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw')">
+                                    <label class="btn-check-label" for="m_deceased">
+                                        <i class="ki-filled ki-cross-circle"></i> Deceased
+                                    </label>
+
+                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased')">
+                                    <label class="btn-check-label" for="m_ofw">
+                                        <i class="ki-filled ki-airplane"></i> OFW
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Guardian #}
+                    <div class="bg-blue-50 p-5 rounded">
+                        <h6 class="fw-bold text-dark mb-4">Guardian / Emergency Contact</h6>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Full Name <span class="required">*</span></label>
+                                <input type="text" name="guardian_name" class="form-control" placeholder="Full Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Relationship <span class="required">*</span></label>
+                                <input type="text" name="guardian_relation" class="form-control" placeholder="Relationship" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                <input type="tel" name="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 5: EDUCATION --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-teacher text-feu-green-600 fs-1"></i>STEP 5 : Education History</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label class="form-label">Last School Attended <span class="required">*</span></label>
+                            <input type="text" name="prev_school_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">School Year</label>
+                            <input type="text" name="prev_school_year" class="form-control" placeholder="e.g. 2024">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 6: SIBLINGS (Left Delete Button) --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-profile-user text-feu-green-600 fs-1"></i> Siblings (Enrolled in FEU)</h3>
+                </div>
+                <div class="card-body">
+                    <div id="siblings_container">
+                        {# Dynamic Rows #}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light-primary mt-3" onclick="addSibling()">
+                        <i class="ki-filled ki-plus"></i> Add Sibling
+                    </button>
+                </div>
+            </div>
+
+            {# --- CARD 7: REQUIREMENTS --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-folder-added text-feu-green-600 fs-1"></i>STEP 6 : Submission of Documents</h3>
+                </div>
+                <div class="card-body">
+                     <div class="file-upload-group mb-4">
+                        <label class="form-label d-block">PSA Birth Certificate <span class="required">*</span></label>
+                        <input type="file" name="req_psa" class="form-control" required accept=".pdf">
+                    </div>
+                    
+                    <div class="file-upload-group mb-4">
+                        <label class="form-label d-block">Report Card (Form 138) <span class="required">*</span></label>
+                        <input type="file" name="req_card" class="form-control" required accept=".pdf">
+                    </div>
+
+                    <div class="file-upload-group">
+                        <label class="form-label d-block">Good Moral Certificate</label>
+                        <input type="file" name="req_moral" class="form-control" accept=".pdf">
+                    </div>
+                </div>
+            </div>
+
+            {# --- SUBMIT BUTTON (Locked) --- #}
+            <div class="text-center pt-5 pb-10">
+                <button type="submit" id="submitBtn" class="btn-submit" disabled>Submit Application</button>
+                <div id="submitWarning" class="text-danger fw-bold fs-7 mt-3">
+                    <i class="ki-filled ki-information-2 text-danger"></i> Please complete all required fields.
+                </div>
+            </div>
+
+        </form>
     </div>
 </div>
-
-{# BED Modal #}
-<div class="modal-overlay" id="bedModal" role="dialog" aria-modal="true">
-    <div class="modal-container">
-        <div class="modal-header">
-            <h2 id="bedModalTitle">Application Type for <span id="bedLevelName">Elementary</span></h2>
-            <button type="button" class="modal-close" id="closeBedModal"><i class="ki-filled ki-cross"></i></button>
-        </div>
-        <div class="modal-body">
-            <div class="modal-options two-cols">
-                <button type="button" class="modal-option" data-value="new_student">
-                    <div class="option-icon"><i class="ki-filled ki-user-tick"></i></div>
-                    <span>New Student</span><p>First time enrolling</p>
-                </button>
-                <button type="button" class="modal-option" data-value="transferee">
-                    <div class="option-icon"><i class="ki-filled ki-arrow-right-left"></i></div>
-                    <span>Transferee</span><p>From another school</p>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block javascripts %}
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
-(function() {
-    'use strict';
-    // --- Elements ---
-    const form = document.getElementById('applyForm');
-    const submitBtn = document.getElementById('submitBtn');
-    const submitText = document.getElementById('submitText');
-    const submitIcon = document.getElementById('submitIcon');
-    const submitErrorMessage = document.getElementById('submitErrorMessage');
-    
-    // Campus Selector
-    const campusOptions = document.querySelectorAll('.campus-option');
-    const campusInput = document.getElementById('campusSelected');
-    const levelSection = document.getElementById('levelSection');
-    
-    // Education Selection
-    const eduOptions = document.querySelectorAll('.edu-option');
-    const eduLevelInput = document.getElementById('educationLevel');
-    const eduTypeInput = document.getElementById('educationType');
-    const educationSelector = document.getElementById('educationSelector');
-    const selectedLevelDisplay = document.getElementById('selectedLevelDisplay');
-    const changeLevelBtn = document.getElementById('changeLevelBtn');
-    const selectedLevelText = document.getElementById('selectedLevelText');
-
-    // App Type
-    const applicationTypeInput = document.getElementById('applicationType');
-    const applicationTypeSection = document.getElementById('applicationTypeSection');
-    const changeTypeBtn = document.getElementById('changeTypeBtn');
-    const appTypeText = document.getElementById('appTypeText');
-    const appTypeIcon = document.getElementById('appTypeIcon');
-    
-    // Campus & Sections
-    const bedSection = document.getElementById('bedSection');
-    const strandSection = document.getElementById('strandSection');
-    const gradeLevelSelect = document.getElementById('gradeLevel');
-    const strandSelect = document.getElementById('strand'); // Added explicit reference
-    
-    // Requirements
-    const reqEscContainer = document.getElementById('reqEscContainer');
-    const reqEscInput = document.getElementById('reqEsc');
-
-    // Mobile Field
-    const studentMobileContainer = document.getElementById('studentMobileContainer');
-    
-    // Modals
-    const tertiaryModal = document.getElementById('tertiaryModal');
-    const bedModal = document.getElementById('bedModal');
-    const closeTertiaryModal = document.getElementById('closeTertiaryModal');
-    const closeBedModal = document.getElementById('closeBedModal');
-    const tertiaryLevelName = document.getElementById('tertiaryLevelName');
-    const bedLevelName = document.getElementById('bedLevelName');
-
-    let selectedLevel = null;
-    let selectedType = null;
-    let selectedAppType = null;
-
-    // --- DATA MAPPING ---
+    // --- Data Dictionaries (Kinder to SHS only) ---
     const strandData = {
-        feu_alabang: {
-            'SHS_ABM': 'ABM - Accountancy, Business and Management',
-            'SHS_BAE': 'BAE - Business And Entrepreneurship',
-            'SHS_CSMA': 'CSMA - Computer Studies And Multimedia Arts',
-            'SHS_ENG': 'ENG - Engineering',
-            'SHS_GAS': 'GAS - General Academic Strand',
-            'SHS_HA': 'HA - Health Allied',
-            'SHS_HUMSS': 'HUMSS - Humanities and Social Sciences',
-            'SHS_SSH': 'SSH - Social Sciences And Humanities',
-            'SHS_STEM': 'STEM - Science, Technology, Engineering and Mathematics'
-        },
-        feu_diliman: {
-            'SHS_ABM': 'ABM - Accountancy, Business and Management',
-            'SHS_GAS': 'GAS - General Academic Strand',
-            'SHS_HUMSS': 'HUMSS - Humanities and Social Sciences',
-            'SHS_SPORTS': 'SPORTS - Sports Track',
-            'SHS_STEM': 'STEM - Science, Technology, Engineering and Mathematics'
-        }
+        'feu_alabang': ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'],
+        'feu_diliman': ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track']
     };
     
-    const gradeLevels = {
-        elementary: ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'],
-        junior_high: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'],
-        senior_high: ['Grade 11', 'Grade 12']
-    };
-    
-    const appTypeLabels = {
-        freshman: { text: 'Freshman', icon: 'ki-user-tick' },
-        transferee: { text: 'Transferee', icon: 'ki-arrow-right-left' },
-        second_degree: { text: 'Second Degree', icon: 'ki-medal-star' },
-        cross_enrollee: { text: 'Cross Enrollee', icon: 'ki-document' },
-        new_student: { text: 'New Student', icon: 'ki-user-tick' }
-    };
-    
-    function initSelect2() {
-        $('.select-styled').select2({ width: '100%', minimumResultsForSearch: 10 });
-        // Add change listener to Select2 elements to trigger validation
-        $('.select-styled').on('change', function() {
-            checkGlobalValidity();
-        });
-    }
+    const numericFields = ['lrn', 'contact_number', 'father_contact', 'mother_contact', 'guardian_contact'];
 
-    // --- Campus Selection Logic ---
-    function initCampus() {
-        const preSelected = campusInput.value;
-        if(preSelected) {
-            selectCampus(preSelected, false); // Don't scroll on init
-        }
-    }
-
-    campusOptions.forEach(opt => {
-        opt.addEventListener('click', function() {
-            const val = this.dataset.value;
-            selectCampus(val, true);
-        });
-        
-        opt.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                const val = this.dataset.value;
-                selectCampus(val, true);
-            }
-        });
-    });
-
-    function selectCampus(campusValue, shouldScroll = true) {
-        campusOptions.forEach(c => {
-            c.classList.remove('selected');
-            c.setAttribute('aria-checked', 'false');
-        });
-        
-        const selectedBtn = document.querySelector(`.campus-option[data-value="${campusValue}"]`);
-        if(selectedBtn) {
-            selectedBtn.classList.add('selected');
-            selectedBtn.setAttribute('aria-checked', 'true');
-        }
-
-        campusInput.value = campusValue;
-        document.getElementById('campusError').style.display = 'none';
-        levelSection.classList.remove('section-disabled');
-        // Hide options irrelevant to campus
-        eduOptions.forEach(opt => {
-            if (campusValue === 'feu_alabang') {
-                if (opt.classList.contains('diliman-only')) {
-                    opt.classList.add('hidden');
-                } else {
-                    opt.classList.remove('hidden');
-                }
-            } else {
-                opt.classList.remove('hidden');
-            }
-        });
-        
-        const currentLevel = document.querySelector('.edu-option.selected');
-        if(currentLevel && currentLevel.classList.contains('hidden')) {
-            resetLevelSelection();
-        }
-
-        updateStrands(campusValue);
-        checkGlobalValidity(); // Update progress bar
-
-        if(shouldScroll) {
-            scrollToSection('levelSection');
-        }
-    }
-    
-    function updateStrands(campus) {
-        const select = $('#strand');
-        const strands = strandData[campus] || {};
-        select.empty().append('<option value="">Select track and strand</option>');
-        Object.entries(strands).forEach(([val, label]) => {
-            select.append(new Option(label, val));
-        });
-    }
-
-    function resetLevelSelection() {
-        eduOptions.forEach(o => o.classList.remove('selected'));
-        selectedLevel = null;
-        selectedType = null;
-        eduLevelInput.value = '';
-        eduTypeInput.value = '';
-        selectedLevelDisplay.classList.remove('active');
-        educationSelector.classList.remove('collapsed');
-        applicationTypeSection.classList.remove('active');
-        bedSection.classList.remove('active');
-        studentMobileContainer.style.display = 'block';
-        checkGlobalValidity();
-    }
-
-    // --- Education Option Selection ---
-    eduOptions.forEach(opt => {
-        opt.addEventListener('click', function() {
-            if(!campusInput.value) {
-                document.getElementById('campusError').style.display = 'block';
-                return;
-            }
-            eduOptions.forEach(o => o.classList.remove('selected'));
-            this.classList.add('selected');
-            selectedLevel = this.dataset.level;
-            selectedType = this.dataset.type;
-            
-            // Open Modal
-            if(selectedType === 'tertiary') {
-                tertiaryLevelName.textContent = selectedLevel === 'graduate' ? 'Graduate School' : 'Collegiate';
-                tertiaryModal.classList.add('active');
-            } else {
-                bedLevelName.textContent = selectedLevel === 'elementary' ? 'Elementary' : (selectedLevel === 'junior_high' ? 'Junior High' : 'Senior High');
-                bedModal.classList.add('active');
-            }
-        });
-    });
-
-    // Close Modals
-    [closeTertiaryModal, closeBedModal].forEach(btn => btn.addEventListener('click', closeModal));
-    
-    function closeModal() {
-        tertiaryModal.classList.remove('active');
-        bedModal.classList.remove('active');
-        if (!selectedAppType) { 
-            eduOptions.forEach(o => o.classList.remove('selected'));
-            selectedLevel = null;
-        }
-    }
-
-    // App Type Selection (Inside Modal)
-    document.querySelectorAll('.modal-option').forEach(opt => {
-        opt.addEventListener('click', function() {
-            selectedAppType = this.dataset.value;
-            closeModal();
-            updateFormState();
-        });
-    });
-
-    function updateFormState() {
-        eduLevelInput.value = selectedLevel;
-        eduTypeInput.value = selectedType;
-        applicationTypeInput.value = selectedAppType;
-
-        selectedLevelDisplay.classList.add('active');
-        educationSelector.classList.add('collapsed');
-        selectedLevelText.textContent = selectedLevel.replace('_', ' ').toUpperCase();
-        
-        applicationTypeSection.classList.add('active');
-        const info = appTypeLabels[selectedAppType];
-        if(info) {
-            appTypeText.textContent = info.text;
-            appTypeIcon.className = `ki-filled ${info.icon}`;
-        }
-
-        // Logic for Mobile Visibility
-        updateMobileFieldVisibility();
-        
-        if (selectedType === 'bed') {
-            bedSection.classList.add('active');
-            gradeLevelSelect.setAttribute('required', 'required');
-            updateGradeDropdown();
-            
-            if (selectedLevel === 'senior_high') {
-                strandSection.style.display = 'block';
-                strandSelect.setAttribute('required', 'required');
+    numericFields.forEach(fieldName => {
+        const input = document.querySelector(`[name="${fieldName}"]`);
+        if (input) {
+            input.addEventListener('input', function() {
+                // Remove any non-numeric characters immediately
+                this.value = this.value.replace(/\D/g, '');
                 
-                // ESC logic
-                if (selectedAppType === 'transferee') {
-                    reqEscContainer.style.display = 'block';
-                    reqEscInput.required = true;
-                } else {
-                    reqEscContainer.style.display = 'none';
-                    reqEscInput.required = false;
-                }
-            } else {
-                strandSection.style.display = 'none';
-                strandSelect.removeAttribute('required');
-                reqEscContainer.style.display = 'none';
-                reqEscInput.required = false;
+                // Force re-validation for the submit button lock
+                checkForm(); 
+            });
+        }
+    });
+
+    // --- NEW: Dynamic Grade Dictionary ---
+    const educationGrades = {
+        'Primary': [
+            {val: 'kinder', label: 'Kindergarten'},
+            {val: 'grade_1', label: 'Grade 1'},
+            {val: 'grade_2', label: 'Grade 2'},
+            {val: 'grade_3', label: 'Grade 3'},
+            {val: 'grade_4', label: 'Grade 4'},
+            {val: 'grade_5', label: 'Grade 5'},
+            {val: 'grade_6', label: 'Grade 6'}
+        ],
+        'Secondary': [
+            {val: 'grade_7', label: 'Grade 7'},
+            {val: 'grade_8', label: 'Grade 8'},
+            {val: 'grade_9', label: 'Grade 9'},
+            {val: 'grade_10', label: 'Grade 10'},
+            {val: 'grade_11', label: 'Grade 11'},
+            {val: 'grade_12', label: 'Grade 12'}
+        ]
+    };
+
+    let currentCampus = '{{ selected_campus|default("") }}';
+
+    // --- Header Scroll Logic ---
+    window.addEventListener('scroll', function() {
+        const header = document.getElementById('stickyHeader');
+        if (window.scrollY > 100) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    });
+
+    // --- Core Logic ---
+    function selectCampus(campus) {
+        currentCampus = campus;
+        // Visual toggle
+        document.querySelectorAll('.campus-option').forEach(opt => opt.classList.remove('active'));
+        const activeOpt = document.querySelector(`.campus-option input[value="${campus}"]`).parentElement;
+        activeOpt.classList.add('active');
+        activeOpt.querySelector('input').checked = true;
+
+        // --- NEW: Handle FEU Alabang Restrictions ---
+        const eduSelect = document.getElementById('educationType');
+        const primaryOption = eduSelect.querySelector('option[value="Primary"]');
+        
+        // Reset selection
+        eduSelect.value = "";
+        
+        if (campus === 'feu_alabang') {
+            // Disable and Hide Primary for Alabang
+            if(primaryOption) {
+                primaryOption.disabled = true;
+                primaryOption.style.display = 'none'; // Visual hide
+                primaryOption.hidden = true;          // Attribute hide
             }
+        } else {
+            // Enable and Show Primary for Diliman
+            if(primaryOption) {
+                primaryOption.disabled = false;
+                primaryOption.style.display = 'block';
+                primaryOption.hidden = false;
+            }
+        }
+
+        updateGradeLevels();
+    }
+
+    function updateGradeLevels() {
+        const type = document.getElementById('educationType').value;
+        const select = document.getElementById('gradeLevel');
+        
+        select.innerHTML = '<option value="">Select Level</option>';
+        
+        if (type && educationGrades[type]) {
+            educationGrades[type].forEach(grade => {
+                // --- NEW: Filter out Junior High (7-10) if Alabang is selected ---
+                if (currentCampus === 'feu_alabang' && type === 'Secondary') {
+                    if (['grade_7', 'grade_8', 'grade_9', 'grade_10'].includes(grade.val)) {
+                        return; // Skip this grade
+                    }
+                }
+
+                const opt = document.createElement('option');
+                opt.value = grade.val;
+                opt.textContent = grade.label;
+                select.appendChild(opt);
+            });
+        }
+        updateStrands();
+    }
+
+    function updateStrands() {
+        const grade = document.getElementById('gradeLevel').value;
+        const strandGroup = document.getElementById('strandGroup');
+        const select = document.getElementById('strand');
+        
+        select.innerHTML = '<option value="">Select Option</option>';
+        // Show Strand ONLY if Grade 11 or 12
+        if(grade === 'grade_11' || grade === 'grade_12') {
+            strandGroup.style.display = 'block';
+            select.setAttribute('required', 'required');
             
-            // Auto Scroll to Grade specifics
-            scrollToSection('bedSection');
+            const strands = strandData[currentCampus] || [];
+            strands.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                select.appendChild(opt);
+            });
         } else {
-            bedSection.classList.remove('active');
-            gradeLevelSelect.removeAttribute('required');
-            strandSelect.removeAttribute('required');
-            // Auto Scroll to Student Details
-            scrollToSection('section-student');
-        }
-        
-        checkGlobalValidity();
-    }
-
-    function updateMobileFieldVisibility() {
-        const input = document.getElementById('contactNumber');
-        if (selectedLevel === 'elementary') {
-            studentMobileContainer.style.display = 'none';
-            input.removeAttribute('required');
-        } else {
-            studentMobileContainer.style.display = 'block';
-            // Optional for 7-SHS as per your prompt in code ("Mobile Number (Optional)"), so no required attr needed
+            strandGroup.style.display = 'none';
+            select.removeAttribute('required');
         }
     }
 
-    function updateGradeDropdown() {
-        gradeLevelSelect.innerHTML = '<option value="">Select grade level</option>';
-        const levels = gradeLevels[selectedLevel] || [];
-        levels.forEach(lvl => {
-            const val = lvl.toLowerCase().replace(' ', '_');
-            gradeLevelSelect.add(new Option(lvl, val));
+    // --- REUSABLE ADDRESS LOOKUP FUNCTION ---
+    function setupAddressLookup(prefix) {
+        const regions = document.getElementById(prefix + '_region');
+        const provinces = document.getElementById(prefix + '_province');
+        const cities = document.getElementById(prefix + '_city');
+        const barangays = document.getElementById(prefix + '_barangay');
+        const zip = document.getElementById(prefix + '_zip');
+
+        if(!regions) return;
+
+        fetch('/api/address/regions').then(r => r.json()).then(data => {
+            data.forEach(r => regions.innerHTML += `<option value="${r.code}">${r.name}</option>`);
+        });
+
+        regions.addEventListener('change', function() {
+            provinces.innerHTML = '<option value="">Select Province</option>'; provinces.disabled = true;
+            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            
+            if(this.value) {
+                fetch(`/api/address/provinces/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(p => provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`);
+                    provinces.disabled = false;
+                });
+            }
+        });
+
+        provinces.addEventListener('change', function() {
+            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
+            if(this.value) {
+                fetch(`/api/address/cities/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(c => cities.innerHTML += `<option value="${c.code}">${c.name}</option>`);
+                    cities.disabled = false;
+                });
+            }
+        });
+
+        cities.addEventListener('change', function() {
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            if(this.value) {
+                fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(b => barangays.innerHTML += `<option value="${b.name}" data-zip="${b.zip}">${b.name}</option>`);
+                    barangays.disabled = false;
+                });
+            }
         });
     }
 
-    changeLevelBtn.addEventListener('click', resetLevelSelection);
-    changeTypeBtn.addEventListener('click', () => {
-        if(selectedType === 'tertiary') tertiaryModal.classList.add('active');
-        else bedModal.classList.add('active');
-    });
-
-    // Validations
-    function validateField(input, errorId) {
-        if (input.offsetParent === null) return true; // Hidden fields are valid
-        if (!input.hasAttribute('required') && input.value.trim() === '') return true;
+    // --- Toggles ---
+    function togglePermanentAddress() {
+        const isChecked = document.getElementById('sameAsCurrent').checked;
+        const block = document.getElementById('permanentAddressBlock');
+        block.style.display = isChecked ? 'none' : 'block';
         
-        const isValid = input.value.trim() !== '';
-        const errorEl = document.getElementById(errorId);
-        if(errorEl) {
-            if(!isValid) {
-                input.classList.add('is-invalid');
-                errorEl.classList.add('show');
+        // Handle Required Attributes
+        const inputs = block.querySelectorAll('select, input');
+        inputs.forEach(i => {
+            if (isChecked) {
+                i.removeAttribute('required');
+                i.value = ""; // Optional: clear values
             } else {
-                input.classList.remove('is-invalid');
-                errorEl.classList.remove('show');
+                i.setAttribute('required', 'required');
             }
-        }
-        return isValid;
+        });
+        // Force re-validation
+        document.getElementById('enrollmentForm').dispatchEvent(new Event('change'));
     }
 
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    function toggleParentStatus(currentId, otherId) {
+        const current = document.getElementById(currentId);
+        const other = document.getElementById(otherId);
         
-        // Force check validity one last time
-        if (!checkGlobalValidity()) {
-            // Find first error and scroll
-            const firstError = document.querySelector('.error-message.show, .is-invalid, .campus-selector-row');
-            if(firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
-            return;
-        }
-
-        submitBtn.disabled = true;
-        submitText.textContent = 'Submitting...';
-        submitIcon.className = 'ki-filled ki-loading-circle animate-spin';
-        form.submit();
-    });
-
-    // Modals Close Logic
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-    });
-
-    // --- Scroll Spy for Sidebar ---
-    function initScrollSpy() {
-        const steps = document.querySelectorAll('.step-item');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const activeId = entry.target.id;
-                    steps.forEach(step => {
-                        const targetId = step.dataset.target;
-                        const circle = step.querySelector('.step-circle');
-                        const info = step.querySelector('.step-info');
-                        
-                        if (targetId === activeId) {
-                            step.setAttribute('aria-current', 'step');
-                            circle.classList.add('active');
-                            circle.classList.remove('inactive');
-                            info.classList.add('active');
-                            info.classList.remove('inactive');
-                        } else {
-                            step.removeAttribute('aria-current');
-                            circle.classList.remove('active');
-                            circle.classList.add('inactive');
-                            info.classList.remove('active');
-                            info.classList.add('inactive');
-                        }
-                    });
-                }
-            });
-        }, { threshold: 0.3, rootMargin: "-10% 0px -50% 0px" });
-        
-        document.querySelectorAll('section[id^="section-"]').forEach(section => {
-            observer.observe(section);
-        });
-    }
-
-    // --- GLOBAL VALIDITY & PROGRESS BAR ---
-    function checkGlobalValidity() {
-        // 1. Inputs to track
-        let totalItems = 0;
-        let filledItems = 0;
-
-        // A. Custom Selectors (Campus & Level)
-        totalItems++; // Campus is always required
-        if (campusInput.value) filledItems++;
-
-        totalItems++; // Education Level is always required
-        if (eduLevelInput.value) filledItems++;
-
-        // B. BED Specifics (Grade & Strand)
-        if (selectedType === 'bed') {
-            // Grade Level
-            totalItems++;
-            if (gradeLevelSelect.value) filledItems++;
-
-            // Strand (Only if SHS)
-            if (selectedLevel === 'senior_high') {
-                totalItems++;
-                if (strandSelect.value) filledItems++;
-            }
-        }
-
-        // C. Standard Form Fields
-        const allRequired = Array.from(form.querySelectorAll('input[required]:not(:disabled), select[required]:not(:disabled), textarea[required]:not(:disabled)'));
-        
-        // Filter only visible fields
-        const visibleRequired = allRequired.filter(el => {
-            // Check if element is visible and its parent section is visible
-            return el.offsetParent !== null && 
-                   el.id !== 'campusSelected' && 
-                   el.id !== 'educationLevel' &&
-                   el.id !== 'gradeLevel' && // Handled manually above
-                   el.id !== 'strand';       // Handled manually above
-        });
-
-        totalItems += visibleRequired.length;
-
-        visibleRequired.forEach(field => {
-            if (field.type === 'checkbox' || field.type === 'radio') {
-                if (field.checked) filledItems++;
-            } else if (field.type === 'file') {
-                if (field.files.length > 0) filledItems++;
-            } else {
-                if (field.value.trim() !== '') filledItems++;
-            }
-        });
-
-        // Update Progress Bar
-        const progressBar = document.getElementById('mainProgressBar');
-        const percent = totalItems === 0 ? 0 : Math.round((filledItems / totalItems) * 100);
-        progressBar.style.width = `${percent}%`;
-
-        // Update Submit Button State
-        // We require 100% completion to unlock
-        const isComplete = (filledItems >= totalItems) && totalItems > 0;
-        if (isComplete) {
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-            submitBtn.style.cursor = 'pointer';
-            submitErrorMessage.style.display = 'none';
+        if (current.checked) {
+            other.disabled = true;
+            other.checked = false;
         } else {
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = '0.5';
-            submitBtn.style.cursor = 'not-allowed';
-            submitErrorMessage.style.display = 'block';
+            other.disabled = false;
         }
-
-        return isComplete;
     }
 
-    // Initialize
-    document.addEventListener('DOMContentLoaded', () => {
-        initSelect2();
-        initCampus();
-        initScrollSpy();
-        
-        // Listeners for real-time validation
-        form.addEventListener('input', checkGlobalValidity);
-        form.addEventListener('change', checkGlobalValidity);
-        
-        // Run once on load
-        checkGlobalValidity();
-        
-        // Animation Observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('visible');
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
+    // --- Dynamic Siblings (Delete on Top Left) ---
+    function addSibling() {
+        const container = document.getElementById('siblings_container');
+        const row = `
+            <div class="sibling-row row g-3 mb-3 align-items-center">
+                <button type="button" class="btn-remove-sibling" onclick="this.closest('.sibling-row').remove()" title="Remove Sibling">
+                    <i class="ki-filled ki-trash"></i>
+                </button>
+                <div class="col-md-5">
+                    <label class="form-label text-xs">Name</label>
+                    <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label text-xs">School/Company</label>
+                    <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School">
+                </div>
+                 <div class="col-md-3">
+                    <label class="form-label text-xs">Student No.</label>
+                    <input type="text" name="sibling_student_no[]" class="form-control form-control-sm" placeholder="20xxxxxx">
+                </div>
+            </div>`;
+        container.insertAdjacentHTML('beforeend', row);
+    }
 
-        // --- ADDED: Permanent Address Toggle ---
-        const sameAsCurrent = document.getElementById('sameAsCurrent');
-        const permBlock = document.getElementById('permanentAddressBlock');
-        
-        if(sameAsCurrent && permBlock) {
-            sameAsCurrent.addEventListener('change', function() {
-                if(this.checked) {
-                    permBlock.style.display = 'none';
-                    // Optional: Clear required attributes from hidden fields if strictly validating
-                } else {
-                    permBlock.style.display = 'block';
-                }
-            });
-        }
-
-        // --- ADDED: Visa Section Toggle ---
-        const citizenshipSelect = document.getElementById('citizenship');
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', function() {
+        // Init Visa Toggle
+        const citizenSelect = document.getElementById('citizenshipSelect');
         const visaSection = document.getElementById('visaSection');
-        
-        if(citizenshipSelect && visaSection) {
-            citizenshipSelect.addEventListener('change', function() {
+        if(citizenSelect && visaSection) {
+            citizenSelect.addEventListener('change', function() {
                 if(this.value === 'Foreign' || this.value === 'Dual') {
-                    visaSection.style.display = 'flex'; // or 'block' depending on layout
+                    visaSection.style.display = 'block';
                 } else {
                     visaSection.style.display = 'none';
                 }
             });
         }
 
-    });
+        // Init Pre-selection
+        if(currentCampus) {
+            // If page reloads with alabang selected, trigger the hide logic
+            selectCampus(currentCampus);
+        } else {
+            updateGradeLevels();
+        }
 
-})();
+        // Names (Letters + Space only, Title Case)
+        const nameFields = ['last_name', 'first_name', 'middle_name', 'father_firstname', 'father_lastname', 'mother_firstname', 'mother_lastname', 'guardian_name'];
+        nameFields.forEach(name => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el && window.ARIESValidation) ARIESValidation.setupFormatting(el, 'name');
+        });
+
+        // Text Fields (Alphanumeric + Space only, Title Case)
+        const textFields = ['birth_place', 'religion', 'citizenship', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
+        textFields.forEach(name => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el && window.ARIESValidation) ARIESValidation.setupFormatting(el, 'text');
+        });
+
+        // Animation Observer
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
+
+        // Form Validation (Bootstrap)
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+
+        // Submit Button Lock
+        const form = document.getElementById('enrollmentForm');
+        const btn = document.getElementById('submitBtn');
+        const warning = document.getElementById('submitWarning');
+
+        function checkForm() {
+            // Check HTML5 validity
+            if (form.checkValidity()) {
+                btn.disabled = false;
+                warning.style.display = 'none';
+            } else {
+                btn.disabled = true;
+                warning.style.display = 'block';
+            }
+        }
+
+        form.addEventListener('change', checkForm);
+        form.addEventListener('input', checkForm);
+
+        // Init Address Lookups
+        setupAddressLookup('addr'); // Current Address
+        setupAddressLookup('perm'); // Permanent Address
+    });
 </script>
 {% endblock %}
