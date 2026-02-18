@@ -30,7 +30,7 @@ Follow these steps to set up the project locally.
 **1. Clone the Repository**
 
 ```bash
-git clone <repository_url>
+git clone https://github.com/iAmMigs/ARIES-ONSITE.git
 cd aries-onsite
 ```
 
@@ -109,7 +109,8 @@ Seeds the database with test applicants for the Diliman campus.
 php bin/console app:populate-diliman
 ```
 
-### Clearing Data
+### Clearing Mock Data
+*WARNING THIS WILL CLEAR ALL APPLICANT DATA FROM THEIR RESPECTIVE TABLES, THIS IS FOR EXPERIMENTAL USE ONLY*
 
 **Clear Alabang Data:**
 Removes all applicant records for Alabang.
