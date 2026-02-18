@@ -2,90 +2,463 @@
 
 {% block title %}Edit Registration{% endblock %}
 
+{% block stylesheets %}
+    {# Need Select2 for Address Lookup #}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
 {% block body %}
-<div class="bg-gray-100 min-h-screen p-8 pb-24">
-    <form method="post" id="editForm">
-        {# Header #}
-        <div class="max-w-5xl mx-auto mb-6 flex items-center justify-between">
+<div class="bg-gray-100 min-h-screen p-8">
+    <form method="post" class="max-w-7xl mx-auto" id="editForm">
+        {# Header with Actions #}
+        <div class="mb-6 flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <a href="{{ path('app_admin_alabang_registrations') }}" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-feu-green-700 hover:border-feu-green-600 transition-all shadow-sm">
                     <i class="ki-filled ki-arrow-left"></i>
                 </a>
-                <h1 class="text-2xl font-bold text-gray-800">Edit Registration</h1>
+                <h1 class="text-2xl font-bold text-gray-800">Edit Applicant</h1>
             </div>
+            <button type="submit" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
+                <i class="ki-filled ki-check mr-2"></i> Save Changes
+            </button>
         </div>
 
-        <div class="max-w-5xl mx-auto space-y-6">
-            {# --- LOCKED FIELDS CARD --- #}
-            <div class="bg-gray-50 rounded-2xl p-6 border border-gray-200 opacity-80">
-                <h3 class="text-sm font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
-                    <i class="ki-filled ki-lock-2"></i> Locked System Identifiers
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">AdCon Number</label>
-                        <input type="text" value="{{ registration.adCon }}" class="w-full bg-gray-200 border-gray-300 text-gray-500 rounded-lg cursor-not-allowed font-mono" disabled>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Student ID</label>
-                        <input type="text" value="{{ registration.studentNumber }}" class="w-full bg-gray-200 border-gray-300 text-gray-500 rounded-lg cursor-not-allowed font-mono" disabled>
-                    </div>
+        <div class="grid grid-cols-12 gap-6">
+            {# --- 1. APPLICANT CARD (Header) --- #}
+            <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
+                
+                {# Profile Picture (Static) #}
+                <div class="flex-shrink-0">
+                    {% if registration.photoSlug %}
+                        <img src="{{ asset(registration.photoSlug) }}" class="w-40 h-40 rounded-2xl object-cover border-4 border-white shadow-lg">
+                    {% else %}
+                        <div class="w-40 h-40 rounded-2xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-5xl font-bold border-4 border-white shadow-lg">
+                            {{ registration.firstName|first }}
+                        </div>
+                    {% endif %}
                 </div>
-            </div>
 
-            {# --- EDITABLE ACADEMIC INFO --- #}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                <h3 class="text-lg font-bold text-feu-green-700 mb-6 flex items-center gap-2"><i class="ki-filled ki-book-open"></i> Academic Information</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Status</label>
-                        <select name="status" class="w-full border-gray-300 rounded-lg focus:ring-feu-green-500 focus:border-feu-green-500">
-                            {% for s in ['Pending', 'Enrolled', 'Dropped'] %}
-                                <option value="{{ s }}" {{ registration.admissionStatus == s ? 'selected' }}>{{ s }}</option>
-                            {% endfor %}
-                        </select>
+                {# Main Info (Editable Names) #}
+                <div class="flex-grow pt-2 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Last Name</label>
+                            <input type="text" name="last_name" value="{{ registration.lastName }}" class="w-full font-bold text-gray-900 border-b-2 border-gray-200 focus:border-feu-green-600 outline-none px-0 py-1 bg-transparent transition-colors" placeholder="Last Name">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">First Name</label>
+                            <input type="text" name="first_name" value="{{ registration.firstName }}" class="w-full font-bold text-gray-900 border-b-2 border-gray-200 focus:border-feu-green-600 outline-none px-0 py-1 bg-transparent transition-colors" placeholder="First Name">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Middle Name</label>
+                            <input type="text" name="middle_name" value="{{ registration.middleName }}" class="w-full font-bold text-gray-900 border-b-2 border-gray-200 focus:border-feu-green-600 outline-none px-0 py-1 bg-transparent transition-colors" placeholder="Middle Name">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Grade Level</label>
-                        <select name="grade" class="w-full border-gray-300 rounded-lg focus:ring-feu-green-500 focus:border-feu-green-500">
-                            {% for g in ['Kinder','Grade 1','Grade 12'] %}
-                                <option value="{{ g }}" {{ registration.gradeLevel == g ? 'selected' }}>{{ g }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Strand</label>
-                        <select name="track" class="w-full border-gray-300 rounded-lg focus:ring-feu-green-500 focus:border-feu-green-500">
-                            <option value="">None</option>
-                            {% for t in ['STEM', 'ABM', 'HUMSS'] %}
-                                <option value="{{ t }}" {{ registration.trackStrand == t ? 'selected' }}>{{ t }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {# --- EDITABLE PERSONAL INFO --- #}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                <h3 class="text-lg font-bold text-feu-green-700 mb-6 flex items-center gap-2"><i class="ki-filled ki-user"></i> Student Details</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div><label class="block text-xs font-bold text-gray-600 uppercase mb-1">First Name</label><input type="text" name="first_name" value="{{ registration.firstName }}" class="w-full border-gray-300 rounded-lg focus:border-feu-green-500"></div>
-                    <div><label class="block text-xs font-bold text-gray-600 uppercase mb-1">Middle Name</label><input type="text" name="middle_name" value="{{ registration.middleName }}" class="w-full border-gray-300 rounded-lg focus:border-feu-green-500"></div>
-                    <div><label class="block text-xs font-bold text-gray-600 uppercase mb-1">Last Name</label><input type="text" name="last_name" value="{{ registration.lastName }}" class="w-full border-gray-300 rounded-lg focus:border-feu-green-500"></div>
                     
-                    <div><label class="block text-xs font-bold text-gray-600 uppercase mb-1">Gender</label><input type="text" name="gender" value="{{ registration.gender }}" class="w-full border-gray-300 rounded-lg focus:border-feu-green-500"></div>
-                    <div class="col-span-2"><label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email</label><input type="email" name="email" value="{{ registration.personalEmail }}" class="w-full border-gray-300 rounded-lg focus:border-feu-green-500"></div>
+                    {# Static Badges (ID, Grade, Track) #}
+                    <div class="flex flex-wrap gap-3">
+                        <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200 cursor-not-allowed opacity-80" title="Cannot be changed">
+                            <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
+                        </div>
+                        <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 cursor-not-allowed opacity-80" title="Cannot be changed">
+                            {{ registration.gradeLevel|replace({'_': ' '})|title }}
+                        </div>
+                        {% if registration.trackStrand %}
+                        <div class="px-3 py-1 rounded-lg bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 cursor-not-allowed opacity-80" title="Cannot be changed">
+                            {{ registration.trackStrand }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-sms"></i> Email</label>
+                            <input type="email" name="email" value="{{ registration.personalEmail }}" class="w-full text-sm text-gray-600 border rounded-lg px-2 py-1.5 mt-1 focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-phone"></i> Mobile</label>
+                            <input type="text" name="mobile" value="{{ registration.mobileNumber }}" class="w-full text-sm text-gray-600 border rounded-lg px-2 py-1.5 mt-1 focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
+                        </div>
+                    </div>
+                </div>
+
+                {# Examination Status (Checkbox + Score Box) #}
+                <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[200px]">
+                    <div class="text-xs font-bold text-gray-400 uppercase mb-3">Examination Status</div>
+                    
+                    <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
+                        <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Examination Score' ? 'checked' : '' }}>
+                        <span class="text-sm font-bold text-gray-700">Exam Taken</span>
+                    </label>
+
+                    <div id="scoreBox" style="display: none;">
+                        <input type="number" step="0.01" name="exam_score" value="{{ registration.examinationScore }}" class="w-full text-center border-gray-300 rounded-lg text-sm" placeholder="Enter Score">
+                        <div class="text-[10px] text-gray-400 mt-1">Input Examination Score</div>
+                    </div>
+                    <div id="pendingBox" class="text-sm font-bold text-orange-500">
+                        Pending Examination
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {# Floating Footer #}
-        <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-            <div class="max-w-5xl mx-auto flex justify-end gap-4">
-                <a href="{{ path('app_admin_alabang_registrations') }}" class="px-6 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-bold hover:bg-gray-50 transition-colors">Cancel</a>
-                <button type="submit" class="btn-feu-primary px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-feu-green-700/20">Save Changes</button>
+            {# --- 2. DETAILS GRID --- #}
+            <div class="col-span-12 lg:col-span-8 space-y-6">
+                {# Personal Info #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-user text-feu-green-600"></i> Personal Information
+                    </h3>
+                    <div class="grid grid-cols-2 gap-y-4 gap-x-8">
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Gender</label>
+                            <select name="gender" class="w-full mt-1 border-gray-300 rounded-lg text-sm">
+                                <option value="Male" {{ registration.gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ registration.gender == 'Female' ? 'selected' : '' }}>Female</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Birthday</label>
+                            <input type="date" name="birth_date" value="{{ registration.birthDate|date('Y-m-d') }}" class="w-full mt-1 border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Birth Place</label>
+                            <input type="text" name="birth_place" value="{{ registration.birthPlace }}" class="w-full mt-1 border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Religion</label>
+                            <input type="text" name="religion" value="{{ registration.religion }}" class="w-full mt-1 border-gray-300 rounded-lg text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
+                            <select name="citizenship" class="w-full mt-1 border-gray-300 rounded-lg text-sm">
+                                <option value="Filipino" {{ registration.citizenship == 'Filipino' ? 'selected' : '' }}>Filipino</option>
+                                <option value="Foreign" {{ registration.citizenship == 'Foreign' ? 'selected' : '' }}>Foreign</option>
+                                <option value="Dual" {{ registration.citizenship == 'Dual' ? 'selected' : '' }}>Dual</option>
+                            </select>
+                        </div>
+                        {# Passport Field REMOVED #}
+                    </div>
+                </div>
+
+                {# Address Information (WITH LOOKUP) #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-map text-feu-green-600"></i> Address Information
+                    </h3>
+                    
+                    {# Current Address #}
+                    <div class="mb-6">
+                        <div class="text-xs text-gray-400 uppercase font-bold mb-2">Current Address</div>
+                        <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.currentAddress }}, {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }}</div>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="text-[10px] text-gray-500">Region</label>
+                                <select id="addr_region" name="addr_region" class="w-full border-gray-300 rounded-lg text-sm" data-control="select2" data-placeholder="Select Region">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500">Province</label>
+                                <select id="addr_province" name="addr_province" class="w-full border-gray-300 rounded-lg text-sm" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500">City</label>
+                                <select id="addr_city" name="addr_city" class="w-full border-gray-300 rounded-lg text-sm" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500">Barangay</label>
+                                <select id="addr_barangay" name="addr_barangay" class="w-full border-gray-300 rounded-lg text-sm" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="text" name="current_address" value="{{ registration.currentAddress }}" class="w-full border-gray-300 rounded-lg text-sm mb-2" placeholder="Street Address">
+                        <input type="text" name="current_zip" id="addr_zip" value="{{ registration.currentZip }}" class="w-full border-gray-300 rounded-lg text-sm" placeholder="Zip Code">
+                    </div>
+
+                    {# Permanent Address #}
+                    <div class="pt-4 border-t border-gray-100">
+                        <div class="text-xs text-gray-400 uppercase font-bold mb-2">Permanent Address</div>
+                        <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.permanentAddress }}, {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }}</div>
+
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="text-[10px] text-gray-500">Region</label>
+                                <select id="perm_region" name="perm_region" class="w-full border-gray-300 rounded-lg text-sm" data-control="select2" data-placeholder="Select Region">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500">Province</label>
+                                <select id="perm_province" name="perm_province" class="w-full border-gray-300 rounded-lg text-sm" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500">City</label>
+                                <select id="perm_city" name="perm_city" class="w-full border-gray-300 rounded-lg text-sm" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-500">Barangay</label>
+                                <select id="perm_barangay" name="perm_barangay" class="w-full border-gray-300 rounded-lg text-sm" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="text" name="permanent_address" value="{{ registration.permanentAddress }}" class="w-full border-gray-300 rounded-lg text-sm mb-2" placeholder="Street Address">
+                        <input type="text" name="permanent_zip" id="perm_zip" value="{{ registration.permanentZip }}" class="w-full border-gray-300 rounded-lg text-sm" placeholder="Zip Code">
+                    </div>
+                </div>
+
+                {# Family / Guardians #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
+                    </h3>
+                    <div class="space-y-4">
+                        {% for guardian in registration.guardians %}
+                        <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 relative">
+                            <input type="hidden" name="guardians[{{ loop.index0 }}][relationship]" value="{{ guardian.relationship }}">
+                            
+                            <div class="flex justify-between items-center mb-2">
+                                <div class="text-xs text-feu-gold-600 font-bold uppercase">{{ guardian.relationship }}</div>
+                                <div class="flex gap-2">
+                                    <label class="inline-flex items-center text-[10px]">
+                                        <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" value="1" {{ guardian.deceased ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                        Deceased
+                                    </label>
+                                    <label class="inline-flex items-center text-[10px]">
+                                        <input type="checkbox" name="guardians[{{ loop.index0 }}][ofw]" value="1" {{ guardian.OFW ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                        OFW
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <input type="text" name="guardians[{{ loop.index0 }}][name]" value="{{ guardian.parentName }}" class="border-gray-300 rounded-lg text-sm" placeholder="Full Name">
+                                <input type="text" name="guardians[{{ loop.index0 }}][occupation]" value="{{ guardian.occupation }}" class="border-gray-300 rounded-lg text-sm" placeholder="Occupation">
+                                <input type="text" name="guardians[{{ loop.index0 }}][contact]" value="{{ guardian.contactNo }}" class="border-gray-300 rounded-lg text-sm" placeholder="Contact No">
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Siblings #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-profile-user text-feu-green-600"></i> Siblings
+                    </h3>
+                    <div class="space-y-2">
+                        {% for sibling in registration.siblings %}
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" name="siblings[{{ loop.index0 }}][name]" value="{{ sibling.siblingName }}" class="border-gray-300 rounded-lg text-sm" placeholder="Sibling Name">
+                            <input type="text" name="siblings[{{ loop.index0 }}][school]" value="{{ sibling.school }}" class="border-gray-300 rounded-lg text-sm" placeholder="School">
+                            <input type="text" name="siblings[{{ loop.index0 }}][feu_id]" value="{{ sibling.feuStudentNo }}" class="border-gray-300 rounded-lg text-sm" placeholder="FEU ID (if any)">
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-400 italic">No siblings listed.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {# --- 3. SIDEBAR GRID --- #}
+            <div class="col-span-12 lg:col-span-4 space-y-6">
+                {# Education History #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
+                    </h3>
+                    <div class="space-y-4">
+                        {% for school in registration.schools %}
+                        <div class="relative pl-4 border-l-2 border-gray-200">
+                            <div class="text-[10px] font-bold text-feu-green-600 uppercase mb-1">
+                                {% if school.level == 'P' %}Primary{% elseif school.level == 'I' %}Junior High{% else %}Senior High{% endif %}
+                            </div>
+                            <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border-gray-300 rounded-lg text-sm mb-1" placeholder="School Name">
+                            <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.yearEnd }}" class="w-full border-gray-300 rounded-lg text-sm" placeholder="Year End">
+                            <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
+                        </div>
+                        {% else %}
+                            <div class="text-sm text-gray-400 italic">No history provided.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Documents (Read Only Link) #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
+                    </h3>
+                    <div class="space-y-3">
+                        {% for req in registration.requirements %}
+                        <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                            <div class="flex-shrink-0">
+                                <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                            </div>
+                            <div class="overflow-hidden">
+                                <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                <div class="text-xs text-gray-400">
+                                    {% if req.status == 'S' %}Submitted{% else %}Pending{% endif %}
+                                </div>
+                            </div>
+                        </a>
+                        {% else %}
+                        <div class="text-center py-6 text-gray-400 text-sm italic">No documents found.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# System Info (Read Only) #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                        <i class="ki-filled ki-setting-2 text-feu-green-600"></i> System Info
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">Applied On</span>
+                            <span class="font-medium text-gray-800">{{ registration.createdAt|date('M d, Y') }}</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-500">School Year</span>
+                            <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </form>
 </div>
+
+{# JS for Score Toggle and Address Lookup #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- 1. UNSAVED CHANGES PROTECTION ---
+    let isDirty = false;
+    const form = document.getElementById('editForm');
+    // Select the Back button (finding the link that points to the list page)
+    const backBtn = document.querySelector('a[href*="_registrations"]'); 
+
+    // Track changes
+    if(form) {
+        form.addEventListener('change', () => { isDirty = true; });
+        form.addEventListener('input', () => { isDirty = true; });
+        
+        // Handle Save Submit
+        form.addEventListener('submit', function(e) {
+            e.preventDefault(); // Stop immediate submit
+            
+            if(confirm('Are you sure you want to save these changes?')) {
+                isDirty = false; // Disable dirty check so we can submit
+                this.submit();
+            }
+        });
+    }
+
+    // Handle Back Button (Discard)
+    if(backBtn) {
+        backBtn.addEventListener('click', function(e) {
+            if(isDirty) {
+                if(!confirm('You have unsaved changes. Are you sure you want to discard them and exit?')) {
+                    e.preventDefault(); // Stay on page
+                }
+            }
+        });
+    }
+
+    // Handle Browser Close/Refresh
+    window.addEventListener('beforeunload', function(e) {
+        if(isDirty) {
+            e.preventDefault();
+            e.returnValue = ''; // Standard requirement for modern browsers
+        }
+    });
+
+    // --- 2. EXAM STATUS LOGIC ---
+    const check = document.getElementById('examCheck');
+    const scoreBox = document.getElementById('scoreBox');
+    const pendingBox = document.getElementById('pendingBox');
+
+    function toggleScore() {
+        if(check && check.checked) {
+            scoreBox.style.display = 'block';
+            pendingBox.style.display = 'none';
+        } else if(check) {
+            scoreBox.style.display = 'none';
+            pendingBox.style.display = 'block';
+        }
+    }
+    
+    if(check) {
+        check.addEventListener('change', () => {
+            toggleScore();
+            isDirty = true; // Checkbox change counts as modification
+        });
+        toggleScore(); // Init
+    }
+
+    // --- 3. ADDRESS LOOKUP LOGIC ---
+    function setupAddressLookup(prefix) {
+        const regions = document.getElementById(prefix + '_region');
+        const provinces = document.getElementById(prefix + '_province');
+        const cities = document.getElementById(prefix + '_city');
+        const barangays = document.getElementById(prefix + '_barangay');
+
+        if(!regions) return;
+
+        // Fetch Regions
+        fetch('/api/address/regions').then(r => r.json()).then(data => {
+            data.forEach(r => {
+                regions.innerHTML += `<option value="${r.code}">${r.name}</option>`;
+            });
+        });
+
+        regions.addEventListener('change', function() {
+            provinces.innerHTML = '<option value="">Select Province</option>'; provinces.disabled = true;
+            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            
+            if(this.value) {
+                fetch(`/api/address/provinces/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(p => provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`);
+                    provinces.disabled = false;
+                });
+            }
+        });
+
+        provinces.addEventListener('change', function() {
+            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
+            if(this.value) {
+                fetch(`/api/address/cities/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(c => cities.innerHTML += `<option value="${c.code}">${c.name}</option>`);
+                    cities.disabled = false;
+                });
+            }
+        });
+
+        cities.addEventListener('change', function() {
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            if(this.value) {
+                fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
+                    data.forEach(b => barangays.innerHTML += `<option value="${b.name}">${b.name}</option>`);
+                    barangays.disabled = false;
+                });
+            }
+        });
+    }
+
+    // Initialize Lookups
+    setupAddressLookup('addr');
+    setupAddressLookup('perm');
+});
+</script>
 {% endblock %}

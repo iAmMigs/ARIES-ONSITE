@@ -3,6 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
+use App\Entity\LookupRegion;
+use App\Entity\LookupProvince;
+use App\Entity\LookupCity;
 use App\Repository\ApplicantBedRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,7 +20,6 @@ class AdminDilimanController extends AbstractController
     #[Route('/', name: 'app_admin_diliman_dashboard')]
     public function dashboard(ApplicantBedRepository $repository): Response
     {
-        // Stats: Count by studentNumber
         $qb = $repository->createQueryBuilder('a')
             ->select('count(a.studentNumber)')
             ->where('a.campus = :campus')
@@ -34,7 +36,6 @@ class AdminDilimanController extends AbstractController
         $month = (clone $qb)->andWhere('a.createdAt >= :month')
             ->setParameter('month', new \DateTime('first day of this month'))->getQuery()->getSingleScalarResult();
 
-        // Chart Data
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
@@ -78,11 +79,9 @@ class AdminDilimanController extends AbstractController
         ]);
     }
 
-    // UPDATED: $id here receives the studentNumber string from the URL
     #[Route('/registration/{id}/view', name: 'app_admin_diliman_registration_view')]
     public function view(string $id, ApplicantBedRepository $repository): Response
     {
-        // find($id) works because studentNumber is now the Primary Key
         $registration = $repository->find($id); 
         if (!$registration) throw $this->createNotFoundException();
 
@@ -98,20 +97,109 @@ class AdminDilimanController extends AbstractController
         if (!$registration) throw $this->createNotFoundException();
 
         if ($request->isMethod('POST')) {
-            // Map simple fields
+            // 1. Basic Info
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
-            $registration->setAdmissionStatus($request->request->get('status'));
-            $registration->setGradeLevel($request->request->get('grade'));
+            $registration->setMiddleName($request->request->get('middle_name'));
+            $registration->setPersonalEmail($request->request->get('email'));
+            $registration->setMobileNumber($request->request->get('mobile'));
+            $registration->setGender($request->request->get('gender'));
+            $registration->setBirthPlace($request->request->get('birth_place'));
+            $registration->setReligion($request->request->get('religion'));
+            $registration->setCitizenship($request->request->get('citizenship'));
+            
+            if ($dob = $request->request->get('birth_date')) {
+                $registration->setBirthDate(new \DateTime($dob));
+            }
+
+            // 2. Exam Status Logic
+            $examTaken = $request->request->get('exam_taken') === '1';
+            if ($examTaken) {
+                $registration->setAdmissionStatus('Examination Score');
+                $score = $request->request->get('exam_score');
+                $registration->setExaminationScore($score !== '' ? (float)$score : null);
+            } else {
+                $registration->setAdmissionStatus('Pending');
+                $registration->setExaminationScore(null);
+            }
+
+            // 3. Address Lookup Hydration
+            $this->hydrateAddress($registration, $request, $em, 'current');
+            $this->hydrateAddress($registration, $request, $em, 'permanent');
+
+            // 4. Guardians
+            $guardiansData = $request->request->all('guardians');
+            foreach ($registration->getGuardians() as $index => $g) {
+                if (isset($guardiansData[$index])) {
+                    $data = $guardiansData[$index];
+                    $g->setParentName($data['name'] ?? $g->getParentName());
+                    $g->setOccupation($data['occupation'] ?? $g->getOccupation());
+                    $g->setContactNo($data['contact'] ?? $g->getContactNo());
+                    $g->setDeceased(isset($data['deceased']));
+                    $g->setOFW(isset($data['ofw']));
+                }
+            }
+
+            // 5. Siblings
+            $siblingsData = $request->request->all('siblings');
+            foreach ($registration->getSiblings() as $index => $s) {
+                if (isset($siblingsData[$index])) {
+                    $data = $siblingsData[$index];
+                    $s->setSiblingName($data['name']);
+                    $s->setSchool($data['school']);
+                    $s->setFeuStudentNo($data['feu_id']);
+                    $s->setIsFeuStudent(!empty($data['feu_id']));
+                }
+            }
+
+            // 6. Schools
+            $schoolsData = $request->request->all('schools');
+            foreach ($registration->getSchools() as $index => $sch) {
+                if (isset($schoolsData[$index])) {
+                    $data = $schoolsData[$index];
+                    $sch->setSchool($data['name']);
+                    $sch->setYearEnd((int)$data['year']);
+                }
+            }
             
             $em->flush();
             $this->addFlash('success', 'Registration updated.');
-            return $this->redirectToRoute('app_admin_diliman_registrations');
+            return $this->redirectToRoute('app_admin_diliman_registration_view', ['id' => $registration->getStudentNumber()]);
         }
 
         return $this->render('admin-onsite/diliman/edit_registration.html.twig', [
             'registration' => $registration
         ]);
+    }
+
+    private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
+    {
+        $prefix = ($type === 'current') ? 'addr' : 'perm';
+        $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
+
+        $regionCode = $request->request->get($prefix . '_region');
+        $provCode = $request->request->get($prefix . '_province');
+        $cityCode = $request->request->get($prefix . '_city');
+        $brgyName = $request->request->get($prefix . '_barangay');
+
+        if ($regionCode) {
+            $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regionCode]);
+            if ($r) $applicant->{'set'.$fieldPrefix.'Region'}($r->getRegionDesc());
+        }
+        if ($provCode) {
+            $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provCode]);
+            if ($p) $applicant->{'set'.$fieldPrefix.'Province'}($p->getProvinceDesc());
+        }
+        if ($cityCode) {
+            $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityCode]);
+            if ($c) $applicant->{'set'.$fieldPrefix.'City'}($c->getCityDesc());
+        }
+        if ($brgyName) {
+            $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyName);
+        }
+
+        $applicant->{'set'.$fieldPrefix.'Address'}($request->request->get($type . '_address'));
+        $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type . '_zip'));
     }
 
     #[Route('/registration/{id}/delete', name: 'app_admin_diliman_delete', methods: ['POST'])]

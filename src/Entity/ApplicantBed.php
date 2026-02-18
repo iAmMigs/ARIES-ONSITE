@@ -22,11 +22,11 @@ class ApplicantBed
     public const GENDER_MALE = 'M';
     public const GENDER_FEMALE = 'F';
 
-    // Admission Types (Filtered for Basic Ed)
+    // Admission Types
     public const TYPE_FRESHMAN = 'Freshman';
     public const TYPE_TRANSFEREE = 'Transferee';
 
-    // --- PRIMARY KEY (Student Number) ---
+    // --- PRIMARY KEY ---
     #[ORM\Id]
     #[ORM\Column(name: 'student_number', length: 20, unique: true)]
     private ?string $studentNumber = null;
@@ -37,7 +37,7 @@ class ApplicantBed
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
-    // --- RELATIONSHIPS (OneToMany) ---
+    // --- RELATIONSHIPS ---
     #[ORM\OneToMany(mappedBy: 'applicant', targetEntity: ApplicantBedGuardian::class, cascade: ['persist', 'remove'])]
     private Collection $guardians;
 
@@ -58,6 +58,10 @@ class ApplicantBed
     #[ORM\Column(length: 20)] private string $admissionStatus = self::STATUS_PENDING;
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
     #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])] private int $enrollmentStep = 1;
+
+    // --- NEW: EXAMINATION SCORE ---
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $examinationScore = null;
 
     // --- PERSONAL INFO ---
     #[ORM\Column(length: 100)] private ?string $lastName = null;
@@ -179,6 +183,9 @@ class ApplicantBed
     public function setSchoolYearOfEntry(?string $y): static { $this->schoolYearOfEntry = $y; return $this; }
     public function getEnrollmentStep(): int { return $this->enrollmentStep; }
     public function setEnrollmentStep(int $s): static { $this->enrollmentStep = $s; return $this; }
+
+    public function getExaminationScore(): ?float { return $this->examinationScore; }
+    public function setExaminationScore(?float $score): static { $this->examinationScore = $score; return $this; }
 
     public function getLastName(): ?string { return $this->lastName; }
     public function setLastName(string $n): static { $this->lastName = $n; return $this; }

@@ -35,7 +35,7 @@
     <td>
         <div class="d-flex flex-column gap-2 align-items-start">
             <span class="badge badge-light-primary fw-bolder fs-7 px-3 py-2">
-                {{ registration.gradeLevel }}
+                {{ registration.gradeLevel|replace({'_': ' '})|title }}
             </span>
             {% if registration.trackStrand %}
                 <span class="badge badge-light-warning fw-bolder fs-7 px-3 py-2">

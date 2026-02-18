@@ -425,7 +425,7 @@
 
                     <h5 class="fw-bold text-gray-600 mt-5 mb-3 border-bottom pb-2">Permanent Address</h5>
                     <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="sameAsCurrent" onchange="togglePermanentAddress()" checked>
+                        <input class="form-check-input" type="checkbox" id="sameAsCurrent" name="sameAsCurrent" onchange="togglePermanentAddress()" checked>
                         <label class="form-check-label text-sm" for="sameAsCurrent">Same as Current Address</label>
                     </div>
 
@@ -616,17 +616,17 @@
                 <div class="card-body">
                      <div class="file-upload-group mb-4">
                         <label class="form-label d-block">PSA Birth Certificate <span class="required">*</span></label>
-                        <input type="file" name="req_psa" class="form-control" required accept=".pdf,.jpg,.png">
+                        <input type="file" name="req_psa" class="form-control" required accept=".pdf">
                     </div>
                     
                     <div class="file-upload-group mb-4">
                         <label class="form-label d-block">Report Card (Form 138) <span class="required">*</span></label>
-                        <input type="file" name="req_card" class="form-control" required accept=".pdf,.jpg,.png">
+                        <input type="file" name="req_card" class="form-control" required accept=".pdf">
                     </div>
 
                     <div class="file-upload-group">
                         <label class="form-label d-block">Good Moral Certificate</label>
-                        <input type="file" name="req_moral" class="form-control" accept=".pdf,.jpg,.png">
+                        <input type="file" name="req_moral" class="form-control" accept=".pdf">
                     </div>
                 </div>
             </div>
@@ -826,11 +826,6 @@
                     barangays.disabled = false;
                 });
             }
-        });
-
-        barangays.addEventListener('change', function() {
-            const selected = this.options[this.selectedIndex];
-            if(selected.dataset.zip) zip.value = selected.dataset.zip;
         });
     }
 
