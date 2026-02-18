@@ -7,82 +7,63 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ApplicantBedGuardianRepository::class)]
-#[ORM\Table(name: 'bed_applicant_guardians')]
+#[ORM\Table(name: 'bed_guardians')]
 class ApplicantBedGuardian
 {
+    // --- PRIMARY KEY: guardian_id ---
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'guardian_id')]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'guardians')]
+    // --- FOREIGN KEY: student_number ---
+    // Removed #[ORM\Id] -> This is now a standard ManyToOne relation
+    #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'guardians')]
     #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
-    // --- OLD FIELD (Deprecating, but kept for safety if needed temporarily) ---
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $parentName = null;
+    // --- COLUMNS ---
+    // Removed #[ORM\Id] -> This is now a standard column
+    #[ORM\Column(name: 'Relationship', type: Types::STRING, length: 20)]
+    private ?string $Relationship = null;
 
-    // --- NEW SPLIT FIELDS ---
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $firstName = null;
+    #[ORM\Column(name: 'ParentName', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $ParentName = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $lastName = null;
+    #[ORM\Column(name: 'Occupation', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $Occupation = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $relationship = null;
+    #[ORM\Column(name: 'ContactNo', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $ContactNo = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $occupation = null;
+    #[ORM\Column(name: 'IsDeceased', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $Deceased = false;
 
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $contactNo = null;
-
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
-    private bool $deceased = false;
-
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    #[ORM\Column(name: 'IsOFW', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $OFW = false;
+
+    // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
-
-    // --- Modified Getter to Combine Names ---
-    public function getParentName(): ?string 
-    { 
-        if ($this->firstName || $this->lastName) {
-            return trim($this->firstName . ' ' . $this->lastName);
-        }
-        return $this->parentName; 
-    }
     
-    // Kept for backward compatibility if needed, but we will use specific setters primarily
-    public function setParentName(?string $name): static { 
-        $this->parentName = $name; 
-        return $this; 
-    }
-
-    public function getFirstName(): ?string { return $this->firstName; }
-    public function setFirstName(?string $n): static { $this->firstName = $n; return $this; }
-
-    public function getLastName(): ?string { return $this->lastName; }
-    public function setLastName(?string $n): static { $this->lastName = $n; return $this; }
-
-    public function getRelationship(): ?string { return $this->relationship; }
-    public function setRelationship(string $r): static { $this->relationship = $r; return $this; }
-
-    public function getOccupation(): ?string { return $this->occupation; }
-    public function setOccupation(?string $o): static { $this->occupation = $o; return $this; }
-
-    public function getContactNo(): ?string { return $this->contactNo; }
-    public function setContactNo(?string $c): static { $this->contactNo = $c; return $this; }
-
-    public function isDeceased(): bool { return $this->deceased; }
-    public function setDeceased(bool $d): static { $this->deceased = $d; return $this; }
-
+    public function getRelationship(): ?string { return $this->Relationship; }
+    public function setRelationship(string $Relationship): static { $this->Relationship = $Relationship; return $this; }
+    
+    public function getParentName(): ?string { return $this->ParentName; }
+    public function setParentName(?string $ParentName): static { $this->ParentName = $ParentName; return $this; }
+    
+    public function getOccupation(): ?string { return $this->Occupation; }
+    public function setOccupation(?string $Occupation): static { $this->Occupation = $Occupation; return $this; }
+    
+    public function getContactNo(): ?string { return $this->ContactNo; }
+    public function setContactNo(?string $ContactNo): static { $this->ContactNo = $ContactNo; return $this; }
+    
+    public function isDeceased(): bool { return $this->Deceased; }
+    public function setDeceased(bool $Deceased): static { $this->Deceased = $Deceased; return $this; }
+    
     public function isOFW(): bool { return $this->OFW; }
-    public function setOFW(bool $o): static { $this->OFW = $o; return $this; }
+    public function setOFW(bool $OFW): static { $this->OFW = $OFW; return $this; }
 }
