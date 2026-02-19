@@ -9,32 +9,38 @@ trait AuditFieldsTrait
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(name: 'audit_id')]
     private ?int $auditId = null;
 
-    #[ORM\Column(length: 20)]
-    private ?string $auditAction = null;
-
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(name: 'emp_num', length: 50, nullable: true)]
     private ?string $empNum = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(name: 'audit_date_time', type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $auditDatetime = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(name: 'host', length: 50, nullable: true)]
     private ?string $host = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(name: 'audit_action', length: 20)]
+    private ?string $auditAction = null;
+
+    #[ORM\Column(name: 'remarks', type: Types::TEXT, nullable: true)]
     private ?string $remarks = null;
 
     public function getAuditId(): ?int { return $this->auditId; }
 
-    public function setAuditMetadata(string $action, ?string $user, ?string $ip, ?string $remarks = null): void
+    public function setAuditMetadata(string $action, ?string $empNum, ?string $host, ?string $remarks = null): void
     {
         $this->auditAction = $action;
-        $this->empNum = $user;
-        $this->host = $ip;
-        $this->remarks = $remarks;
+        $this->empNum = $empNum;
+        $this->host = $host;
         $this->auditDatetime = new \DateTime();
+
+        // Enforce the logic: if emp_num is null, it's a backdoor action.
+        if ($this->empNum === null) {
+            $this->remarks = 'BACKDOOR';
+        } else {
+            $this->remarks = $remarks; // defaults to null
+        }
     }
 }

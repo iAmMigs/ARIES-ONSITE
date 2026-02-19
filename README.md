@@ -55,9 +55,11 @@ Open `.env.local` and configure your database URL:
 DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/aries_db?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
 ```
 
+> **Note:** Ensure your database user has TRIGGER creation privileges, as the audit trail relies heavily on MySQL Triggers.
+
 **4. Database Setup**
 
-Create the database and apply migrations (this includes tables and audit triggers).
+Create the database and apply migrations (this includes tables and dynamic audit triggers).
 
 ```bash
 php bin/console doctrine:database:create
@@ -110,7 +112,7 @@ php bin/console app:populate-diliman
 ```
 
 ### Clearing Mock Data
-*WARNING THIS WILL CLEAR ALL APPLICANT DATA FROM THEIR RESPECTIVE TABLES, THIS IS FOR EXPERIMENTAL USE ONLY*
+> **WARNING:** THIS WILL CLEAR ALL APPLICANT DATA FROM THEIR RESPECTIVE TABLES. THIS IS FOR EXPERIMENTAL USE ONLY.
 
 **Clear Alabang Data:**
 Removes all applicant records for Alabang.
@@ -128,17 +130,19 @@ php bin/console app:clear-diliman
 
 ### Testing Audit Trails
 
-The system uses Database Triggers to log all `INSERT`, `UPDATE`, and `DELETE` actions on applicant tables.
+The system uses dynamic Database Triggers paired with a Symfony Event Subscriber (`DatabaseAuditSubscriber`) to log all `UPDATE` actions across the applicant tables, strictly differentiating between application edits and direct database tampering.
 
-1.  **Modify a Record:**
+1.  **Modify a Record via the App:**
     * Update a student's details via the Admin Dashboard (`/alabang-admin/registration/{id}/edit`).
-    * Or update a record directly in your database software (e.g., PHPMyAdmin).
+    * The audit table will log the logged-in admin's ID in the `emp_num` column and leave the `remarks` column `NULL`.
 
-2.  **Verify the Log:**
+2.  **Modify a Record directly in the Database (Tampering):**
+    * Update a record directly in your database software (e.g., PHPMyAdmin or raw SQL).
+    * Because the Symfony application is bypassed, the database trigger will log `NULL` for `emp_num` and flag the action as `BACKDOOR` in the `remarks` column.
+
+3.  **Verify the Log:**
     Check the corresponding `audit_*` table (e.g., `audit_bed_applicants`).
 
     ```sql
-    SELECT * FROM audit_bed_applicants ORDER BY audit_datetime DESC;
+    SELECT * FROM audit_bed_applicants ORDER BY audit_date_time DESC;
     ```
-
-    You should see the change logged with the `audit_action` (UPDATE) and the user who performed it.
