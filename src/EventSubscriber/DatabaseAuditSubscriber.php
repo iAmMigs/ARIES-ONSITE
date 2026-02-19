@@ -15,15 +15,13 @@ class DatabaseAuditSubscriber
 
     public function onFlush(OnFlushEventArgs $args): void
     {
-        // 1. Check if a user is currently logged into the app
         $user = $this->security->getUser();
-        
+
         if ($user instanceof AdminUser) {
-            // 2. Get the active database connection
             $em = $args->getObjectManager();
             $connection = $em->getConnection();
-            
-            // 3. Set the MySQL session variable with the employee number
+
+            // Only pass the employee number to track who is logged into the web app
             $connection->executeStatement(
                 'SET @app_user_emp_num = :emp_num', 
                 ['emp_num' => $user->getEmpNum()]

@@ -27,7 +27,6 @@ class AuditBedApplicant
     #[ORM\Column(length: 20, nullable: true)] private ?string $lrn = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $admissionStatus = null;
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
-    #[ORM\Column(type: Types::SMALLINT, nullable: true)] private ?int $enrollmentStep = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $admissionType = null;
     #[ORM\Column(type: Types::FLOAT, nullable: true)] private ?float $examinationScore = null;
 
