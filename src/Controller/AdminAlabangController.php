@@ -148,13 +148,14 @@ class AdminAlabangController extends AbstractController
 
             // 4. Exam Status Logic
             $examTaken = $request->request->get('exam_taken') === '1';
-            if ($examTaken) {
-                $registration->setAdmissionStatus('Examination Score');
-                $score = $request->request->get('exam_score');
-                $registration->setExaminationScore($score !== '' ? (float)$score : null);
+            $score = $request->request->get('exam_score');
+
+            if ($examTaken && $score !== null && $score !== '') {
+                $registration->setExaminationScore((float)$score);
+                $registration->setAdmissionStatus(ApplicantBed::STATUS_COMPLETED);
             } else {
-                $registration->setAdmissionStatus('Pending');
                 $registration->setExaminationScore(null);
+                $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             }
 
             // 5. Address Lookup Hydration

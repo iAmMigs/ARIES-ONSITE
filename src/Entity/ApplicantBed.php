@@ -17,7 +17,9 @@ class ApplicantBed
 {
     public const CAMPUS_DILIMAN = 'FDIL';
     public const CAMPUS_ALABANG = 'FALAB';
-    public const STATUS_PENDING = 'P';
+   
+    public const STATUS_PENDING = 'Pending';
+    public const STATUS_COMPLETED = 'Completed';
     
     public const GENDER_MALE = 'M';
     public const GENDER_FEMALE = 'F';
@@ -57,7 +59,6 @@ class ApplicantBed
     #[ORM\Column(length: 20, nullable: true)] private ?string $lrn = null;
     #[ORM\Column(length: 20)] private string $admissionStatus = self::STATUS_PENDING;
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
-    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 1])] private int $enrollmentStep = 1;
 
     // --- ADMISSION INFO ---
     #[ORM\Column(length: 20, nullable: true)] 
@@ -185,8 +186,6 @@ class ApplicantBed
     public function setAdmissionStatus(string $s): static { $this->admissionStatus = $s; return $this; }
     public function getSchoolYearOfEntry(): ?string { return $this->schoolYearOfEntry; }
     public function setSchoolYearOfEntry(?string $y): static { $this->schoolYearOfEntry = $y; return $this; }
-    public function getEnrollmentStep(): int { return $this->enrollmentStep; }
-    public function setEnrollmentStep(int $s): static { $this->enrollmentStep = $s; return $this; }
 
     public function getExaminationScore(): ?float { return $this->examinationScore; }
     public function setExaminationScore(?float $score): static { $this->examinationScore = $score; return $this; }

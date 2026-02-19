@@ -49,7 +49,6 @@ class EnrollmentController extends AbstractController
         
         $applicant->setCampus($campus == 'feu_alabang' ? ApplicantBed::CAMPUS_ALABANG : ApplicantBed::CAMPUS_DILIMAN);
         $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
-        $applicant->setEnrollmentStep(1);
         $applicant->setAdmissionDate(new \DateTime());
 
         // --- 2. ACADEMIC INFO ---
@@ -73,11 +72,6 @@ class EnrollmentController extends AbstractController
         $applicant->setReligion($request->request->get('religion'));
         $applicant->setCitizenship($request->request->get('citizenship'));
         $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
-        
-        if ($request->request->get('citizenship') !== 'Filipino') {
-            $applicant->setPassportNumber($request->request->get('passport_number'));
-            $applicant->setVisaType($request->request->get('visa_type'));
-        }
 
         // --- 4. CONTACT INFORMATION ---
         $applicant->setMobileNumber($request->request->get('contact_number'));
