@@ -74,7 +74,6 @@ class ApplicantBed
     #[ORM\Column(length: 10, nullable: true)] private ?string $extensionName = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $birthDate = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $birthPlace = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $birthCountry = null;
     #[ORM\Column(length: 10, nullable: true)] private ?string $gender = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
@@ -100,10 +99,6 @@ class ApplicantBed
     #[ORM\Column(length: 255, nullable: true)] private ?string $permanentBarangay = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $permanentAddress = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
-
-    // --- FOREIGN STUDENT INFO ---
-    #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
-    #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     
     // --- MEDIA ---
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
@@ -204,8 +199,6 @@ class ApplicantBed
     public function setBirthDate(?\DateTimeInterface $d): static { $this->birthDate = $d; return $this; }
     public function getBirthPlace(): ?string { return $this->birthPlace; }
     public function setBirthPlace(?string $p): static { $this->birthPlace = $p; return $this; }
-    public function getBirthCountry(): ?string { return $this->birthCountry; }
-    public function setBirthCountry(?string $c): static { $this->birthCountry = $c; return $this; }
     
     public function getGender(): ?string { return $this->gender; }
     public function setGender(?string $g): static { $this->gender = $g; return $this; }
@@ -222,11 +215,6 @@ class ApplicantBed
     public function setLandLineNumber(?string $n): static { $this->landLineNumber = $n; return $this; }
     public function getPersonalEmail(): ?string { return $this->personalEmail; }
     public function setPersonalEmail(string $e): static { $this->personalEmail = $e; return $this; }
-
-    public function getVisaType(): ?string { return $this->visaType; }
-    public function setVisaType(?string $v): static { $this->visaType = $v; return $this; }
-    public function getPassportNumber(): ?string { return $this->passportNumber; }
-    public function setPassportNumber(?string $p): static { $this->passportNumber = $p; return $this; }
     
     public function getPhotoSlug(): ?string { return $this->photoSlug; }
     public function setPhotoSlug(?string $p): static { $this->photoSlug = $p; return $this; }

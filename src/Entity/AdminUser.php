@@ -13,8 +13,8 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\Column(name: 'emp_num')]
+    private ?int $empNum = null;
 
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
@@ -28,7 +28,6 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    // --- NEW FIELDS ---
     #[ORM\Column(length: 100)]
     private ?string $firstName = null;
 
@@ -38,11 +37,10 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $profilePicture = null;
 
-    // --- ADDED CAMPUS FIELD ---
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $campus = null;
 
-    public function getId(): ?int { return $this->id; }
+    public function getEmpNum(): ?int { return $this->empNum; }
 
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): static { $this->email = $email; return $this; }
@@ -72,7 +70,6 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function getProfilePicture(): ?string { return $this->profilePicture; }
     public function setProfilePicture(?string $profilePicture): static { $this->profilePicture = $profilePicture; return $this; }
 
-    // --- ADDED GETTER AND SETTER FOR CAMPUS ---
     public function getCampus(): ?string { return $this->campus; }
     public function setCampus(?string $campus): static { $this->campus = $campus; return $this; }
 

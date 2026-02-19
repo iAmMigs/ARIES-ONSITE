@@ -38,7 +38,6 @@ class AuditBedApplicant
     #[ORM\Column(length: 10, nullable: true)] private ?string $extensionName = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $birthDate = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $birthPlace = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $birthCountry = null;
     #[ORM\Column(length: 10, nullable: true)] private ?string $gender = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
@@ -65,8 +64,6 @@ class AuditBedApplicant
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
 
     // Other
-    #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
-    #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $admissionDate = null;
 
