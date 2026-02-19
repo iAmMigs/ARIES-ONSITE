@@ -4,7 +4,7 @@ A web-based enrollment application for FEU Alabang and FEU Diliman built with Sy
 
 ## 1. Project Specifications
 
-* **Framework:** Symfony 7.4
+* **Framework:** Symfony 7.4.5 (Latest)
 * **Language:** PHP >= 8.2
 * **Database:** MySQL / MariaDB (managed via Doctrine ORM)
 * **Frontend:**
