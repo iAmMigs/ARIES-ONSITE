@@ -41,6 +41,9 @@ class AuditBedApplicant
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
 
     // Contact
     #[ORM\Column(length: 50, nullable: true)] private ?string $mobileNumber = null;

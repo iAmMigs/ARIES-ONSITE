@@ -70,7 +70,21 @@ class EnrollmentController extends AbstractController
         $applicant->setGender($gender);
         
         $applicant->setReligion($request->request->get('religion'));
-        $applicant->setCitizenship($request->request->get('citizenship'));
+        $citizenship = $request->request->get('citizenship');
+        $applicant->setCitizenship($citizenship);
+        
+        if (in_array(strtolower($citizenship), ['foreign', 'dual citizenship'])) {
+            $applicant->setPassportNumber($request->request->get('passport_number'));
+            $applicant->setVisaType($request->request->get('visa_type'));
+            $applicant->setVisaStatus($request->request->get('visa_status'));
+            $applicant->setIndigenousGroup(null); // Force clear indigenous group
+        } else {
+            $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
+            $applicant->setPassportNumber(null); // Force clear foreign fields
+            $applicant->setVisaType(null);
+            $applicant->setVisaStatus(null);
+        }
+
         $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
 
         // --- 4. CONTACT INFORMATION ---
@@ -277,4 +291,19 @@ class EnrollmentController extends AbstractController
             'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName()
         ]);
     }
+
+    #[Route('/api/check-lrn', name: 'app_enrollment_check_lrn', methods: ['GET'])]
+    public function checkLrn(Request $request, EntityManagerInterface $em): Response
+    {
+        $lrn = $request->query->get('lrn');
+        
+        if (!$lrn) {
+            return $this->json(['exists' => false]);
+        }
+
+        $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrn]);
+        
+        return $this->json(['exists' => $existing !== null]);
+    }
+
 }

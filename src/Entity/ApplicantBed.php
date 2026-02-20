@@ -53,7 +53,7 @@ class ApplicantBed
     private Collection $requirements;
 
     // --- ACADEMIC INFO ---
-    #[ORM\Column(length: 20, nullable: true)] private ?string $educationType = null;
+    #[ORM\Column(length: 20)] private ?string $educationType = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $gradeLevel = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $trackStrand = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $lrn = null;
@@ -61,8 +61,7 @@ class ApplicantBed
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
 
     // --- ADMISSION INFO ---
-    #[ORM\Column(length: 20, nullable: true)] 
-    private ?string $admissionType = null;
+    #[ORM\Column(length: 20)] private ?string $admissionType = null;
 
     // --- NEW: EXAMINATION SCORE ---
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
@@ -77,8 +76,14 @@ class ApplicantBed
     #[ORM\Column(length: 255, nullable: true)] private ?string $birthPlace = null;
     #[ORM\Column(length: 10, nullable: true)] private ?string $gender = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
+
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
+
+    
 
     // --- CONTACT INFO ---
     #[ORM\Column(length: 50)] private ?string $mobileNumber = null;
@@ -205,6 +210,13 @@ class ApplicantBed
     public function setReligion(?string $r): static { $this->religion = $r; return $this; }
     public function getCitizenship(): ?string { return $this->citizenship; }
     public function setCitizenship(?string $c): static { $this->citizenship = $c; return $this; }
+    public function getPassportNumber(): ?string { return $this->passportNumber; }
+    public function setPassportNumber(?string $p): static { $this->passportNumber = $p; return $this; }
+    public function getVisaType(): ?string { return $this->visaType; }
+    public function setVisaType(?string $v): static { $this->visaType = $v; return $this; }
+    public function getVisaStatus(): ?string { return $this->visaStatus; }
+    public function setVisaStatus(?string $v): static { $this->visaStatus = $v; return $this; }
+
     public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
     public function setIndigenousGroup(?string $i): static { $this->indigenousGroup = $i; return $this; }
 

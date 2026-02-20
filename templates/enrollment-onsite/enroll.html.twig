@@ -219,7 +219,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Admission Status</label>
-                                <select name="admission_status" class="form-select">
+                                <select name="admission_status" class="form-select" required>
                                     <option value="Freshman">Freshman</option>
                                     <option value="Transferee">Transferee</option>
                                 </select>
@@ -230,7 +230,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Education Type</label>
-                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
+                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()" required>
                                     <option value="">Select Type</option>
                                     <option value="Primary">Primary (Elementary)</option>
                                     <option value="Secondary">Secondary (High School)</option>
@@ -345,20 +345,33 @@
                     </div>
 
                     {# VISA SECTION #}
-                    <div id="visaSection" class="mt-4 p-4 bg-light rounded border border-dashed border-gray-300" style="display: none;">
-                        <h5 class="text-primary fw-bold mb-3">Visa Details (For Foreign/Dual Citizens)</h5>
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <label class="form-label">Passport Number</label>
+                    <div id="foreign_fields_container" style="display: none;" class="mt-4 p-3 bg-light rounded border">
+                        <p class="text-primary small mb-3 fw-bold">
+                            <i class="fas fa-info-circle me-1"></i> Please ensure your visa and passport details are correct and valid.
+                        </p>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Number <span class="text-danger">*</span></label>
                                 <input type="text" name="passport_number" class="form-control">
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Visa Type</label>
-                                <input type="text" name="visa_type" class="form-control">
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Visa Type <span class="text-danger">*</span></label>
+                                <select name="visa_type" id="visaType" class="form-select">
+                                    <option value="">Select Visa Type</option>
+                                    <option value="student">Student Visa (9F)</option>
+                                    <option value="special_student">Special Study Permit (SSP)</option>
+                                    <option value="tourist">Tourist Visa</option>
+                                    <option value="immigrant">Immigrant Visa</option>
+                                    <option value="permanent_resident">Permanent Resident</option>
+                                    <option value="other">Other</option>
+                                </select>
                             </div>
-                             <div class="col-md-4">
-                                <label class="form-label">Visa Status</label>
-                                <input type="text" name="visa" class="form-control">
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Visa Status <span class="text-danger">*</span></label>
+                                <input type="text" name="visa_status" class="form-control" placeholder="e.g., Active, Expired">
                             </div>
                         </div>
                     </div>
@@ -873,7 +886,7 @@
                     <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label text-xs">School/Company</label>
+                    <label class="form-label text-xs">School</label>
                     <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School">
                 </div>
                  <div class="col-md-3">
@@ -967,5 +980,101 @@
         setupAddressLookup('addr'); // Current Address
         setupAddressLookup('perm'); // Permanent Address
     });
+
+
+    const citizenshipSelect = document.querySelector('[name="citizenship"]');
+    
+    // Wrappers (Make sure you add id="foreign_fields_container" and id="indigenous_group_container" in your Twig HTML)
+    const foreignFieldsContainer = document.getElementById('foreign_fields_container'); 
+    const indigenousGroupContainer = document.getElementById('indigenous_group_container');
+    
+    // Inputs
+    const passportInput = document.querySelector('[name="passport_number"]');
+    const visaTypeInput = document.querySelector('[name="visa_type"]');
+    const visaStatusInput = document.querySelector('[name="visa_status"]');
+    const indigenousInput = document.querySelector('[name="indigenous_group"]');
+
+    if (citizenshipSelect) {
+        citizenshipSelect.addEventListener('change', function() {
+            const val = this.value.toLowerCase();
+            
+            // 1. Hide both containers by default
+            if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'none';
+            if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'none';
+            
+            // 2. Remove 'required' from foreign fields
+            if (passportInput) passportInput.required = false;
+            if (visaTypeInput) visaTypeInput.required = false;
+            if (visaStatusInput) visaStatusInput.required = false;
+            
+            // 3. Handle specific selections
+            if (val === 'foreign' || val === 'dual citizenship') {
+                if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'block';
+                if (passportInput) passportInput.required = true;
+                if (visaTypeInput) visaTypeInput.required = true;
+                if (visaStatusInput) visaStatusInput.required = true;
+                
+                if (indigenousInput) indigenousInput.value = ''; // clear hidden Filipino field
+                
+            } else if (val === 'filipino') {
+                if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'block';
+                
+                if (passportInput) passportInput.value = ''; // clear hidden Foreign fields
+                if (visaTypeInput) visaTypeInput.value = '';
+                if (visaStatusInput) visaStatusInput.value = '';
+            }
+        });
+
+        // Trigger change on load to set the correct initial UI state
+        citizenshipSelect.dispatchEvent(new Event('change'));
+    }
+
+    const lrnInput = document.querySelector('[name="lrn"]');
+    if (lrnInput) {
+        // 1. Create the red error text dynamically
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'text-danger mt-1 fw-bold';
+        errorMsg.style.display = 'none';
+        errorMsg.style.fontSize = '0.85em';
+        errorMsg.innerText = 'LRN already exists, please check your credentials.';
+        
+        // Insert it right after the LRN input
+        lrnInput.parentNode.appendChild(errorMsg);
+
+        const submitBtn = document.querySelector('button[type="submit"]');
+
+        // 2. Listen for when the user clicks away from the LRN field
+        lrnInput.addEventListener('blur', function() {
+            const lrnValue = this.value.trim();
+            
+            if (lrnValue.length > 0) {
+                // Call the endpoint we made in the controller
+                fetch(`/enrollment/api/check-lrn?lrn=${encodeURIComponent(lrnValue)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            // Show error, turn input red, disable submit
+                            errorMsg.style.display = 'block';
+                            lrnInput.classList.add('is-invalid');
+                            lrnInput.style.borderColor = 'red';
+                            if (submitBtn) submitBtn.disabled = true;
+                        } else {
+                            // Hide error, remove red border, enable submit
+                            errorMsg.style.display = 'none';
+                            lrnInput.classList.remove('is-invalid');
+                            lrnInput.style.borderColor = '';
+                            if (submitBtn) submitBtn.disabled = false;
+                        }
+                    });
+            } else {
+                // Reset if field is empty
+                errorMsg.style.display = 'none';
+                lrnInput.classList.remove('is-invalid');
+                lrnInput.style.borderColor = '';
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
 </script>
 {% endblock %}
