@@ -218,7 +218,7 @@
                     <div class="row g-4 mt-4">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Admission Status</label>
+                                <label class="form-label">Admission Status<span class="required">*</span></label>
                                 <select name="admission_status" class="form-select" required>
                                     <option value="Freshman">Freshman</option>
                                     <option value="Transferee">Transferee</option>
@@ -229,7 +229,7 @@
                         {# --- NEW FIELD: Education Type (Primary/Secondary) --- #}
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Education Type</label>
+                                <label class="form-label">Education Type<span class="required">*</span></label>
                                 <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()" required>
                                     <option value="">Select Type</option>
                                     <option value="Primary">Primary (Elementary)</option>
