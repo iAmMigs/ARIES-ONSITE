@@ -48,6 +48,7 @@ class EnrollmentController extends AbstractController
         $applicant->setStudentNumber($studentNo);
         
         $applicant->setCampus($campus == 'feu_alabang' ? ApplicantBed::CAMPUS_ALABANG : ApplicantBed::CAMPUS_DILIMAN);
+        $applicant->setAdmissionType($request->request->get('admission_type'));
         $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
         $applicant->setAdmissionDate(new \DateTime());
 

@@ -71,7 +71,7 @@ final class Version20260220004749 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Drop all triggers first
+        // Drop existing triggers
         $tables = ['bed_applicants', 'bed_guardians', 'bed_siblings', 'bed_schools', 'bed_requirements'];
         foreach ($tables as $table) {
             $this->addSql("DROP TRIGGER IF EXISTS {$table}_after_insert");
