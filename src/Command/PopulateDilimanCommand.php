@@ -49,8 +49,7 @@ class PopulateDilimanCommand extends Command
             
             $applicant->setStudentNumber($studentNo);
             $applicant->setCampus($campus);
-            $applicant->setAdmissionStatus('Pending');
-            $applicant->setEnrollmentStep(1);
+            $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             $applicant->setAdmissionDate(new \DateTime());
             $applicant->setCreatedAt(new \DateTimeImmutable());
 
@@ -70,7 +69,18 @@ class PopulateDilimanCommand extends Command
             $applicant->setBirthDate(new \DateTime('-12 years'));
             $applicant->setBirthPlace('Quezon City');
             $applicant->setReligion('Christian');
-            $applicant->setCitizenship('Filipino');
+            
+            // --- NEW LOGIC: Test Citizenship and Visa Fields ---
+            if ($i === 2) {
+                // Make the 3rd applicant a Dual Citizen
+                $applicant->setCitizenship('Dual Citizenship');
+                $applicant->setPassportNumber('P' . rand(1000000, 9999999));
+                $applicant->setVisaType('permanent_resident');
+                $applicant->setVisaStatus('Active');
+            } else {
+                $applicant->setCitizenship('Filipino');
+                $applicant->setIndigenousGroup($i === 1 ? 'Igorot' : null);
+            }
             
             $applicant->setMobileNumber('09' . rand(100000000, 999999999));
             $applicant->setPersonalEmail(strtolower($fName . '.' . $lName . '@test.com'));
@@ -105,7 +115,6 @@ class PopulateDilimanCommand extends Command
                 $req = new ApplicantBedRequirement();
                 $req->setApplicant($applicant);
                 $req->setRequirement($docName);
-                // FIXED: Setting the Slug
                 $req->setSlug(strtolower(str_replace(' ', '-', $docName)));
                 $req->setStoredFileName('uploads/dummy.pdf');
                 $req->setStatus('S');

@@ -44,8 +44,7 @@ class PopulateAlabangCommand extends Command
             
             $applicant->setStudentNumber($studentNo);
             $applicant->setCampus($campus);
-            $applicant->setAdmissionStatus('Pending');
-            $applicant->setEnrollmentStep(1);
+            $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             $applicant->setAdmissionDate(new \DateTime());
             $applicant->setCreatedAt(new \DateTimeImmutable());
 
@@ -64,7 +63,20 @@ class PopulateAlabangCommand extends Command
             $applicant->setBirthDate(new \DateTime('-17 years'));
             $applicant->setBirthPlace('Muntinlupa City');
             $applicant->setReligion('Catholic');
-            $applicant->setCitizenship('Filipino');
+            
+            // --- NEW LOGIC: Test Citizenship and Visa Fields ---
+            if ($i === 2) {
+                // Make the 3rd applicant a Foreigner
+                $applicant->setCitizenship('Foreign');
+                $applicant->setPassportNumber('P' . rand(1000000, 9999999));
+                $applicant->setVisaType('student');
+                $applicant->setVisaStatus('Active');
+            } else {
+                // Make others Filipino
+                $applicant->setCitizenship('Filipino');
+                // Test Indigenous Group on one of them
+                $applicant->setIndigenousGroup($i === 1 ? 'Aeta' : null);
+            }
             
             $applicant->setMobileNumber('09' . rand(100000000, 999999999));
             $applicant->setPersonalEmail(strtolower($fName . '.' . $lName . '@test.com'));
@@ -104,7 +116,6 @@ class PopulateAlabangCommand extends Command
                 $req = new ApplicantBedRequirement();
                 $req->setApplicant($applicant);
                 $req->setRequirement($docName);
-                // FIXED: Setting the Slug which is part of the primary key
                 $req->setSlug(strtolower(str_replace(' ', '-', $docName))); 
                 $req->setStoredFileName('uploads/dummy.pdf'); 
                 $req->setStatus('S');
