@@ -7,6 +7,7 @@ use App\Entity\ApplicantBedGuardian;
 use App\Entity\ApplicantBedSibling;
 use App\Entity\ApplicantBedSchool;
 use App\Entity\ApplicantBedRequirement;
+use App\Entity\DocumentSetup;
 use App\Entity\LookupRegion;
 use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
@@ -23,10 +24,16 @@ use Symfony\Component\Routing\Attribute\Route;
 class EnrollmentController extends AbstractController
 {
     #[Route('/apply', name: 'app_enrollment_apply', methods: ['GET'])]
-    public function apply(Request $request): Response
+    public function apply(Request $request, EntityManagerInterface $em): Response
     {
+        $campus = $request->query->get('campus');
+        
+        // Fetch the dynamic documents configured by the admins
+        $documents = $em->getRepository(DocumentSetup::class)->findAll();
+
         return $this->render('enrollment-onsite/enroll.html.twig', [
-            'selected_campus' => $request->query->get('campus')
+            'selected_campus' => $campus,
+            'documents' => $documents
         ]);
     }
 
@@ -41,61 +48,43 @@ class EnrollmentController extends AbstractController
         $yearStart = date('Y');
 
         $applicant = new ApplicantBed();
-        
-        // --- 1. IDENTIFIERS (Student Number Only) ---
-        // Removed AdCon generation
         $studentNo = $idGenerator->generateStudentNumber($campus, $yearStart);
         $applicant->setStudentNumber($studentNo);
-        
         $applicant->setCampus($campus == 'feu_alabang' ? ApplicantBed::CAMPUS_ALABANG : ApplicantBed::CAMPUS_DILIMAN);
-        $applicant->setAdmissionType($request->request->get('admission_type'));
         $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
         $applicant->setAdmissionDate(new \DateTime());
 
-        // --- 2. ACADEMIC INFO ---
         $applicant->setEducationType($request->request->get('education_type'));
         $applicant->setGradeLevel($request->request->get('grade_level'));
         $applicant->setTrackStrand($request->request->get('strand'));
         $applicant->setLrn($request->request->get('lrn'));
+        $applicant->setAdmissionType($request->request->get('admission_type'));
         $applicant->setSchoolYearOfEntry($yearStart . '-' . ($yearStart + 1));
 
-        // --- 3. PERSONAL INFORMATION ---
         $applicant->setLastName($request->request->get('last_name'));
         $applicant->setFirstName($request->request->get('first_name'));
         $applicant->setMiddleName($request->request->get('middle_name'));
         $applicant->setExtensionName($request->request->get('suffix'));
         $applicant->setBirthDate(new \DateTime($request->request->get('birthday')));
         $applicant->setBirthPlace($request->request->get('birth_place'));
-        
-        $gender = $request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE;
-        $applicant->setGender($gender);
-        
+        $applicant->setGender($request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE);
         $applicant->setReligion($request->request->get('religion'));
+        
         $citizenship = $request->request->get('citizenship');
         $applicant->setCitizenship($citizenship);
-        
         if (in_array(strtolower($citizenship), ['foreign', 'dual citizenship'])) {
             $applicant->setPassportNumber($request->request->get('passport_number'));
             $applicant->setVisaType($request->request->get('visa_type'));
             $applicant->setVisaStatus($request->request->get('visa_status'));
-            $applicant->setIndigenousGroup(null); // Force clear indigenous group
         } else {
             $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
-            $applicant->setPassportNumber(null); // Force clear foreign fields
-            $applicant->setVisaType(null);
-            $applicant->setVisaStatus(null);
         }
 
-        $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
-
-        // --- 4. CONTACT INFORMATION ---
         $applicant->setMobileNumber($request->request->get('contact_number'));
         $applicant->setPersonalEmail($request->request->get('email'));
         $applicant->setLandLineNumber($request->request->get('landline'));
 
-        // --- 5. ADDRESS ---
         $this->hydrateAddress($applicant, $request, $em, 'current');
-        
         if ($request->request->get('sameAsCurrent') === 'on') {
             $applicant->setPermanentRegion($applicant->getCurrentRegion());
             $applicant->setPermanentProvince($applicant->getCurrentProvince());
@@ -107,16 +96,13 @@ class EnrollmentController extends AbstractController
             $this->hydrateAddress($applicant, $request, $em, 'permanent');
         }
 
-        // --- 6. GUARDIANS ---
         $this->handleGuardian($applicant, $request, 'father', $em);
         $this->handleGuardian($applicant, $request, 'mother', $em);
         $this->handleGuardian($applicant, $request, 'guardian', $em);
 
-        // --- 7. SIBLINGS ---
         $siblingNames = $request->request->all()['sibling_name'] ?? [];
         $siblingSchools = $request->request->all()['sibling_school'] ?? [];
         $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
-
         if (is_array($siblingNames)) {
             foreach ($siblingNames as $index => $name) {
                 if (!empty($name)) {
@@ -125,16 +111,13 @@ class EnrollmentController extends AbstractController
                     $sibling->setSiblingName($name);
                     $sibling->setSchool($siblingSchools[$index] ?? null);
                     $sibling->setFeuStudentNo($siblingStudentNos[$index] ?? null);
-                    if (!empty($siblingStudentNos[$index])) {
-                        $sibling->setIsFeuStudent(true);
-                    }
+                    if (!empty($siblingStudentNos[$index])) $sibling->setIsFeuStudent(true);
                     $applicant->addSibling($sibling);
                     $em->persist($sibling);
                 }
             }
         }
 
-        // --- 8. EDUCATION HISTORY ---
         if ($request->request->get('prev_school_name')) {
             $school = new ApplicantBedSchool();
             $school->setApplicant($applicant);
@@ -145,55 +128,26 @@ class EnrollmentController extends AbstractController
             $em->persist($school);
         }
 
-        // --- 9. FILE UPLOADS ---
-        
-        // 2x2 Picture -> onsite-id-pics
-        $idFile = $request->files->get('req_id_picture');
-        if ($idFile instanceof UploadedFile) {
-            $filename = 'ID-' . $studentNo . '.' . $idFile->guessExtension();
-            try {
-                $folder = 'onsite-id-pics';
-                $idFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $folder, $filename);
-                $applicant->setPhotoSlug('uploads/' . $folder . '/' . $filename);
-            } catch (\Exception $e) { }
-        }
-
-        // Docs
-        $docMap = [
-            'req_psa' => [
-                'label' => 'PSA Birth Certificate', 
-                'folder' => 'onsite-psa'
-            ],
-            'req_card' => [
-                'label' => 'Report Card', 
-                'folder' => 'onsite-cards'
-            ],
-            'req_moral' => [
-                'label' => 'Good Moral Certificate', 
-                'folder' => 'onsite-moral'
-            ]
-        ];
-
-        foreach ($docMap as $field => $config) {
-            $file = $request->files->get($field);
+        $documentSetups = $em->getRepository(DocumentSetup::class)->findAll();
+        foreach ($documentSetups as $docSetup) {
+            $slug = $docSetup->getSlug();
+            $file = $request->files->get($slug);
+            
             if ($file instanceof UploadedFile) {
-                $label = $config['label'];
-                $folderName = $config['folder'];
-                
-                $filename = strtoupper($field) . '-' . $studentNo . '.' . $file->guessExtension();
-                
+                $filename = strtoupper($slug) . '-' . $studentNo . '.' . $file->guessExtension();
                 try {
-                    $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $folderName;
+                    $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                     $file->move($targetDir, $filename);
                     
                     $req = new ApplicantBedRequirement();
                     $req->setApplicant($applicant);
-                    $req->setRequirement($label);
-                    $req->setStoredFileName('uploads/' . $folderName . '/' . $filename);
-                    $req->setSlug(strtolower(str_replace(' ', '-', $label)));
+                    $req->setRequirement($docSetup->getDocumentName());
+                    $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
+                    $req->setSlug($slug);
                     $req->setStatus('S');
                     $req->setDateSubmitted(new \DateTime());
-                    $req->setIsRequired(true);
+                    $req->setIsRequired($docSetup->isRequired());
+                    $req->setIsDeleted(false);
                     
                     $applicant->addRequirement($req);
                     $em->persist($req);
@@ -245,9 +199,7 @@ class EnrollmentController extends AbstractController
             ? $request->request->get('guardian_name') 
             : (($lname || $fname) ? "$lname, $fname" : '');
 
-        if (empty($fullname) || $fullname === ', ') {
-            return;
-        }
+        if (empty($fullname) || $fullname === ', ') return;
 
         if ($type === 'father') $relationship = 'Father';
         elseif ($type === 'mother') $relationship = 'Mother';
@@ -271,7 +223,6 @@ class EnrollmentController extends AbstractController
         $guardian->setParentName($fullname);
         $guardian->setOccupation($request->request->get($type . '_occupation'));
         $guardian->setContactNo($request->request->get($type . '_contact'));
-        
         if ($request->request->get($type . '_deceased')) $guardian->setDeceased(true);
         if ($request->request->get($type . '_ofw')) $guardian->setOFW(true);
 
@@ -282,10 +233,7 @@ class EnrollmentController extends AbstractController
     public function success(string $studentNumber, EntityManagerInterface $em): Response
     {
         $applicant = $em->getRepository(ApplicantBed::class)->findOneBy(['studentNumber' => $studentNumber]);
-
-        if (!$applicant) {
-            throw $this->createNotFoundException('Application not found.');
-        }
+        if (!$applicant) throw $this->createNotFoundException('Application not found.');
 
         return $this->render('enrollment-onsite/success.html.twig', [
             'student_number' => $applicant->getStudentNumber(),
@@ -297,14 +245,8 @@ class EnrollmentController extends AbstractController
     public function checkLrn(Request $request, EntityManagerInterface $em): Response
     {
         $lrn = $request->query->get('lrn');
-        
-        if (!$lrn) {
-            return $this->json(['exists' => false]);
-        }
-
+        if (!$lrn) return $this->json(['exists' => false]);
         $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrn]);
-        
         return $this->json(['exists' => $existing !== null]);
     }
-
 }

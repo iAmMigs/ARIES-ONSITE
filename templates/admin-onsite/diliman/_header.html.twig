@@ -1,0 +1,17 @@
+<header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0">
+    <h2 class="text-xl font-bold text-gray-800">{{ page_title|default('Admin Console') }}</h2>
+    
+    <div class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+            {# DYNAMICALLY CALL THE LOGGED IN USER'S NAME #}
+            <div class="text-sm font-bold text-gray-900">
+                {{ app.user.firstName }} {{ app.user.lastName }}
+            </div>
+            {# DYNAMICALLY SHOW THEIR CAMPUS ROLE #}
+            <div class="text-xs text-gray-500">
+                {{ app.user.campus == 'feu_alabang' ? 'Alabang Administrator' : 'Diliman Administrator' }}
+            </div>
+        </div>
+        <img src="{{ asset('metronic/media/avatars/300-1.png') }}" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100">
+    </div>
+</header>

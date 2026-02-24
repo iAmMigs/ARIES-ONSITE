@@ -6,8 +6,10 @@ use App\Entity\ApplicantBed;
 use App\Entity\LookupRegion;
 use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
+use App\Entity\ApplicantBedRequirement;
 use App\Repository\ApplicantBedRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\DocumentSetup;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -88,6 +90,8 @@ class AdminAlabangController extends AbstractController
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
+        $documentSetups = $em->getRepository(DocumentSetup::class)->findAll();
+
         if ($request->isMethod('POST')) {
             // 1. Basic Info
             $registration->setFirstName($request->request->get('first_name'));
@@ -105,6 +109,37 @@ class AdminAlabangController extends AbstractController
             
             if ($dob = $request->request->get('birth_date')) {
                 $registration->setBirthDate(new \DateTime($dob));
+            }
+
+            // --- DYNAMIC DOCUMENT REPLACEMENTS ---
+            foreach ($documentSetups as $docSetup) {
+                $inputName = $docSetup->getSlug();
+                $docFile = $request->files->get($inputName);
+                
+                if ($docFile) {
+                    $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
+                        'applicant' => $registration, 
+                        'Slug' => $inputName
+                    ]);
+                    
+                    if (!$req) {
+                        $req = new ApplicantBedRequirement();
+                        $req->setApplicant($registration);
+                        $req->setSlug($inputName);
+                        $req->setRequirement($docSetup->getDocumentName());
+                        $req->setIsRequired($docSetup->isRequired());
+                        $em->persist($req);
+                    }
+                    
+                    $filename = strtoupper($inputName) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.pdf';
+                    try {
+                        $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
+                        $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
+                        $req->setIsDeleted(false); // Un-delete if it was previously soft-deleted!
+                        $req->setDateSubmitted(new \DateTime());
+                        $req->setStatus('S');
+                    } catch (\Exception $e) { }
+                }
             }
 
             // 2. Profile Picture Upload
@@ -215,7 +250,10 @@ class AdminAlabangController extends AbstractController
             return $this->redirectToRoute($viewRoute, ['id' => $registration->getStudentNumber()]);
         }
 
-        return $this->render('admin-onsite/alabang/edit_registration.html.twig', ['registration' => $registration]);
+        return $this->render('admin-onsite/alabang/edit_registration.html.twig', [
+            'registration' => $registration,
+            'documentSetups' => $documentSetups
+        ]);
     }
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
@@ -257,5 +295,62 @@ class AdminAlabangController extends AbstractController
         $registration = $repository->find($id);
         if ($registration) $service->deleteApplicant($registration);
         return $this->redirectToRoute('app_admin_alabang_registrations');
+    }
+
+    #[Route('/document-setup', name: 'app_admin_alabang_documents', methods: ['GET', 'POST'])]
+    public function documentSetup(EntityManagerInterface $em, Request $request): Response
+    {
+        if ($request->isMethod('POST')) {
+            $name = $request->request->get('name');
+            $slug = 'req_' . strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $name));
+            $slug = preg_replace('/_+/', '_', $slug); 
+            
+            $doc = new DocumentSetup();
+            $doc->setDocumentName($name);
+            $doc->setSlug($slug);
+            $doc->setFolderName('onsite-' . str_replace('_', '-', $slug));
+            $doc->setIsRequired($request->request->get('is_required') === '1');
+            $doc->setCampus(ApplicantBed::CAMPUS_ALABANG); 
+
+            $em->persist($doc);
+            $em->flush();
+            
+            $this->addFlash('success', 'New document configuration added!');
+            return $this->redirectToRoute('app_admin_alabang_documents');
+        }
+
+        $documents = $em->getRepository(DocumentSetup::class)->findBy(['campus' => [ApplicantBed::CAMPUS_ALABANG, null]]);
+        return $this->render('admin-onsite/alabang/document_setup.html.twig', ['documents' => $documents]);
+    }
+
+    #[Route('/document-setup/{id}/delete', name: 'app_admin_alabang_documents_delete', methods: ['POST'])]
+    public function deleteDocumentSetup(int $id, EntityManagerInterface $em): Response
+    {
+        $doc = $em->getRepository(DocumentSetup::class)->find($id);
+        if ($doc) {
+            $em->remove($doc);
+            $em->flush();
+            $this->addFlash('success', 'Configuration permanently deleted.');
+        }
+        return $this->redirectToRoute('app_admin_alabang_documents');
+    }
+
+    // --- NEW: SOFT DELETE DOCUMENT FOR A SPECIFIC APPLICANT ---
+    #[Route('/registration/{id}/document/{slug}/soft-delete', name: 'app_admin_alabang_registration_doc_delete', methods: ['POST'])]
+    public function softDeleteApplicantDocument(string $id, string $slug, EntityManagerInterface $em): Response
+    {
+        $registration = $em->getRepository(ApplicantBed::class)->find($id);
+        if ($registration) {
+            $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
+                'applicant' => $registration,
+                'Slug' => $slug
+            ]);
+            if ($req) {
+                $req->setIsDeleted(true); 
+                $em->flush();
+                $this->addFlash('success', 'Document soft-deleted successfully.');
+            }
+        }
+        return $this->redirectToRoute('app_admin_alabang_registration_edit', ['id' => $id]);
     }
 }

@@ -8,34 +8,12 @@
 
 {% block body %}
 <div class="flex h-screen overflow-hidden bg-gray-50">
-    {# --- SIDEBAR --- #}
-    <aside class="w-[280px] bg-feu-green-900 text-white flex flex-col flex-shrink-0 transition-all duration-300 z-50">
-        <div class="h-20 flex items-center gap-3 px-6 bg-feu-green-800/50">
-            <i class="ki-filled ki-abstract-26 text-3xl text-feu-gold-400"></i>
-            <div><h1 class="text-2xl font-bold tracking-tight">ARIES</h1><p class="text-xs text-feu-green-200 uppercase tracking-wider">Alabang Admin</p></div>
-        </div>
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            <a href="{{ path('app_admin_alabang_dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-feu-green-100 hover:bg-feu-green-800 transition-all">
-                <i class="ki-filled ki-chart-pie-simple text-xl"></i><span>Dashboard</span>
-            </a>
-            <a href="{{ path('app_admin_alabang_registrations') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-feu-gold-500 text-feu-green-900 font-bold transition-all shadow-lg shadow-feu-gold-500/20">
-                <i class="ki-filled ki-people text-xl"></i><span>Registrations</span>
-            </a>
-        </nav>
-        <div class="p-4 border-t border-feu-green-800">
-            <a href="{{ path('app_logout') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-300 hover:bg-red-900/20 transition-all"><i class="ki-filled ki-exit-right text-xl"></i><span>Sign Out</span></a>
-        </div>
-    </aside>
 
-    {# --- MAIN CONTENT --- #}
+    {% include 'admin-onsite/alabang/_sidebar.html.twig' with {'active_menu': 'registrations'} %}
+
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header class="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-8 flex-shrink-0">
-            <h2 class="text-xl font-bold text-gray-800">Edit Applicant</h2>
-            <div class="flex items-center gap-4">
-                <div class="text-right hidden sm:block"><div class="text-sm font-bold text-gray-900">Admin User</div><div class="text-xs text-gray-500">Administrator</div></div>
-                <img src="{{ asset('metronic/media/avatars/300-1.png') }}" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100">
-            </div>
-        </header>
+
+        {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'Edit Student Details'} %}
 
         <div class="flex-1 overflow-y-auto p-8">
             {# ADDED enctype for file upload support #}
@@ -349,42 +327,56 @@
                                 <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
                             </h3>
                             <div class="space-y-4">
+                                {% set hasActiveDocs = false %}
                                 {% for req in registration.requirements %}
-                                    <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 flex items-center justify-center">
-                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-full h-full" alt="PDF">
+                                    {% if not req.isDeleted %}
+                                        {% set hasActiveDocs = true %}
+                                        <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-8 h-8 flex items-center justify-center">
+                                                        <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-full h-full" alt="PDF">
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-sm font-bold text-gray-800">{{ req.requirement }}</div>
+                                                        <a href="{{ asset(req.storedFileName) }}" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                                            <i class="ki-filled ki-eye"></i> View Current File
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div class="text-sm font-bold text-gray-800">{{ req.requirement }}</div>
-                                                    <a href="{{ asset(req.storedFileName) }}" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                                                        <i class="ki-filled ki-eye"></i> View Current File
-                                                    </a>
-                                                </div>
+                                                
+                                                {# Delete Trigger (Calls the hidden form below) #}
+                                                <button type="button" class="btn btn-sm btn-light-danger px-3 py-2 text-xs" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-alabang-{{ req.slug }}').submit();">
+                                                    <i class="ki-filled ki-trash"></i> Delete
+                                                </button>
                                             </div>
                                             <div class="text-xs text-gray-400">
                                                 {% if req.status == 'S' %}Submitted{% else %}Pending{% endif %}
                                             </div>
                                         </div>
-                                        
-                                        {# File Input Logic #}
-                                        {% set fieldName = '' %}
-                                        {% if 'PSA' in req.requirement %}{% set fieldName = 'req_psa' %}
-                                        {% elseif 'Report Card' in req.requirement %}{% set fieldName = 'req_card' %}
-                                        {% elseif 'Good Moral' in req.requirement %}{% set fieldName = 'req_moral' %}
-                                        {% endif %}
-                                        
-                                        {% if fieldName %}
-                                        <div class="mt-2">
-                                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Replace File (PDF Only)</label>
-                                            <input type="file" name="{{ fieldName }}" accept=".pdf" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                        </div>
-                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if not hasActiveDocs %}
+                                    <div class="text-center py-6 text-gray-400 text-sm italic">No active documents found.</div>
+                                {% endif %}
+
+                                <hr class="mt-6 mb-4 border-gray-200">
+                                
+                                {# Dynamic Uploads based on DocumentSetup table #}
+                                <h6 class="text-sm font-bold mt-2 mb-3 text-gray-700">Upload / Replace Documents</h6>
+                                {% if documentSetups is defined and documentSetups|length > 0 %}
+                                    <div class="space-y-3">
+                                        {% for docSetup in documentSetups %}
+                                            <div>
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">{{ docSetup.documentName }}</label>
+                                                <input type="file" name="{{ docSetup.slug }}" accept=".pdf" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                            </div>
+                                        {% endfor %}
                                     </div>
                                 {% else %}
-                                <div class="text-center py-6 text-gray-400 text-sm italic">No documents found.</div>
-                                {% endfor %}
+                                    <p class="text-xs text-gray-400 italic">No document configurations set up by Admin.</p>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -410,6 +402,12 @@
         </div>
     </main>
 </div>
+
+{% for req in registration.requirements %}
+    {% if not req.isDeleted %}
+        <form id="delete-doc-alabang-{{ req.slug }}" action="{{ path('app_admin_alabang_registration_doc_delete', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden"></form>
+    {% endif %}
+{% endfor %}
 
 <script src="{{ asset('js/ph-address-lookup.js') }}"></script>
 <script src="{{ asset('js/validation.js') }}"></script>

@@ -8,6 +8,8 @@ use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
 use App\Repository\ApplicantBedRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\ApplicantBedRequirement;
+use App\Entity\DocumentSetup;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -96,6 +98,8 @@ class AdminDilimanController extends AbstractController
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
+        $documentSetups = $em->getRepository(DocumentSetup::class)->findAll();
+
         if ($request->isMethod('POST')) {
             // 1. Basic Info
             $registration->setFirstName($request->request->get('first_name'));
@@ -133,24 +137,33 @@ class AdminDilimanController extends AbstractController
             ];
             
             // Loop through existing requirements to check for updates
-            foreach ($registration->getRequirements() as $req) {
-                // Determine which input name corresponds to this requirement based on slug or name
-                $inputName = null;
-                if (stripos($req->getRequirement(), 'PSA') !== false) $inputName = 'req_psa';
-                elseif (stripos($req->getRequirement(), 'Report Card') !== false) $inputName = 'req_card';
-                elseif (stripos($req->getRequirement(), 'Good Moral') !== false) $inputName = 'req_moral';
-
-                if ($inputName) {
-                    $docFile = $request->files->get($inputName);
-                    if ($docFile) {
-                        $filename = strtoupper(str_replace('req_', 'REQ_', $inputName)) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.pdf';
-                        try {
-                            $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docMap[$inputName], $filename);
-                            $req->setStoredFileName('uploads/' . $docMap[$inputName] . '/' . $filename);
-                            $req->setDateSubmitted(new \DateTime());
-                            $req->setStatus('S'); // Ensure it is marked as submitted
-                        } catch (\Exception $e) { /* Handle error */ }
+            foreach ($documentSetups as $docSetup) {
+                $inputName = $docSetup->getSlug();
+                $docFile = $request->files->get($inputName);
+                
+                if ($docFile) {
+                    $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
+                        'applicant' => $registration, 
+                        'Slug' => $inputName
+                    ]);
+                    
+                    if (!$req) {
+                        $req = new ApplicantBedRequirement();
+                        $req->setApplicant($registration);
+                        $req->setSlug($inputName);
+                        $req->setRequirement($docSetup->getDocumentName());
+                        $req->setIsRequired($docSetup->isRequired());
+                        $em->persist($req);
                     }
+                    
+                    $filename = strtoupper($inputName) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.pdf';
+                    try {
+                        $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
+                        $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
+                        $req->setIsDeleted(false); // Un-delete if it was previously soft-deleted!
+                        $req->setDateSubmitted(new \DateTime());
+                        $req->setStatus('S');
+                    } catch (\Exception $e) { }
                 }
             }
 
@@ -224,7 +237,8 @@ class AdminDilimanController extends AbstractController
         }
 
         return $this->render('admin-onsite/diliman/edit_registration.html.twig', [
-            'registration' => $registration
+            'registration' => $registration,
+            'documentSetups' => $documentSetups
         ]);
     }
 
@@ -267,5 +281,62 @@ class AdminDilimanController extends AbstractController
             $this->addFlash('success', 'Record deleted.');
         }
         return $this->redirectToRoute('app_admin_diliman_registrations');
+    }
+
+    #[Route('/document-setup', name: 'app_admin_diliman_documents', methods: ['GET', 'POST'])]
+    public function documentSetup(EntityManagerInterface $em, Request $request): Response
+    {
+        if ($request->isMethod('POST')) {
+            $name = $request->request->get('name');
+            $slug = 'req_' . strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $name));
+            $slug = preg_replace('/_+/', '_', $slug); 
+            
+            $doc = new DocumentSetup();
+            $doc->setDocumentName($name);
+            $doc->setSlug($slug);
+            $doc->setFolderName('onsite-' . str_replace('_', '-', $slug));
+            $doc->setIsRequired($request->request->get('is_required') === '1');
+            $doc->setCampus(ApplicantBed::CAMPUS_DILIMAN); 
+
+            $em->persist($doc);
+            $em->flush();
+            
+            $this->addFlash('success', 'New document configuration added!');
+            return $this->redirectToRoute('app_admin_diliman_documents');
+        }
+
+        $documents = $em->getRepository(DocumentSetup::class)->findBy(['campus' => [ApplicantBed::CAMPUS_DILIMAN, null]]);
+        return $this->render('admin-onsite/diliman/document_setup.html.twig', ['documents' => $documents]);
+    }
+
+    #[Route('/document-setup/{id}/delete', name: 'app_admin_diliman_documents_delete', methods: ['POST'])]
+    public function deleteDocumentSetup(int $id, EntityManagerInterface $em): Response
+    {
+        $doc = $em->getRepository(DocumentSetup::class)->find($id);
+        if ($doc) {
+            $em->remove($doc);
+            $em->flush();
+            $this->addFlash('success', 'Configuration permanently deleted.');
+        }
+        return $this->redirectToRoute('app_admin_diliman_documents');
+    }
+
+    // --- NEW: SOFT DELETE DOCUMENT FOR A SPECIFIC APPLICANT ---
+    #[Route('/registration/{id}/document/{slug}/soft-delete', name: 'app_admin_diliman_registration_doc_delete', methods: ['POST'])]
+    public function softDeleteApplicantDocument(string $id, string $slug, EntityManagerInterface $em): Response
+    {
+        $registration = $em->getRepository(ApplicantBed::class)->find($id);
+        if ($registration) {
+            $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
+                'applicant' => $registration,
+                'Slug' => $slug
+            ]);
+            if ($req) {
+                $req->setIsDeleted(true); 
+                $em->flush();
+                $this->addFlash('success', 'Document soft-deleted successfully.');
+            }
+        }
+        return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
     }
 }

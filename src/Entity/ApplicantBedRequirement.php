@@ -34,6 +34,9 @@ class ApplicantBedRequirement
     #[ORM\Column(name: 'IsRequired', type: Types::BOOLEAN)]
     private bool $IsRequired = true;
 
+    #[ORM\Column(name: 'IsDeleted', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $IsDeleted = false;
+
     #[ORM\Column(name: 'DateSubmitted', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $DateSubmitted = null;
 
@@ -53,4 +56,6 @@ class ApplicantBedRequirement
     public function setIsRequired(bool $IsRequired): static { $this->IsRequired = $IsRequired; return $this; }
     public function getDateSubmitted(): ?\DateTimeInterface { return $this->DateSubmitted; }
     public function setDateSubmitted(?\DateTimeInterface $DateSubmitted): static { $this->DateSubmitted = $DateSubmitted; return $this; }
+    public function isDeleted(): bool { return $this->IsDeleted; }
+    public function setIsDeleted(bool $IsDeleted): static { $this->IsDeleted = $IsDeleted; return $this; }
 }

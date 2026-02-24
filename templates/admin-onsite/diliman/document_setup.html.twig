@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Document Setup - Diliman Admin{% endblock %}
+
+{% block body %}
+<div class="flex h-screen overflow-hidden bg-gray-50">
+    
+    {% include 'admin-onsite/diliman/_sidebar.html.twig' with {'active_menu': 'documents'} %}
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Document Requirements Setup'} %}
+
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-7xl mx-auto">
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div class="mb-8 border-b border-gray-100 pb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Manage Document Types</h3>
+                        <p class="text-sm text-gray-500 mt-1">Add or remove the documents required for enrollment. These instantly update the public forms.</p>
+                    </div>
+
+                    <form action="{{ path('app_admin_diliman_documents') }}" method="POST" class="flex flex-col sm:flex-row gap-4 mb-10 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                        <div class="flex-grow">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name</label>
+                            <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. Health Certificate" required>
+                        </div>
+                        <div class="w-full sm:w-48">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Requirement</label>
+                            <select name="is_required" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                                <option value="1">Strictly Required</option>
+                                <option value="0">Optional</option>
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-auto flex items-end">
+                            <button type="submit" class="w-full sm:w-auto bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
+                                Add Document
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-400 uppercase bg-gray-50 rounded-t-xl">
+                                <tr>
+                                    <th class="px-6 py-4 rounded-tl-xl">Document Name</th>
+                                    <th class="px-6 py-4">Internal Slug</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4 text-right rounded-tr-xl">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                {% for doc in documents %}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-6 py-4 font-bold text-gray-800">{{ doc.documentName }}</td>
+                                    <td class="px-6 py-4 text-gray-500 font-mono text-xs">{{ doc.slug }}</td>
+                                    <td class="px-6 py-4">
+                                        {% if doc.isRequired %}
+                                            <span class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold">Required</span>
+                                        {% else %}
+                                            <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">Optional</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <form action="{{ path('app_admin_diliman_documents_delete', {id: doc.id}) }}" method="POST" onsubmit="return confirm('Delete this requirement forever?');">
+                                            <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-2">
+                                                <i class="ki-filled ki-trash text-lg"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">No document setups configured yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

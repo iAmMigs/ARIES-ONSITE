@@ -182,7 +182,7 @@
 <div class="main-content py-16 bg-gray-50">
     <div class="container mx-auto px-4 max-w-5xl">
         
-        <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate>
+        <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="{{ selected_campus|default('') }}">
             
             {# --- CARD 1: ADMISSION DETAILS --- #}
             <div class="card mb-5 animate-section">
@@ -220,7 +220,6 @@
                             <div class="form-group">
                                 <label class="form-label">Admission Type<span class="required">*</span></label>
                                 <select name="admission_type" class="form-select" required>
-                                    <option value="">Select Type</option>
                                     <option value="Freshman">Freshman</option>
                                     <option value="Transferee">Transferee</option>
                                 </select>
@@ -627,20 +626,34 @@
                     <h3 class="card-title"><i class="ki-filled ki-folder-added text-feu-green-600 fs-1"></i>STEP 6 : Submission of Documents</h3>
                 </div>
                 <div class="card-body">
-                     <div class="file-upload-group mb-4">
-                        <label class="form-label d-block">PSA Birth Certificate <span class="required">*</span></label>
-                        <input type="file" name="req_psa" class="form-control" required accept=".pdf">
-                    </div>
-                    
-                    <div class="file-upload-group mb-4">
-                        <label class="form-label d-block">Report Card (Form 138) <span class="required">*</span></label>
-                        <input type="file" name="req_card" class="form-control" required accept=".pdf">
-                    </div>
-
-                    <div class="file-upload-group">
-                        <label class="form-label d-block">Good Moral Certificate</label>
-                        <input type="file" name="req_moral" class="form-control" accept=".pdf">
-                    </div>
+                    {% if documents is defined and documents|length > 0 %}
+                        <div id="dynamic-documents-container">
+                            {% for doc in documents %}
+                                {# Added data-campus to the wrapper #}
+                                <div class="file-upload-group mb-4 document-item" data-campus="{{ doc.campus }}">
+                                    <label class="form-label d-block">
+                                        {{ doc.documentName }} 
+                                        {% if doc.isRequired %}<span class="required">*</span>{% endif %}
+                                    </label>
+                                    {# Added data-is-required so JS can safely toggle the HTML5 required state #}
+                                    <input type="file" name="{{ doc.slug }}" class="form-control document-input" 
+                                           data-is-required="{{ doc.isRequired ? 'true' : 'false' }}"
+                                           {% if doc.isRequired %}required{% endif %} accept=".pdf">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {# Fallback if a campus has no specific documents #}
+                        <div id="no-docs-message" class="alert alert-warning text-center" style="display: none;">
+                            <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
+                            <p class="mb-0">No documents are currently required for this campus.</p>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning text-center">
+                            <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
+                            <p class="mb-0">No documents are currently required for enrollment. Proceed to submit.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -656,426 +669,7 @@
     </div>
 </div>
 
-<script>
-    // --- Data Dictionaries (Kinder to SHS only) ---
-    const strandData = {
-        'feu_alabang': ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'],
-        'feu_diliman': ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track']
-    };
-    
-    const numericFields = ['lrn', 'contact_number', 'father_contact', 'mother_contact', 'guardian_contact'];
+<script src="{{ asset('js/validation.js') }}"></script>
+<script src="{{ asset('js/enrollment.js') }}"></script>
 
-    numericFields.forEach(fieldName => {
-        const input = document.querySelector(`[name="${fieldName}"]`);
-        if (input) {
-            input.addEventListener('input', function() {
-                // Remove any non-numeric characters immediately
-                this.value = this.value.replace(/\D/g, '');
-                
-                // Force re-validation for the submit button lock
-                checkForm(); 
-            });
-        }
-    });
-
-    // --- NEW: Dynamic Grade Dictionary ---
-    const educationGrades = {
-        'Primary': [
-            {val: 'kinder', label: 'Kindergarten'},
-            {val: 'grade_1', label: 'Grade 1'},
-            {val: 'grade_2', label: 'Grade 2'},
-            {val: 'grade_3', label: 'Grade 3'},
-            {val: 'grade_4', label: 'Grade 4'},
-            {val: 'grade_5', label: 'Grade 5'},
-            {val: 'grade_6', label: 'Grade 6'}
-        ],
-        'Secondary': [
-            {val: 'grade_7', label: 'Grade 7'},
-            {val: 'grade_8', label: 'Grade 8'},
-            {val: 'grade_9', label: 'Grade 9'},
-            {val: 'grade_10', label: 'Grade 10'},
-            {val: 'grade_11', label: 'Grade 11'},
-            {val: 'grade_12', label: 'Grade 12'}
-        ]
-    };
-
-    let currentCampus = '{{ selected_campus|default("") }}';
-
-    // --- Header Scroll Logic ---
-    window.addEventListener('scroll', function() {
-        const header = document.getElementById('stickyHeader');
-        if (window.scrollY > 100) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
-
-    // --- Core Logic ---
-    function selectCampus(campus) {
-        currentCampus = campus;
-        // Visual toggle
-        document.querySelectorAll('.campus-option').forEach(opt => opt.classList.remove('active'));
-        const activeOpt = document.querySelector(`.campus-option input[value="${campus}"]`).parentElement;
-        activeOpt.classList.add('active');
-        activeOpt.querySelector('input').checked = true;
-
-        // --- NEW: Handle FEU Alabang Restrictions ---
-        const eduSelect = document.getElementById('educationType');
-        const primaryOption = eduSelect.querySelector('option[value="Primary"]');
-        
-        // Reset selection
-        eduSelect.value = "";
-        
-        if (campus === 'feu_alabang') {
-            // Disable and Hide Primary for Alabang
-            if(primaryOption) {
-                primaryOption.disabled = true;
-                primaryOption.style.display = 'none'; // Visual hide
-                primaryOption.hidden = true;          // Attribute hide
-            }
-        } else {
-            // Enable and Show Primary for Diliman
-            if(primaryOption) {
-                primaryOption.disabled = false;
-                primaryOption.style.display = 'block';
-                primaryOption.hidden = false;
-            }
-        }
-
-        updateGradeLevels();
-    }
-
-    function updateGradeLevels() {
-        const type = document.getElementById('educationType').value;
-        const select = document.getElementById('gradeLevel');
-        
-        select.innerHTML = '<option value="">Select Level</option>';
-        
-        if (type && educationGrades[type]) {
-            educationGrades[type].forEach(grade => {
-                // --- NEW: Filter out Junior High (7-10) if Alabang is selected ---
-                if (currentCampus === 'feu_alabang' && type === 'Secondary') {
-                    if (['grade_7', 'grade_8', 'grade_9', 'grade_10'].includes(grade.val)) {
-                        return; // Skip this grade
-                    }
-                }
-
-                const opt = document.createElement('option');
-                opt.value = grade.val;
-                opt.textContent = grade.label;
-                select.appendChild(opt);
-            });
-        }
-        updateStrands();
-    }
-
-    function updateStrands() {
-        const grade = document.getElementById('gradeLevel').value;
-        const strandGroup = document.getElementById('strandGroup');
-        const select = document.getElementById('strand');
-        
-        select.innerHTML = '<option value="">Select Option</option>';
-        // Show Strand ONLY if Grade 11 or 12
-        if(grade === 'grade_11' || grade === 'grade_12') {
-            strandGroup.style.display = 'block';
-            select.setAttribute('required', 'required');
-            
-            const strands = strandData[currentCampus] || [];
-            strands.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s;
-                opt.textContent = s;
-                select.appendChild(opt);
-            });
-        } else {
-            strandGroup.style.display = 'none';
-            select.removeAttribute('required');
-        }
-    }
-
-    // --- REUSABLE ADDRESS LOOKUP FUNCTION ---
-    function setupAddressLookup(prefix) {
-        const regions = document.getElementById(prefix + '_region');
-        const provinces = document.getElementById(prefix + '_province');
-        const cities = document.getElementById(prefix + '_city');
-        const barangays = document.getElementById(prefix + '_barangay');
-        const zip = document.getElementById(prefix + '_zip');
-
-        if(!regions) return;
-
-        fetch('/api/address/regions').then(r => r.json()).then(data => {
-            data.forEach(r => regions.innerHTML += `<option value="${r.code}">${r.name}</option>`);
-        });
-
-        regions.addEventListener('change', function() {
-            provinces.innerHTML = '<option value="">Select Province</option>'; provinces.disabled = true;
-            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
-            
-            if(this.value) {
-                fetch(`/api/address/provinces/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(p => provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`);
-                    provinces.disabled = false;
-                });
-            }
-        });
-
-        provinces.addEventListener('change', function() {
-            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
-            if(this.value) {
-                fetch(`/api/address/cities/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(c => cities.innerHTML += `<option value="${c.code}">${c.name}</option>`);
-                    cities.disabled = false;
-                });
-            }
-        });
-
-        cities.addEventListener('change', function() {
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
-            if(this.value) {
-                fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(b => barangays.innerHTML += `<option value="${b.name}" data-zip="${b.zip}">${b.name}</option>`);
-                    barangays.disabled = false;
-                });
-            }
-        });
-    }
-
-    // --- Toggles ---
-    function togglePermanentAddress() {
-        const isChecked = document.getElementById('sameAsCurrent').checked;
-        const block = document.getElementById('permanentAddressBlock');
-        block.style.display = isChecked ? 'none' : 'block';
-        
-        // Handle Required Attributes
-        const inputs = block.querySelectorAll('select, input');
-        inputs.forEach(i => {
-            if (isChecked) {
-                i.removeAttribute('required');
-                i.value = ""; // Optional: clear values
-            } else {
-                i.setAttribute('required', 'required');
-            }
-        });
-        // Force re-validation
-        document.getElementById('enrollmentForm').dispatchEvent(new Event('change'));
-    }
-
-    function toggleParentStatus(currentId, otherId) {
-        const current = document.getElementById(currentId);
-        const other = document.getElementById(otherId);
-        
-        if (current.checked) {
-            other.disabled = true;
-            other.checked = false;
-        } else {
-            other.disabled = false;
-        }
-    }
-
-    // --- Dynamic Siblings (Delete on Top Left) ---
-    function addSibling() {
-        const container = document.getElementById('siblings_container');
-        const row = `
-            <div class="sibling-row row g-3 mb-3 align-items-center">
-                <button type="button" class="btn-remove-sibling" onclick="this.closest('.sibling-row').remove()" title="Remove Sibling">
-                    <i class="ki-filled ki-trash"></i>
-                </button>
-                <div class="col-md-5">
-                    <label class="form-label text-xs">Name</label>
-                    <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label text-xs">School</label>
-                    <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School">
-                </div>
-                 <div class="col-md-3">
-                    <label class="form-label text-xs">Student No.</label>
-                    <input type="text" name="sibling_student_no[]" class="form-control form-control-sm" placeholder="20xxxxxx">
-                </div>
-            </div>`;
-        container.insertAdjacentHTML('beforeend', row);
-    }
-
-    // --- Initialization ---
-    document.addEventListener('DOMContentLoaded', function() {
-        // Init Visa Toggle
-        const citizenSelect = document.getElementById('citizenshipSelect');
-        const visaSection = document.getElementById('visaSection');
-        if(citizenSelect && visaSection) {
-            citizenSelect.addEventListener('change', function() {
-                if(this.value === 'Foreign' || this.value === 'Dual') {
-                    visaSection.style.display = 'block';
-                } else {
-                    visaSection.style.display = 'none';
-                }
-            });
-        }
-
-        // Init Pre-selection
-        if(currentCampus) {
-            // If page reloads with alabang selected, trigger the hide logic
-            selectCampus(currentCampus);
-        } else {
-            updateGradeLevels();
-        }
-
-        // Names (Letters + Space only, Title Case)
-        const nameFields = ['last_name', 'first_name', 'middle_name', 'father_firstname', 'father_lastname', 'mother_firstname', 'mother_lastname', 'guardian_name'];
-        nameFields.forEach(name => {
-            const el = document.querySelector(`[name="${name}"]`);
-            if (el && window.ARIESValidation) ARIESValidation.setupFormatting(el, 'name');
-        });
-
-        // Text Fields (Alphanumeric + Space only, Title Case)
-        const textFields = ['birth_place', 'religion', 'citizenship', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
-        textFields.forEach(name => {
-            const el = document.querySelector(`[name="${name}"]`);
-            if (el && window.ARIESValidation) ARIESValidation.setupFormatting(el, 'text');
-        });
-
-        // Animation Observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
-
-        // Form Validation (Bootstrap)
-        const forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms).forEach(function(form) {
-            form.addEventListener('submit', function(event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-
-        // Submit Button Lock
-        const form = document.getElementById('enrollmentForm');
-        const btn = document.getElementById('submitBtn');
-        const warning = document.getElementById('submitWarning');
-
-        function checkForm() {
-            // Check HTML5 validity
-            if (form.checkValidity()) {
-                btn.disabled = false;
-                warning.style.display = 'none';
-            } else {
-                btn.disabled = true;
-                warning.style.display = 'block';
-            }
-        }
-
-        form.addEventListener('change', checkForm);
-        form.addEventListener('input', checkForm);
-
-        // Init Address Lookups
-        setupAddressLookup('addr'); // Current Address
-        setupAddressLookup('perm'); // Permanent Address
-    });
-
-
-    const citizenshipSelect = document.querySelector('[name="citizenship"]');
-    
-    // Wrappers (Make sure you add id="foreign_fields_container" and id="indigenous_group_container" in your Twig HTML)
-    const foreignFieldsContainer = document.getElementById('foreign_fields_container'); 
-    const indigenousGroupContainer = document.getElementById('indigenous_group_container');
-    
-    // Inputs
-    const passportInput = document.querySelector('[name="passport_number"]');
-    const visaTypeInput = document.querySelector('[name="visa_type"]');
-    const visaStatusInput = document.querySelector('[name="visa_status"]');
-    const indigenousInput = document.querySelector('[name="indigenous_group"]');
-
-    if (citizenshipSelect) {
-        citizenshipSelect.addEventListener('change', function() {
-            const val = this.value.toLowerCase();
-            
-            // 1. Hide both containers by default
-            if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'none';
-            if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'none';
-            
-            // 2. Remove 'required' from foreign fields
-            if (passportInput) passportInput.required = false;
-            if (visaTypeInput) visaTypeInput.required = false;
-            if (visaStatusInput) visaStatusInput.required = false;
-            
-            // 3. Handle specific selections
-            if (val === 'foreign' || val === 'dual citizenship') {
-                if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'block';
-                if (passportInput) passportInput.required = true;
-                if (visaTypeInput) visaTypeInput.required = true;
-                if (visaStatusInput) visaStatusInput.required = true;
-                
-                if (indigenousInput) indigenousInput.value = ''; // clear hidden Filipino field
-                
-            } else if (val === 'filipino') {
-                if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'block';
-                
-                if (passportInput) passportInput.value = ''; // clear hidden Foreign fields
-                if (visaTypeInput) visaTypeInput.value = '';
-                if (visaStatusInput) visaStatusInput.value = '';
-            }
-        });
-
-        // Trigger change on load to set the correct initial UI state
-        citizenshipSelect.dispatchEvent(new Event('change'));
-    }
-
-    const lrnInput = document.querySelector('[name="lrn"]');
-    if (lrnInput) {
-        // 1. Create the red error text dynamically
-        const errorMsg = document.createElement('div');
-        errorMsg.className = 'text-danger mt-1 fw-bold';
-        errorMsg.style.display = 'none';
-        errorMsg.style.fontSize = '0.85em';
-        errorMsg.innerText = 'LRN already exists, please check your credentials.';
-        
-        // Insert it right after the LRN input
-        lrnInput.parentNode.appendChild(errorMsg);
-
-        const submitBtn = document.querySelector('button[type="submit"]');
-
-        // 2. Listen for when the user clicks away from the LRN field
-        lrnInput.addEventListener('blur', function() {
-            const lrnValue = this.value.trim();
-            
-            if (lrnValue.length > 0) {
-                // Call the endpoint we made in the controller
-                fetch(`/enrollment/api/check-lrn?lrn=${encodeURIComponent(lrnValue)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.exists) {
-                            // Show error, turn input red, disable submit
-                            errorMsg.style.display = 'block';
-                            lrnInput.classList.add('is-invalid');
-                            lrnInput.style.borderColor = 'red';
-                            if (submitBtn) submitBtn.disabled = true;
-                        } else {
-                            // Hide error, remove red border, enable submit
-                            errorMsg.style.display = 'none';
-                            lrnInput.classList.remove('is-invalid');
-                            lrnInput.style.borderColor = '';
-                            if (submitBtn) submitBtn.disabled = false;
-                        }
-                    });
-            } else {
-                // Reset if field is empty
-                errorMsg.style.display = 'none';
-                lrnInput.classList.remove('is-invalid');
-                lrnInput.style.borderColor = '';
-                if (submitBtn) submitBtn.disabled = false;
-            }
-        });
-    }
-
-</script>
 {% endblock %}
