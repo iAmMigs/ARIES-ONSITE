@@ -18,3 +18,8 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+### > User Uploads ###
+/public/uploads/*
+!/public/uploads/.gitignore
+### < User Uploads ###

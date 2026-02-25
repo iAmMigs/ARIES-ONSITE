@@ -150,12 +150,12 @@ class EnrollmentController extends AbstractController
             $em->persist($school);
         }
 
-        // --- 6. FILE UPLOADS (FIXED) ---
+        // --- 6. FILE UPLOADS (FIXED FOLDER CREATION) ---
         
         // 2x2 Picture
         $idFile = $request->files->get('req_id_picture');
         if ($idFile instanceof UploadedFile) {
-            // Ensure folder exists
+            // Ensure folder exists dynamically
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
@@ -181,7 +181,7 @@ class EnrollmentController extends AbstractController
             $file = $request->files->get($slug);
             
             if ($file instanceof UploadedFile) {
-                // Ensure dynamic folder exists
+                // Ensure dynamic folder exists dynamically
                 $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                 if (!file_exists($targetDir)) {
                     mkdir($targetDir, 0777, true);
