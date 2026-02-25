@@ -63,11 +63,29 @@ class AdminAlabangController extends AbstractController
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
             ->orderBy('a.createdAt', 'DESC');
 
-        if ($grade = $request->query->get('grade')) {
-            $qb->andWhere('a.gradeLevel = :grade')->setParameter('grade', $grade);
+        // Keyword Search (Name or Student No)
+        if ($search = $request->query->get('search')) {
+            $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
+               ->setParameter('search', "%$search%");
         }
+
+        // 2. Education Level Filter
+        if ($eduType = $request->query->get('education_type')) {
+            $qb->andWhere('a.educationType = :eduType')
+               ->setParameter('eduType', $eduType);
+        }
+
+        // Grade Level Filter (Array of checkboxes)
+        $grades = array_filter($request->query->all()['grade_levels'] ?? []);
+        if (!empty($grades)) {
+            $qb->andWhere('a.gradeLevel IN (:grades)')
+               ->setParameter('grades', $grades);
+        }
+
+        // Date Filter
         if ($date = $request->query->get('date')) {
-            $qb->andWhere('a.createdAt LIKE :date')->setParameter('date', "$date%");
+            $qb->andWhere('a.createdAt LIKE :date')
+               ->setParameter('date', "$date%");
         }
 
         return $this->render('admin-onsite/alabang/registrations.html.twig', [
@@ -93,7 +111,7 @@ class AdminAlabangController extends AbstractController
         $documentSetups = $em->getRepository(DocumentSetup::class)->findAll();
 
         if ($request->isMethod('POST')) {
-            // 1. Basic Info
+            // Basic Info
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
             $registration->setMiddleName($request->request->get('middle_name'));
@@ -142,7 +160,7 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // 2. Profile Picture Upload
+            // Profile Picture Upload
             $profileFile = $request->files->get('profile_picture');
             if ($profileFile) {
                 $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $profileFile->guessExtension();
@@ -152,7 +170,7 @@ class AdminAlabangController extends AbstractController
                 } catch (\Exception $e) { /* Handle error */ }
             }
 
-            // 3. Document Replacements (PDF Only)
+            // Document Replacements (PDF Only)
             $docMap = [
                 'req_psa' => 'onsite-psa',
                 'req_card' => 'onsite-cards',
@@ -181,7 +199,7 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // 4. Exam Status Logic
+            // Exam Status Logic
             $examTaken = $request->request->get('exam_taken') === '1';
             $score = $request->request->get('exam_score');
 
@@ -193,11 +211,11 @@ class AdminAlabangController extends AbstractController
                 $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             }
 
-            // 5. Address Lookup Hydration
+            // Address Lookup Hydration
             $this->hydrateAddress($registration, $request, $em, 'current');
             $this->hydrateAddress($registration, $request, $em, 'permanent');
 
-            // 6. Guardians (Split Name Handling)
+            // Guardians (Split Name Handling)
             $guardiansData = $request->request->all('guardians');
             foreach ($registration->getGuardians() as $index => $g) {
                 if (isset($guardiansData[$index])) {
@@ -217,7 +235,7 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // 7. Siblings
+            // Siblings
             $siblingsData = $request->request->all('siblings');
             foreach ($registration->getSiblings() as $index => $s) {
                 if (isset($siblingsData[$index])) {
@@ -229,7 +247,7 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // 8. Schools
+            // Schools
             $schoolsData = $request->request->all('schools');
             foreach ($registration->getSchools() as $index => $sch) {
                 if (isset($schoolsData[$index])) {

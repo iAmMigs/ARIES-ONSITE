@@ -6,7 +6,7 @@ use App\Entity\ApplicantBed;
 use App\Entity\ApplicantBedGuardian;
 use App\Entity\ApplicantBedSchool;
 use App\Entity\ApplicantBedSibling;
-use App\Entity\ApplicantBedRequirement;
+// use App\Entity\ApplicantBedRequirement; // Not used
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -69,10 +69,12 @@ class PopulateDilimanCommand extends Command
             $applicant->setBirthDate(new \DateTime('-12 years'));
             $applicant->setBirthPlace('Quezon City');
             $applicant->setReligion('Christian');
+
+            // --- Random Metronic Avatar ---
+            $avatarId = rand(1, 34);
+            $applicant->setPhotoSlug('metronic/media/avatars/300-' . $avatarId . '.png');
             
-            // --- NEW LOGIC: Test Citizenship and Visa Fields ---
             if ($i === 2) {
-                // Make the 3rd applicant a Dual Citizen
                 $applicant->setCitizenship('Dual Citizenship');
                 $applicant->setPassportNumber('P' . rand(1000000, 9999999));
                 $applicant->setVisaType('permanent_resident');
@@ -110,20 +112,8 @@ class PopulateDilimanCommand extends Command
             $this->em->persist($sibling);
             $applicant->addSibling($sibling);
 
-            $docs = ['PSA Birth Certificate', 'Report Card'];
-            foreach ($docs as $docName) {
-                $req = new ApplicantBedRequirement();
-                $req->setApplicant($applicant);
-                $req->setRequirement($docName);
-                $req->setSlug(strtolower(str_replace(' ', '-', $docName)));
-                $req->setStoredFileName('uploads/dummy.pdf');
-                $req->setStatus('S');
-                $req->setDateSubmitted(new \DateTime());
-                $req->setIsRequired(true);
-                $this->em->persist($req);
-                $applicant->addRequirement($req);
-            }
-
+            // --- DOCUMENTS: SKIPPED ---
+            
             $school = new ApplicantBedSchool();
             $school->setApplicant($applicant);
             $school->setSchool('Ateneo Grade School');
@@ -138,7 +128,7 @@ class PopulateDilimanCommand extends Command
             $io->writeln("Created: $fName $lName ($studentNo)");
         }
 
-        $io->success('3 Diliman Applicants Created.');
+        $io->success('3 Diliman Applicants Created with Random Avatars.');
         return Command::SUCCESS;
     }
 

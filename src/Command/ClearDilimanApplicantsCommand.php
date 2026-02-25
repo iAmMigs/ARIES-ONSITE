@@ -43,7 +43,6 @@ class ClearDilimanApplicantsCommand extends Command
         $this->em->flush();
 
         $io->success("Successfully cleared $count applicants from FEU Diliman.");
-
         return Command::SUCCESS;
     }
 }

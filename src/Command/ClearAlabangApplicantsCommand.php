@@ -43,7 +43,6 @@ class ClearAlabangApplicantsCommand extends Command
         $this->em->flush();
 
         $io->success("Successfully cleared $count applicants from FEU Alabang.");
-
         return Command::SUCCESS;
     }
 }

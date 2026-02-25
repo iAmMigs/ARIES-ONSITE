@@ -110,7 +110,6 @@
                             </div>
                         </div>
 
-                        {% if registration.permanentAddress != registration.currentAddress %}
                         <div class="pt-4 border-t border-gray-100">
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Permanent Address</div>
                             <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
@@ -118,7 +117,6 @@
                                 {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }} {{ registration.permanentZip }}
                             </div>
                         </div>
-                        {% endif %}
                     </div>
 
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">

@@ -67,12 +67,29 @@ class AdminDilimanController extends AbstractController
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
             ->orderBy('a.createdAt', 'DESC');
 
-        if ($grade = $request->query->get('grade')) {
-            $qb->andWhere('a.gradeLevel = :grade')->setParameter('grade', $grade);
+        // Keyword Search
+        if ($search = $request->query->get('search')) {
+            $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
+               ->setParameter('search', "%$search%");
         }
-        
+
+        // Education Level
+        if ($eduType = $request->query->get('education_type')) {
+            $qb->andWhere('a.educationType = :eduType')
+               ->setParameter('eduType', $eduType);
+        }
+
+        // Grade Level
+        $grades = array_filter($request->query->all()['grade_levels'] ?? []);
+        if (!empty($grades)) {
+            $qb->andWhere('a.gradeLevel IN (:grades)')
+               ->setParameter('grades', $grades);
+        }
+
+        // Date
         if ($date = $request->query->get('date')) {
-            $qb->andWhere('a.createdAt LIKE :date')->setParameter('date', "$date%");
+            $qb->andWhere('a.createdAt LIKE :date')
+               ->setParameter('date', "$date%");
         }
 
         return $this->render('admin-onsite/diliman/registrations.html.twig', [

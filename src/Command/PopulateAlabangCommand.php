@@ -6,7 +6,7 @@ use App\Entity\ApplicantBed;
 use App\Entity\ApplicantBedGuardian;
 use App\Entity\ApplicantBedSchool;
 use App\Entity\ApplicantBedSibling;
-use App\Entity\ApplicantBedRequirement;
+// use App\Entity\ApplicantBedRequirement; // Not used as requested
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -64,7 +64,11 @@ class PopulateAlabangCommand extends Command
             $applicant->setBirthPlace('Muntinlupa City');
             $applicant->setReligion('Catholic');
             
-            // --- NEW LOGIC: Test Citizenship and Visa Fields ---
+            // --- Random Metronic Avatar (300-1.png to 300-34.png) ---
+            $avatarId = rand(1, 34);
+            $applicant->setPhotoSlug('metronic/media/avatars/300-' . $avatarId . '.png');
+            
+            // --- Logic: Citizenship and Visa Fields ---
             if ($i === 2) {
                 // Make the 3rd applicant a Foreigner
                 $applicant->setCitizenship('Foreign');
@@ -74,7 +78,6 @@ class PopulateAlabangCommand extends Command
             } else {
                 // Make others Filipino
                 $applicant->setCitizenship('Filipino');
-                // Test Indigenous Group on one of them
                 $applicant->setIndigenousGroup($i === 1 ? 'Aeta' : null);
             }
             
@@ -111,19 +114,8 @@ class PopulateAlabangCommand extends Command
                 $applicant->addSibling($sibling);
             }
 
-            $docs = ['PSA Birth Certificate', 'Report Card', 'Good Moral Certificate'];
-            foreach ($docs as $docName) {
-                $req = new ApplicantBedRequirement();
-                $req->setApplicant($applicant);
-                $req->setRequirement($docName);
-                $req->setSlug(strtolower(str_replace(' ', '-', $docName))); 
-                $req->setStoredFileName('uploads/dummy.pdf'); 
-                $req->setStatus('S');
-                $req->setDateSubmitted(new \DateTime());
-                $req->setIsRequired(true);
-                $this->em->persist($req);
-                $applicant->addRequirement($req);
-            }
+            // --- DOCUMENTS: SKIPPED (As requested, using NULL for now) ---
+            // The dynamic DocumentSetup will handle requirements on the edit page.
 
             $school = new ApplicantBedSchool();
             $school->setApplicant($applicant);
@@ -139,7 +131,7 @@ class PopulateAlabangCommand extends Command
             $io->writeln("Created: $fName $lName ($studentNo)");
         }
 
-        $io->success('3 Alabang Applicants Created.');
+        $io->success('3 Alabang Applicants Created with Random Avatars.');
         return Command::SUCCESS;
     }
 
