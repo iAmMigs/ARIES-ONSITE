@@ -57,7 +57,7 @@ DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/aries_db?serverVersion=
 
 > **Note:** Ensure your database user has TRIGGER creation privileges, as the audit trail relies heavily on MySQL Triggers.
 
-**4. Database Setup**
+**4. Database Setup (IF you have no copy of the Existing Database)**
 
 Create the database and apply migrations (this includes tables and dynamic audit triggers).
 
