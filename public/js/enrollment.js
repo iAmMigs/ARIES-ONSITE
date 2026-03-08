@@ -121,7 +121,6 @@ window.selectCampus = function(campus) {
         }
     }
     
-    // Clear any leftover validation visuals from the auto-switch
     if (window.ARIESValidation) window.ARIESValidation.resetField(eduSelect, window.ARIESValidation.getErrorElement(eduSelect));
     
     window.updateGradeLevels();
@@ -248,6 +247,85 @@ window.checkFormValidity = function() {
     }
 };
 
+// --- SUBMIT MODAL FUNCTIONS ---
+window.showConfirmationModal = function() {
+    const modal = document.getElementById('submitConfirmModal');
+    const dialog = document.getElementById('modalDialog');
+    const summaryContainer = document.getElementById('summaryContent');
+    
+    if (!modal || !summaryContainer) {
+        document.getElementById('enrollmentForm').submit();
+        return;
+    }
+
+    const campusInput = document.querySelector('input[name="campus_selected"]:checked');
+    const campus = campusInput ? (campusInput.value === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman') : 'Not Selected';
+    const admissionType = document.querySelector('[name="admission_type"]')?.value || 'N/A';
+    const eduType = document.querySelector('[name="education_type"]')?.value || 'N/A';
+    
+    const gradeLevelEl = document.querySelector('[name="grade_level"]');
+    let gradeLevel = 'N/A';
+    if (gradeLevelEl && gradeLevelEl.selectedIndex >= 0) {
+        gradeLevel = gradeLevelEl.options[gradeLevelEl.selectedIndex].text;
+    }
+    
+    const lastName = document.querySelector('[name="last_name"]')?.value || '';
+    const firstName = document.querySelector('[name="first_name"]')?.value || '';
+    const fullName = `${lastName}, ${firstName}`.trim();
+    const email = document.querySelector('[name="email"]')?.value || 'N/A';
+    const mobile = document.querySelector('[name="contact_number"]')?.value || 'N/A';
+
+    summaryContainer.innerHTML = `
+        <div class="summary-grid">
+            <div class="summary-item"><span class="summary-label">Campus:</span> <span class="summary-val">${campus}</span></div>
+            <div class="summary-item"><span class="summary-label">Admission Type:</span> <span class="summary-val">${admissionType}</span></div>
+            <div class="summary-item"><span class="summary-label">Level:</span> <span class="summary-val">${eduType} - ${gradeLevel}</span></div>
+            <div class="summary-item mt-2"><span class="summary-label">Applicant Name:</span> <span class="summary-val text-feu-green-700">${fullName}</span></div>
+            <div class="summary-item"><span class="summary-label">Email:</span> <span class="summary-val">${email}</span></div>
+            <div class="summary-item"><span class="summary-label">Mobile:</span> <span class="summary-val">${mobile}</span></div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        if (dialog) dialog.classList.remove('scale-95');
+    }, 10);
+    
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeConfirmationModal = function() {
+    const modal = document.getElementById('submitConfirmModal');
+    const dialog = document.getElementById('modalDialog');
+    
+    if(modal) {
+        modal.classList.add('opacity-0');
+        if (dialog) dialog.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+    document.body.style.overflow = '';
+};
+
+window.confirmSubmission = function() {
+    const form = document.getElementById('enrollmentForm');
+    const btn = document.getElementById('btnConfirmSubmit');
+    if (btn) {
+        btn.innerHTML = '<i class="ki-filled ki-loading animate-spin text-xl"></i> Submitting...';
+        btn.disabled = true;
+    }
+    
+    window.isFormDirty = false;
+    HTMLFormElement.prototype.submit.call(form); 
+};
+
+
 // --- INITIALIZATION FUNCTIONS ---
 
 function initUnsavedChangesWarning() {
@@ -257,13 +335,9 @@ function initUnsavedChangesWarning() {
     form.addEventListener('input', () => { window.isFormDirty = true; });
     form.addEventListener('change', () => { window.isFormDirty = true; });
 
-    // Allow user to leave seamlessly if they hit submit
-    form.addEventListener('submit', () => { window.isFormDirty = false; });
-
     window.addEventListener('beforeunload', function (e) {
         if (window.isFormDirty) {
             e.preventDefault();
-            // returnValue is required by most browsers to trigger the native prompt
             e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
         }
     });
@@ -347,7 +421,6 @@ function initConditionalFields() {
                 if (visaStatusInput) visaStatusInput.value = '';
             }
         });
-        // Initial dispatch to configure layout
         citizenshipSelect.dispatchEvent(new Event('change'));
     }
 }
@@ -442,9 +515,7 @@ function initAnimations() {
     document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
 }
 
-function initSubmitLock() {
-    // Intentionally blank. Buttons remain unlocked to trigger validation display.
-}
+function initSubmitLock() {}
 
 function initLrnValidation() {
     const lrnInput = document.querySelector('[name="lrn"]');
@@ -478,8 +549,6 @@ function initFormValidation() {
     const form = document.getElementById('enrollmentForm');
     if (!form) return;
     
-    // Ignore programmatic `.dispatchEvent()` calls that happen right on page load
-    // to prevent inputs from immediately turning red or green without user interaction.
     let isInitialLoad = true;
     setTimeout(() => { isInitialLoad = false; }, 500);
 
@@ -505,11 +574,16 @@ function initFormValidation() {
             }
         } else if (input.required && window.ARIESValidation.isEmpty(input.value)) {
             fieldValid = false;
+            // Provide explicit message even when field is left empty
+            if (input.name.includes('contact') || input.name.includes('phone')) {
+                errorMessage = 'Please enter a valid phone number with 11 digits (e.g. 09123456789)';
+            }
         } else if (input.value) {
+            // Provide explicit message when pattern fails
             if (input.name.includes('contact') || input.name.includes('phone')) {
                 if (!window.ARIESValidation.patterns.phone.test(input.value)) {
                     fieldValid = false;
-                    errorMessage = 'Please enter a valid phone number with exactly 11 digits. (e.g. 09171234567)';
+                    errorMessage = 'Please enter a valid phone number with 11 digits (e.g. 09123456789)';
                 }
             } else if (input.name === 'lrn') {
                 if (!window.ARIESValidation.patterns.lrn.test(input.value)) {
@@ -526,7 +600,9 @@ function initFormValidation() {
                 if (!regex.test(input.value)) {
                     fieldValid = false;
                     errorMessage = 'Invalid format.';
-                    if (input.name.includes('contact')) errorMessage = 'Needs exactly 11 digits.';
+                    if (input.name.includes('contact') || input.name.includes('phone')) {
+                        errorMessage = 'Please enter a valid phone number with 11 digits (e.g. 09123456789)';
+                    }
                 }
             }
         }
@@ -535,7 +611,6 @@ function initFormValidation() {
         if (!fieldValid) {
             window.ARIESValidation.setInvalid(input, errorEl, errorMessage);
         } else {
-            // Only add valid checkmark if they actually typed/selected something
             if (input.value && input.value.toString().trim() !== "") {
                 window.ARIESValidation.setValid(input, errorEl);
             } else {
@@ -547,18 +622,12 @@ function initFormValidation() {
 
     const inputsToValidate = form.querySelectorAll('input, select, textarea');
     inputsToValidate.forEach(input => {
-        input.addEventListener('blur', function(e) { 
-            validateSingleField(this); 
-        });
-        
+        input.addEventListener('blur', function(e) { validateSingleField(this); });
         input.addEventListener('input', function(e) {
-            // Re-check as they type if it was already marked invalid
             if (this.classList.contains('is-invalid')) validateSingleField(this);
         });
-        
         if (input.tagName === 'SELECT' || input.type === 'file' || input.type === 'radio' || input.type === 'checkbox') {
             input.addEventListener('change', function(e) { 
-                // Ignore script-triggered resets on initial load so they don't immediately validate
                 if (isInitialLoad && !e.isTrusted) return; 
                 validateSingleField(this); 
             });
@@ -580,7 +649,7 @@ function initFormValidation() {
         if (lrnInput && lrnInput.classList.contains('is-invalid')) isFormValid = false;
 
         if (isFormValid) {
-            form.submit();
+            window.showConfirmationModal();
         } else {
             const warning = document.getElementById('submitWarning');
             if (warning) {
@@ -595,8 +664,6 @@ function initFormValidation() {
 function initPageTransitions() {
     const formWrapper = document.querySelector('.form-wrapper');
     if (formWrapper) formWrapper.style.opacity = '1';
-    
-    // Removed old click interceptor script here so the native browser beforeunload prompt works properly
 }
 
 function toggleMobileProgress() {
