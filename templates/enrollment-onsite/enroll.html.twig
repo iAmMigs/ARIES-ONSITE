@@ -41,8 +41,7 @@
             left: 0; display: flex; align-items: center; gap: 10px;
             opacity: 0; transition: opacity 0.3s;
         }
-        .aries-sticky-header.scrolled .header-logo-area { opacity: 1;
-        }
+        .aries-sticky-header.scrolled .header-logo-area { opacity: 1; }
         
         .header-title {
             font-weight: 900;
@@ -55,104 +54,92 @@
         }
 
         /* Adjust body padding for sticky header */
-        .page-banner { padding-top: 8rem !important;
-        }
+        .page-banner { padding-top: 8rem !important; }
 
         /* --- 2. FORM & CARD STYLES --- */
-        .text-feu-gold { color: var(--feu-gold) !important;
-        }
+        .text-feu-gold { color: var(--feu-gold) !important; }
         
-        .campus-selector-row { display: flex;
-        gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .campus-selector-row { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
         .campus-option {
             background: white;
             border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; width: 280px;
             cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative; overflow: hidden;
         }
-        .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-        .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4;
-        ring: 4px solid rgba(26,77,46,0.1); }
+        .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4; ring: 4px solid rgba(26,77,46,0.1); }
         .campus-option .check-icon {
             position: absolute;
             top: 1rem; right: 1rem; width: 24px; height: 24px; background: var(--feu-green-dark);
             color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             opacity: 0; transform: scale(0); transition: all 0.3s ease;
         }
-        .campus-option.active .check-icon { opacity: 1;
-        transform: scale(1); }
+        .campus-option.active .check-icon { opacity: 1; transform: scale(1); }
         
         /* Styled Checkboxes for Family */
-        .status-checkbox-group { display: flex;
-        gap: 10px; }
-        .btn-check-custom { position: absolute; clip: rect(0,0,0,0); pointer-events: none;
-        }
+        .status-checkbox-group { display: flex; gap: 10px; }
+        .btn-check-custom { position: absolute; clip: rect(0,0,0,0); pointer-events: none; }
         .btn-check-label {
-            display: inline-flex;
-            align-items: center; gap: 6px; padding: 0.5rem 1rem;
+            display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1rem;
             border: 1px solid #e5e7eb; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #6b7280;
             cursor: pointer; transition: all 0.2s; background: white;
         }
         .btn-check-custom:checked + .btn-check-label {
-            background-color: #fef3c7;
-            color: #92400e; border-color: #f59e0b;
+            background-color: #fef3c7; color: #92400e; border-color: #f59e0b;
         }
         .btn-check-custom:disabled + .btn-check-label {
-            opacity: 0.5;
-            cursor: not-allowed; background-color: #f3f4f6;
+            opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6;
         }
 
         /* Sibling Styling */
-        .sibling-row { position: relative;
-        padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem;
-        }
+        .sibling-row { position: relative; padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem; }
         .btn-remove-sibling {
-            position: absolute;
-            top: -10px; left: -10px;
+            position: absolute; top: -10px; left: -10px;
             width: 28px; height: 28px; border-radius: 50%;
             background: #ef4444; color: white; border: none;
-            display: flex; align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s;
         }
-        .btn-remove-sibling:hover { background: #dc2626; transform: scale(1.1);
-        }
+        .btn-remove-sibling:hover { background: #dc2626; transform: scale(1.1); }
 
         /* Card Adjustments */
-        .card { border: none;
-        border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
-        .card-header { padding: 1.5rem 2rem;
-        border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px;
-        }
-        .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex;
-        align-items: center; gap: 10px; }
-        .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px;
-        border-bottom-right-radius: 12px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
+        .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
 
         .btn-submit {
-            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark));
-            color: white;
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark)); color: white;
             padding: 1rem 3rem; border-radius: 50px; font-weight: 700; border: none;
-            box-shadow: 0 10px 20px rgba(26,77,46,0.2); transition: all 0.3s ease;
-            width: 100%;
+            box-shadow: 0 10px 20px rgba(26,77,46,0.2); transition: all 0.3s ease; width: 100%;
         }
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(26,77,46,0.3);
-        }
-        .btn-submit:disabled { background: #9ca3af; transform: none; box-shadow: none; cursor: not-allowed;
-        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(26,77,46,0.3); }
+        .btn-submit:disabled { background: #9ca3af; transform: none; box-shadow: none; cursor: not-allowed; }
 
-        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; margin-bottom: 0.5rem;
-        }
-        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 0.75rem 1rem;
-        }
-        .required { color: #dc2626; margin-left: 2px;
-        }
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 0.75rem 1rem; }
+        .required { color: #dc2626; margin-left: 2px; }
         
-        .animate-section { opacity: 0;
-        transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
-        .animate-section.visible { opacity: 1;
-        transform: translateY(0); }
+        .animate-section { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .animate-section.visible { opacity: 1; transform: translateY(0); }
+
+        /* Validation UI Overrides */
+        .is-invalid {
+            border-color: #dc2626 !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc2626'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc2626' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        .is-valid {
+            border-color: #16a34a !important;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2316a34a' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
     </style>
 {% endblock %}
 
@@ -171,6 +158,7 @@
 {# --- BANNER --- #}
 <section class="page-banner bg-gradient-to-r from-feu-green-900 to-feu-green-800 text-white py-20 relative overflow-hidden">
     <div class="absolute inset-0 bg-[url('{{ asset('images/hero/pic1.jpg') }}')] bg-cover bg-center opacity-10"></div>
+   
     <div class="container mx-auto px-4 relative z-10 text-center pt-10">
         <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-4 animate-fade-in-up">Admissions 2025-2026</span>
         {# TITLE COLOR CHANGED TO FEU GOLD #}
@@ -181,7 +169,7 @@
 
 <div class="main-content py-16 bg-gray-50">
     <div class="container mx-auto px-4 max-w-5xl">
-        
+ 
         <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="{{ selected_campus|default('') }}">
             
             {# --- CARD 1: ADMISSION DETAILS --- #}
@@ -191,10 +179,10 @@
                 </div>
                 <div class="card-body">
                     <div class="campus-selector-row">
-                        <label class="campus-option {{ selected_campus == 'feu_alabang' ?
-                        'active' : '' }}" onclick="selectCampus('feu_alabang')">
+                        <label class="campus-option {{ selected_campus == 'feu_alabang' ? 'active' : '' }}" onclick="selectCampus('feu_alabang')">
                             <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
                             <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
+                   
                             <div class="text-center">
                                 <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
                                 <h5 class="font-bold text-gray-800">FEU Alabang</h5>
@@ -202,10 +190,10 @@
                             </div>
                         </label>
 
-                        <label class="campus-option {{ selected_campus == 'feu_diliman' ?
-                        'active' : '' }}" onclick="selectCampus('feu_diliman')">
+                        <label class="campus-option {{ selected_campus == 'feu_diliman' ? 'active' : '' }}" onclick="selectCampus('feu_diliman')">
                             <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
                             <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
+                    
                             <div class="text-center">
                                 <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
                                 <h5 class="font-bold text-gray-800">FEU Diliman</h5>
@@ -214,7 +202,6 @@
                         </label>
                     </div>
 
-            
                     <div class="row g-4 mt-4">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -230,7 +217,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Education Type<span class="required">*</span></label>
-                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()" required>
+                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
                                     <option value="">Select Type</option>
                                     <option value="Primary">Primary (Elementary)</option>
                                     <option value="Secondary">Secondary (High School)</option>
@@ -657,11 +644,11 @@
                 </div>
             </div>
 
-            {# --- SUBMIT BUTTON (Locked) --- #}
+            {# --- SUBMIT BUTTON --- #}
             <div class="text-center pt-5 pb-10">
-                <button type="submit" id="submitBtn" class="btn-submit" disabled>Submit Application</button>
-                <div id="submitWarning" class="text-danger fw-bold fs-7 mt-3">
-                    <i class="ki-filled ki-information-2 text-danger"></i> Please complete all required fields.
+                <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
+                <div id="submitWarning" class="text-danger fw-bold fs-7 mt-3" style="display: none;">
+                    <i class="ki-filled ki-information-2 text-danger"></i> There are missing or incorrect fields. Please check the highlighted boxes.
                 </div>
             </div>
 
