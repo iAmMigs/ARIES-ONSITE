@@ -47,9 +47,9 @@ const ARIESValidation = (function() {
         max: (max) => `Value must not exceed ${max}`
     };
 
-    function toTitleCase(str) {
+    function toUpperCaseString(str) {
         if (!str) return '';
-        return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
+        return str.toUpperCase();
     }
 
     function removeSpecialChars(value) { return value.replace(/[^a-zA-Z0-9\s]/g, ''); }
@@ -57,16 +57,26 @@ const ARIESValidation = (function() {
 
     function setupFormatting(input, type = 'text') {
         if (!input) return;
+        
+        // INSTANT UPPERCASE VISUALLY
+        input.style.textTransform = 'uppercase';
+        
         input.addEventListener('input', function() {
             const cursorStart = this.selectionStart;
             const originalVal = this.value;
             let cleanVal = (type === 'name') ? removeNonAlpha(originalVal) : removeSpecialChars(originalVal);
+            
             if (originalVal !== cleanVal) {
                 this.value = cleanVal;
-                this.setSelectionRange(cursorStart - 1, cursorStart - 1);
+                // Safely adjust cursor if characters were stripped
+                try { this.setSelectionRange(cursorStart - 1, cursorStart - 1); } catch(e) {}
             }
         });
-        input.addEventListener('blur', function() { this.value = toTitleCase(this.value.trim()); });
+        
+        // COMMIT TRUE UPPERCASE TO DATA
+        input.addEventListener('blur', function() { 
+            this.value = this.value.toUpperCase().trim(); 
+        });
     }
     
     function isEmpty(value) { return value === null || value === undefined || value.toString().trim() === ''; }
@@ -78,7 +88,6 @@ const ARIESValidation = (function() {
     
     // ===== DOM Helpers =====
     function getErrorElement(input) {
-        // Radio button groups handling
         if (input.type === 'radio') {
             const groupContainer = input.closest('.campus-selector-row') || input.closest('.form-group');
             let err = groupContainer.querySelector('.group-error-message');
@@ -98,7 +107,6 @@ const ARIESValidation = (function() {
             errorEl = input.parentElement.querySelector('.error-message');
         }
         
-        // Auto-create error element if it doesn't exist dynamically
         if (!errorEl && input.parentElement) {
             errorEl = document.createElement('div');
             if (id) errorEl.id = id + '-error';
@@ -109,7 +117,6 @@ const ARIESValidation = (function() {
             const span = document.createElement('span');
             errorEl.appendChild(span);
             
-            // Smart placement logic (e.g. below small hint text if it exists)
             if (input.nextElementSibling && input.nextElementSibling.classList.contains('text-gray-500')) {
                 input.parentElement.insertBefore(errorEl, input.nextElementSibling.nextSibling);
             } else {
@@ -154,11 +161,9 @@ const ARIESValidation = (function() {
         input.removeAttribute('aria-invalid');
     }
 
-    // ===== Scroll to First Error =====
     function scrollToFirstError(formEl) {
         const firstError = formEl.querySelector('.is-invalid, .group-error-message.show');
         if (firstError) {
-            // Offset for sticky header padding
             const yOffset = -150; 
             const y = firstError.getBoundingClientRect().top + window.scrollY + yOffset;
 
@@ -170,14 +175,13 @@ const ARIESValidation = (function() {
         }
     }
     
-    // ===== Public API =====
     return {
         patterns,
         messages,
         isEmpty,
         sanitizeInput,
         formatPhoneNumber,
-        toTitleCase,
+        toUpperCaseString,
         setupFormatting,
         setValid,
         setInvalid,
@@ -187,5 +191,4 @@ const ARIESValidation = (function() {
     };
 })();
 
-// Make available globally
 window.ARIESValidation = ARIESValidation;

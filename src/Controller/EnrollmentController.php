@@ -12,6 +12,8 @@ use App\Entity\LookupRegion;
 use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
 use App\Entity\LookupBarangay;
+use App\Entity\LookupReligion;
+use App\Entity\LookupCitizenship;
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,12 +30,17 @@ class EnrollmentController extends AbstractController
     {
         $campus = $request->query->get('campus');
         
-        // Fetch the dynamic documents configured by the admins
         $documents = $em->getRepository(DocumentSetup::class)->findAll();
+        
+        // Fetch Database Dropdowns
+        $religions = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
+        $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
 
         return $this->render('enrollment-onsite/enroll.html.twig', [
             'selected_campus' => $campus,
-            'documents' => $documents
+            'documents' => $documents,
+            'religions' => $religions,
+            'citizenships' => $citizenships
         ]);
     }
 
@@ -47,7 +54,6 @@ class EnrollmentController extends AbstractController
         $campus = $request->request->get('campus_selected');
         $yearStart = date('Y');
 
-        // Check LRN Uniqueness
         $lrnInput = $request->request->get('lrn');
         if (!empty($lrnInput)) {
             $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrnInput]);
@@ -75,7 +81,8 @@ class EnrollmentController extends AbstractController
         $applicant->setAdmissionType($request->request->get('admission_type'));
 
         // --- 3. PERSONAL INFORMATION ---
-        $formatName = fn(?string $n) => $n ? ucwords(strtolower(trim($n))) : null;
+        // GUARANTEE STRICT UPPERCASE FOR ALL STRINGS
+        $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
 
         $applicant->setLastName($formatName($request->request->get('last_name')));
         $applicant->setFirstName($formatName($request->request->get('first_name')));
@@ -85,12 +92,19 @@ class EnrollmentController extends AbstractController
         $applicant->setBirthDate(new \DateTime($request->request->get('birthday')));
         $applicant->setBirthPlace($formatName($request->request->get('birth_place')));
         $applicant->setGender($request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE);
-        $applicant->setReligion($request->request->get('religion'));
+        
+        $religion = $request->request->get('religion');
+        if (strtoupper($religion) === 'OTHER') {
+            $otherReligion = $request->request->get('other_religion');
+            $applicant->setReligion($formatName($otherReligion) ?: 'OTHER');
+        } else {
+            $applicant->setReligion($religion);
+        }
         
         $citizenship = $request->request->get('citizenship');
         $applicant->setCitizenship($citizenship);
         
-        if (in_array(strtolower($citizenship), ['foreign', 'dual citizenship', 'dual'])) {
+        if (strtoupper($citizenship) !== 'FILIPINO') {
             $applicant->setPassportNumber($request->request->get('passport_number'));
             $applicant->setVisaType($request->request->get('visa_type'));
             $applicant->setVisaStatus($request->request->get('visa_status'));
@@ -129,7 +143,7 @@ class EnrollmentController extends AbstractController
                 if (!empty($name)) {
                     $sibling = new ApplicantBedSibling();
                     $sibling->setApplicant($applicant);
-                    $sibling->setSiblingName($name);
+                    $sibling->setSiblingName($formatName($name));
                     $sibling->setSchool($siblingSchools[$index] ?? null);
                     $sibling->setFeuStudentNo($siblingStudentNos[$index] ?? null);
                     if (!empty($siblingStudentNos[$index])) $sibling->setIsFeuStudent(true);
@@ -143,19 +157,17 @@ class EnrollmentController extends AbstractController
         if ($request->request->get('prev_school_name')) {
             $school = new ApplicantBedSchool();
             $school->setApplicant($applicant);
-            $school->setSchool($request->request->get('prev_school_name'));
+            $school->setSchool($formatName($request->request->get('prev_school_name')));
             $school->setYearEnd((int)$request->request->get('prev_school_year'));
             $school->setLevel(ApplicantBedSchool::LEVEL_ELEMENTARY); 
             $applicant->addSchool($school);
             $em->persist($school);
         }
 
-        // --- 6. FILE UPLOADS (FIXED FOLDER CREATION) ---
+        // --- 6. FILE UPLOADS ---
         
-        // 2x2 Picture
         $idFile = $request->files->get('req_id_picture');
         if ($idFile instanceof UploadedFile) {
-            // Ensure folder exists dynamically
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
@@ -165,13 +177,9 @@ class EnrollmentController extends AbstractController
             try {
                 $idFile->move($uploadDir, $filename);
                 $applicant->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
-            } catch (\Exception $e) { 
-                // In production you would log this error: $logger->error($e->getMessage());
-            }
+            } catch (\Exception $e) { }
         }
 
-        // Dynamic Documents
-        // Fetch setup strictly for the selected campus
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
             'campus' => [$applicant->getCampus(), null]
         ]);
@@ -181,7 +189,6 @@ class EnrollmentController extends AbstractController
             $file = $request->files->get($slug);
             
             if ($file instanceof UploadedFile) {
-                // Ensure dynamic folder exists dynamically
                 $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                 if (!file_exists($targetDir)) {
                     mkdir($targetDir, 0777, true);
@@ -239,28 +246,51 @@ class EnrollmentController extends AbstractController
             $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyId); 
         }
 
-        $applicant->{'set'.$fieldPrefix.'Address'}($request->request->get($type === 'current' ? 'address' : 'perm_address'));
+        $applicant->{'set'.$fieldPrefix.'Address'}(strtoupper($request->request->get($type === 'current' ? 'address' : 'perm_address')));
         $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type === 'current' ? 'address_zip' : 'perm_zip'));
     }
 
-    private function handleGuardian(ApplicantBed $applicant, Request $request, string $type, EntityManagerInterface $em)
+    private function handleGuardian(ApplicantBed $applicant, Request $request, string $slot, EntityManagerInterface $em)
     {
-        $lname = $request->request->get($type . '_lastname');
-        $fname = $request->request->get($type . '_firstname');
-        $fullname = ($type === 'guardian') 
-            ? $request->request->get('guardian_name') 
-            : (($lname || $fname) ? "$lname, $fname" : '');
+        $slotType = strtoupper($slot); // Will be 'FATHER', 'MOTHER', or 'GUARDIAN'
 
-        if (empty($fullname) || $fullname === ', ') return;
+        if ($slot === 'guardian') {
+            // EMERGENCY CONTACT
+            $fullname = strtoupper(trim($request->request->get('guardian_name', '')));
+            $relationship = strtoupper(trim($request->request->get('guardian_relation', 'GUARDIAN')));
+            $occupation = ''; // Front-end doesn't ask for this yet
+        } else {
+            // PARENTS
+            $lname = trim($request->request->get($slot . '_lastname', ''));
+            $fname = trim($request->request->get($slot . '_firstname', ''));
+            $mname = trim($request->request->get($slot . '_middlename', ''));
+            
+            $firstMid = trim(strtoupper(trim("$fname $mname")));
+            $lname = strtoupper($lname);
 
-        if ($type === 'father') $relationship = 'Father';
-        elseif ($type === 'mother') $relationship = 'Mother';
-        else $relationship = $request->request->get('guardian_relation') ?: 'Guardian';
+            if ($lname && $firstMid) {
+                $fullname = "$lname, $firstMid";
+            } elseif ($lname) {
+                $fullname = $lname;
+            } elseif ($firstMid) {
+                $fullname = $firstMid;
+            } else {
+                $fullname = '';
+            }
 
+            $relationship = strtoupper($slot); // Default relationship is FATHER or MOTHER
+            $occupation = strtoupper(trim($request->request->get($slot . '_occupation', '')));
+        }
+
+        if (empty($fullname) || $fullname === ',' || $fullname === ', ') return;
+
+        // Find existing by slot type (guardianType)
         $guardian = null;
-        foreach ($applicant->getGuardians() as $existingGuardian) {
-            if (strcasecmp($existingGuardian->getRelationship(), $relationship) === 0) {
-                $guardian = $existingGuardian;
+        foreach ($applicant->getGuardians() as $g) {
+            // Fallback for old data: if guardianType is null, try to match by relationship
+            $dbType = $g->getGuardianType() ?: strtoupper($g->getRelationship());
+            if ($dbType === $slotType || ($slotType === 'GUARDIAN' && !in_array($dbType, ['FATHER', 'MOTHER']))) {
+                $guardian = $g;
                 break;
             }
         }
@@ -268,15 +298,16 @@ class EnrollmentController extends AbstractController
         if (!$guardian) {
             $guardian = new ApplicantBedGuardian();
             $guardian->setApplicant($applicant);
-            $guardian->setRelationship($relationship);
+            $guardian->setGuardianType($slotType); // STRICTLY BINDS TO FATHER, MOTHER, OR GUARDIAN
             $applicant->addGuardian($guardian);
         }
 
         $guardian->setParentName($fullname);
-        $guardian->setOccupation($request->request->get($type . '_occupation'));
-        $guardian->setContactNo($request->request->get($type . '_contact'));
-        if ($request->request->get($type . '_deceased')) $guardian->setDeceased(true);
-        if ($request->request->get($type . '_ofw')) $guardian->setOFW(true);
+        $guardian->setRelationship($relationship);
+        $guardian->setOccupation($occupation);
+        $guardian->setContactNo($request->request->get($slot . '_contact', ''));
+        $guardian->setDeceased($request->request->get($slot . '_deceased') ? true : false);
+        $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
 
         $em->persist($guardian);
     }

@@ -20,8 +20,8 @@ const educationGrades = {
     ]
 };
 
-window.currentCampus = ''; // Global State
-window.isFormDirty = false; // Tracks if user modified anything
+window.currentCampus = ''; 
+window.isFormDirty = false; 
 
 document.addEventListener('DOMContentLoaded', function() {
     initCampusSelection();
@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initLrnValidation();
     initUnsavedChangesWarning();
 
-    // Fix for Browser Cache (When user clicks Back button after submit)
     window.addEventListener('pageshow', function(event) {
         if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
             const form = document.getElementById('enrollmentForm');
@@ -46,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.reset();
                 window.isFormDirty = false;
                 
-                // Clear all validation UI classes dynamically
                 form.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
                     el.classList.remove('is-valid', 'is-invalid');
                 });
@@ -55,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     el.classList.remove('show');
                 });
                 
-                // Re-trigger initial select setups without triggering validation UI
                 if (window.currentCampus) {
                     window.selectCampus(window.currentCampus);
                 }
@@ -387,9 +384,34 @@ function initConditionalFields() {
     const visaStatusInput = document.querySelector('[name="visa_status"]');
     const indigenousInput = document.querySelector('[name="indigenous_group"]');
 
+    // --- NEW RELIGION LOGIC ---
+    const religionSelect = document.getElementById('religionSelect');
+    const otherReligionContainer = document.getElementById('other_religion_container');
+    const otherReligionInput = document.getElementById('otherReligionInput');
+
+    if (religionSelect) {
+        religionSelect.addEventListener('change', function() {
+            const val = this.value.toUpperCase();
+            
+            if (val === 'OTHER') {
+                if (otherReligionContainer) otherReligionContainer.style.display = 'block';
+                if (otherReligionInput) otherReligionInput.required = true;
+            } else {
+                if (otherReligionContainer) otherReligionContainer.style.display = 'none';
+                if (otherReligionInput) {
+                    otherReligionInput.required = false;
+                    otherReligionInput.value = '';
+                    if (window.ARIESValidation) window.ARIESValidation.resetField(otherReligionInput, window.ARIESValidation.getErrorElement(otherReligionInput));
+                }
+            }
+            window.checkFormValidity();
+        });
+        religionSelect.dispatchEvent(new Event('change'));
+    }
+
     if (citizenshipSelect) {
         citizenshipSelect.addEventListener('change', function() {
-            const val = this.value.toLowerCase();
+            const val = this.value.toUpperCase();
             
             if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'none';
             if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'none';
@@ -407,14 +429,14 @@ function initConditionalFields() {
                 if (window.ARIESValidation) window.ARIESValidation.resetField(visaStatusInput, window.ARIESValidation.getErrorElement(visaStatusInput));
             }
             
-            if (val === 'foreign' || val === 'dual' || val === 'dual citizenship') {
+            if (val && val !== 'FILIPINO') { 
                 if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'block';
                 if (passportInput) passportInput.required = true;
                 if (visaTypeInput) visaTypeInput.required = true;
                 if (visaStatusInput) visaStatusInput.required = true;
                 if (indigenousInput) indigenousInput.value = '';
                 
-            } else if (val === 'filipino') {
+            } else if (val === 'FILIPINO') {
                 if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'block';
                 if (passportInput) passportInput.value = '';
                 if (visaTypeInput) visaTypeInput.value = '';
@@ -438,13 +460,13 @@ function initDynamicFormatting() {
     });
 
     if (window.ARIESValidation) {
-        const nameFields = ['last_name', 'first_name', 'middle_name', 'father_firstname', 'father_lastname', 'mother_firstname', 'mother_lastname', 'guardian_name'];
+        const nameFields = ['last_name', 'first_name', 'middle_name', 'father_firstname', 'father_lastname', 'father_middlename', 'mother_firstname', 'mother_lastname', 'mother_middlename', 'guardian_name'];
         nameFields.forEach(name => {
             const el = document.querySelector(`[name="${name}"]`);
             if (el) window.ARIESValidation.setupFormatting(el, 'name');
         });
 
-        const textFields = ['birth_place', 'religion', 'citizenship', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
+        const textFields = ['other_religion', 'birth_place', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
         textFields.forEach(name => {
             const el = document.querySelector(`[name="${name}"]`);
             if (el) window.ARIESValidation.setupFormatting(el, 'text');
@@ -574,12 +596,10 @@ function initFormValidation() {
             }
         } else if (input.required && window.ARIESValidation.isEmpty(input.value)) {
             fieldValid = false;
-            // Provide explicit message even when field is left empty
             if (input.name.includes('contact') || input.name.includes('phone')) {
                 errorMessage = 'Please enter a valid phone number with 11 digits (e.g. 09123456789)';
             }
         } else if (input.value) {
-            // Provide explicit message when pattern fails
             if (input.name.includes('contact') || input.name.includes('phone')) {
                 if (!window.ARIESValidation.patterns.phone.test(input.value)) {
                     fieldValid = false;

@@ -1,7 +1,7 @@
 {# templates/enrollment-onsite/enroll.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Enrollment{% endblock %}
+{% block title %}Application{% endblock %}
 
 {% block stylesheets %}
     <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
@@ -157,7 +157,7 @@
         <div class="absolute inset-0 rounded-full border-4 border-feu-green-700 border-t-transparent animate-spin"></div>
     </div>
     <h2 class="mt-5 text-xl font-black tracking-widest text-feu-green-700">ARIES</h2>
-    <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your enrollment form...</p>
+    <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your application...</p>
 </div>
 
 {# --- 1. STICKY HEADER --- #}
@@ -323,14 +323,31 @@
                     <div class="row g-4 mt-2">
                         <div class="col-md-6">
                             <label class="form-label">Religion</label>
-                            <input type="text" name="religion" class="form-control">
+                            <select name="religion" id="religionSelect" class="form-select" data-control="select2" data-placeholder="Select Religion">
+                                <option value=""></option>
+                                {% for rel in religions %}
+                                    {% if rel.religionName|upper != 'OTHER' %}
+                                        <option value="{{ rel.religionName }}">{{ rel.religionName }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="OTHER">Other (Please specify)</option>
+                            </select>
+                            
+                            <div id="other_religion_container" style="display: none;" class="mt-2">
+                                <input type="text" name="other_religion" id="otherReligionInput" class="form-control" placeholder="Enter your religion">
+                            </div>
                         </div>
+                        
                         <div class="col-md-6">
                             <label class="form-label">Citizenship <span class="required">*</span></label>
-                            <select name="citizenship" id="citizenshipSelect" class="form-select" required>
-                                <option value="Filipino">Filipino</option>
-                                <option value="Foreign">Foreign</option>
-                                <option value="Dual">Dual Citizenship</option>
+                            <select name="citizenship" id="citizenshipSelect" class="form-select" required data-control="select2" data-placeholder="Select Citizenship">
+                                {# CHANGED: Made FILIPINO the default selected option #}
+                                <option value="FILIPINO" selected>FILIPINO</option>
+                                {% for cit in citizenships %}
+                                    {% if cit.citizenshipName|upper != 'FILIPINO' %}
+                                        <option value="{{ cit.citizenshipName }}">{{ cit.citizenshipName }}</option>
+                                    {% endif %}
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -489,13 +506,17 @@
                     <div class="bg-gray-50 p-5 rounded mb-5">
                         <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Father's Information</h6>
                         <div class="row g-4 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Last Name <span class="required">*</span></label>
                                 <input type="text" name="father_lastname" class="form-control" placeholder="Last Name" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">First Name <span class="required">*</span></label>
                                 <input type="text" name="father_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="father_middlename" class="form-control" placeholder="Middle Name">
                             </div>
                         </div>
                         <div class="row g-4">
@@ -528,13 +549,17 @@
                     <div class="bg-gray-50 p-5 rounded mb-5">
                         <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Mother's Information</h6>
                         <div class="row g-4 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Maiden Name <span class="required">*</span></label>
                                 <input type="text" name="mother_lastname" class="form-control" placeholder="Maiden Name" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">First Name <span class="required">*</span></label>
                                 <input type="text" name="mother_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="mother_middlename" class="form-control" placeholder="Middle Name">
                             </div>
                         </div>
                         <div class="row g-4">
@@ -694,7 +719,7 @@
 <script>
     const loader = document.getElementById('enrollmentLoader');
     if (loader) {
-        const minLoadTime = 500; // Force 1.5 seconds min so it feels like a real setup
+        const minLoadTime = 1500; 
         const startTime = Date.now();
         
         window.addEventListener('load', function() {
