@@ -12,12 +12,10 @@
     {% include 'admin-onsite/alabang/_sidebar.html.twig' with {'active_menu': 'registrations'} %}
 
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-
         {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'Edit Student Details'} %}
 
         <div class="flex-1 overflow-y-auto p-8">
-            {# ADDED enctype for file upload support #}
-            <form method="post" class="max-w-7xl mx-auto" id="editForm" enctype="multipart/form-data">
+             <form method="post" class="max-w-7xl mx-auto" id="editForm" enctype="multipart/form-data">
                 
                 {# Header Actions #}
                 <div class="mb-6 flex items-center justify-between">
@@ -77,14 +75,14 @@
                                     <option value="Transferee" {{ registration.admissionType == 'Transferee' ? 'selected' }}>Transferee</option>
                                 </select>
                                                             
-                                {# Editable Grade Level #}
                                 <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1">
-                                    <option value="grade_11" {{ registration.gradeLevel == 'grade_11' ? 'selected' }}>Grade 11</option>
-                                    <option value="grade_12" {{ registration.gradeLevel == 'grade_12' ? 'selected' }}>Grade 12</option>
+                                    {% for level in ['kinder', 'grade_1', 'grade_2', 'grade_3', 'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9', 'grade_10', 'grade_11', 'grade_12'] %}
+                                        <option value="{{ level }}" {{ registration.gradeLevel == level ? 'selected' }}>{{ level|replace({'_': ' '})|title }}</option>
+                                    {% endfor %}
                                 </select>
 
-                                {# Editable Track #}
                                 <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
+                                    <option value="">None (K-10)</option>
                                     {% for strand in ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'] %}
                                         <option value="{{ strand }}" {{ registration.trackStrand == strand ? 'selected' }}>{{ strand }}</option>
                                     {% endfor %}
@@ -108,7 +106,7 @@
                             <div class="text-xs font-bold text-gray-400 uppercase mb-3">Examination Status</div>
                             
                             <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
-                                <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Examination Score' ? 'checked' : '' }}>
+                                <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.examinationScore is not null ? 'checked' : '' }}>
                                 <span class="text-sm font-bold text-gray-700">Exam Taken</span>
                             </label>
 
@@ -152,9 +150,9 @@
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
                                     <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value="Filipino" {{ registration.citizenship == 'Filipino' ? 'selected' : '' }}>Filipino</option>
-                                        <option value="Foreign" {{ registration.citizenship == 'Foreign' ? 'selected' : '' }}>Foreign</option>
-                                        <option value="Dual" {{ registration.citizenship == 'Dual' ? 'selected' : '' }}>Dual</option>
+                                        <option value="Filipino" {{ registration.citizenship|upper == 'FILIPINO' ? 'selected' : '' }}>Filipino</option>
+                                        <option value="Foreign" {{ registration.citizenship|upper == 'FOREIGN' ? 'selected' : '' }}>Foreign</option>
+                                        <option value="Dual" {{ registration.citizenship|upper == 'DUAL' ? 'selected' : '' }}>Dual</option>
                                     </select>
                                 </div>
                             </div>
@@ -221,21 +219,24 @@
                             </div>
                         </div>
 
-                        {# Family / Guardians (Split Name Logic) #}
+                        {# Parents / Family Background (FATHER and MOTHER ONLY) #}
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                                 <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
                             </h3>
                             <div class="space-y-4">
                                 {% for guardian in registration.guardians %}
+                                {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
+                                {% if gType in ['FATHER', 'MOTHER'] %}
                                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 relative">
+                                    <input type="hidden" name="guardians[{{ loop.index0 }}][guardian_type]" value="{{ gType }}">
                                     <input type="hidden" name="guardians[{{ loop.index0 }}][relationship]" value="{{ guardian.relationship }}">
                                     
                                     <div class="flex justify-between items-center mb-2">
                                         <div class="text-xs text-feu-gold-600 font-bold uppercase">{{ guardian.relationship }}</div>
                                         <div class="flex gap-2">
                                             <label class="inline-flex items-center text-[10px]">
-                                                <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" value="1" {{ guardian.deceased ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                                <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" value="1" {{ guardian.deceased ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-3 h-3 mr-1">
                                                 Deceased
                                             </label>
                                             <label class="inline-flex items-center text-[10px]">
@@ -246,19 +247,25 @@
                                     </div>
                                     
                                     {% set nameParts = guardian.parentName|split(',') %}
-                                    {% set lastNameVal = nameParts[0]|trim %}
-                                    {% set firstNameVal = nameParts|length > 1 ? nameParts[1]|trim : '' %}
+                                    {% set lastNameVal = nameParts[0]|default('')|trim %}
+                                    {% set givenNameParts = nameParts[1]|default('')|trim|split(' ') %}
+                                    {% set middleNameVal = givenNameParts|length > 1 ? givenNameParts|last : '' %}
+                                    {% set firstNameVal = givenNameParts|length > 1 ? givenNameParts|slice(0, -1)|join(' ') : givenNameParts|join(' ') %}
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold">
-                                                {% if guardian.relationship == 'Mother' %}Maiden Name{% else %}Last Name{% endif %}
+                                                {% if guardian.relationship|upper == 'MOTHER' %}Maiden Name{% else %}Last Name{% endif %}
                                             </label>
                                             <input type="text" name="guardians[{{ loop.index0 }}][last_name]" value="{{ lastNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                         </div>
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold">First Name</label>
                                             <input type="text" name="guardians[{{ loop.index0 }}][first_name]" value="{{ firstNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Middle Name</label>
+                                            <input type="text" name="guardians[{{ loop.index0 }}][middle_name]" value="{{ middleNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                         </div>
                                     </div>
                                     
@@ -273,8 +280,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                {% else %}
-                                <div class="text-center py-4 text-gray-400 italic text-sm">No guardians listed for this applicant.</div>
+                                {% endif %}
                                 {% endfor %}
                             </div>
                         </div>
@@ -362,7 +368,7 @@
                                 {% endif %}
 
                                 <hr class="mt-6 mb-4 border-gray-200">
-                                
+                        
                                 {# Dynamic Uploads based on DocumentSetup table #}
                                 <h6 class="text-sm font-bold mt-2 mb-3 text-gray-700">Upload / Replace Documents</h6>
                                 {% if documentSetups is defined and documentSetups|length > 0 %}
@@ -396,6 +402,48 @@
                                 </div>
                             </div>
                         </div>
+
+                        {# Emergency Contact Edit Block (Always renders via GUARDIAN type) #}
+                        {% set emergencyContact = null %}
+                        {% set emergencyIndex = 'new_999' %}
+                        
+                        {% for guardian in registration.guardians %}
+                            {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
+                            {% if gType == 'GUARDIAN' %}
+                                {% set emergencyContact = guardian %}
+                                {% set emergencyIndex = loop.index0 %}
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                                <i class="ki-filled ki-phone text-orange-500"></i> Emergency Contact
+                            </h3>
+                            <div class="space-y-3">
+                                <input type="hidden" name="guardians[{{ emergencyIndex }}][guardian_type]" value="GUARDIAN">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Full Name</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][full_name]" value="{{ emergencyContact ? emergencyContact.parentName|trim(', ') : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Full Name">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Relationship</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][relationship]" value="{{ emergencyContact ? emergencyContact.relationship : 'GUARDIAN' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][occupation]" value="{{ emergencyContact ? emergencyContact.occupation : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][contact]" value="{{ emergencyContact ? emergencyContact.contactNo : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </form>
@@ -413,7 +461,6 @@
 <script src="{{ asset('js/validation.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- 1. UNSAVED CHANGES PROTECTION ---
     let isDirty = false;
     const form = document.getElementById('editForm');
     const backBtn = document.getElementById('btn_discard'); 
@@ -445,7 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(isDirty) { e.preventDefault(); e.returnValue = ''; }
     });
 
-    // --- 2. EXAM STATUS LOGIC ---
     const check = document.getElementById('examCheck');
     const scoreBox = document.getElementById('scoreBox');
     const pendingBox = document.getElementById('pendingBox');
@@ -468,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleScore();
     }
 
-    // --- 3. FORMATTING RULES ---
     if(typeof ARIESValidation !== 'undefined') {
         const nameInputs = document.querySelectorAll('input[name="last_name"], input[name="first_name"], input[name="middle_name"]');
         nameInputs.forEach(el => ARIESValidation.setupFormatting(el, 'name'));
@@ -478,12 +523,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const arrayInputs = document.querySelectorAll('input[name^="guardians"][type="text"], input[name^="siblings"][type="text"], input[name^="schools"][type="text"]');
         arrayInputs.forEach(el => {
-            const isName = el.name.includes('[name]') || el.name.includes('parentName') || el.name.includes('SiblingName');
+            const isName = el.name.includes('[name]') || el.name.includes('full_name') || el.name.includes('last_name') || el.name.includes('first_name') || el.name.includes('middle_name') || el.name.includes('parentName') || el.name.includes('SiblingName');
             ARIESValidation.setupFormatting(el, isName ? 'name' : 'text');
         });
     }
 
-    // --- 4. ADDRESS LOOKUP ---
     function setupAddressLookup(prefix) {
         const regions = document.getElementById(prefix + '_region');
         const provinces = document.getElementById(prefix + '_province');
@@ -533,7 +577,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAddressLookup('addr');
     setupAddressLookup('perm');
 
-    // --- 5. IMAGE PREVIEW HELPER ---
     window.previewImage = function(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();

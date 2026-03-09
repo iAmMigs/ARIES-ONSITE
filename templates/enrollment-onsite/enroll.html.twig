@@ -23,12 +23,12 @@
         .aries-sticky-header {
             position: fixed;
             top: 0; left: 0; right: 0; z-index: 999;
-            padding: 1.5rem 0;
+            padding: 0.75rem 0;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             background: transparent;
         }
         .aries-sticky-header.scrolled {
-            padding: 0.75rem 0;
+            padding: 0.5rem 0;
             background: var(--feu-green-dark);
             box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
@@ -38,10 +38,13 @@
         }
         .header-logo-area {
             position: absolute;
-            left: 0; display: flex; align-items: center; gap: 10px;
-            opacity: 0; transition: opacity 0.3s;
+            left: 0; display: flex; align-items: center; gap: 8px;
+            color: white; text-decoration: none; cursor: pointer;
+            transition: color 0.3s ease;
         }
-        .aries-sticky-header.scrolled .header-logo-area { opacity: 1; }
+        .header-logo-area:hover {
+            color: var(--feu-gold) !important;
+        }
         
         .header-title {
             font-weight: 900;
@@ -53,8 +56,7 @@
             transform: translateY(0);
         }
 
-        /* Adjust body padding for sticky header */
-        .page-banner { padding-top: 8rem !important; }
+        .page-banner { padding-top: 6rem !important; }
 
         /* --- 2. FORM & CARD STYLES --- */
         .text-feu-gold { color: var(--feu-gold) !important; }
@@ -134,40 +136,53 @@
         }
         .is-valid {
             border-color: #16a34a !important;
-            padding-right: calc(1.5em + 0.75rem);
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2316a34a' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right calc(0.375em + 0.1875rem) center;
-            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            background-image: none !important;
         }
+
+        /* --- Modal Custom Styling --- */
+        .summary-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+        .summary-item { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.4rem; border-bottom: 1px dashed #e5e7eb;}
+        .summary-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .summary-label { color: #6b7280; font-weight: 600; font-size: 0.85rem; }
+        .summary-val { color: #111827; font-weight: 700; font-size: 0.9rem; text-align: right; max-width: 60%; word-wrap: break-word;}
     </style>
 {% endblock %}
 
 {% block body %}
 
+{# --- PAGE LOADER OVERLAY --- #}
+<div id="enrollmentLoader" class="fixed inset-0 flex flex-col items-center justify-center bg-gray-50 z-[99999] transition-all duration-500">
+    <div class="relative w-16 h-16">
+        <div class="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-feu-green-700 border-t-transparent animate-spin"></div>
+    </div>
+    <h2 class="mt-5 text-xl font-black tracking-widest text-feu-green-700">ARIES</h2>
+    <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your application...</p>
+</div>
+
 {# --- 1. STICKY HEADER --- #}
 <header class="aries-sticky-header" id="stickyHeader">
     <div class="container mx-auto px-4 header-content">
-        <div class="header-logo-area">
-            <i class="ki-filled ki-abstract-26 text-warning fs-1"></i>
-        </div>
+        <a href="javascript:history.back()" class="header-logo-area">
+            <i class="ki-filled ki-arrow-left fs-2"></i>
+            <span class="font-bold text-sm hidden md:block">Back</span>
+        </a>
         <div class="header-title">ARIES</div>
     </div>
 </header>
 
 {# --- BANNER --- #}
-<section class="page-banner bg-gradient-to-r from-feu-green-900 to-feu-green-800 text-white py-20 relative overflow-hidden">
-    <div class="absolute inset-0 bg-[url('{{ asset('images/hero/pic1.jpg') }}')] bg-cover bg-center opacity-10"></div>
+<section class="page-banner bg-gradient-to-r from-feu-green-900 to-feu-green-800 text-white py-12 relative overflow-hidden">
+    <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
    
-    <div class="container mx-auto px-4 relative z-10 text-center pt-10">
-        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-4 animate-fade-in-up">Admissions 2025-2026</span>
-        {# TITLE COLOR CHANGED TO FEU GOLD #}
-        <h1 class="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
-        <p class="text-lg text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
+    <div class="container mx-auto px-4 relative z-10 text-center pt-4 pb-2">
+        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions 2025-2026</span>
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
+        <p class="text-base text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
     </div>
 </section>
 
-<div class="main-content py-16 bg-gray-50">
+<div class="main-content py-12 bg-gray-50">
     <div class="container mx-auto px-4 max-w-5xl">
  
         <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="{{ selected_campus|default('') }}">
@@ -213,7 +228,6 @@
                             </div>
                         </div>
 
-                        {# --- NEW FIELD: Education Type (Primary/Secondary) --- #}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Education Type<span class="required">*</span></label>
@@ -225,7 +239,6 @@
                             </div>
                         </div>
 
-                        {# --- UPDATED: Grade Level (Dynamic) --- #}
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Grade Level <span class="required">*</span></label>
@@ -235,7 +248,6 @@
                             </div>
                         </div>
                         
-                        {# --- UPDATED: Strand (Only for 11/12) --- #}
                         <div class="col-md-6" id="strandGroup" style="display:none;">
                             <div class="form-group">
                                 <label class="form-label">Strand <span class="required">*</span></label>
@@ -261,7 +273,6 @@
                     <h3 class="card-title"><i class="ki-filled ki-user text-feu-green-600 fs-1"></i>STEP 2 : Personal Information</h3>
                 </div>
                 <div class="card-body">
-                    {# 2x2 Photo Upload #}
                     <div class="row mb-5 justify-content-center">
                         <div class="col-md-6">
                             <div class="file-upload-group p-4 border rounded bg-light text-center">
@@ -312,14 +323,31 @@
                     <div class="row g-4 mt-2">
                         <div class="col-md-6">
                             <label class="form-label">Religion</label>
-                            <input type="text" name="religion" class="form-control">
+                            <select name="religion" id="religionSelect" class="form-select" data-control="select2" data-placeholder="Select Religion">
+                                <option value=""></option>
+                                {% for rel in religions %}
+                                    {% if rel.religionName|upper != 'OTHER' %}
+                                        <option value="{{ rel.religionName }}">{{ rel.religionName }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="OTHER">Other (Please specify)</option>
+                            </select>
+                            
+                            <div id="other_religion_container" style="display: none;" class="mt-2">
+                                <input type="text" name="other_religion" id="otherReligionInput" class="form-control" placeholder="Enter your religion">
+                            </div>
                         </div>
+                        
                         <div class="col-md-6">
                             <label class="form-label">Citizenship <span class="required">*</span></label>
-                            <select name="citizenship" id="citizenshipSelect" class="form-select" required>
-                                <option value="Filipino">Filipino</option>
-                                <option value="Foreign">Foreign</option>
-                                <option value="Dual">Dual Citizenship</option>
+                            <select name="citizenship" id="citizenshipSelect" class="form-select" required data-control="select2" data-placeholder="Select Citizenship">
+                                {# CHANGED: Made FILIPINO the default selected option #}
+                                <option value="FILIPINO" selected>FILIPINO</option>
+                                {% for cit in citizenships %}
+                                    {% if cit.citizenshipName|upper != 'FILIPINO' %}
+                                        <option value="{{ cit.citizenshipName }}">{{ cit.citizenshipName }}</option>
+                                    {% endif %}
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -478,13 +506,17 @@
                     <div class="bg-gray-50 p-5 rounded mb-5">
                         <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Father's Information</h6>
                         <div class="row g-4 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Last Name <span class="required">*</span></label>
                                 <input type="text" name="father_lastname" class="form-control" placeholder="Last Name" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">First Name <span class="required">*</span></label>
                                 <input type="text" name="father_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="father_middlename" class="form-control" placeholder="Middle Name">
                             </div>
                         </div>
                         <div class="row g-4">
@@ -517,13 +549,17 @@
                     <div class="bg-gray-50 p-5 rounded mb-5">
                         <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Mother's Information</h6>
                         <div class="row g-4 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Maiden Name <span class="required">*</span></label>
                                 <input type="text" name="mother_lastname" class="form-control" placeholder="Maiden Name" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">First Name <span class="required">*</span></label>
                                 <input type="text" name="mother_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="mother_middlename" class="form-control" placeholder="Middle Name">
                             </div>
                         </div>
                         <div class="row g-4">
@@ -616,13 +652,11 @@
                     {% if documents is defined and documents|length > 0 %}
                         <div id="dynamic-documents-container">
                             {% for doc in documents %}
-                                {# Added data-campus to the wrapper #}
                                 <div class="file-upload-group mb-4 document-item" data-campus="{{ doc.campus }}">
                                     <label class="form-label d-block">
                                         {{ doc.documentName }} 
                                         {% if doc.isRequired %}<span class="required">*</span>{% endif %}
                                     </label>
-                                    {# Added data-is-required so JS can safely toggle the HTML5 required state #}
                                     <input type="file" name="{{ doc.slug }}" class="form-control document-input" 
                                            data-is-required="{{ doc.isRequired ? 'true' : 'false' }}"
                                            {% if doc.isRequired %}required{% endif %} accept=".pdf">
@@ -630,7 +664,6 @@
                             {% endfor %}
                         </div>
                         
-                        {# Fallback if a campus has no specific documents #}
                         <div id="no-docs-message" class="alert alert-warning text-center" style="display: none;">
                             <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
                             <p class="mb-0">No documents are currently required for this campus.</p>
@@ -656,7 +689,50 @@
     </div>
 </div>
 
+{# --- SUBMIT CONFIRMATION MODAL --- #}
+<div id="submitConfirmModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="modalDialog">
+        <div class="p-6 text-center border-b border-gray-100">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
+                <i class="ki-filled ki-information-3 text-4xl text-amber-600"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-gray-900">Are you sure you want to submit?</h3>
+            <p class="text-sm text-gray-500 mt-2 font-medium">This cannot be undone. Please review your details below.</p>
+        </div>
+        <div class="p-6 bg-gray-50 text-left" id="summaryContent">
+            </div>
+        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
+            <button type="button" onclick="closeConfirmationModal()" class="px-5 py-3 rounded-xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors w-full sm:w-auto">
+                No, I have some changes
+            </button>
+            <button type="button" id="btnConfirmSubmit" onclick="confirmSubmission()" class="px-5 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 transition-colors shadow-lg shadow-feu-green-700/30 w-full sm:w-auto flex items-center justify-center gap-2">
+                Yes, I'm sure
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('js/validation.js') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}"></script>
+
+{# Script to ensure the loading screen displays for a guaranteed minimum time #}
+<script>
+    const loader = document.getElementById('enrollmentLoader');
+    if (loader) {
+        const minLoadTime = 1500; 
+        const startTime = Date.now();
+        
+        window.addEventListener('load', function() {
+            const timeElapsed = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadTime - timeElapsed);
+            
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(() => loader.remove(), 500);
+            }, remainingTime); 
+        });
+    }
+</script>
 
 {% endblock %}

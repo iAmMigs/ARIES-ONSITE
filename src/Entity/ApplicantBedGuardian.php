@@ -42,6 +42,9 @@ class ApplicantBedGuardian
     #[ORM\Column(name: 'IsOFW', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $OFW = false;
 
+    #[ORM\Column(name: 'guardian_type', type: 'string', length: 20, nullable: true)]
+    private ?string $guardianType = null;
+
     // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
@@ -66,4 +69,14 @@ class ApplicantBedGuardian
     
     public function isOFW(): bool { return $this->OFW; }
     public function setOFW(bool $OFW): static { $this->OFW = $OFW; return $this; }
+
+    public function getGuardianType(): ?string
+    {
+        return $this->guardianType;
+    }
+    public function setGuardianType(?string $guardianType): static
+    {
+        $this->guardianType = $guardianType;
+        return $this;
+    }
 }

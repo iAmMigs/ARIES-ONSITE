@@ -108,7 +108,10 @@ class AdminAlabangController extends AbstractController
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
-        $documentSetups = $em->getRepository(DocumentSetup::class)->findAll();
+        // FIX: Fetch ONLY Alabang documents instead of findAll()
+        $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
+            'campus' => [ApplicantBed::CAMPUS_ALABANG, null]
+        ]);
 
         if ($request->isMethod('POST')) {
             // Basic Info
@@ -170,35 +173,6 @@ class AdminAlabangController extends AbstractController
                 } catch (\Exception $e) { /* Handle error */ }
             }
 
-            // Document Replacements (PDF Only)
-            $docMap = [
-                'req_psa' => 'onsite-psa',
-                'req_card' => 'onsite-cards',
-                'req_moral' => 'onsite-moral'
-            ];
-            
-            // Loop through existing requirements to check for updates
-            foreach ($registration->getRequirements() as $req) {
-                // Determine which input name corresponds to this requirement based on slug or name
-                $inputName = null;
-                if (stripos($req->getRequirement(), 'PSA') !== false) $inputName = 'req_psa';
-                elseif (stripos($req->getRequirement(), 'Report Card') !== false) $inputName = 'req_card';
-                elseif (stripos($req->getRequirement(), 'Good Moral') !== false) $inputName = 'req_moral';
-
-                if ($inputName) {
-                    $docFile = $request->files->get($inputName);
-                    if ($docFile) {
-                        $filename = strtoupper(str_replace('req_', 'REQ_', $inputName)) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.pdf';
-                        try {
-                            $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docMap[$inputName], $filename);
-                            $req->setStoredFileName('uploads/' . $docMap[$inputName] . '/' . $filename);
-                            $req->setDateSubmitted(new \DateTime());
-                            $req->setStatus('S'); // Ensure it is marked as submitted
-                        } catch (\Exception $e) { /* Handle error */ }
-                    }
-                }
-            }
-
             // Exam Status Logic
             $examTaken = $request->request->get('exam_taken') === '1';
             $score = $request->request->get('exam_score');
@@ -216,22 +190,68 @@ class AdminAlabangController extends AbstractController
             $this->hydrateAddress($registration, $request, $em, 'permanent');
 
             // Guardians (Split Name Handling)
+            // Guardians (Split Name Handling)
             $guardiansData = $request->request->all('guardians');
             foreach ($registration->getGuardians() as $index => $g) {
                 if (isset($guardiansData[$index])) {
                     $data = $guardiansData[$index];
                     
-                    // Stitch split names back together
-                    $firstName = $data['first_name'] ?? '';
-                    $lastName = $data['last_name'] ?? '';
-                    if ($firstName || $lastName) {
-                        $g->setParentName($lastName . ', ' . $firstName);
+                    // Identify the slot type definitively
+                    $gType = strtoupper($data['guardian_type'] ?? $g->getGuardianType() ?? '');
+                    if ($gType === '') {
+                        $gType = in_array(strtoupper($g->getRelationship()), ['FATHER', 'MOTHER']) ? strtoupper($g->getRelationship()) : 'GUARDIAN';
+                    }
+                    $g->setGuardianType($gType);
+
+                    // EMERGENCY CONTACT LOGIC
+                    if ($gType === 'GUARDIAN') {
+                        $g->setParentName(strtoupper(trim($data['full_name'] ?? '')));
+                        if (isset($data['relationship']) && trim($data['relationship']) !== '') {
+                            $g->setRelationship(strtoupper(trim($data['relationship'])));
+                        }
+                    } else {
+                        // PARENTS LOGIC
+                        $firstName = trim($data['first_name'] ?? '');
+                        $middleName = trim($data['middle_name'] ?? '');
+                        $lastName = trim($data['last_name'] ?? '');
+                        
+                        $firstMid = trim(strtoupper(trim("$firstName $middleName")));
+                        $lastName = strtoupper($lastName);
+
+                        if ($lastName && $firstMid) {
+                            $g->setParentName("$lastName, $firstMid");
+                        } elseif ($lastName) {
+                            $g->setParentName($lastName);
+                        } elseif ($firstMid) {
+                            $g->setParentName($firstMid);
+                        } else {
+                            $g->setParentName('');
+                        }
                     }
 
-                    $g->setOccupation($data['occupation'] ?? $g->getOccupation());
-                    $g->setContactNo($data['contact'] ?? $g->getContactNo());
+                    $g->setOccupation(strtoupper($data['occupation'] ?? ''));
+                    $g->setContactNo($data['contact'] ?? '');
                     $g->setDeceased(isset($data['deceased']));
                     $g->setOFW(isset($data['ofw']));
+
+                    unset($guardiansData[$index]); 
+                }
+            }
+
+            // ADD NEW GUARDIANS (If missing from old records)
+            foreach ($guardiansData as $index => $data) {
+                $gType = strtoupper(trim($data['guardian_type'] ?? 'GUARDIAN'));
+                $fullName = trim($data['full_name'] ?? '');
+                if (!empty($fullName)) {
+                    $newG = new \App\Entity\ApplicantBedGuardian();
+                    $newG->setApplicant($registration);
+                    $newG->setGuardianType($gType);
+                    $newG->setRelationship(strtoupper(trim($data['relationship'] ?? 'GUARDIAN')));
+                    $newG->setParentName(strtoupper($fullName));
+                    $newG->setOccupation(strtoupper($data['occupation'] ?? ''));
+                    $newG->setContactNo($data['contact'] ?? '');
+                    $registration->addGuardian($newG);
+                    $em->persist($newG);
                 }
             }
 

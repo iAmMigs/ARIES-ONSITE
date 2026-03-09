@@ -23,13 +23,30 @@
     :root {
         --swiper-theme-color: #fbbf24;
     }
+
+    /* Completely prevent scrolling on the landing page */
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        width: 100%;
+    }
     
     /* ===== Hero Section ===== */
     .hero-section {
-        height: 95vh;
-        min-height: 600px;
+        /* Mobile header spacer is 88px tall */
+        height: calc(100dvh - 88px); 
+        width: 100%;
         position: relative;
         overflow: hidden;
+    }
+
+    @media (min-width: 1024px) {
+        .hero-section {
+            /* Desktop header spacer is 64px tall */
+            height: calc(100dvh - 64px); 
+        }
     }
     
     /* Pure Background Carousel */
@@ -114,8 +131,6 @@
     .service-card:hover::before { opacity: 1; }
     .service-icon { width: 70px; height: 70px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; transition: all 0.3s ease; }
     .service-card:hover .service-icon { transform: scale(1.1) rotate(5deg); }
-    
-    /*  */
 
     /* ===== Buttons ===== */
     .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 700; color: #1a4d2e; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); border: none; cursor: pointer; }
@@ -198,7 +213,7 @@
                     <h1 class="text-5xl md:text-6xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
                         Start your campus life with <span class="text-feu-gold-500">FEU</span>
                     </h1>
-                    
+                
                     <p class="text-xl md:text-2xl text-white/80 mb-12 font-medium">
                         Choose an FEU campus to start with.
                     </p>
@@ -239,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const swiperWrapper = document.querySelector('.hero-swiper .swiper-wrapper');
     if (swiperWrapper) {
         const slides = Array.from(swiperWrapper.children);
-
         // Shuffle algorithm
         for (let i = slides.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));

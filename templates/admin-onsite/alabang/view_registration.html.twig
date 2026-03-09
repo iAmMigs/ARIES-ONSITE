@@ -11,7 +11,6 @@
         {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'View Student Details'} %}
 
         <div class="flex-1 overflow-y-auto p-8">
-            {# Action Header #}
             <div class="max-w-7xl mx-auto mb-6 flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <a href="{{ path('app_admin_alabang_registrations') }}" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-feu-green-700 hover:border-feu-green-600 transition-all shadow-sm">
@@ -29,7 +28,6 @@
                 <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50"></div>
                     
-                    {# Profile Picture #}
                     <div class="flex-shrink-0">
                         {% if registration.photoSlug %}
                             <img src="{{ asset(registration.photoSlug) }}" class="w-40 h-40 rounded-2xl object-cover border-4 border-white shadow-lg">
@@ -40,7 +38,6 @@
                         {% endif %}
                     </div>
 
-                    {# Main Info #}
                     <div class="flex-grow pt-2">
                         <h2 class="text-3xl font-extrabold text-gray-900 mb-2">{{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}</h2>
                         
@@ -69,17 +66,16 @@
                         </div>
                     </div>
 
-                    {# Status #}
                     <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
                         <div class="text-xs font-bold text-gray-400 uppercase mb-2">
-                            {% if registration.admissionStatus == 'Examination Score' %}
+                            {% if registration.examinationScore is not null %}
                                 Examination Score
                             {% else %}
                                 Examination Status
                             {% endif %}
                         </div>
                         <div class="text-lg font-bold text-feu-green-700">
-                            {% if registration.admissionStatus == 'Examination Score' %}
+                            {% if registration.examinationScore is not null %}
                                 <span class="text-2xl">{{ registration.examinationScore }}</span>
                             {% else %}
                                 {{ registration.admissionStatus }}
@@ -90,7 +86,6 @@
 
                 {# --- 2. DETAILS GRID --- #}
                 <div class="col-span-12 lg:col-span-8 space-y-6">
-                    {# Personal Info #}
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i class="ki-filled ki-user text-feu-green-600"></i> Personal Information
@@ -104,12 +99,10 @@
                         </div>
                     </div>
 
-                    {# Address #}
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i class="ki-filled ki-map text-feu-green-600"></i> Address Information
                         </h3>
-                        
                         <div class="mb-4">
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Current Address</div>
                             <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
@@ -117,7 +110,6 @@
                                 {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }} {{ registration.currentZip }}
                             </div>
                         </div>
-
                         <div class="pt-4 border-t border-gray-100">
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Permanent Address</div>
                             <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
@@ -127,24 +119,36 @@
                         </div>
                     </div>
 
-                    {# Family / Guardians #}
+                    {# Parents Background (Only shows FATHER or MOTHER guardianType) #}
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {% for guardian in registration.guardians %}
-                            <div class="p-4 rounded-xl border {{ guardian.relationship == 'Guardian' ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100' }} relative">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div class="text-xs {{ guardian.relationship == 'Guardian' ? 'text-orange-600' : 'text-feu-gold-600' }} font-bold uppercase">
-                                        {{ guardian.relationship }} {{ guardian.relationship == 'Guardian' ? '(Emergency Contact)' : '' }}
+                                {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
+                                {% if gType in ['FATHER', 'MOTHER'] %}
+                                    <div class="p-4 rounded-xl border bg-gray-50 border-gray-100 relative">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="text-xs text-feu-gold-600 font-bold uppercase">
+                                                {{ guardian.relationship }}
+                                            </div>
+                                            <div class="flex gap-2">
+                                                {% if guardian.deceased %}
+                                                    <span class="px-2 py-0.5 rounded bg-red-100 text-red-600 text-[10px] font-bold uppercase">Deceased</span>
+                                                {% endif %}
+                                                {% if guardian.OFW %}
+                                                    <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-600 text-[10px] font-bold uppercase">OFW</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="font-bold text-gray-800">{{ guardian.parentName|trim(', ') }}</div>
+                                        <div class="text-sm {{ guardian.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
+                                            {{ guardian.occupation ?: 'Occupation Not Specified' }}
+                                        </div>
+                                        <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ guardian.contactNo ?: 'No Contact Provided' }}</div>
                                     </div>
-                                    {# ... Deceased/OFW badges ... #}
-                                </div>
-                                <div class="font-bold text-gray-800">{{ guardian.parentName }}</div>
-                                <div class="text-sm text-gray-500 mt-1">{{ guardian.occupation }}</div>
-                                <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ guardian.contactNo }}</div>
-                            </div>
+                                {% endif %}
                             {% endfor %}
                         </div>
                     </div>
@@ -255,6 +259,41 @@
                             </div>
                         </div>
                     </div>
+
+                    {# Emergency Contact (Always renders via GUARDIAN type) #}
+                    {% set emergencyContact = null %}
+                    {% for guardian in registration.guardians %}
+                        {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
+                        {% if gType == 'GUARDIAN' %}
+                            {% set emergencyContact = guardian %}
+                        {% endif %}
+                    {% endfor %}
+
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                            <i class="ki-filled ki-phone text-orange-500"></i> Emergency Contact
+                        </h3>
+                        
+                        {% if emergencyContact %}
+                            <div class="p-4 rounded-xl border bg-orange-50 border-orange-100 relative">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="text-xs text-orange-600 font-bold uppercase">
+                                        {{ emergencyContact.relationship }}
+                                    </div>
+                                </div>
+                                <div class="font-bold text-gray-800">{{ emergencyContact.parentName|trim(', ') }}</div>
+                                <div class="text-sm {{ emergencyContact.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
+                                    {{ emergencyContact.occupation ?: 'Occupation Not Specified' }}
+                                </div>
+                                <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ emergencyContact.contactNo ?: 'No Contact Provided' }}</div>
+                            </div>
+                        {% else %}
+                            <div class="p-4 rounded-xl border bg-gray-50 border-gray-100 text-center">
+                                <p class="text-sm text-gray-400 italic font-medium">No Emergency Contact provided.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
                 </div>
             </div>
         </div>
