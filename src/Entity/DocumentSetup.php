@@ -29,15 +29,54 @@ class DocumentSetup
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $campus = null;
 
+    /**
+     * Defines the acceptable file formats for the document requirement.
+     * Utilized to validate uploads and restrict file pickers dynamically.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $allowedFileTypes = null;
+
     public function getId(): ?int { return $this->id; }
+    
     public function getDocumentName(): ?string { return $this->documentName; }
-    public function setDocumentName(string $documentName): static { $this->documentName = $documentName; return $this; }
+    
+    public function setDocumentName(string $documentName): static { 
+        $this->documentName = $documentName; 
+        return $this; 
+    }
+    
     public function getSlug(): ?string { return $this->slug; }
-    public function setSlug(string $slug): static { $this->slug = $slug; return $this; }
+    
+    public function setSlug(string $slug): static { 
+        $this->slug = $slug; 
+        return $this; 
+    }
+    
     public function getFolderName(): ?string { return $this->folderName; }
-    public function setFolderName(string $folderName): static { $this->folderName = $folderName; return $this; }
+    
+    public function setFolderName(string $folderName): static { 
+        $this->folderName = $folderName; 
+        return $this; 
+    }
+    
     public function isRequired(): bool { return $this->isRequired; }
-    public function setIsRequired(bool $isRequired): static { $this->isRequired = $isRequired; return $this; }
+    
+    public function setIsRequired(bool $isRequired): static { 
+        $this->isRequired = $isRequired; 
+        return $this; 
+    }
+    
     public function getCampus(): ?string { return $this->campus; }
-    public function setCampus(?string $campus): static { $this->campus = $campus; return $this; }
+    
+    public function setCampus(?string $campus): static { 
+        $this->campus = $campus; 
+        return $this; 
+    }
+
+    public function getAllowedFileTypes(): ?string { return $this->allowedFileTypes; }
+
+    public function setAllowedFileTypes(?string $allowedFileTypes): static {
+        $this->allowedFileTypes = $allowedFileTypes;
+        return $this;
+    }
 }

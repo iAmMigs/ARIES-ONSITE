@@ -63,26 +63,22 @@ class AdminAlabangController extends AbstractController
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
             ->orderBy('a.createdAt', 'DESC');
 
-        // Keyword Search (Name or Student No)
         if ($search = $request->query->get('search')) {
             $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
                ->setParameter('search', "%$search%");
         }
 
-        // 2. Education Level Filter
         if ($eduType = $request->query->get('education_type')) {
             $qb->andWhere('a.educationType = :eduType')
                ->setParameter('eduType', $eduType);
         }
 
-        // Grade Level Filter (Array of checkboxes)
         $grades = array_filter($request->query->all()['grade_levels'] ?? []);
         if (!empty($grades)) {
             $qb->andWhere('a.gradeLevel IN (:grades)')
                ->setParameter('grades', $grades);
         }
 
-        // Date Filter
         if ($date = $request->query->get('date')) {
             $qb->andWhere('a.createdAt LIKE :date')
                ->setParameter('date', "$date%");
@@ -108,13 +104,11 @@ class AdminAlabangController extends AbstractController
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
-        // FIX: Fetch ONLY Alabang documents instead of findAll()
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
             'campus' => [ApplicantBed::CAMPUS_ALABANG, null]
         ]);
 
         if ($request->isMethod('POST')) {
-            // Basic Info
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
             $registration->setMiddleName($request->request->get('middle_name'));
@@ -132,7 +126,6 @@ class AdminAlabangController extends AbstractController
                 $registration->setBirthDate(new \DateTime($dob));
             }
 
-            // --- DYNAMIC DOCUMENT REPLACEMENTS ---
             foreach ($documentSetups as $docSetup) {
                 $inputName = $docSetup->getSlug();
                 $docFile = $request->files->get($inputName);
@@ -156,24 +149,22 @@ class AdminAlabangController extends AbstractController
                     try {
                         $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
                         $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
-                        $req->setIsDeleted(false); // Un-delete if it was previously soft-deleted!
+                        $req->setIsDeleted(false);
                         $req->setDateSubmitted(new \DateTime());
                         $req->setStatus('S');
                     } catch (\Exception $e) { }
                 }
             }
 
-            // Profile Picture Upload
             $profileFile = $request->files->get('profile_picture');
             if ($profileFile) {
                 $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $profileFile->guessExtension();
                 try {
                     $profileFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics', $filename);
                     $registration->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
-                } catch (\Exception $e) { /* Handle error */ }
+                } catch (\Exception $e) { }
             }
 
-            // Exam Status Logic
             $examTaken = $request->request->get('exam_taken') === '1';
             $score = $request->request->get('exam_score');
 
@@ -185,32 +176,26 @@ class AdminAlabangController extends AbstractController
                 $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             }
 
-            // Address Lookup Hydration
             $this->hydrateAddress($registration, $request, $em, 'current');
             $this->hydrateAddress($registration, $request, $em, 'permanent');
 
-            // Guardians (Split Name Handling)
-            // Guardians (Split Name Handling)
             $guardiansData = $request->request->all('guardians');
             foreach ($registration->getGuardians() as $index => $g) {
                 if (isset($guardiansData[$index])) {
                     $data = $guardiansData[$index];
                     
-                    // Identify the slot type definitively
                     $gType = strtoupper($data['guardian_type'] ?? $g->getGuardianType() ?? '');
                     if ($gType === '') {
                         $gType = in_array(strtoupper($g->getRelationship()), ['FATHER', 'MOTHER']) ? strtoupper($g->getRelationship()) : 'GUARDIAN';
                     }
                     $g->setGuardianType($gType);
 
-                    // EMERGENCY CONTACT LOGIC
                     if ($gType === 'GUARDIAN') {
                         $g->setParentName(strtoupper(trim($data['full_name'] ?? '')));
                         if (isset($data['relationship']) && trim($data['relationship']) !== '') {
                             $g->setRelationship(strtoupper(trim($data['relationship'])));
                         }
                     } else {
-                        // PARENTS LOGIC
                         $firstName = trim($data['first_name'] ?? '');
                         $middleName = trim($data['middle_name'] ?? '');
                         $lastName = trim($data['last_name'] ?? '');
@@ -238,7 +223,6 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // ADD NEW GUARDIANS (If missing from old records)
             foreach ($guardiansData as $index => $data) {
                 $gType = strtoupper(trim($data['guardian_type'] ?? 'GUARDIAN'));
                 $fullName = trim($data['full_name'] ?? '');
@@ -255,7 +239,6 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // Siblings
             $siblingsData = $request->request->all('siblings');
             foreach ($registration->getSiblings() as $index => $s) {
                 if (isset($siblingsData[$index])) {
@@ -267,7 +250,6 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            // Schools
             $schoolsData = $request->request->all('schools');
             foreach ($registration->getSchools() as $index => $sch) {
                 if (isset($schoolsData[$index])) {
@@ -280,7 +262,6 @@ class AdminAlabangController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Applicant updated successfully.');
             
-            // Redirect to VIEW
             $viewRoute = ($registration->getCampus() === ApplicantBed::CAMPUS_ALABANG) 
                 ? 'app_admin_alabang_registration_view' 
                 : 'app_admin_diliman_registration_view';
@@ -299,7 +280,6 @@ class AdminAlabangController extends AbstractController
         $prefix = ($type === 'current') ? 'addr' : 'perm';
         $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
 
-        // Check if user selected new lookup values (these inputs come from the JS lookup)
         $regionCode = $request->request->get($prefix . '_region');
         $provCode = $request->request->get($prefix . '_province');
         $cityCode = $request->request->get($prefix . '_city');
@@ -318,11 +298,9 @@ class AdminAlabangController extends AbstractController
             if ($c) $applicant->{'set'.$fieldPrefix.'City'}($c->getCityDesc());
         }
         if ($brgyName) {
-            // Dropdown value for barangay is usually the name itself in the JS logic provided earlier
             $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyName);
         }
 
-        // Street Address & Zip are direct text
         $applicant->{'set'.$fieldPrefix.'Address'}($request->request->get($type . '_address'));
         $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type . '_zip'));
     }
@@ -350,6 +328,11 @@ class AdminAlabangController extends AbstractController
             $doc->setIsRequired($request->request->get('is_required') === '1');
             $doc->setCampus(ApplicantBed::CAMPUS_ALABANG); 
 
+            $allowedTypes = $request->request->get('allowed_file_types');
+            if (!empty($allowedTypes)) {
+                $doc->setAllowedFileTypes($allowedTypes);
+            }
+
             $em->persist($doc);
             $em->flush();
             
@@ -373,7 +356,6 @@ class AdminAlabangController extends AbstractController
         return $this->redirectToRoute('app_admin_alabang_documents');
     }
 
-    // --- NEW: SOFT DELETE DOCUMENT FOR A SPECIFIC APPLICANT ---
     #[Route('/registration/{id}/document/{slug}/soft-delete', name: 'app_admin_alabang_registration_doc_delete', methods: ['POST'])]
     public function softDeleteApplicantDocument(string $id, string $slug, EntityManagerInterface $em): Response
     {

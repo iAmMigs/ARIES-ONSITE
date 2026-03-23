@@ -23,6 +23,12 @@
                             <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name</label>
                             <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. Health Certificate" required>
                         </div>
+                        
+                        <div class="w-full sm:w-64">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed Types</label>
+                            <input type="text" name="allowed_file_types" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. pdf, jpg, png">
+                        </div>
+
                         <div class="w-full sm:w-48">
                             <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Requirement</label>
                             <select name="is_required" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
@@ -30,6 +36,7 @@
                                 <option value="0">Optional</option>
                             </select>
                         </div>
+                        
                         <div class="w-full sm:w-auto flex items-end">
                             <button type="submit" class="w-full sm:w-auto bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
                                 Add Document
@@ -43,6 +50,7 @@
                                 <tr>
                                     <th class="px-6 py-4 rounded-tl-xl">Document Name</th>
                                     <th class="px-6 py-4">Internal Slug</th>
+                                    <th class="px-6 py-4">Allowed Types</th>
                                     <th class="px-6 py-4">Status</th>
                                     <th class="px-6 py-4 text-right rounded-tr-xl">Actions</th>
                                 </tr>
@@ -52,6 +60,7 @@
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-4 font-bold text-gray-800">{{ doc.documentName }}</td>
                                     <td class="px-6 py-4 text-gray-500 font-mono text-xs">{{ doc.slug }}</td>
+                                    <td class="px-6 py-4 font-mono text-xs text-blue-600">{{ doc.allowedFileTypes ? doc.allowedFileTypes : '<span class="text-gray-400 italic">All formats</span>'|raw }}</td>
                                     <td class="px-6 py-4">
                                         {% if doc.isRequired %}
                                             <span class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold">Required</span>
@@ -69,7 +78,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">No document setups configured yet.</td>
+                                    <td colspan="5" class="px-6 py-10 text-center text-gray-400 italic">No document setups configured yet.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

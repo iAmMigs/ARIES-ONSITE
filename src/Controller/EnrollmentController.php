@@ -32,7 +32,6 @@ class EnrollmentController extends AbstractController
         
         $documents = $em->getRepository(DocumentSetup::class)->findAll();
         
-        // Fetch Database Dropdowns
         $religions = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
         $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
 
@@ -59,7 +58,7 @@ class EnrollmentController extends AbstractController
             $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrnInput]);
             if ($existing) {
                 $this->addFlash('error', 'The provided LRN is already registered.');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $request->query->get('campus')]);
+                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
             }
         }
 
@@ -81,7 +80,6 @@ class EnrollmentController extends AbstractController
         $applicant->setAdmissionType($request->request->get('admission_type'));
 
         // --- 3. PERSONAL INFORMATION ---
-        // GUARANTEE STRICT UPPERCASE FOR ALL STRINGS
         $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
 
         $applicant->setLastName($formatName($request->request->get('last_name')));
@@ -134,7 +132,6 @@ class EnrollmentController extends AbstractController
         $this->handleGuardian($applicant, $request, 'mother', $em);
         $this->handleGuardian($applicant, $request, 'guardian', $em);
 
-        // Siblings
         $siblingNames = $request->request->all()['sibling_name'] ?? [];
         $siblingSchools = $request->request->all()['sibling_school'] ?? [];
         $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
@@ -153,7 +150,6 @@ class EnrollmentController extends AbstractController
             }
         }
 
-        // Previous School
         if ($request->request->get('prev_school_name')) {
             $school = new ApplicantBedSchool();
             $school->setApplicant($applicant);
@@ -164,10 +160,25 @@ class EnrollmentController extends AbstractController
             $em->persist($school);
         }
 
-        // --- 6. FILE UPLOADS ---
+        // --- 6. ROBUST FILE UPLOADS ---
         
+        // 6A. Process ID Picture
         $idFile = $request->files->get('req_id_picture');
         if ($idFile instanceof UploadedFile) {
+            
+            // Server-Side Image Format Validation
+            $idExtension = strtolower($idFile->getClientOriginalExtension());
+            if (!in_array($idExtension, ['jpg', 'jpeg', 'png', 'webp'])) {
+                $this->addFlash('error', 'Invalid ID picture format. Please upload a valid image (JPG, PNG, WEBP).');
+                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+            }
+            
+            // Server-Side Size Validation (5MB)
+            if ($idFile->getSize() > 5242880) {
+                $this->addFlash('error', 'ID picture must be strictly less than 5MB.');
+                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+            }
+
             $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
@@ -180,6 +191,7 @@ class EnrollmentController extends AbstractController
             } catch (\Exception $e) { }
         }
 
+        // 6B. Process Dynamic Document Requirements
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
             'campus' => [$applicant->getCampus(), null]
         ]);
@@ -189,6 +201,25 @@ class EnrollmentController extends AbstractController
             $file = $request->files->get($slug);
             
             if ($file instanceof UploadedFile) {
+                
+                // Server-Side Size Validation (10MB)
+                if ($file->getSize() > 10485760) {
+                    $this->addFlash('error', 'The document ' . $docSetup->getDocumentName() . ' exceeds the 10MB limit.');
+                    return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+                }
+
+                // Dynamic File Type Validation based on Admin Settings
+                $allowedTypesString = $docSetup->getAllowedFileTypes();
+                if (!empty($allowedTypesString)) {
+                    $allowedExtensions = array_map('trim', explode(',', strtolower($allowedTypesString)));
+                    $fileExtension = strtolower($file->getClientOriginalExtension());
+                    
+                    if (!in_array($fileExtension, $allowedExtensions)) {
+                        $this->addFlash('error', 'Invalid file format for ' . $docSetup->getDocumentName() . '. Allowed formats: ' . strtoupper($allowedTypesString));
+                        return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+                    }
+                }
+
                 $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                 if (!file_exists($targetDir)) {
                     mkdir($targetDir, 0777, true);
@@ -252,15 +283,13 @@ class EnrollmentController extends AbstractController
 
     private function handleGuardian(ApplicantBed $applicant, Request $request, string $slot, EntityManagerInterface $em)
     {
-        $slotType = strtoupper($slot); // Will be 'FATHER', 'MOTHER', or 'GUARDIAN'
+        $slotType = strtoupper($slot); 
 
         if ($slot === 'guardian') {
-            // EMERGENCY CONTACT
             $fullname = strtoupper(trim($request->request->get('guardian_name', '')));
             $relationship = strtoupper(trim($request->request->get('guardian_relation', 'GUARDIAN')));
-            $occupation = ''; // Front-end doesn't ask for this yet
+            $occupation = '';
         } else {
-            // PARENTS
             $lname = trim($request->request->get($slot . '_lastname', ''));
             $fname = trim($request->request->get($slot . '_firstname', ''));
             $mname = trim($request->request->get($slot . '_middlename', ''));
@@ -278,16 +307,14 @@ class EnrollmentController extends AbstractController
                 $fullname = '';
             }
 
-            $relationship = strtoupper($slot); // Default relationship is FATHER or MOTHER
+            $relationship = strtoupper($slot);
             $occupation = strtoupper(trim($request->request->get($slot . '_occupation', '')));
         }
 
         if (empty($fullname) || $fullname === ',' || $fullname === ', ') return;
 
-        // Find existing by slot type (guardianType)
         $guardian = null;
         foreach ($applicant->getGuardians() as $g) {
-            // Fallback for old data: if guardianType is null, try to match by relationship
             $dbType = $g->getGuardianType() ?: strtoupper($g->getRelationship());
             if ($dbType === $slotType || ($slotType === 'GUARDIAN' && !in_array($dbType, ['FATHER', 'MOTHER']))) {
                 $guardian = $g;
@@ -298,7 +325,7 @@ class EnrollmentController extends AbstractController
         if (!$guardian) {
             $guardian = new ApplicantBedGuardian();
             $guardian->setApplicant($applicant);
-            $guardian->setGuardianType($slotType); // STRICTLY BINDS TO FATHER, MOTHER, OR GUARDIAN
+            $guardian->setGuardianType($slotType); 
             $applicant->addGuardian($guardian);
         }
 
