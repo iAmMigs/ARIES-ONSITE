@@ -8,6 +8,8 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantBedRepository::class)]
 #[ORM\Table(name: 'bed_applicants')]
@@ -24,11 +26,9 @@ class ApplicantBed
     public const GENDER_MALE = 'M';
     public const GENDER_FEMALE = 'F';
 
-    // Admission Types
     public const TYPE_FRESHMAN = 'Freshman';
     public const TYPE_TRANSFEREE = 'Transferee';
 
-    // --- PRIMARY KEY ---
     #[ORM\Id]
     #[ORM\Column(name: 'student_number', length: 20, unique: true)]
     private ?string $studentNumber = null;
@@ -39,7 +39,6 @@ class ApplicantBed
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
 
-    // --- RELATIONSHIPS ---
     #[ORM\OneToMany(mappedBy: 'applicant', targetEntity: ApplicantBedGuardian::class, cascade: ['persist', 'remove'])]
     private Collection $guardians;
 
@@ -52,7 +51,6 @@ class ApplicantBed
     #[ORM\OneToMany(mappedBy: 'applicant', targetEntity: ApplicantBedRequirement::class, cascade: ['persist', 'remove'])]
     private Collection $requirements;
 
-    // --- ACADEMIC INFO ---
     #[ORM\Column(length: 20)] private ?string $educationType = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $gradeLevel = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $trackStrand = null;
@@ -60,14 +58,11 @@ class ApplicantBed
     #[ORM\Column(length: 20)] private string $admissionStatus = self::STATUS_PENDING;
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
 
-    // --- ADMISSION INFO ---
     #[ORM\Column(length: 20)] private ?string $admissionType = null;
 
-    // --- NEW: EXAMINATION SCORE ---
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $examinationScore = null;
 
-    // --- PERSONAL INFO ---
     #[ORM\Column(length: 100)] private ?string $lastName = null;
     #[ORM\Column(length: 100)] private ?string $firstName = null;
     #[ORM\Column(length: 100, nullable: true)] private ?string $middleName = null;
@@ -83,14 +78,10 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
 
-    
-
-    // --- CONTACT INFO ---
     #[ORM\Column(length: 50)] private ?string $mobileNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $landLineNumber = null;
     #[ORM\Column(length: 255)] private ?string $personalEmail = null;
 
-    // --- ADDRESS (Current) ---
     #[ORM\Column(length: 255, nullable: true)] private ?string $currentRegion = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $currentProvince = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $currentCity = null;
@@ -98,7 +89,6 @@ class ApplicantBed
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $currentAddress = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $currentZip = null;
 
-    // --- ADDRESS (Permanent) ---
     #[ORM\Column(length: 255, nullable: true)] private ?string $permanentRegion = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $permanentProvince = null;
     #[ORM\Column(length: 255, nullable: true)] private ?string $permanentCity = null;
@@ -106,8 +96,17 @@ class ApplicantBed
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $permanentAddress = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
     
-    // --- MEDIA ---
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
+
+    /**
+     * Virtual property for handling the photo upload securely before persisting.
+     */
+    #[Assert\Image(
+        maxSize: '5M',
+        mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+        mimeTypesMessage: 'Please upload a valid image file format (JPEG, PNG, WEBP).'
+    )]
+    private ?File $photoFile = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $admissionDate = null;
 
@@ -125,8 +124,6 @@ class ApplicantBed
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    // --- GETTERS & SETTERS ---
-
     public function getStudentNumber(): ?string { return $this->studentNumber; }
     public function setStudentNumber(?string $v): static { $this->studentNumber = $v; return $this; }
 
@@ -136,7 +133,6 @@ class ApplicantBed
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $c): static { $this->createdAt = $c; return $this; }
 
-    // Relationships
     public function getGuardians(): Collection { return $this->guardians; }
     public function addGuardian(ApplicantBedGuardian $g): static {
         if (!$this->guardians->contains($g)) {
@@ -173,7 +169,6 @@ class ApplicantBed
         return $this;
     }
 
-    // Standard Fields
     public function getEducationType(): ?string { return $this->educationType; }
     public function setEducationType(?string $t): static { $this->educationType = $t; return $this; }
     public function getGradeLevel(): ?string { return $this->gradeLevel; }
@@ -229,6 +224,10 @@ class ApplicantBed
     
     public function getPhotoSlug(): ?string { return $this->photoSlug; }
     public function setPhotoSlug(?string $p): static { $this->photoSlug = $p; return $this; }
+
+    public function getPhotoFile(): ?File { return $this->photoFile; }
+    public function setPhotoFile(?File $photoFile): static { $this->photoFile = $photoFile; return $this; }
+
     public function getAdmissionDate(): ?\DateTimeInterface { return $this->admissionDate; }
     public function setAdmissionDate(?\DateTimeInterface $d): static { $this->admissionDate = $d; return $this; }
 
@@ -260,5 +259,4 @@ class ApplicantBed
 
     public function getAdmissionType(): ?string { return $this->admissionType; }
     public function setAdmissionType(?string $t): static { $this->admissionType = $t; return $this; }
-    
 }

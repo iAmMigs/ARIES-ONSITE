@@ -187,6 +187,14 @@
  
         <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="{{ selected_campus|default('') }}">
             
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} mb-4 rounded-xl font-medium flex items-center gap-2">
+                        <i class="ki-filled ki-information-5 text-lg"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
             {# --- CARD 1: ADMISSION DETAILS --- #}
             <div class="card mb-5 animate-section">
                 <div class="card-header">
@@ -657,9 +665,28 @@
                                         {{ doc.documentName }} 
                                         {% if doc.isRequired %}<span class="required">*</span>{% endif %}
                                     </label>
+                                    
+                                    {# Format the admin's 'pdf, jpg' string into '.pdf, .jpg' for HTML input #}
+                                    {% set accept_attr = '' %}
+                                    {% if doc.allowedFileTypes %}
+                                        {% for ext in doc.allowedFileTypes|split(',') %}
+                                            {% set accept_attr = accept_attr ~ '.' ~ ext|trim ~ (loop.last ? '' : ', ') %}
+                                        {% endfor %}
+                                    {% endif %}
+
                                     <input type="file" name="{{ doc.slug }}" class="form-control document-input" 
                                            data-is-required="{{ doc.isRequired ? 'true' : 'false' }}"
-                                           {% if doc.isRequired %}required{% endif %} accept=".pdf">
+                                           {% if doc.isRequired %}required{% endif %} 
+                                           {% if accept_attr %}accept="{{ accept_attr }}"{% endif %}>
+                                           
+                                    <p class="text-xs text-gray-500 mt-2">
+                                        Max size: 10MB. 
+                                        {% if doc.allowedFileTypes %}
+                                            Accepted formats: <span class="uppercase font-bold text-gray-600">{{ doc.allowedFileTypes }}</span>
+                                        {% else %}
+                                            Accepted formats: All Formats
+                                        {% endif %}
+                                    </p>
                                 </div>
                             {% endfor %}
                         </div>

@@ -5,14 +5,14 @@ namespace App\Entity;
 use App\Repository\ApplicantBedRequirementRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantBedRequirementRepository::class)]
 #[ORM\Table(name: 'bed_requirements')]
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBedRequirement
 {
-    // Composite Primary Key: Applicant (student_number) + Slug
-    
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'requirements')]
     #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
@@ -28,8 +28,18 @@ class ApplicantBedRequirement
     #[ORM\Column(name: 'StoredFileName', type: Types::STRING, length: 255, nullable: true)]
     private ?string $StoredFileName = null;
 
+    /**
+     * Virtual property to validate form upload data.
+     * Enforces the maximum upload limit prior to checking dynamic extensions.
+     */
+    #[Assert\File(
+        maxSize: '10M',
+        maxSizeMessage: 'The document file size exceeds the maximum allowed limit of 10MB.'
+    )]
+    private ?File $documentFile = null;
+
     #[ORM\Column(name: 'Status', type: Types::STRING, length: 1, options: ['default' => 'P'])]
-    private string $Status = 'P'; // P=Pending, S=Submitted, V=Verified
+    private string $Status = 'P';
 
     #[ORM\Column(name: 'IsRequired', type: Types::BOOLEAN)]
     private bool $IsRequired = true;
@@ -50,6 +60,10 @@ class ApplicantBedRequirement
     public function setRequirement(string $Requirement): static { $this->Requirement = $Requirement; return $this; }
     public function getStoredFileName(): ?string { return $this->StoredFileName; }
     public function setStoredFileName(?string $StoredFileName): static { $this->StoredFileName = $StoredFileName; return $this; }
+    
+    public function getDocumentFile(): ?File { return $this->documentFile; }
+    public function setDocumentFile(?File $documentFile): static { $this->documentFile = $documentFile; return $this; }
+
     public function getStatus(): string { return $this->Status; }
     public function setStatus(string $Status): static { $this->Status = $Status; return $this; }
     public function isRequired(): bool { return $this->IsRequired; }

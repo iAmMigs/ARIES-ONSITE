@@ -67,26 +67,22 @@ class AdminDilimanController extends AbstractController
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
             ->orderBy('a.createdAt', 'DESC');
 
-        // Keyword Search
         if ($search = $request->query->get('search')) {
             $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
                ->setParameter('search', "%$search%");
         }
 
-        // Education Level
         if ($eduType = $request->query->get('education_type')) {
             $qb->andWhere('a.educationType = :eduType')
                ->setParameter('eduType', $eduType);
         }
 
-        // Grade Level
         $grades = array_filter($request->query->all()['grade_levels'] ?? []);
         if (!empty($grades)) {
             $qb->andWhere('a.gradeLevel IN (:grades)')
                ->setParameter('grades', $grades);
         }
 
-        // Date
         if ($date = $request->query->get('date')) {
             $qb->andWhere('a.createdAt LIKE :date')
                ->setParameter('date', "$date%");
@@ -115,13 +111,11 @@ class AdminDilimanController extends AbstractController
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
-        // FIX: Fetch ONLY Diliman documents instead of findAll()
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
             'campus' => [ApplicantBed::CAMPUS_DILIMAN, null]
         ]);
 
         if ($request->isMethod('POST')) {
-            // 1. Basic Info
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
             $registration->setMiddleName($request->request->get('middle_name'));
@@ -139,17 +133,15 @@ class AdminDilimanController extends AbstractController
                 $registration->setBirthDate(new \DateTime($dob));
             }
 
-            // 2. Profile Picture Upload
             $profileFile = $request->files->get('profile_picture');
             if ($profileFile) {
                 $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $profileFile->guessExtension();
                 try {
                     $profileFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics', $filename);
                     $registration->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
-                } catch (\Exception $e) { /* Handle error */ }
+                } catch (\Exception $e) { }
             }
             
-            // Loop through existing requirements to check for updates
             foreach ($documentSetups as $docSetup) {
                 $inputName = $docSetup->getSlug();
                 $docFile = $request->files->get($inputName);
@@ -173,14 +165,13 @@ class AdminDilimanController extends AbstractController
                     try {
                         $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
                         $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
-                        $req->setIsDeleted(false); // Un-delete if it was previously soft-deleted!
+                        $req->setIsDeleted(false);
                         $req->setDateSubmitted(new \DateTime());
                         $req->setStatus('S');
                     } catch (\Exception $e) { }
                 }
             }
 
-            // 4. Exam Status Logic
             $examTaken = $request->request->get('exam_taken') === '1';
             $score = $request->request->get('exam_score');
 
@@ -192,31 +183,26 @@ class AdminDilimanController extends AbstractController
                 $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             }
 
-            // 5. Address Lookup Hydration
             $this->hydrateAddress($registration, $request, $em, 'current');
             $this->hydrateAddress($registration, $request, $em, 'permanent');
 
-            // Guardians (Split Name Handling)
             $guardiansData = $request->request->all('guardians');
             foreach ($registration->getGuardians() as $index => $g) {
                 if (isset($guardiansData[$index])) {
                     $data = $guardiansData[$index];
                     
-                    // Identify the slot type definitively
                     $gType = strtoupper($data['guardian_type'] ?? $g->getGuardianType() ?? '');
                     if ($gType === '') {
                         $gType = in_array(strtoupper($g->getRelationship()), ['FATHER', 'MOTHER']) ? strtoupper($g->getRelationship()) : 'GUARDIAN';
                     }
                     $g->setGuardianType($gType);
 
-                    // EMERGENCY CONTACT LOGIC
                     if ($gType === 'GUARDIAN') {
                         $g->setParentName(strtoupper(trim($data['full_name'] ?? '')));
                         if (isset($data['relationship']) && trim($data['relationship']) !== '') {
                             $g->setRelationship(strtoupper(trim($data['relationship'])));
                         }
                     } else {
-                        // PARENTS LOGIC
                         $firstName = trim($data['first_name'] ?? '');
                         $middleName = trim($data['middle_name'] ?? '');
                         $lastName = trim($data['last_name'] ?? '');
@@ -244,7 +230,6 @@ class AdminDilimanController extends AbstractController
                 }
             }
 
-            // ADD NEW GUARDIANS (If missing from old records)
             foreach ($guardiansData as $index => $data) {
                 $gType = strtoupper(trim($data['guardian_type'] ?? 'GUARDIAN'));
                 $fullName = trim($data['full_name'] ?? '');
@@ -261,7 +246,6 @@ class AdminDilimanController extends AbstractController
                 }
             }
 
-            // 7. Siblings
             $siblingsData = $request->request->all('siblings');
             foreach ($registration->getSiblings() as $index => $s) {
                 if (isset($siblingsData[$index])) {
@@ -273,7 +257,6 @@ class AdminDilimanController extends AbstractController
                 }
             }
 
-            // 8. Schools
             $schoolsData = $request->request->all('schools');
             foreach ($registration->getSchools() as $index => $sch) {
                 if (isset($schoolsData[$index])) {
@@ -286,7 +269,6 @@ class AdminDilimanController extends AbstractController
             $em->flush();
             $this->addFlash('success', 'Applicant updated successfully.');
             
-            // Redirect to VIEW
             $viewRoute = ($registration->getCampus() === ApplicantBed::CAMPUS_ALABANG) 
                 ? 'app_admin_alabang_registration_view' 
                 : 'app_admin_diliman_registration_view';
@@ -356,6 +338,11 @@ class AdminDilimanController extends AbstractController
             $doc->setIsRequired($request->request->get('is_required') === '1');
             $doc->setCampus(ApplicantBed::CAMPUS_DILIMAN); 
 
+            $allowedTypes = $request->request->get('allowed_file_types');
+            if (!empty($allowedTypes)) {
+                $doc->setAllowedFileTypes($allowedTypes);
+            }
+
             $em->persist($doc);
             $em->flush();
             
@@ -379,7 +366,6 @@ class AdminDilimanController extends AbstractController
         return $this->redirectToRoute('app_admin_diliman_documents');
     }
 
-    // --- NEW: SOFT DELETE DOCUMENT FOR A SPECIFIC APPLICANT ---
     #[Route('/registration/{id}/document/{slug}/soft-delete', name: 'app_admin_diliman_registration_doc_delete', methods: ['POST'])]
     public function softDeleteApplicantDocument(string $id, string $slug, EntityManagerInterface $em): Response
     {
