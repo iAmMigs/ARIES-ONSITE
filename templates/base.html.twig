@@ -10,7 +10,6 @@
 <!DOCTYPE html>
 <html class="h-full" data-kt-theme="true" data-kt-theme-mode="light" dir="ltr" lang="{{ app.request.locale|default('en') }}">
 <head>
-    {# ===== Meta Tags for SEO & Device Compatibility ===== #}
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes"/>
@@ -21,35 +20,29 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
     <meta name="format-detection" content="telephone=no"/>
     
-    {# Open Graph / Social Media #}
     <meta property="og:type" content="website"/>
     <meta property="og:title" content="{% block og_title %}ARIES - FEU Tech Online Enrollment System{% endblock %}"/>
     <meta property="og:description" content="{% block og_description %}FEU Tech – Institute of Technology Admission and Enrollment System{% endblock %}"/>
     
     <title>ARIES BED | {% block title %}{% endblock %}</title>
     
-    {# ===== Favicon & App Icons ===== #}
     <link rel="shortcut icon" href="{{ asset('metronic/media/app/favicon.ico') }}"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('metronic/media/app/apple-touch-icon.png') }}"/>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('metronic/media/app/favicon-32x32.png') }}"/>
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('metronic/media/app/favicon-16x16.png') }}"/>
     
-    {# ===== Preconnect for Performance ===== #}
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link rel="preconnect" href="https://cdn.tailwindcss.com"/>
     
-    {# ===== Google Fonts - Inter ===== #}
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     
-    {# ===== Tailwind CSS v3 CDN with FEU Tech Custom Config ===== #}
     <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        // FEU Tech Tamaraw Colors
                         'feu-green': {
                             50: '#f0fdf4',
                             100: '#dcfce7',
@@ -74,7 +67,6 @@
                             800: '#854d0e',
                             900: '#713f12',
                         },
-                        // Metronic semantic colors mapped
                         'primary': '#1a4d2e',
                         'primary-foreground': '#ffffff',
                         'accent': '#d4a017',
@@ -150,21 +142,14 @@
         }
     </script>
     
-    {# ===== Metronic v9.4.0 Vendor Libraries ===== #}
     <link href="{{ asset('metronic/vendors/apexcharts/apexcharts.css') }}" rel="stylesheet"/>
     <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
     
-    {# ===== Metronic Core Styles ===== #}
     <link href="{{ asset('metronic/css/styles.css') }}" rel="stylesheet"/>
-    
-    {# ===== ARIES Theme CSS (External) ===== #}
     <link href="{{ asset('assets/css/aries-theme.css') }}" rel="stylesheet"/>
     
-    {# ===== Critical Inline Styles for Performance ===== #}
     <style>
-        /* CSS Custom Properties - FEU Tech Theme */
         :root {
-            /* Primary Colors */
             --feu-green-50: #f0fdf4;
             --feu-green-100: #dcfce7;
             --feu-green-200: #bbf7d0;
@@ -172,41 +157,47 @@
             --feu-green-600: #2d6a4f;
             --feu-green-700: #1a4d2e;
             
-            /* Gold Accent */
             --feu-gold-400: #f0c14b;
             --feu-gold-500: #d4a017;
             --feu-gold-600: #b8860b;
             
-            /* Metronic Overrides */
             --primary: #1a4d2e;
             --primary-hover: #2d6a4f;
             --primary-foreground: #ffffff;
             
-            /* Layout Variables */
             --kt-header-height: 64px;
             --kt-sidebar-width: 280px;
             --kt-sidebar-width-collapsed: 78px;
         }
+
+        /* * Hide the Native Browser Scrollbar Completely
+         * This prevents the layout shifting when toggling the custom floating scrollbar.
+         */
+        html {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE/Edge */
+        }
+        html::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+            width: 0;
+            height: 0;
+        }
         
-        /* Smooth Scrolling with reduced motion support */
         @media (prefers-reduced-motion: no-preference) {
             html { scroll-behavior: smooth; }
         }
         
-        /* Focus visible for accessibility */
         :focus-visible {
             outline: 2px solid var(--feu-green-600);
             outline-offset: 2px;
         }
         
-        /* Base body styles */
         body {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
         }
         
-        /* FEU Primary Button */
         .btn-feu-primary {
             background: linear-gradient(135deg, var(--feu-green-700) 0%, var(--feu-green-600) 100%);
             color: white;
@@ -223,7 +214,6 @@
             transform: translateY(0);
         }
         
-        /* FEU Gold Button */
         .btn-feu-gold {
             background: linear-gradient(135deg, var(--feu-gold-600) 0%, var(--feu-gold-500) 100%);
             color: var(--feu-green-700);
@@ -237,12 +227,10 @@
             box-shadow: 0 10px 25px rgba(212, 160, 23, 0.3);
         }
         
-        /* ARIES Gradient Background */
         .aries-gradient {
             background: linear-gradient(135deg, var(--feu-green-700) 0%, var(--feu-green-600) 100%);
         }
         
-        /* Form Input Styles */
         .form-input:focus,
         .form-control:focus,
         input:focus,
@@ -253,7 +241,6 @@
             outline: none;
         }
         
-        /* Toast Notification Container */
         .toast-container {
             position: fixed;
             top: 80px;
@@ -307,7 +294,6 @@
             border: 1px solid #fcd34d;
         }
         
-        /* Loading spinner */
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -316,13 +302,11 @@
             animation: spin 1s linear infinite;
         }
         
-        /* Utility text colors */
         .text-feu-green { color: var(--feu-green-600); }
         .text-feu-gold { color: var(--feu-gold-500); }
         .bg-feu-green { background-color: var(--feu-green-600); }
         .bg-feu-gold { background-color: var(--feu-gold-500); }
         
-        /* Animation delays for staggered effects */
         .delay-100 { animation-delay: 100ms; }
         .delay-200 { animation-delay: 200ms; }
         .delay-300 { animation-delay: 300ms; }
@@ -331,7 +315,6 @@
         .delay-600 { animation-delay: 600ms; }
         .delay-700 { animation-delay: 700ms; }
         
-        /* Responsive toast positioning */
         @media (max-width: 640px) {
             .toast-container {
                 left: 16px;
@@ -351,7 +334,6 @@
             }
         }
         
-        /* Print styles */
         @media print {
             .no-print,
             .toast-container { display: none !important; }
@@ -361,10 +343,12 @@
     {% block stylesheets %}{% endblock %}
 </head>
 <body class="antialiased text-base text-gray-900 bg-gray-50 font-sans min-h-screen {% block body_class %}{% endblock %}">
-    {# ===== Toast Notification Container ===== #}
+    
+    {# Floating Custom Scrollbar DOM element #}
+    <div id="custom-scrollbar-thumb" class="fixed right-1 top-0 w-2 bg-feu-green-600/50 hover:bg-feu-green-600 rounded-full z-[9999] opacity-0 transition-opacity duration-300 cursor-pointer"></div>
+
     <div class="toast-container" id="toastContainer" role="alert" aria-live="polite"></div>
     
-    {# ===== Metronic Theme Mode Script (must be before content) ===== #}
     <script>
         (function() {
             const defaultThemeMode = 'light';
@@ -380,15 +364,12 @@
         })();
     </script>
 
-    {# ===== Main Content Area ===== #}
     {% block body %}{% endblock %}
 
-    {# ===== Metronic v9.4.0 Core JavaScript ===== #}
     <script src="{{ asset('metronic/vendors/apexcharts/apexcharts.min.js') }}"></script>
     <script src="{{ asset('metronic/vendors/@form-validation/form-validation.bundle.js') }}"></script>
     <script src="{{ asset('metronic/js/core.bundle.js') }}"></script>
     
-    {# ===== ARIES Core JavaScript Module ===== #}
     <script>
         /**
          * ARIES Core JavaScript Module v2.0
@@ -399,43 +380,33 @@
         (function() {
             'use strict';
             
-            /**
-             * Metronic KTUI Component Registry
-             * Lists all available components from core.bundle.js and ktui.min.js
-             */
             var KT_COMPONENTS = [
-                'KTComponents',  // Master initializer
-                'KTMenu',        // Dropdown menus
-                'KTDrawer',      // Sidebar drawers
-                'KTModal',       // Modal dialogs
-                'KTStepper',     // Multi-step forms
-                'KTToggle',      // Toggle switches
-                'KTTabs',        // Tab panels
-                'KTScrollable',  // Scrollable containers
-                'KTScrollto',    // Scroll to anchor
-                'KTSticky',      // Sticky elements
-                'KTTooltip',     // Tooltips
-                'KTDropdown',    // Dropdowns
-                'KTCollapse',    // Collapsible panels
-                'KTAccordion',   // Accordion panels
-                'KTImageInput',  // Image upload preview
-                'KTPasswordMeter', // Password strength
-                'KTDatepicker'   // Date picker
+                'KTComponents',
+                'KTMenu',
+                'KTDrawer',
+                'KTModal',
+                'KTStepper',
+                'KTToggle',
+                'KTTabs',
+                'KTScrollable',
+                'KTScrollto',
+                'KTSticky',
+                'KTTooltip',
+                'KTDropdown',
+                'KTCollapse',
+                'KTAccordion',
+                'KTImageInput',
+                'KTPasswordMeter',
+                'KTDatepicker'
             ];
-            
-            /**
-             * Initialize all Metronic KTUI components
-             * Uses feature detection for graceful degradation
-             */
+
             function initKTComponents() {
-                // Primary: Use master initializer if available
                 if (typeof KTComponents !== 'undefined' && typeof KTComponents.init === 'function') {
                     KTComponents.init();
                     console.log('[ARIES] Metronic KTComponents initialized');
                     return;
                 }
                 
-                // Fallback: Initialize individual components
                 var initializedCount = 0;
                 KT_COMPONENTS.forEach(function(componentName) {
                     if (typeof window[componentName] !== 'undefined') {
@@ -450,46 +421,36 @@
                         }
                     }
                 });
-                
+
                 if (initializedCount > 0) {
                     console.log('[ARIES] Initialized ' + initializedCount + ' KT components individually');
                 }
             }
             
-            /**
-             * Initialize ARIES-specific enhancements
-             */
             function initARIESEnhancements() {
-                // Auto-initialize tooltips with data-kt-tooltip
                 document.querySelectorAll('[data-kt-tooltip="true"]').forEach(function(el) {
                     if (typeof KTTooltip !== 'undefined') {
                         KTTooltip.getInstance(el) || new KTTooltip(el);
                     }
                 });
                 
-                // Auto-initialize steppers with data-kt-stepper
                 document.querySelectorAll('[data-kt-stepper="true"]').forEach(function(el) {
                     if (typeof KTStepper !== 'undefined') {
                         KTStepper.getInstance(el) || KTStepper.createInstances();
                     }
                 });
-                
-                // Initialize scrollspy for single-page navigation
+
                 initScrollSpy();
-                
-                // Initialize form enhancements
                 initFormEnhancements();
+                initCustomScrollbar();
             }
             
-            /**
-             * ScrollSpy for smooth section highlighting
-             */
             function initScrollSpy() {
                 var sections = document.querySelectorAll('section[id]');
                 var navLinks = document.querySelectorAll('a[href^="#"]');
                 
                 if (sections.length === 0 || navLinks.length === 0) return;
-                
+
                 var observer = new IntersectionObserver(function(entries) {
                     entries.forEach(function(entry) {
                         if (entry.isIntersecting) {
@@ -502,17 +463,100 @@
                         }
                     });
                 }, { threshold: 0.3 });
-                
+
                 sections.forEach(function(section) {
                     observer.observe(section);
                 });
             }
-            
+
             /**
-             * Enhanced form handling with validation feedback
+             * Initialize Floating Custom Scrollbar
              */
+            function initCustomScrollbar() {
+                const thumb = document.getElementById('custom-scrollbar-thumb');
+                if (!thumb) return;
+
+                let isDragging = false;
+                let startY, startScrollTop;
+
+                const updateThumb = () => {
+                    if (isDragging) return;
+                    const scrollY = window.scrollY;
+                    const docHeight = document.documentElement.scrollHeight;
+                    const winHeight = window.innerHeight;
+                    const maxScroll = docHeight - winHeight;
+
+                    // Hide completely if page is not scrollable
+                    if (maxScroll <= 0) {
+                        thumb.style.display = 'none';
+                        return;
+                    } else {
+                        thumb.style.display = 'block';
+                    }
+
+                    // Calculate height and position of the scroll thumb
+                    const thumbHeight = Math.max((winHeight / docHeight) * winHeight, 40);
+                    const maxThumbTop = winHeight - thumbHeight;
+                    const thumbTop = (scrollY / maxScroll) * maxThumbTop;
+
+                    thumb.style.height = `${thumbHeight}px`;
+                    thumb.style.transform = `translateY(${thumbTop}px)`;
+
+                    // Check if current page is the landing page featuring the hero section
+                    const isHeroPage = document.body.classList.contains('has-hero-section');
+                    
+                    // Hide the custom scrollbar when at the top of the hero section
+                    if (isHeroPage && scrollY < 100) {
+                        thumb.style.opacity = '0';
+                        thumb.style.pointerEvents = 'none';
+                    } else {
+                        thumb.style.opacity = '1';
+                        thumb.style.pointerEvents = 'auto';
+                    }
+                };
+
+                window.addEventListener('scroll', updateThumb, { passive: true });
+                window.addEventListener('resize', updateThumb, { passive: true });
+                updateThumb(); // Initial render
+
+                // Make Custom Scrollbar Draggable
+                thumb.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startY = e.clientY;
+                    startScrollTop = window.scrollY;
+                    document.body.style.userSelect = 'none';
+                    thumb.classList.replace('bg-feu-green-600/50', 'bg-feu-green-600');
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    const deltaY = e.clientY - startY;
+                    const docHeight = document.documentElement.scrollHeight;
+                    const winHeight = window.innerHeight;
+                    const maxScroll = docHeight - winHeight;
+                    const thumbHeight = parseFloat(thumb.style.height);
+                    const maxThumbTop = winHeight - thumbHeight;
+
+                    const scrollDelta = (deltaY / maxThumbTop) * maxScroll;
+                    window.scrollTo(0, startScrollTop + scrollDelta);
+                    
+                    // Force immediate visual update while dragging
+                    const newScrollY = startScrollTop + scrollDelta;
+                    const clampedScroll = Math.max(0, Math.min(newScrollY, maxScroll));
+                    const thumbTop = (clampedScroll / maxScroll) * maxThumbTop;
+                    thumb.style.transform = `translateY(${thumbTop}px)`;
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        document.body.style.userSelect = '';
+                        thumb.classList.replace('bg-feu-green-600', 'bg-feu-green-600/50');
+                    }
+                });
+            }
+            
             function initFormEnhancements() {
-                // Real-time validation feedback
                 document.querySelectorAll('input, select, textarea').forEach(function(field) {
                     field.addEventListener('blur', function() {
                         validateField(this);
@@ -526,22 +570,17 @@
                 });
             }
             
-            /**
-             * Validate individual form field
-             */
             function validateField(field) {
                 if (!field.hasAttribute('required') && !field.value) return true;
-                
+
                 var isValid = true;
                 var errorMsg = '';
                 
-                // Required check
                 if (field.hasAttribute('required') && !field.value.trim()) {
                     isValid = false;
                     errorMsg = 'This field is required';
                 }
                 
-                // Email validation
                 if (field.type === 'email' && field.value) {
                     var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                     if (!emailRegex.test(field.value)) {
@@ -550,7 +589,6 @@
                     }
                 }
                 
-                // Phone validation
                 if (field.type === 'tel' && field.value) {
                     var phoneRegex = /^[0-9+\-\s()]{10,15}$/;
                     if (!phoneRegex.test(field.value)) {
@@ -559,7 +597,6 @@
                     }
                 }
                 
-                // Apply visual feedback
                 if (!isValid) {
                     field.classList.add('border-red-400', 'is-invalid');
                     showFieldError(field, errorMsg);
@@ -574,9 +611,6 @@
                 return isValid;
             }
             
-            /**
-             * Show field-level error message
-             */
             function showFieldError(field, message) {
                 var existing = field.parentElement.querySelector('.error-message');
                 if (existing) existing.remove();
@@ -587,26 +621,19 @@
                 field.parentElement.appendChild(errorEl);
             }
             
-            // Initialize on DOM Ready
             document.addEventListener('DOMContentLoaded', function() {
                 initKTComponents();
                 initARIESEnhancements();
                 console.log('[ARIES] Frontend initialized successfully');
             });
             
-            /**
-             * Toast Notification System
-             * @param {string} message - The message to display
-             * @param {string} type - Type: 'success', 'error', 'warning', 'info'
-             * @param {number} duration - Duration in milliseconds (default: 4000)
-             */
             window.showToast = function(message, type, duration) {
                 type = type || 'info';
                 duration = duration || 4000;
                 
                 var container = document.getElementById('toastContainer');
+
                 if (!container) {
-                    // Create toast container if it doesn't exist
                     container = document.createElement('div');
                     container.id = 'toastContainer';
                     container.className = 'fixed top-4 right-4 z-[9999] flex flex-col gap-2';
@@ -617,13 +644,13 @@
                 toast.className = 'toast toast-' + type + ' flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg transform translate-x-full opacity-0 transition-all duration-300';
                 toast.setAttribute('role', 'alert');
                 
-                // Style based on type
                 var typeStyles = {
                     success: 'bg-green-50 border border-green-200',
                     error: 'bg-red-50 border border-red-200',
                     warning: 'bg-amber-50 border border-amber-200',
                     info: 'bg-blue-50 border border-blue-200'
                 };
+
                 toast.className += ' ' + (typeStyles[type] || typeStyles.info);
                 
                 var icons = {
@@ -632,20 +659,18 @@
                     warning: '<i class="ki-filled ki-information-3 text-xl text-amber-600"></i>',
                     info: '<i class="ki-filled ki-information-2 text-xl text-blue-600"></i>'
                 };
-                
+
                 toast.innerHTML = (icons[type] || icons.info) + 
                     '<span class="text-sm font-medium text-gray-800">' + escapeHtml(message) + '</span>' +
                     '<button type="button" class="ml-auto text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">' +
                     '<i class="ki-filled ki-cross text-sm"></i></button>';
-                
+
                 container.appendChild(toast);
                 
-                // Trigger animation
                 requestAnimationFrame(function() {
                     toast.classList.remove('translate-x-full', 'opacity-0');
                 });
-                
-                // Auto-remove
+
                 setTimeout(function() {
                     toast.classList.add('translate-x-full', 'opacity-0');
                     setTimeout(function() {
@@ -654,22 +679,16 @@
                         }
                     }, 300);
                 }, duration);
-                
+
                 return toast;
             };
             
-            /**
-             * Escape HTML to prevent XSS
-             */
             function escapeHtml(text) {
                 var div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             }
             
-            /**
-             * Modal Helper - Uses KTModal if available, fallback to custom
-             */
             window.showModal = function(options) {
                 options = options || {};
                 var title = options.title || 'Notice';
@@ -678,7 +697,6 @@
                 var onConfirm = options.onConfirm;
                 var onCancel = options.onCancel;
                 
-                // Try to use KTModal if available
                 if (typeof KTModal !== 'undefined') {
                     var modalId = 'aries-modal-' + Date.now();
                     var modalHtml = createModalHtml(modalId, title, content, type, !!onConfirm);
@@ -686,14 +704,13 @@
                     
                     var modalEl = document.getElementById(modalId);
                     var modal = new KTModal(modalEl);
-                    
-                    // Bind events
+
                     modalEl.querySelector('[data-modal-confirm]')?.addEventListener('click', function() {
                         if (onConfirm) onConfirm();
                         modal.hide();
                         setTimeout(function() { modalEl.remove(); }, 300);
                     });
-                    
+
                     modalEl.querySelector('[data-modal-cancel]')?.addEventListener('click', function() {
                         if (onCancel) onCancel();
                         modal.hide();
@@ -704,7 +721,6 @@
                     return modal;
                 }
                 
-                // Fallback: Use browser confirm/alert
                 if (onConfirm) {
                     if (confirm(title + '\n\n' + content)) {
                         onConfirm();
@@ -715,14 +731,11 @@
                     alert(title + '\n\n' + content);
                 }
             };
-            
-            /**
-             * Create modal HTML structure
-             */
+
             function createModalHtml(id, title, content, type, hasConfirm) {
                 var iconColors = { success: 'text-green-500', error: 'text-red-500', warning: 'text-amber-500', info: 'text-blue-500' };
                 var icons = { success: 'ki-check-circle', error: 'ki-cross-circle', warning: 'ki-information-3', info: 'ki-information-2' };
-                
+
                 return '<div id="' + id + '" class="modal fixed inset-0 z-[9999] flex items-center justify-center p-4" data-kt-modal="true">' +
                     '<div class="modal-backdrop absolute inset-0 bg-black/50" data-modal-cancel></div>' +
                     '<div class="modal-content relative bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform scale-95 opacity-0 transition-all duration-200">' +
@@ -736,11 +749,6 @@
                     '</div></div></div></div>';
             }
             
-            /**
-             * Form Validation Helper
-             * @param {HTMLFormElement} form - The form element to validate
-             * @returns {boolean} - True if valid
-             */
             window.validateForm = function(form) {
                 var isValid = true;
                 var firstInvalid = null;
@@ -752,8 +760,7 @@
                         firstInvalid = field;
                     }
                 });
-                
-                // Focus first invalid field
+
                 if (firstInvalid) {
                     firstInvalid.focus();
                     firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -762,9 +769,6 @@
                 return isValid;
             };
             
-            /**
-             * Loading State Helper
-             */
             window.setLoading = function(element, isLoading, loadingText) {
                 if (isLoading) {
                     element.dataset.originalText = element.innerHTML;
@@ -777,10 +781,7 @@
                     element.classList.remove('opacity-75', 'cursor-not-allowed');
                 }
             };
-            
-            /**
-             * Copy to Clipboard Helper
-             */
+
             window.copyToClipboard = function(text, successMessage) {
                 navigator.clipboard.writeText(text).then(function() {
                     showToast(successMessage || 'Copied to clipboard!', 'success', 2000);
@@ -789,9 +790,6 @@
                 });
             };
             
-            /**
-             * Debounce Helper for performance
-             */
             window.debounce = function(func, wait) {
                 var timeout;
                 return function() {
