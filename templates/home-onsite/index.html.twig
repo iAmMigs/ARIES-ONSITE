@@ -98,18 +98,10 @@
     .section-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; color: #111827; line-height: 1.2; margin-bottom: 1rem; }
     .section-title-gradient { background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     
-    .feature-card { background: white; border-radius: 1.25rem; padding: 2rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e5e7eb; position: relative; overflow: hidden; }
+    .feature-card { background: white; border-radius: 1.25rem; padding: 2rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e5e7eb; position: relative; overflow: hidden; display: flex; flex-direction: column; }
     .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #1a4d2e, #fbbf24); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
     .feature-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(26, 77, 46, 0.15); border-color: transparent; }
     .feature-card:hover::before { transform: scaleX(1); }
-    
-    .video-card { position: relative; border-radius: 1.25rem; overflow: hidden; cursor: pointer; aspect-ratio: 16/9; }
-    .video-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%); z-index: 1; transition: all 0.3s ease; }
-    .video-card:hover::before { background: linear-gradient(to top, rgba(26, 77, 46, 0.9) 0%, rgba(26, 77, 46, 0.4) 100%); }
-    .video-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .video-card:hover img { transform: scale(1.1); }
-    .video-play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70px; height: 70px; background: rgba(251, 191, 36, 0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2; transition: all 0.3s ease; }
-    .video-card:hover .video-play-btn { transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 30px rgba(251, 191, 36, 0.5); }
     
     .service-card { background: white; border-radius: 1.25rem; padding: 2rem; text-align: center; border: 1px solid #e5e7eb; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
     .service-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26, 77, 46, 0.03), rgba(251, 191, 36, 0.03)); opacity: 0; transition: opacity 0.3s ease; }
@@ -143,6 +135,25 @@
         #programs, #enrollment-steps {
             scroll-margin-top: 64px;
         }
+    }
+
+    /* Custom Scrollbar for Program Lists */
+    .program-list-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(26, 77, 46, 0.3) transparent;
+    }
+    .program-list-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .program-list-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .program-list-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(26, 77, 46, 0.3);
+        border-radius: 10px;
+    }
+    .program-list-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(26, 77, 46, 0.6);
     }
 </style>
 {% endblock %}
@@ -233,7 +244,7 @@
 
         <section id="programs" class="py-16">
             <div class="container mx-auto px-4 lg:px-8">
-                <div class="text-center mb-16" data-aos="fade-up">
+                <div class="text-center mb-12" data-aos="fade-up">
                     <span class="section-badge">Academic Excellence</span>
                     <h2 class="section-title">Explore Our <span class="section-title-gradient">Programs</span></h2>
                     <p class="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -241,64 +252,114 @@
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto items-stretch">
+                    {# FEU Alabang Programs #}
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-                        <div class="flex items-center gap-4 mb-6">
+                        <div class="flex items-center gap-4 mb-6 shrink-0">
                             <div class="w-14 h-14 bg-gradient-to-br from-feu-green-500 to-feu-green-700 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="ki-filled ki-bank text-2xl"></i>
                             </div>
-                            <h3 class="text-2xl font-bold text-gray-900">FEU Alabang</h3>
-                        </div>
-                        <p class="text-gray-600 mb-6">Located in the vibrant south, offering top-tier education focused on innovation and industry relevance.</p>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-3">
-                                <div class="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center text-feu-green-600">
-                                    <i class="ki-filled ki-check text-xs"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900">Basic Education (K-12)</h4>
-                                    <p class="text-sm text-gray-500">Comprehensive curriculum for Junior and Senior High School.</p>
-                                </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900">FEU Alabang</h3>
+                                <p class="text-sm text-gray-500">Innovation and Industry Relevance</p>
                             </div>
-                            <div class="flex items-start gap-3">
-                                <div class="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center text-feu-green-600">
-                                    <i class="ki-filled ki-check text-xs"></i>
-                                </div>
+                        </div>
+                        
+                        <div class="flex-grow overflow-y-auto pr-2 program-list-scroll" style="max-height: 450px;">
+                            <div class="space-y-6">
                                 <div>
-                                    <h4 class="font-semibold text-gray-900">College Programs</h4>
-                                    <p class="text-sm text-gray-500">Specialized degrees in Engineering, Computer Studies, and Business.</p>
+                                    <h4 class="font-bold text-feu-green-700 border-b border-gray-200 pb-2 mb-3 flex items-center gap-2">
+                                        <i class="ki-filled ki-book-square"></i> College Programs
+                                    </h4>
+                                    <ul class="space-y-2.5">
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Bachelor of Multimedia Arts</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Accountancy</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Business Administration major in Financial Management</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Business Administration major in Marketing Management</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Civil Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Computer Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Computer Science with Specialization in Artificial Intelligence</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Computer Science with specialization in Data Science</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Computer Science with specialization in Software Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Electronics Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Electrical Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Animation and Game Development</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Business Analytics</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with Specialization in Cyber Security</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Innovation and Business</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Web and Mobile Application</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Mechanical Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Psychology</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Tourism Management</li>
+                                    </ul>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="font-bold text-feu-green-700 border-b border-gray-200 pb-2 mb-3 flex items-center gap-2">
+                                        <i class="ki-filled ki-medal-star"></i> Senior High School
+                                    </h4>
+                                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Accountancy, Business and Management</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Business And Entrepreneurship</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Computer Studies And Multimedia Arts</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> General Academic Strand</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Health Allied</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Humanities and Social Sciences</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Social Sciences And Humanities</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Science, Technology, Engineering and Mathematics</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    {# FEU Diliman Programs #}
                     <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="flex items-center gap-4 mb-6">
+                        <div class="flex items-center gap-4 mb-6 shrink-0">
                             <div class="w-14 h-14 bg-gradient-to-br from-feu-green-500 to-feu-green-700 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="ki-filled ki-bank text-2xl"></i>
                             </div>
-                            <h3 class="text-2xl font-bold text-gray-900">FEU Diliman</h3>
-                        </div>
-                        <p class="text-gray-600 mb-6">A prime educational hub in Quezon City delivering excellent academic and holistic student development.</p>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-3">
-                                <div class="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center text-feu-green-600">
-                                    <i class="ki-filled ki-check text-xs"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900">Basic Education (K-12)</h4>
-                                    <p class="text-sm text-gray-500">Nurturing foundation for Kindergarten, Grade School, and High School.</p>
-                                </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900">FEU Diliman</h3>
+                                <p class="text-sm text-gray-500">Holistic Student Development</p>
                             </div>
-                            <div class="flex items-start gap-3">
-                                <div class="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-feu-green-100 flex items-center justify-center text-feu-green-600">
-                                    <i class="ki-filled ki-check text-xs"></i>
-                                </div>
+                        </div>
+                        
+                        <div class="flex-grow overflow-y-auto pr-2 program-list-scroll" style="max-height: 450px;">
+                            <div class="space-y-6">
                                 <div>
-                                    <h4 class="font-semibold text-gray-900">College Programs</h4>
-                                    <p class="text-sm text-gray-500">Industry-aligned degrees in IT, Business, and Accountancy.</p>
+                                    <h4 class="font-bold text-feu-green-700 border-b border-gray-200 pb-2 mb-3 flex items-center gap-2">
+                                        <i class="ki-filled ki-book-square"></i> College Programs
+                                    </h4>
+                                    <ul class="space-y-2.5">
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Accountancy</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Business Administration major in Financial Management and Business Analytics</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Business Administration major in Marketing Management and Multimedia Design</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Business Administration major in Operations and Service Management</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Computer Science with specialization in Software Engineering</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Animation and Game Development</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Cybersecurity</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Information Technology with specialization in Web and Mobile Application</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Psychology</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> BS Tourism Management</li>
+                                    </ul>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="font-bold text-feu-green-700 border-b border-gray-200 pb-2 mb-3 flex items-center gap-2">
+                                        <i class="ki-filled ki-medal-star"></i> Basic Education & SHS
+                                    </h4>
+                                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Kindergarten</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Grade School</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Junior High School</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> SHS Accountancy, Business and Management</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> SHS General Academic Strand</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> SHS Humanities and Social Sciences</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> SHS Sports Track</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> SHS Science, Technology, Engineering and Mathematics</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
