@@ -492,7 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ===== Floating Back to Top Button Logic =====
     const floatingBtn = document.getElementById('back-to-top-btn');
 
     const updateFloatingButton = () => {
@@ -512,7 +511,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('scroll', updateFloatingButton, { passive: true });
     updateFloatingButton(); // Initialize on load
 
-    // ===== Smart Hero Snapping Logic =====
     const programsSection = document.getElementById('programs');
     if (programsSection) {
         let isSnapping = false;
@@ -528,11 +526,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const scrollDirection = currentScroll > lastScroll ? 'down' : 'up';
             const programsTop = programsSection.offsetTop;
             
-            // Calculate exact landing position perfectly below the header
             const headerBuffer = window.innerWidth >= 1024 ? 64 : 88;
             const restingPoint = programsTop - headerBuffer;
             
-            // 1. Snapping DOWN from Hero to Programs
             if (scrollDirection === 'down' && currentScroll > 10 && currentScroll < restingPoint - 10) {
                 isSnapping = true;
                 window.scrollTo({ top: restingPoint, behavior: 'smooth' });
