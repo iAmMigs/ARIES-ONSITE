@@ -162,35 +162,6 @@ class EnrollmentController extends AbstractController
         }
 
         // --- 6. ROBUST FILE UPLOADS ---
-        
-        // 6A. Process ID Picture
-        $idFile = $request->files->get('req_id_picture');
-        if ($idFile instanceof UploadedFile) {
-            
-            // Server-Side Image Format Validation
-            $idExtension = strtolower($idFile->getClientOriginalExtension());
-            if (!in_array($idExtension, ['jpg', 'jpeg', 'png', 'webp'])) {
-                $this->addFlash('error', 'Invalid ID picture format. Please upload a valid image (JPG, PNG, WEBP).');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
-            }
-            
-            // Server-Side Size Validation (5MB)
-            if ($idFile->getSize() > 5242880) {
-                $this->addFlash('error', 'ID picture must be strictly less than 5MB.');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
-            }
-
-            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-
-            $filename = 'ID-' . $studentNo . '.' . $idFile->guessExtension();
-            try {
-                $idFile->move($uploadDir, $filename);
-                $applicant->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
-            } catch (\Exception $e) { }
-        }
 
         // 6B. Process Dynamic Document Requirements
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
@@ -336,6 +307,9 @@ class EnrollmentController extends AbstractController
         $guardian->setContactNo($request->request->get($slot . '_contact', ''));
         $guardian->setDeceased($request->request->get($slot . '_deceased') ? true : false);
         $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
+        $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
+        $guardian->setEmail($request->request->get($slot . '_email'));
+        $guardian->setAddress($request->request->get($slot . '_address'));
 
         $em->persist($guardian);
     }

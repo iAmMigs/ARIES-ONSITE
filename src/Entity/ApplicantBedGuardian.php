@@ -45,6 +45,15 @@ class ApplicantBedGuardian
     #[ORM\Column(name: 'guardian_type', type: 'string', length: 20, nullable: true)]
     private ?string $guardianType = null;
 
+    #[ORM\Column(name: 'OfwCountry', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $ofwCountry = null;
+
+    #[ORM\Column(name: 'Email', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(name: 'Address', type: Types::TEXT, nullable: true)]
+    private ?string $address = null;
+
     // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
@@ -79,4 +88,13 @@ class ApplicantBedGuardian
         $this->guardianType = $guardianType;
         return $this;
     }
+
+    public function getOfwCountry(): ?string { return $this->ofwCountry; }
+    public function setOfwCountry(?string $ofwCountry): static { $this->ofwCountry = $ofwCountry; return $this; }
+
+    public function getEmail(): ?string { return $this->email; }
+    public function setEmail(?string $email): static { $this->email = $email; return $this; }
+
+    public function getAddress(): ?string { return $this->address; }
+    public function setAddress(?string $address): static { $this->address = $address; return $this; }
 }

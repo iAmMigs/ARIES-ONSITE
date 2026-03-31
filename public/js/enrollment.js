@@ -280,17 +280,58 @@ window.togglePermanentAddress = function() {
     });
 };
 
-window.toggleParentStatus = function(currentId, otherId) {
+window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
     const current = document.getElementById(currentId);
     const other = document.getElementById(otherId);
     if(!current || !other) return;
 
+    // Determine the active state based on which checkbox triggered the event
+    const isDeceased = currentId.includes('deceased') ? current.checked : other.checked;
+    const isOfw = currentId.includes('ofw') ? current.checked : other.checked;
+
+    // Mutually exclusive toggle
     if (current.checked) {
         other.disabled = true;
         other.checked = false;
         if (window.ARIESValidation) window.ARIESValidation.resetField(other, window.ARIESValidation.getErrorElement(other));
     } else {
         other.disabled = false;
+    }
+
+    // Handle Deceased: Disable Occupation and Contact fields
+    const occInput = document.getElementById(`${parentPrefix}_occupation`);
+    const contactInput = document.getElementById(`${parentPrefix}_contact`);
+    const contactReqSpan = document.getElementById(`${parentPrefix}_contact_req`);
+    
+    if (isDeceased) {
+        if(occInput) { occInput.disabled = true; occInput.value = ''; }
+        if(contactInput) { 
+            contactInput.disabled = true; 
+            contactInput.value = ''; 
+            contactInput.removeAttribute('required'); 
+            if (window.ARIESValidation) window.ARIESValidation.resetField(contactInput, window.ARIESValidation.getErrorElement(contactInput));
+        }
+        if(contactReqSpan) contactReqSpan.style.display = 'none';
+    } else {
+        if(occInput) { occInput.disabled = false; }
+        if(contactInput) { contactInput.disabled = false; contactInput.setAttribute('required', 'required'); }
+        if(contactReqSpan) contactReqSpan.style.display = 'inline';
+    }
+
+    // Handle OFW: Require Country field
+    const countryGroup = document.getElementById(`${parentPrefix}_ofw_country_group`);
+    const countryInput = document.getElementById(`${parentPrefix}_ofw_country`);
+    
+    if (isOfw) {
+        if(countryGroup) countryGroup.style.display = 'block';
+        if(countryInput) countryInput.setAttribute('required', 'required');
+    } else {
+        if(countryGroup) countryGroup.style.display = 'none';
+        if(countryInput) {
+            countryInput.removeAttribute('required');
+            countryInput.value = '';
+            if (window.ARIESValidation) window.ARIESValidation.resetField(countryInput, window.ARIESValidation.getErrorElement(countryInput));
+        }
     }
 };
 

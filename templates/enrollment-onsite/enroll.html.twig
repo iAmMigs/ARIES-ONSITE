@@ -295,16 +295,6 @@
                     <h3 class="card-title"><i class="ki-filled ki-user text-feu-green-600 fs-1"></i>STEP 2 : Personal Information</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-5 justify-content-center">
-                        <div class="col-md-6">
-                            <div class="file-upload-group p-4 border rounded bg-light text-center">
-                                <label class="form-label d-block mb-3">2x2 ID Picture <span class="required">*</span></label>
-                                <input type="file" name="req_id_picture" id="reqIdPicture" class="form-control" required accept=".jpg,.jpeg,.png">
-                                <p class="text-xs text-gray-500 mt-2">White background, formal attire. Max 5MB.</p>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="row g-4">
                         <div class="col-md-3">
                             <label class="form-label">Last Name <span class="required">*</span></label>
@@ -543,26 +533,32 @@
                         </div>
                         <div class="row g-4">
                             <div class="col-md-4">
-                                <label class="form-label">Occupation</label>
-                                <input type="text" name="father_occupation" class="form-control" placeholder="Occupation">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label d-block">Status</label>
                                 <div class="status-checkbox-group">
-                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw')">
+                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw', 'father')">
                                     <label class="btn-check-label" for="f_deceased">
                                         <i class="ki-filled ki-cross-circle"></i> Deceased
                                     </label>
 
-                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased')">
+                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased', 'father')">
                                     <label class="btn-check-label" for="f_ofw">
                                         <i class="ki-filled ki-airplane"></i> OFW
                                     </label>
                                 </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
+                                <input type="tel" name="father_contact" id="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                        <div class="row g-4 mt-1" id="father_ofw_country_group" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Country of Work <span class="required">*</span></label>
+                                <input type="text" name="father_ofw_country" id="father_ofw_country" class="form-control" placeholder="Country">
                             </div>
                         </div>
                     </div>
@@ -586,26 +582,32 @@
                         </div>
                         <div class="row g-4">
                             <div class="col-md-4">
-                                <label class="form-label">Occupation</label>
-                                <input type="text" name="mother_occupation" class="form-control" placeholder="Occupation">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label d-block">Status</label>
                                 <div class="status-checkbox-group">
-                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw')">
+                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw', 'mother')">
                                     <label class="btn-check-label" for="m_deceased">
                                         <i class="ki-filled ki-cross-circle"></i> Deceased
                                     </label>
 
-                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased')">
+                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased', 'mother')">
                                     <label class="btn-check-label" for="m_ofw">
                                         <i class="ki-filled ki-airplane"></i> OFW
                                     </label>
                                 </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
+                                <input type="tel" name="mother_contact" id="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                        <div class="row g-4 mt-1" id="mother_ofw_country_group" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Country of Work <span class="required">*</span></label>
+                                <input type="text" name="mother_ofw_country" id="mother_ofw_country" class="form-control" placeholder="Country">
                             </div>
                         </div>
                     </div>
@@ -625,6 +627,14 @@
                             <div class="col-md-4">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
                                 <input type="tel" name="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address <span class="required">*</span></label>
+                                <input type="email" name="guardian_email" class="form-control" placeholder="Email Address" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Address <span class="required">*</span></label>
+                                <input type="text" name="guardian_address" class="form-control" placeholder="Complete Address" required>
                             </div>
                         </div>
                     </div>
