@@ -75,6 +75,7 @@ class EnrollmentController extends AbstractController
         $applicant->setEducationType($request->request->get('education_type'));
         $applicant->setGradeLevel($request->request->get('grade_level'));
         $applicant->setTrackStrand($request->request->get('strand'));
+        $applicant->setSchoolType($request->request->get('school_type'));
         $applicant->setLrn($lrnInput);
         $applicant->setSchoolYearOfEntry($yearStart . '-' . ($yearStart + 1));
         $applicant->setAdmissionType($request->request->get('admission_type'));

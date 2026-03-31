@@ -99,23 +99,31 @@ window.selectCampus = function(campus) {
     }
 
     const eduSelect = document.getElementById('educationType');
+    const admType = document.getElementById('admissionType')?.value;
     if(!eduSelect) return;
     
-    const primaryOption = eduSelect.querySelector('option[value="Primary"]');
+    // Restrict Education Type Offerings based on Campus Selection
+    const kinderOpt = eduSelect.querySelector('option[value="Kinder"]');
+    const gsOpt = eduSelect.querySelector('option[value="Grade School"]');
+    const jhsOpt = eduSelect.querySelector('option[value="Junior High School"]');
+    
     eduSelect.value = ""; 
     
     if (campus === 'feu_alabang') {
-        if(primaryOption) {
-            primaryOption.disabled = true;
-            primaryOption.style.display = 'none'; 
-            primaryOption.hidden = true;
-        }
+        if(kinderOpt) { kinderOpt.disabled = true; kinderOpt.hidden = true; }
+        if(gsOpt) { gsOpt.disabled = true; gsOpt.hidden = true; }
+        if(jhsOpt) { jhsOpt.disabled = true; jhsOpt.hidden = true; }
     } else {
-        if(primaryOption) {
-            primaryOption.disabled = false;
-            primaryOption.style.display = 'block';
-            primaryOption.hidden = false;
+        if(kinderOpt) { 
+            // Hide Kinder if user is a Transferee in Diliman
+            if (admType === 'Transferee') {
+                kinderOpt.disabled = true; kinderOpt.hidden = true;
+            } else {
+                kinderOpt.disabled = false; kinderOpt.hidden = false;
+            }
         }
+        if(gsOpt) { gsOpt.disabled = false; gsOpt.hidden = false; }
+        if(jhsOpt) { jhsOpt.disabled = false; jhsOpt.hidden = false; }
     }
     
     if (window.ARIESValidation) window.ARIESValidation.resetField(eduSelect, window.ARIESValidation.getErrorElement(eduSelect));
@@ -124,25 +132,101 @@ window.selectCampus = function(campus) {
 };
 
 window.updateGradeLevels = function() {
+    const admType = document.getElementById('admissionType')?.value;
+    const eduType = document.getElementById('educationType')?.value;
     const eduSelect = document.getElementById('educationType');
-    const select = document.getElementById('gradeLevel');
-    if(!eduSelect || !select) return;
+    const gradeSelect = document.getElementById('gradeLevel');
+    const lrnInput = document.getElementById('lrnInput');
+    const lrnRequiredSpan = document.getElementById('lrnRequiredSpan');
 
-    const type = eduSelect.value;
-    select.innerHTML = '<option value="">Select Level</option>';
-    
-    if (type && educationGrades[type]) {
-        educationGrades[type].forEach(grade => {
-            if (window.currentCampus === 'feu_alabang' && type === 'Secondary' && ['grade_7', 'grade_8', 'grade_9', 'grade_10'].includes(grade.val)) return;
-            const opt = document.createElement('option');
-            opt.value = grade.val;
-            opt.textContent = grade.label;
-            select.appendChild(opt);
-        });
+    if (!gradeSelect) return;
+
+    // Handle dynamic Kinder option restriction on Admission Type change
+    if (eduSelect && admType) {
+        const kinderOpt = eduSelect.querySelector('option[value="Kinder"]');
+        if (admType === 'Transferee') {
+            if (kinderOpt) { kinderOpt.disabled = true; kinderOpt.hidden = true; }
+            
+            // Clear selection if switched to Transferee while Kinder was selected
+            if (eduType === 'Kinder') {
+                eduSelect.value = '';
+                if (window.ARIESValidation) window.ARIESValidation.resetField(eduSelect, window.ARIESValidation.getErrorElement(eduSelect));
+                gradeSelect.innerHTML = '<option value="">Select Level</option>';
+                window.updateStrands();
+                return; 
+            }
+        } else {
+            if (window.currentCampus !== 'feu_alabang') {
+                if (kinderOpt) { kinderOpt.disabled = false; kinderOpt.hidden = false; }
+            }
+        }
     }
-    
-    if (window.ARIESValidation) window.ARIESValidation.resetField(select, window.ARIESValidation.getErrorElement(select));
-    
+
+    gradeSelect.innerHTML = '<option value="">Select Level</option>';
+    let options = [];
+    let isLocked = false;
+
+    // Map dropdown options and determine locking state based on application type
+    if (admType && eduType) {
+        if (admType === 'New Student') {
+            isLocked = true; 
+            if (eduType === 'Kinder') {
+                options = [{val: 'Kinder', label: 'Kinder'}];
+            } else if (eduType === 'Grade School') {
+                options = [{val: 'Grade 1', label: 'Grade 1'}];
+            } else if (eduType === 'Junior High School') {
+                options = [{val: 'Grade 7', label: 'Grade 7'}];
+            } else if (eduType === 'Senior High School') {
+                options = [{val: 'Grade 11', label: 'Grade 11'}];
+            }
+        } else if (admType === 'Transferee') {
+            isLocked = false;
+            if (eduType === 'Grade School') {
+                options = [
+                    {val: 'Grade 2', label: 'Grade 2'}, {val: 'Grade 3', label: 'Grade 3'},
+                    {val: 'Grade 4', label: 'Grade 4'}, {val: 'Grade 5', label: 'Grade 5'}, {val: 'Grade 6', label: 'Grade 6'}
+                ];
+            } else if (eduType === 'Junior High School') {
+                options = [
+                    {val: 'Grade 8', label: 'Grade 8'}, {val: 'Grade 9', label: 'Grade 9'}, {val: 'Grade 10', label: 'Grade 10'}
+                ];
+            } else if (eduType === 'Senior High School') {
+                options = [{val: 'Grade 12', label: 'Grade 12'}];
+            }
+        }
+    }
+
+    options.forEach(opt => {
+        const el = document.createElement('option');
+        el.value = opt.val;
+        el.textContent = opt.label;
+        gradeSelect.appendChild(el);
+    });
+
+    // Apply visual and functional lock to single-option selections
+    if (isLocked && options.length === 1) {
+        gradeSelect.value = options[0].val;
+        gradeSelect.style.pointerEvents = 'none'; 
+        gradeSelect.style.backgroundColor = '#e9ecef'; 
+        gradeSelect.setAttribute('tabindex', '-1'); 
+    } else {
+        gradeSelect.style.pointerEvents = 'auto'; 
+        gradeSelect.style.backgroundColor = '';
+        gradeSelect.removeAttribute('tabindex');
+    }
+
+    // Toggle LRN and Grade Level validation requirements for Kinder
+    if (eduType === 'Kinder') {
+        gradeSelect.removeAttribute('required');
+        if (lrnInput) lrnInput.removeAttribute('required');
+        if (lrnRequiredSpan) lrnRequiredSpan.style.display = 'none';
+    } else {
+        gradeSelect.setAttribute('required', 'required');
+        if (lrnInput) lrnInput.setAttribute('required', 'required');
+        if (lrnRequiredSpan) lrnRequiredSpan.style.display = 'inline';
+    }
+
+    if (window.ARIESValidation) window.ARIESValidation.resetField(gradeSelect, window.ARIESValidation.getErrorElement(gradeSelect));
     window.updateStrands();
 };
 
@@ -155,7 +239,10 @@ window.updateStrands = function() {
     const grade = gradeSelect.value;
     select.innerHTML = '<option value="">Select Option</option>';
     
-    if(grade === 'grade_11' || grade === 'grade_12') {
+    const isDilimanGrade11 = (window.currentCampus === 'feu_diliman' && grade === 'Grade 11');
+    const isShs = (grade === 'Grade 11' || grade === 'Grade 12');
+
+    if (isShs && !isDilimanGrade11) {
         strandGroup.style.display = 'block';
         select.setAttribute('required', 'required');
         

@@ -196,6 +196,7 @@
             {% endfor %}
 
             {# --- CARD 1: ADMISSION DETAILS --- #}
+            {# --- CARD 1: ADMISSION DETAILS --- #}
             <div class="card mb-5 animate-section">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-bank text-feu-green-600 fs-1"></i>STEP 1 : Admission Information</h3>
@@ -205,7 +206,6 @@
                         <label class="campus-option {{ selected_campus == 'feu_alabang' ? 'active' : '' }}" onclick="selectCampus('feu_alabang')">
                             <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
                             <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                   
                             <div class="text-center">
                                 <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
                                 <h5 class="font-bold text-gray-800">FEU Alabang</h5>
@@ -216,7 +216,6 @@
                         <label class="campus-option {{ selected_campus == 'feu_diliman' ? 'active' : '' }}" onclick="selectCampus('feu_diliman')">
                             <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
                             <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                    
                             <div class="text-center">
                                 <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
                                 <h5 class="font-bold text-gray-800">FEU Diliman</h5>
@@ -226,28 +225,43 @@
                     </div>
 
                     <div class="row g-4 mt-4">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Admission Type<span class="required">*</span></label>
-                                <select name="admission_type" class="form-select" required>
-                                    <option value="Freshman">Freshman</option>
+                                <select name="admission_type" id="admissionType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="New Student">New Student</option>
                                     <option value="Transferee">Transferee</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Education Type<span class="required">*</span></label>
                                 <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
                                     <option value="">Select Type</option>
-                                    <option value="Primary">Primary (Elementary)</option>
-                                    <option value="Secondary">Secondary (High School)</option>
+                                    <option value="Kinder">Kinder</option>
+                                    <option value="Grade School">Grade School</option>
+                                    <option value="Junior High School">Junior High School</option>
+                                    <option value="Senior High School">Senior High School</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">School Type <span class="required">*</span></label>
+                                <select name="school_type" id="schoolType" class="form-select" required>
+                                    <option value="">Select School Type</option>
+                                    <option value="Private">Private</option>
+                                    <option value="Public">Public</option>
+                                    <option value="International">International</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Grade Level <span class="required">*</span></label>
                                 <select name="grade_level" id="gradeLevel" class="form-select" required onchange="updateStrands()">
@@ -256,7 +270,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-6" id="strandGroup" style="display:none;">
+                        <div class="col-md-4" id="strandGroup" style="display:none;">
                             <div class="form-group">
                                 <label class="form-label">Strand <span class="required">*</span></label>
                                 <select name="strand" id="strand" class="form-select">
@@ -265,10 +279,10 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label class="form-label">LRN (Learner Reference No.)</label>
-                                <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}">
+                                <label class="form-label">LRN (Learner Reference No.) <span class="required" id="lrnRequiredSpan">*</span></label>
+                                <input type="text" name="lrn" id="lrnInput" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}" required>
                             </div>
                         </div>
                     </div>
