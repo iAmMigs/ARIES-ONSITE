@@ -151,14 +151,27 @@ class EnrollmentController extends AbstractController
             }
         }
 
-        if ($request->request->get('prev_school_name')) {
-            $school = new ApplicantBedSchool();
-            $school->setApplicant($applicant);
-            $school->setSchool($formatName($request->request->get('prev_school_name')));
-            $school->setYearEnd((int)$request->request->get('prev_school_year'));
-            $school->setLevel(ApplicantBedSchool::LEVEL_ELEMENTARY); 
-            $applicant->addSchool($school);
-            $em->persist($school);
+        // --- 5.1 MULTIPLE EDUCATION HISTORY ---
+        $levels = ['kinder', 'elem', 'jhs', 'shs'];
+        foreach ($levels as $lvl) {
+            $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
+            $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
+            $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
+
+            if (is_array($schools)) {
+                foreach ($schools as $index => $schoolName) {
+                    if (!empty($schoolName)) {
+                        $school = new ApplicantBedSchool();
+                        $school->setApplicant($applicant);
+                        $school->setSchool($formatName($schoolName));
+                        $school->setSchoolYear($years[$index] ?? null);
+                        $school->setLevel($levelLabels[$index] ?? strtoupper($lvl));
+                        
+                        $applicant->addSchool($school);
+                        $em->persist($school);
+                    }
+                }
+            }
         }
 
         // --- 6. ROBUST FILE UPLOADS ---

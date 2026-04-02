@@ -28,8 +28,8 @@ class ApplicantBedSchool
     #[ORM\Column(name: 'School', type: Types::STRING, length: 255)]
     private ?string $School = null;
 
-    #[ORM\Column(name: 'YearEnd', type: Types::INTEGER, nullable: true)]
-    private ?int $YearEnd = null;
+    #[ORM\Column(name: 'SchoolYear', type: Types::STRING, length: 20, nullable: true)]
+    private ?string $schoolYear = null;
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
@@ -40,6 +40,6 @@ class ApplicantBedSchool
     public function getSchool(): ?string { return $this->School; }
     public function setSchool(string $School): static { $this->School = $School; return $this; }
     
-    public function getYearEnd(): ?int { return $this->YearEnd; }
-    public function setYearEnd(?int $YearEnd): static { $this->YearEnd = $YearEnd; return $this; }
+    public function getSchoolYear(): ?string { return $this->schoolYear; }
+    public function setSchoolYear(?string $schoolYear): static { $this->schoolYear = $schoolYear; return $this; }
 }

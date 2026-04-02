@@ -228,6 +228,10 @@ window.updateGradeLevels = function() {
 
     if (window.ARIESValidation) window.ARIESValidation.resetField(gradeSelect, window.ARIESValidation.getErrorElement(gradeSelect));
     window.updateStrands();
+
+    if (typeof window.updateEducationHistory === 'function') {
+        window.updateEducationHistory();
+    }
 };
 
 window.updateStrands = function() {
@@ -259,6 +263,11 @@ window.updateStrands = function() {
     }
     
     if (window.ARIESValidation) window.ARIESValidation.resetField(select, window.ARIESValidation.getErrorElement(select));
+
+    // FIX: Trigger the Education History layout update whenever the Grade Level changes
+    if (typeof window.updateEducationHistory === 'function') {
+        window.updateEducationHistory();
+    }
 };
 
 window.togglePermanentAddress = function() {
@@ -285,11 +294,15 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
     const other = document.getElementById(otherId);
     if(!current || !other) return;
 
-    // Determine the active state based on which checkbox triggered the event
+    /*
+     * Determine the active state based on which checkbox triggered the event
+     */
     const isDeceased = currentId.includes('deceased') ? current.checked : other.checked;
     const isOfw = currentId.includes('ofw') ? current.checked : other.checked;
 
-    // Mutually exclusive toggle
+    /*
+     * Mutually exclusive toggle for the checkboxes
+     */
     if (current.checked) {
         other.disabled = true;
         other.checked = false;
@@ -298,27 +311,42 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
         other.disabled = false;
     }
 
-    // Handle Deceased: Disable Occupation and Contact fields
+    /*
+     * Handle Deceased logic: Hide groups, clear inputs, and remove required attributes
+     */
+    const occGroup = document.getElementById(`${parentPrefix}_occupation_group`);
+    const contactGroup = document.getElementById(`${parentPrefix}_contact_group`);
     const occInput = document.getElementById(`${parentPrefix}_occupation`);
     const contactInput = document.getElementById(`${parentPrefix}_contact`);
-    const contactReqSpan = document.getElementById(`${parentPrefix}_contact_req`);
     
     if (isDeceased) {
-        if(occInput) { occInput.disabled = true; occInput.value = ''; }
+        if(occGroup) occGroup.style.display = 'none';
+        if(contactGroup) contactGroup.style.display = 'none';
+        
+        if(occInput) { 
+            occInput.disabled = true; 
+            occInput.value = ''; 
+        }
         if(contactInput) { 
             contactInput.disabled = true; 
             contactInput.value = ''; 
             contactInput.removeAttribute('required'); 
             if (window.ARIESValidation) window.ARIESValidation.resetField(contactInput, window.ARIESValidation.getErrorElement(contactInput));
         }
-        if(contactReqSpan) contactReqSpan.style.display = 'none';
     } else {
+        if(occGroup) occGroup.style.display = 'block';
+        if(contactGroup) contactGroup.style.display = 'block';
+        
         if(occInput) { occInput.disabled = false; }
-        if(contactInput) { contactInput.disabled = false; contactInput.setAttribute('required', 'required'); }
-        if(contactReqSpan) contactReqSpan.style.display = 'inline';
+        if(contactInput) { 
+            contactInput.disabled = false; 
+            contactInput.setAttribute('required', 'required'); 
+        }
     }
 
-    // Handle OFW: Require Country field
+    /*
+     * Handle OFW logic: Show/Hide and require the country field
+     */
     const countryGroup = document.getElementById(`${parentPrefix}_ofw_country_group`);
     const countryInput = document.getElementById(`${parentPrefix}_ofw_country`);
     
@@ -587,6 +615,17 @@ function initDynamicFormatting() {
         }
     });
 
+    // Formatting
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.name && e.target.name.includes('_year')) {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 4) {
+                val = val.substring(0, 4) + '-' + val.substring(4, 8);
+            }
+            e.target.value = val;
+        }
+    });
+
     if (window.ARIESValidation) {
         const nameFields = ['last_name', 'first_name', 'middle_name', 'father_firstname', 'father_lastname', 'father_middlename', 'mother_firstname', 'mother_lastname', 'mother_middlename', 'guardian_name'];
         nameFields.forEach(name => {
@@ -851,3 +890,121 @@ function initAgeCalculator() {
         });
     }
 }
+
+// --- EDUCATION HISTORY LOGIC ---
+
+window.updateEducationHistory = function() {
+    const gradeSelect = document.getElementById('gradeLevel');
+    if (!gradeSelect) return;
+    const grade = gradeSelect.value;
+
+    const placeholder = document.getElementById('educ_history_placeholder');
+    const fieldsContainer = document.getElementById('educ_history_fields');
+    const sections = ['kinder', 'elem', 'jhs', 'shs'];
+    
+    // 1. Hide all sections, disable inputs (prevents submission), and clear validation
+    sections.forEach(lvl => {
+        const sec = document.getElementById(`section_educ_${lvl}`);
+        if(sec) {
+            sec.style.display = 'none';
+            sec.querySelectorAll('.educ-input').forEach(inp => {
+                inp.removeAttribute('required');
+                inp.disabled = true; // Disable so hidden fields are not submitted
+                if (window.ARIESValidation && typeof window.ARIESValidation.getErrorElement === 'function') {
+                    try {
+                        const err = window.ARIESValidation.getErrorElement(inp);
+                        if (err) window.ARIESValidation.resetField(inp, err);
+                    } catch(e) {}
+                }
+            });
+        }
+    });
+
+    // 2. Determine if we show the placeholder or the fields container
+    if (!grade || grade === 'Kinder' || grade.trim() === '') {
+        placeholder.style.display = 'block';
+        fieldsContainer.style.display = 'none';
+        if (grade === 'Kinder' || grade.trim() === '') {
+            placeholder.textContent = grade === 'Kinder' ? 'No previous education history required for Kinder.' : 'Please select a Grade Level in Step 1 to view required education history.';
+        }
+        return;
+    }
+
+    placeholder.style.display = 'none';
+    fieldsContainer.style.display = 'block';
+
+    // 3. Helper to display a section, enable inputs, and GUARANTEE the initial row exists
+    const requireSection = (lvl) => {
+        const sec = document.getElementById(`section_educ_${lvl}`);
+        if (sec) {
+            sec.style.display = 'block';
+            if (lvl !== 'kinder') {
+                window.ensureInitialRow(lvl);
+            }
+            // Enable and require all inputs currently inside this section
+            sec.querySelectorAll('.educ-input').forEach(inp => {
+                inp.disabled = false;
+                inp.setAttribute('required', 'required');
+            });
+        }
+    };
+
+    // 4. Logic Matrix mapping grades to their required previous history
+    if (grade === 'Grade 1') {
+        requireSection('kinder');
+    } else if (['Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7'].includes(grade)) {
+        requireSection('kinder');
+        requireSection('elem');
+    } else if (['Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'].includes(grade)) {
+        requireSection('kinder');
+        requireSection('elem');
+        requireSection('jhs');
+    } else if (grade === 'Grade 12') {
+        requireSection('kinder');
+        requireSection('elem');
+        requireSection('jhs');
+        requireSection('shs');
+    }
+};
+
+window.addSchoolRow = function(level) {
+    const container = document.getElementById(`container_educ_${level}`);
+    if (!container) return;
+
+    // SHS is strictly capped at 1 row limit
+    if (level === 'shs' && container.children.length >= 1) return;
+
+    const index = Date.now() + Math.floor(Math.random() * 100);
+    const levelLabel = level === 'elem' ? 'Elementary' : (level === 'jhs' ? 'Junior High School' : 'Senior High School');
+    const isFirst = container.children.length === 0;
+
+    // Determine the delete button HTML (First row cannot be deleted)
+    const deleteBtnHtml = !isFirst ? 
+        `<button type="button" class="btn-remove-sibling position-absolute shadow-sm" style="top: -5px; left: -5px; width: 22px; height: 22px; font-size: 10px; z-index: 10;" title="Remove School" onclick="this.closest('.school-row').remove(); window.isFormDirty = true;">
+            <i class="ki-filled ki-trash"></i>
+        </button>` : '';
+
+    const row = document.createElement('div');
+    row.className = 'sibling-row row g-3 align-items-center mb-3 school-row position-relative';
+    row.id = `row_${index}`;
+
+    row.innerHTML = deleteBtnHtml + `
+        <div class="col-md-8">
+            <label class="form-label text-xs">School Name <span class="required">*</span></label>
+            <input type="text" name="educ_${level}_school[]" class="form-control form-control-sm educ-input" placeholder="School Name" required oninput="window.isFormDirty = true;">
+            <input type="hidden" name="educ_${level}_level[]" value="${levelLabel}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-xs">School Year <span class="required">*</span></label>
+            <input type="text" name="educ_${level}_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\\d{4}-\\d{4}" maxlength="9" required oninput="window.isFormDirty = true;">
+        </div>
+    `;
+    container.appendChild(row);
+};
+
+window.ensureInitialRow = function(level) {
+    const container = document.getElementById(`container_educ_${level}`);
+    if (container && container.children.length === 0) {
+        window.addSchoolRow(level);
+    }
+};

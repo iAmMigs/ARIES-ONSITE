@@ -546,11 +546,11 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="father_occupation_group">
                                 <label class="form-label">Occupation</label>
                                 <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="father_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
                                 <input type="tel" name="father_contact" id="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
@@ -595,11 +595,11 @@
                                     </label>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="mother_occupation_group">
                                 <label class="form-label">Occupation</label>
                                 <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4" id="mother_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
                                 <input type="tel" name="mother_contact" id="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
@@ -647,15 +647,57 @@
                     <h3 class="card-title"><i class="ki-filled ki-teacher text-feu-green-600 fs-1"></i>STEP 5 : Education History</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-md-8">
-                            <label class="form-label">Last School Attended <span class="required">*</span></label>
-                            <input type="text" name="prev_school_name" class="form-control" required>
+                    
+                    <div id="educ_history_placeholder" class="text-center text-muted fw-bold">
+                        Please select a Grade Level in Step 1 to view required education history.
+                    </div>
+
+                    <div id="educ_history_fields" style="display:none;">
+                        
+                        {# Kinder #}
+                        <div id="section_educ_kinder" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Kindergarten</h6>
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-8">
+                                    <label class="form-label text-xs">School Name <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_school[]" class="form-control form-control-sm educ-input" placeholder="School Name">
+                                    <input type="hidden" name="educ_kinder_level[]" value="Kinder">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs">School Year <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">School Year</label>
-                            <input type="text" name="prev_school_year" class="form-control" placeholder="e.g. 2024">
+
+                        {# Elementary #}
+                        <div id="section_educ_elem" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Elementary (Grade School)</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('elem')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_elem"></div>
                         </div>
+
+                        {# Junior High School #}
+                        <div id="section_educ_jhs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Junior High School</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('jhs')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_jhs"></div>
+                        </div>
+
+                        {# Senior High School #}
+                        <div id="section_educ_shs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Senior High School</h6>
+                            <div id="container_educ_shs"></div>
+                        </div>
+
                     </div>
                 </div>
             </div>
