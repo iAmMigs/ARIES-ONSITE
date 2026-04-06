@@ -558,7 +558,12 @@
                         <div class="row g-4 mt-1" id="father_ofw_country_group" style="display: none;">
                             <div class="col-md-4">
                                 <label class="form-label">Country of Work <span class="required">*</span></label>
-                                <input type="text" name="father_ofw_country" id="father_ofw_country" class="form-control" placeholder="Country">
+                                <select name="father_ofw_country" id="father_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -607,7 +612,12 @@
                         <div class="row g-4 mt-1" id="mother_ofw_country_group" style="display: none;">
                             <div class="col-md-4">
                                 <label class="form-label">Country of Work <span class="required">*</span></label>
-                                <input type="text" name="mother_ofw_country" id="mother_ofw_country" class="form-control" placeholder="Country">
+                                <select name="mother_ofw_country" id="mother_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                     </div>

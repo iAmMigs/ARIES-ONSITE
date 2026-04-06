@@ -13,6 +13,7 @@ use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
 use App\Entity\LookupBarangay;
 use App\Entity\LookupReligion;
+use App\Entity\LookupCountry;
 use App\Entity\LookupCitizenship;
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,12 +35,14 @@ class EnrollmentController extends AbstractController
         
         $religions = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
         $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
+        $countries = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
         return $this->render('enrollment-onsite/enroll.html.twig', [
             'selected_campus' => $campus,
             'documents' => $documents,
             'religions' => $religions,
-            'citizenships' => $citizenships
+            'citizenships' => $citizenships,
+            'countries' => $countries
         ]);
     }
 

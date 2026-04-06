@@ -358,6 +358,11 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
         if(countryInput) {
             countryInput.removeAttribute('required');
             countryInput.value = '';
+            
+            if (typeof jQuery !== 'undefined' && $(countryInput).hasClass('select2-hidden-accessible')) {
+                $(countryInput).trigger('change');
+            }
+
             if (window.ARIESValidation) window.ARIESValidation.resetField(countryInput, window.ARIESValidation.getErrorElement(countryInput));
         }
     }
