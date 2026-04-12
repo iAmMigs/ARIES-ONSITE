@@ -3,7 +3,6 @@
  * Handles form interactions, validation, address lookups, and dynamic UI elements.
  */
 
-// --- Global Data Dictionaries ---
 const strandData = {
     'feu_alabang': ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'],
     'feu_diliman': ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track']
@@ -61,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// --- CORE LOGIC EXPOSED GLOBALLY ---
+/** Globally exposed function to handle campus selection logic and filter document requirements. */
 window.selectCampus = function(campus) {
     window.currentCampus = campus;
     
@@ -102,7 +101,6 @@ window.selectCampus = function(campus) {
     const admType = document.getElementById('admissionType')?.value;
     if(!eduSelect) return;
     
-    // Restrict Education Type Offerings based on Campus Selection
     const kinderOpt = eduSelect.querySelector('option[value="Kinder"]');
     const gsOpt = eduSelect.querySelector('option[value="Grade School"]');
     const jhsOpt = eduSelect.querySelector('option[value="Junior High School"]');
@@ -115,7 +113,6 @@ window.selectCampus = function(campus) {
         if(jhsOpt) { jhsOpt.disabled = true; jhsOpt.hidden = true; }
     } else {
         if(kinderOpt) { 
-            // Hide Kinder if user is a Transferee in Diliman
             if (admType === 'Transferee') {
                 kinderOpt.disabled = true; kinderOpt.hidden = true;
             } else {
@@ -141,13 +138,10 @@ window.updateGradeLevels = function() {
 
     if (!gradeSelect) return;
 
-    // Handle dynamic Kinder option restriction on Admission Type change
     if (eduSelect && admType) {
         const kinderOpt = eduSelect.querySelector('option[value="Kinder"]');
         if (admType === 'Transferee') {
             if (kinderOpt) { kinderOpt.disabled = true; kinderOpt.hidden = true; }
-            
-            // Clear selection if switched to Transferee while Kinder was selected
             if (eduType === 'Kinder') {
                 eduSelect.value = '';
                 if (window.ARIESValidation) window.ARIESValidation.resetField(eduSelect, window.ARIESValidation.getErrorElement(eduSelect));
@@ -166,7 +160,6 @@ window.updateGradeLevels = function() {
     let options = [];
     let isLocked = false;
 
-    // Map dropdown options and determine locking state based on application type
     if (admType && eduType) {
         if (admType === 'New Student') {
             isLocked = true; 
@@ -203,7 +196,6 @@ window.updateGradeLevels = function() {
         gradeSelect.appendChild(el);
     });
 
-    // Apply visual and functional lock to single-option selections
     if (isLocked && options.length === 1) {
         gradeSelect.value = options[0].val;
         gradeSelect.style.pointerEvents = 'none'; 
@@ -215,7 +207,6 @@ window.updateGradeLevels = function() {
         gradeSelect.removeAttribute('tabindex');
     }
 
-    // Toggle LRN and Grade Level validation requirements for Kinder
     if (eduType === 'Kinder') {
         gradeSelect.removeAttribute('required');
         if (lrnInput) lrnInput.removeAttribute('required');
@@ -264,7 +255,6 @@ window.updateStrands = function() {
     
     if (window.ARIESValidation) window.ARIESValidation.resetField(select, window.ARIESValidation.getErrorElement(select));
 
-    // FIX: Trigger the Education History layout update whenever the Grade Level changes
     if (typeof window.updateEducationHistory === 'function') {
         window.updateEducationHistory();
     }
@@ -294,15 +284,9 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
     const other = document.getElementById(otherId);
     if(!current || !other) return;
 
-    /*
-     * Determine the active state based on which checkbox triggered the event
-     */
     const isDeceased = currentId.includes('deceased') ? current.checked : other.checked;
     const isOfw = currentId.includes('ofw') ? current.checked : other.checked;
 
-    /*
-     * Mutually exclusive toggle for the checkboxes
-     */
     if (current.checked) {
         other.disabled = true;
         other.checked = false;
@@ -311,9 +295,6 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
         other.disabled = false;
     }
 
-    /*
-     * Handle Deceased logic: Hide groups, clear inputs, and remove required attributes
-     */
     const occGroup = document.getElementById(`${parentPrefix}_occupation_group`);
     const contactGroup = document.getElementById(`${parentPrefix}_contact_group`);
     const occInput = document.getElementById(`${parentPrefix}_occupation`);
@@ -344,9 +325,6 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
         }
     }
 
-    /*
-     * Handle OFW logic: Show/Hide and require the country field
-     */
     const countryGroup = document.getElementById(`${parentPrefix}_ofw_country_group`);
     const countryInput = document.getElementById(`${parentPrefix}_ofw_country`);
     
@@ -405,7 +383,7 @@ window.checkFormValidity = function() {
     }
 };
 
-// --- SUBMIT MODAL FUNCTIONS ---
+/** Handles displaying the submission confirmation modal. */
 window.showConfirmationModal = function() {
     const modal = document.getElementById('submitConfirmModal');
     const dialog = document.getElementById('modalDialog');
@@ -455,6 +433,7 @@ window.showConfirmationModal = function() {
     document.body.style.overflow = 'hidden';
 };
 
+/** Handles closing the submission confirmation modal. */
 window.closeConfirmationModal = function() {
     const modal = document.getElementById('submitConfirmModal');
     const dialog = document.getElementById('modalDialog');
@@ -471,6 +450,7 @@ window.closeConfirmationModal = function() {
     document.body.style.overflow = '';
 };
 
+/** Processes the final confirmation event and subms the form. */
 window.confirmSubmission = function() {
     const form = document.getElementById('enrollmentForm');
     const btn = document.getElementById('btnConfirmSubmit');
@@ -482,9 +462,6 @@ window.confirmSubmission = function() {
     window.isFormDirty = false;
     HTMLFormElement.prototype.submit.call(form); 
 };
-
-
-// --- INITIALIZATION FUNCTIONS ---
 
 function initUnsavedChangesWarning() {
     const form = document.getElementById('enrollmentForm');
@@ -545,7 +522,6 @@ function initConditionalFields() {
     const visaStatusInput = document.querySelector('[name="visa_status"]');
     const indigenousInput = document.querySelector('[name="indigenous_group"]');
 
-    // --- NEW RELIGION LOGIC ---
     const religionSelect = document.getElementById('religionSelect');
     const otherReligionContainer = document.getElementById('other_religion_container');
     const otherReligionInput = document.getElementById('otherReligionInput');
@@ -620,7 +596,6 @@ function initDynamicFormatting() {
         }
     });
 
-    // Formatting
     document.addEventListener('input', function(e) {
         if (e.target && e.target.name && e.target.name.includes('_year')) {
             let val = e.target.value.replace(/\D/g, '');
@@ -692,22 +667,53 @@ function initAddressLookups() {
         });
     }
 
-    setupAddressLookup('addr'); // Current
-    setupAddressLookup('perm'); // Permanent
+    setupAddressLookup('addr'); 
+    setupAddressLookup('perm'); 
 }
 
+/** Initializes UI animations and updates the floating step navigation state based on scroll coordinates. */
 function initAnimations() {
-    const observer = new IntersectionObserver((entries) => {
+    const fadeObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                observer.unobserve(entry.target);
+                fadeObserver.unobserve(entry.target);
             }
         });
     }, { threshold: 0.1 });
     
-    document.querySelectorAll('.animate-section').forEach(section => observer.observe(section));
+    const sections = document.querySelectorAll('.card.animate-section');
+    sections.forEach(section => fadeObserver.observe(section));
+
+    window.addEventListener('scroll', () => {
+        let currentStep = 1;
+        const scrollPosition = window.scrollY + (window.innerHeight / 3); 
+
+        for(let i=1; i<=6; i++) {
+            const card = document.getElementById('step-card-' + i);
+            if(card && card.offsetTop <= scrollPosition) {
+                currentStep = i;
+            }
+        }
+
+        document.querySelectorAll('.step-nav-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.step == currentStep);
+        });
+    });
+    
+    window.dispatchEvent(new Event('scroll'));
 }
+
+/** Scrolls the viewport smoothly to the selected step card using its explicit ID. */
+window.scrollToStep = function(stepNumber) {
+    const target = document.getElementById('step-card-' + stepNumber);
+    if (target) {
+        window.scrollTo({
+            top: target.offsetTop - 90, 
+            behavior: 'smooth'
+        });
+    }
+};
 
 function initSubmitLock() {}
 
@@ -896,8 +902,7 @@ function initAgeCalculator() {
     }
 }
 
-// --- EDUCATION HISTORY LOGIC ---
-
+/** Updates the display state and field requirements of the education history section based on the selected applicant grade. */
 window.updateEducationHistory = function() {
     const gradeSelect = document.getElementById('gradeLevel');
     if (!gradeSelect) return;
@@ -907,14 +912,14 @@ window.updateEducationHistory = function() {
     const fieldsContainer = document.getElementById('educ_history_fields');
     const sections = ['kinder', 'elem', 'jhs', 'shs'];
     
-    // 1. Hide all sections, disable inputs (prevents submission), and clear validation
+    /** Hides all education sections, disables inputs to prevent submission, and resets validation states. */
     sections.forEach(lvl => {
         const sec = document.getElementById(`section_educ_${lvl}`);
         if(sec) {
             sec.style.display = 'none';
             sec.querySelectorAll('.educ-input').forEach(inp => {
                 inp.removeAttribute('required');
-                inp.disabled = true; // Disable so hidden fields are not submitted
+                inp.disabled = true;
                 if (window.ARIESValidation && typeof window.ARIESValidation.getErrorElement === 'function') {
                     try {
                         const err = window.ARIESValidation.getErrorElement(inp);
@@ -925,7 +930,7 @@ window.updateEducationHistory = function() {
         }
     });
 
-    // 2. Determine if we show the placeholder or the fields container
+    /** Determines whether to display the placeholder message or the education history fields container based on the selected grade. */
     if (!grade || grade === 'Kinder' || grade.trim() === '') {
         placeholder.style.display = 'block';
         fieldsContainer.style.display = 'none';
@@ -938,7 +943,7 @@ window.updateEducationHistory = function() {
     placeholder.style.display = 'none';
     fieldsContainer.style.display = 'block';
 
-    // 3. Helper to display a section, enable inputs, and GUARANTEE the initial row exists
+    /** Utility function to display a specific education section, ensure its initial row exists, and enable its inputs. */
     const requireSection = (lvl) => {
         const sec = document.getElementById(`section_educ_${lvl}`);
         if (sec) {
@@ -946,7 +951,6 @@ window.updateEducationHistory = function() {
             if (lvl !== 'kinder') {
                 window.ensureInitialRow(lvl);
             }
-            // Enable and require all inputs currently inside this section
             sec.querySelectorAll('.educ-input').forEach(inp => {
                 inp.disabled = false;
                 inp.setAttribute('required', 'required');
@@ -954,18 +958,16 @@ window.updateEducationHistory = function() {
         }
     };
 
-    // 4. Logic Matrix mapping grades to their required previous history
+    /** Logic Matrix mapping selected grades to their required previous education history levels. */
     if (grade === 'Grade 1') {
         requireSection('kinder');
-    } else if (['Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7'].includes(grade)) {
+    } else if (['Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'].includes(grade)) {
         requireSection('kinder');
         requireSection('elem');
-    } else if (['Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'].includes(grade)) {
-        requireSection('kinder');
+    } else if (['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'].includes(grade)) {
         requireSection('elem');
         requireSection('jhs');
     } else if (grade === 'Grade 12') {
-        requireSection('kinder');
         requireSection('elem');
         requireSection('jhs');
         requireSection('shs');
@@ -976,14 +978,12 @@ window.addSchoolRow = function(level) {
     const container = document.getElementById(`container_educ_${level}`);
     if (!container) return;
 
-    // SHS is strictly capped at 1 row limit
     if (level === 'shs' && container.children.length >= 1) return;
 
     const index = Date.now() + Math.floor(Math.random() * 100);
     const levelLabel = level === 'elem' ? 'Elementary' : (level === 'jhs' ? 'Junior High School' : 'Senior High School');
     const isFirst = container.children.length === 0;
 
-    // Determine the delete button HTML (First row cannot be deleted)
     const deleteBtnHtml = !isFirst ? 
         `<button type="button" class="btn-remove-sibling position-absolute shadow-sm" style="top: -5px; left: -5px; width: 22px; height: 22px; font-size: 10px; z-index: 10;" title="Remove School" onclick="this.closest('.school-row').remove(); window.isFormDirty = true;">
             <i class="ki-filled ki-trash"></i>

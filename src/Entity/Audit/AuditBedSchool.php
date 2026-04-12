@@ -20,8 +20,8 @@ class AuditBedSchool
     #[ORM\Column(name: 'School', type: Types::STRING, length: 255, nullable: true)]
     private ?string $School = null;
 
-    #[ORM\Column(name: 'YearEnd', type: Types::INTEGER, nullable: true)]
-    private ?int $YearEnd = null;
+    #[ORM\Column(name: 'SchoolYear', type: Types::STRING, length: 20, nullable: true)]
+    private ?string $schoolYear = null;
 
     public function __set($name, $value) { if (property_exists($this, $name)) { $this->$name = $value; } }
 }

@@ -255,10 +255,10 @@ class AdminAlabangController extends AbstractController
                 if (isset($schoolsData[$index])) {
                     $data = $schoolsData[$index];
                     $sch->setSchool($data['name']);
-                    $sch->setYearEnd((int)$data['year']);
+                    $sch->setSchoolYear($data['year']);
                 }
             }
-
+            
             $em->flush();
             $this->addFlash('success', 'Applicant updated successfully.');
             
