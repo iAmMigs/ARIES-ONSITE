@@ -16,10 +16,9 @@
         :root {
             --feu-green-dark: #143d24;
             --feu-green: #1a4d2e;
-            --feu-gold: #d4af37; /* Gold 300 approx */
+            --feu-gold: #d4af37;
         }
 
-        /* --- 1. STICKY HEADER STYLES --- */
         .aries-sticky-header {
             position: fixed;
             top: 0; left: 0; right: 0; z-index: 999;
@@ -58,15 +57,12 @@
 
         .page-banner { padding-top: 6rem !important; }
 
-        /* --- 2. FORM & CARD STYLES --- */
         .text-feu-gold { color: var(--feu-gold) !important; }
         
         .campus-selector-row { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
         .campus-option {
-            background: white;
-            border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; width: 280px;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative; overflow: hidden;
+            background: white; border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; width: 280px;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
         }
         .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
         .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4; ring: 4px solid rgba(26,77,46,0.1); }
@@ -78,7 +74,6 @@
         }
         .campus-option.active .check-icon { opacity: 1; transform: scale(1); }
         
-        /* Styled Checkboxes for Family */
         .status-checkbox-group { display: flex; gap: 10px; }
         .btn-check-custom { position: absolute; clip: rect(0,0,0,0); pointer-events: none; }
         .btn-check-label {
@@ -86,25 +81,17 @@
             border: 1px solid #e5e7eb; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #6b7280;
             cursor: pointer; transition: all 0.2s; background: white;
         }
-        .btn-check-custom:checked + .btn-check-label {
-            background-color: #fef3c7; color: #92400e; border-color: #f59e0b;
-        }
-        .btn-check-custom:disabled + .btn-check-label {
-            opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6;
-        }
+        .btn-check-custom:checked + .btn-check-label { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .btn-check-custom:disabled + .btn-check-label { opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6; }
 
-        /* Sibling Styling */
         .sibling-row { position: relative; padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem; }
         .btn-remove-sibling {
-            position: absolute; top: -10px; left: -10px;
-            width: 28px; height: 28px; border-radius: 50%;
-            background: #ef4444; color: white; border: none;
-            display: flex; align-items: center; justify-content: center;
+            position: absolute; top: -10px; left: -10px; width: 28px; height: 28px; border-radius: 50%;
+            background: #ef4444; color: white; border: none; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s;
         }
         .btn-remove-sibling:hover { background: #dc2626; transform: scale(1.1); }
 
-        /* Card Adjustments */
         .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
         .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px; }
         .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
@@ -125,26 +112,51 @@
         .animate-section { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
         .animate-section.visible { opacity: 1; transform: translateY(0); }
 
-        /* Validation UI Overrides */
         .is-invalid {
-            border-color: #dc2626 !important;
-            padding-right: calc(1.5em + 0.75rem);
+            border-color: #dc2626 !important; padding-right: calc(1.5em + 0.75rem);
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc2626'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc2626' stroke='none'/%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right calc(0.375em + 0.1875rem) center;
-            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            background-repeat: no-repeat; background-position: right calc(0.375em + 0.1875rem) center; background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
         }
-        .is-valid {
-            border-color: #16a34a !important;
-            background-image: none !important;
-        }
+        .is-valid { border-color: #16a34a !important; background-image: none !important; }
 
-        /* --- Modal Custom Styling --- */
         .summary-grid { display: flex; flex-direction: column; gap: 0.6rem; }
         .summary-item { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.4rem; border-bottom: 1px dashed #e5e7eb;}
         .summary-item:last-child { border-bottom: none; padding-bottom: 0; }
         .summary-label { color: #6b7280; font-weight: 600; font-size: 0.85rem; }
         .summary-val { color: #111827; font-weight: 700; font-size: 0.9rem; text-align: right; max-width: 60%; word-wrap: break-word;}
+
+        /** Styling declarations for the floating scroll spy component */
+        body::-webkit-scrollbar { width: 0px; }
+        body { scrollbar-width: none; }
+        
+        .step-nav-container {
+            position: fixed; right: 25px; top: 50%; transform: translateY(-50%); z-index: 1000;
+            display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
+        }
+
+        .step-nav-item {
+            display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.3s ease; position: relative;
+        }
+
+        .step-bar {
+            width: 4px; height: 35px; background: #cbd5e1; border-radius: 4px; transition: all 0.3s ease;
+        }
+
+        .step-label {
+            font-size: 0.7rem; font-weight: 800; color: #475569; background: white;
+            padding: 4px 12px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            opacity: 0; transform: translateX(10px); transition: all 0.3s ease; border: 1px solid #e2e8f0; white-space: nowrap;
+            display: flex; align-items: center; justify-content: center; min-width: 25px; height: 25px;
+        }
+
+        .step-text { display: none; }
+        .step-number { display: inline; }
+
+        .step-nav-item:hover .step-text, .step-nav-item.active .step-text { display: inline; }
+        .step-nav-item:hover .step-number, .step-nav-item.active .step-number { display: none; }
+        .step-nav-item:hover .step-label, .step-nav-item.active .step-label { opacity: 1; transform: translateX(0); }
+        .step-nav-item.active .step-bar { background: var(--feu-green); width: 8px; }
+        .step-nav-item.active .step-label { background: var(--feu-green); color: white; }
     </style>
 {% endblock %}
 
@@ -160,7 +172,7 @@
     <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your application...</p>
 </div>
 
-{# --- 1. STICKY HEADER --- #}
+{# --- STICKY HEADER --- #}
 <header class="aries-sticky-header" id="stickyHeader">
     <div class="container mx-auto px-4 header-content">
         <a href="javascript:history.back()" class="header-logo-area">
@@ -196,7 +208,7 @@
             {% endfor %}
 
             {# --- CARD 1: ADMISSION DETAILS --- #}
-            <div class="card mb-5 animate-section">
+            <div class="card mb-5 animate-section" id="step-card-1">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-bank text-feu-green-600 fs-1"></i>STEP 1 : Admission Information</h3>
                 </div>
@@ -205,7 +217,6 @@
                         <label class="campus-option {{ selected_campus == 'feu_alabang' ? 'active' : '' }}" onclick="selectCampus('feu_alabang')">
                             <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
                             <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                   
                             <div class="text-center">
                                 <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
                                 <h5 class="font-bold text-gray-800">FEU Alabang</h5>
@@ -216,7 +227,6 @@
                         <label class="campus-option {{ selected_campus == 'feu_diliman' ? 'active' : '' }}" onclick="selectCampus('feu_diliman')">
                             <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
                             <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                    
                             <div class="text-center">
                                 <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
                                 <h5 class="font-bold text-gray-800">FEU Diliman</h5>
@@ -226,28 +236,43 @@
                     </div>
 
                     <div class="row g-4 mt-4">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Admission Type<span class="required">*</span></label>
-                                <select name="admission_type" class="form-select" required>
-                                    <option value="Freshman">Freshman</option>
+                                <select name="admission_type" id="admissionType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="New Student">New Student</option>
                                     <option value="Transferee">Transferee</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Education Type<span class="required">*</span></label>
                                 <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
                                     <option value="">Select Type</option>
-                                    <option value="Primary">Primary (Elementary)</option>
-                                    <option value="Secondary">Secondary (High School)</option>
+                                    <option value="Kinder">Kinder</option>
+                                    <option value="Grade School">Grade School</option>
+                                    <option value="Junior High School">Junior High School</option>
+                                    <option value="Senior High School">Senior High School</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">School Type <span class="required">*</span></label>
+                                <select name="school_type" id="schoolType" class="form-select" required>
+                                    <option value="">Select School Type</option>
+                                    <option value="Private">Private</option>
+                                    <option value="Public">Public</option>
+                                    <option value="International">International</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Grade Level <span class="required">*</span></label>
                                 <select name="grade_level" id="gradeLevel" class="form-select" required onchange="updateStrands()">
@@ -256,7 +281,7 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-6" id="strandGroup" style="display:none;">
+                        <div class="col-md-4" id="strandGroup" style="display:none;">
                             <div class="form-group">
                                 <label class="form-label">Strand <span class="required">*</span></label>
                                 <select name="strand" id="strand" class="form-select">
@@ -265,10 +290,10 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
-                                <label class="form-label">LRN (Learner Reference No.)</label>
-                                <input type="text" name="lrn" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}">
+                                <label class="form-label">LRN (Learner Reference No.) <span class="required" id="lrnRequiredSpan">*</span></label>
+                                <input type="text" name="lrn" id="lrnInput" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}" required>
                             </div>
                         </div>
                     </div>
@@ -276,21 +301,11 @@
             </div>
 
             {# --- CARD 2: PERSONAL INFORMATION --- #}
-            <div class="card mb-5 animate-section">
+            <div class="card mb-5 animate-section" id="step-card-2">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-user text-feu-green-600 fs-1"></i>STEP 2 : Personal Information</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row mb-5 justify-content-center">
-                        <div class="col-md-6">
-                            <div class="file-upload-group p-4 border rounded bg-light text-center">
-                                <label class="form-label d-block mb-3">2x2 ID Picture <span class="required">*</span></label>
-                                <input type="file" name="req_id_picture" id="reqIdPicture" class="form-control" required accept=".jpg,.jpeg,.png">
-                                <p class="text-xs text-gray-500 mt-2">White background, formal attire. Max 5MB.</p>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="row g-4">
                         <div class="col-md-3">
                             <label class="form-label">Last Name <span class="required">*</span></label>
@@ -349,7 +364,6 @@
                         <div class="col-md-6">
                             <label class="form-label">Citizenship <span class="required">*</span></label>
                             <select name="citizenship" id="citizenshipSelect" class="form-select" required data-control="select2" data-placeholder="Select Citizenship">
-                                {# CHANGED: Made FILIPINO the default selected option #}
                                 <option value="FILIPINO" selected>FILIPINO</option>
                                 {% for cit in citizenships %}
                                     {% if cit.citizenshipName|upper != 'FILIPINO' %}
@@ -367,18 +381,15 @@
                         </div>
                     </div>
 
-                    {# VISA SECTION #}
                     <div id="foreign_fields_container" style="display: none;" class="mt-4 p-3 bg-light rounded border">
                         <p class="text-primary small mb-3 fw-bold">
                             <i class="fas fa-info-circle me-1"></i> Please ensure your visa and passport details are correct and valid.
                         </p>
-
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Passport Number <span class="text-danger">*</span></label>
                                 <input type="text" name="passport_number" class="form-control">
                             </div>
-
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Visa Type <span class="text-danger">*</span></label>
                                 <select name="visa_type" id="visaType" class="form-select">
@@ -391,7 +402,6 @@
                                     <option value="other">Other</option>
                                 </select>
                             </div>
-
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Visa Status <span class="text-danger">*</span></label>
                                 <input type="text" name="visa_status" class="form-control" placeholder="e.g., Active, Expired">
@@ -402,7 +412,7 @@
             </div>
 
             {# --- CARD 3: CONTACT & ADDRESS --- #}
-            <div class="card mb-5 animate-section">
+            <div class="card mb-5 animate-section" id="step-card-3">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-map text-feu-green-600 fs-1"></i>STEP 3 : Contact & Address</h3>
                 </div>
@@ -504,7 +514,7 @@
             </div>
 
             {# --- CARD 4: FAMILY BACKGROUND --- #}
-            <div class="card mb-5 animate-section">
+            <div class="card mb-5 animate-section" id="step-card-4">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-people text-feu-green-600 fs-1"></i>STEP 4 : Family Background</h3>
                 </div>
@@ -529,26 +539,33 @@
                         </div>
                         <div class="row g-4">
                             <div class="col-md-4">
-                                <label class="form-label">Occupation</label>
-                                <input type="text" name="father_occupation" class="form-control" placeholder="Occupation">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label d-block">Status</label>
                                 <div class="status-checkbox-group">
-                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw')">
-                                    <label class="btn-check-label" for="f_deceased">
-                                        <i class="ki-filled ki-cross-circle"></i> Deceased
-                                    </label>
+                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw', 'father')">
+                                    <label class="btn-check-label" for="f_deceased"><i class="ki-filled ki-cross-circle"></i> Deceased</label>
 
-                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased')">
-                                    <label class="btn-check-label" for="f_ofw">
-                                        <i class="ki-filled ki-airplane"></i> OFW
-                                    </label>
+                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased', 'father')">
+                                    <label class="btn-check-label" for="f_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
                                 </div>
+                            </div>
+                            <div class="col-md-4" id="father_occupation_group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4" id="father_contact_group">
+                                <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
+                                <input type="tel" name="father_contact" id="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                        <div class="row g-4 mt-1" id="father_ofw_country_group" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Country of Work <span class="required">*</span></label>
+                                <select name="father_ofw_country" id="father_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -572,26 +589,33 @@
                         </div>
                         <div class="row g-4">
                             <div class="col-md-4">
-                                <label class="form-label">Occupation</label>
-                                <input type="text" name="mother_occupation" class="form-control" placeholder="Occupation">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
-                            </div>
-                            <div class="col-md-4">
                                 <label class="form-label d-block">Status</label>
                                 <div class="status-checkbox-group">
-                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw')">
-                                    <label class="btn-check-label" for="m_deceased">
-                                        <i class="ki-filled ki-cross-circle"></i> Deceased
-                                    </label>
+                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw', 'mother')">
+                                    <label class="btn-check-label" for="m_deceased"><i class="ki-filled ki-cross-circle"></i> Deceased</label>
 
-                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased')">
-                                    <label class="btn-check-label" for="m_ofw">
-                                        <i class="ki-filled ki-airplane"></i> OFW
-                                    </label>
+                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased', 'mother')">
+                                    <label class="btn-check-label" for="m_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
                                 </div>
+                            </div>
+                            <div class="col-md-4" id="mother_occupation_group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4" id="mother_contact_group">
+                                <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
+                                <input type="tel" name="mother_contact" id="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                        <div class="row g-4 mt-1" id="mother_ofw_country_group" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Country of Work <span class="required">*</span></label>
+                                <select name="mother_ofw_country" id="mother_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -612,31 +636,81 @@
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
                                 <input type="tel" name="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address <span class="required">*</span></label>
+                                <input type="email" name="guardian_email" class="form-control" placeholder="Email Address" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Address <span class="required">*</span></label>
+                                <input type="text" name="guardian_address" class="form-control" placeholder="Complete Address" required>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {# --- CARD 5: EDUCATION --- #}
-            <div class="card mb-5 animate-section">
+            <div class="card mb-5 animate-section" id="step-card-5">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-teacher text-feu-green-600 fs-1"></i>STEP 5 : Education History</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row g-4">
-                        <div class="col-md-8">
-                            <label class="form-label">Last School Attended <span class="required">*</span></label>
-                            <input type="text" name="prev_school_name" class="form-control" required>
+                    
+                    <div id="educ_history_placeholder" class="text-center text-muted fw-bold">
+                        Please select a Grade Level in Step 1 to view required education history.
+                    </div>
+
+                    <div id="educ_history_fields" style="display:none;">
+                        
+                        {# Kinder #}
+                        <div id="section_educ_kinder" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Kindergarten</h6>
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-8">
+                                    <label class="form-label text-xs">School Name <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_school[]" class="form-control form-control-sm educ-input" placeholder="School Name">
+                                    <input type="hidden" name="educ_kinder_level[]" value="Kinder">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs">School Year <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">School Year</label>
-                            <input type="text" name="prev_school_year" class="form-control" placeholder="e.g. 2024">
+
+                        {# Elementary #}
+                        <div id="section_educ_elem" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Elementary (Grade School)</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('elem')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_elem"></div>
                         </div>
+
+                        {# Junior High School #}
+                        <div id="section_educ_jhs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Junior High School</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('jhs')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_jhs"></div>
+                        </div>
+
+                        {# Senior High School #}
+                        <div id="section_educ_shs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Senior High School</h6>
+                            <div id="container_educ_shs"></div>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
-            {# --- CARD 6: SIBLINGS (Left Delete Button) --- #}
+            {# --- CARD 6: SIBLINGS (Optional) --- #}
             <div class="card mb-5 animate-section">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-profile-user text-feu-green-600 fs-1"></i> Siblings (Enrolled in FEU)</h3>
@@ -652,7 +726,7 @@
             </div>
 
             {# --- CARD 7: REQUIREMENTS --- #}
-            <div class="card mb-5 animate-section">
+            <div class="card mb-5 animate-section" id="step-card-6">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-folder-added text-feu-green-600 fs-1"></i>STEP 6 : Submission of Documents</h3>
                 </div>
@@ -666,7 +740,6 @@
                                         {% if doc.isRequired %}<span class="required">*</span>{% endif %}
                                     </label>
                                     
-                                    {# Format the admin's 'pdf, jpg' string into '.pdf, .jpg' for HTML input #}
                                     {% set accept_attr = '' %}
                                     {% if doc.allowedFileTypes %}
                                         {% for ext in doc.allowedFileTypes|split(',') %}
@@ -678,7 +751,7 @@
                                            data-is-required="{{ doc.isRequired ? 'true' : 'false' }}"
                                            {% if doc.isRequired %}required{% endif %} 
                                            {% if accept_attr %}accept="{{ accept_attr }}"{% endif %}>
-                                           
+                                    
                                     <p class="text-xs text-gray-500 mt-2">
                                         Max size: 10MB. 
                                         {% if doc.allowedFileTypes %}
@@ -712,6 +785,23 @@
                 </div>
             </div>
 
+            {# Floating Step Navigation (Replaces right-side scrollbar) #}
+            <div class="step-nav-container" id="stepNav">
+                {% set steps = [
+                    'Admission Info', 'Personal Info', 'Contact & Address', 
+                    'Family Background', 'Education History', 'Document Submission'
+                ] %}
+                {% for label in steps %}
+                    <div class="step-nav-item {% if loop.first %}active{% endif %}" data-step="{{ loop.index }}" onclick="window.scrollToStep({{ loop.index }})">
+                        <span class="step-label">
+                            <span class="step-text">STEP {{ loop.index }}: {{ label }}</span>
+                            <span class="step-number">{{ loop.index }}</span>
+                        </span>
+                        <div class="step-bar"></div>
+                    </div>
+                {% endfor %}
+            </div>
+
         </form>
     </div>
 </div>
@@ -727,7 +817,7 @@
             <p class="text-sm text-gray-500 mt-2 font-medium">This cannot be undone. Please review your details below.</p>
         </div>
         <div class="p-6 bg-gray-50 text-left" id="summaryContent">
-            </div>
+        </div>
         <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
             <button type="button" onclick="closeConfirmationModal()" class="px-5 py-3 rounded-xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors w-full sm:w-auto">
                 No, I have some changes
@@ -742,11 +832,10 @@
 <script src="{{ asset('js/validation.js') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}"></script>
 
-{# Script to ensure the loading screen displays for a guaranteed minimum time #}
 <script>
     const loader = document.getElementById('enrollmentLoader');
     if (loader) {
-        const minLoadTime = 1500; 
+        const minLoadTime = 1500;
         const startTime = Date.now();
         
         window.addEventListener('load', function() {

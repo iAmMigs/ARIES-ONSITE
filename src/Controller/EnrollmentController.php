@@ -13,6 +13,7 @@ use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
 use App\Entity\LookupBarangay;
 use App\Entity\LookupReligion;
+use App\Entity\LookupCountry;
 use App\Entity\LookupCitizenship;
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,12 +35,14 @@ class EnrollmentController extends AbstractController
         
         $religions = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
         $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
+        $countries = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
         return $this->render('enrollment-onsite/enroll.html.twig', [
             'selected_campus' => $campus,
             'documents' => $documents,
             'religions' => $religions,
-            'citizenships' => $citizenships
+            'citizenships' => $citizenships,
+            'countries' => $countries
         ]);
     }
 
@@ -75,6 +78,7 @@ class EnrollmentController extends AbstractController
         $applicant->setEducationType($request->request->get('education_type'));
         $applicant->setGradeLevel($request->request->get('grade_level'));
         $applicant->setTrackStrand($request->request->get('strand'));
+        $applicant->setSchoolType($request->request->get('school_type'));
         $applicant->setLrn($lrnInput);
         $applicant->setSchoolYearOfEntry($yearStart . '-' . ($yearStart + 1));
         $applicant->setAdmissionType($request->request->get('admission_type'));
@@ -150,46 +154,30 @@ class EnrollmentController extends AbstractController
             }
         }
 
-        if ($request->request->get('prev_school_name')) {
-            $school = new ApplicantBedSchool();
-            $school->setApplicant($applicant);
-            $school->setSchool($formatName($request->request->get('prev_school_name')));
-            $school->setYearEnd((int)$request->request->get('prev_school_year'));
-            $school->setLevel(ApplicantBedSchool::LEVEL_ELEMENTARY); 
-            $applicant->addSchool($school);
-            $em->persist($school);
+        // --- 5.1 MULTIPLE EDUCATION HISTORY ---
+        $levels = ['kinder', 'elem', 'jhs', 'shs'];
+        foreach ($levels as $lvl) {
+            $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
+            $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
+            $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
+
+            if (is_array($schools)) {
+                foreach ($schools as $index => $schoolName) {
+                    if (!empty($schoolName)) {
+                        $school = new ApplicantBedSchool();
+                        $school->setApplicant($applicant);
+                        $school->setSchool($formatName($schoolName));
+                        $school->setSchoolYear($years[$index] ?? null);
+                        $school->setLevel($levelLabels[$index] ?? strtoupper($lvl));
+                        
+                        $applicant->addSchool($school);
+                        $em->persist($school);
+                    }
+                }
+            }
         }
 
         // --- 6. ROBUST FILE UPLOADS ---
-        
-        // 6A. Process ID Picture
-        $idFile = $request->files->get('req_id_picture');
-        if ($idFile instanceof UploadedFile) {
-            
-            // Server-Side Image Format Validation
-            $idExtension = strtolower($idFile->getClientOriginalExtension());
-            if (!in_array($idExtension, ['jpg', 'jpeg', 'png', 'webp'])) {
-                $this->addFlash('error', 'Invalid ID picture format. Please upload a valid image (JPG, PNG, WEBP).');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
-            }
-            
-            // Server-Side Size Validation (5MB)
-            if ($idFile->getSize() > 5242880) {
-                $this->addFlash('error', 'ID picture must be strictly less than 5MB.');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
-            }
-
-            $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-
-            $filename = 'ID-' . $studentNo . '.' . $idFile->guessExtension();
-            try {
-                $idFile->move($uploadDir, $filename);
-                $applicant->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
-            } catch (\Exception $e) { }
-        }
 
         // 6B. Process Dynamic Document Requirements
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
@@ -335,6 +323,9 @@ class EnrollmentController extends AbstractController
         $guardian->setContactNo($request->request->get($slot . '_contact', ''));
         $guardian->setDeceased($request->request->get($slot . '_deceased') ? true : false);
         $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
+        $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
+        $guardian->setEmail($request->request->get($slot . '_email'));
+        $guardian->setAddress($request->request->get($slot . '_address'));
 
         $em->persist($guardian);
     }

@@ -21,7 +21,7 @@
                 <a href="{{ path('app_admin_diliman_registration_edit', {'id': registration.studentNumber}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
                     <i class="ki-filled ki-pencil mr-2"></i> Edit Details
                 </a>
-            </div>
+             </div>
 
             <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
                 {# --- 1. APPLICANT CARD --- #}
@@ -33,7 +33,7 @@
                             <img src="{{ asset(registration.photoSlug) }}" class="w-40 h-40 rounded-2xl object-cover border-4 border-white shadow-lg">
                         {% else %}
                             <div class="w-40 h-40 rounded-2xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-5xl font-bold border-4 border-white shadow-lg">
-                                {{ registration.firstName|first }}
+                                 {{ registration.firstName|first }}
                             </div>
                         {% endif %}
                     </div>
@@ -42,7 +42,7 @@
                         <h2 class="text-3xl font-extrabold text-gray-900 mb-2">{{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}</h2>
                         
                         <div class="flex flex-wrap gap-3 mb-6">
-                            <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
+                             <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
                                 <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
                             </div>
 
@@ -50,7 +50,7 @@
                                 {{ registration.admissionType|default('Null') }}
                             </div>
 
-                            <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">
+                             <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">
                                 {{ registration.gradeLevel|replace({'_': ' '})|title }}
                             </div>
                             {% if registration.trackStrand %}
@@ -68,7 +68,7 @@
 
                     <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
                         <div class="text-xs font-bold text-gray-400 uppercase mb-2">
-                            {% if registration.examinationScore is not null %}
+                             {% if registration.examinationScore is not null %}
                                 Examination Score
                             {% else %}
                                 Examination Status
@@ -81,7 +81,7 @@
                                 {{ registration.admissionStatus }}
                             {% endif %}
                         </div>
-                    </div>
+                     </div>
                 </div>
 
                 {# --- 2. DETAILS GRID --- #}
@@ -142,7 +142,7 @@
                                                 {% endif %}
                                             </div>
                                         </div>
-                                        <div class="font-bold text-gray-800">{{ guardian.parentName|trim(', ') }}</div>
+                                        <div class="font-bold text-gray-800">{{ guardian.parentName|default('')|trim(', ') }}</div>
                                         <div class="text-sm {{ guardian.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
                                             {{ guardian.occupation ?: 'Occupation Not Specified' }}
                                         </div>
@@ -195,12 +195,17 @@
                         <div class="space-y-4">
                             {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High'} %}
                             {% for school in registration.schools %}
+                            {# Auto-convert old 4-digit entries (e.g. '2024') to '2023-2024' #}
+                            {% set sYear = school.schoolYear %}
+                            {% if sYear|length == 4 %}
+                                {% set sYear = (sYear - 1) ~ '-' ~ sYear %}
+                            {% endif %}
                             <div class="relative pl-4 border-l-2 border-gray-200">
                                 <div class="text-[10px] font-bold text-feu-green-600 uppercase mb-0.5">
                                     {{ levelMap[school.level]|default(school.level) }}
                                 </div>
                                 <div class="text-sm font-bold text-gray-800">{{ school.school }}</div>
-                                <div class="text-xs text-gray-500 mt-1">School Year: {{ school.yearEnd }}</div>
+                                <div class="text-xs text-gray-500 mt-1">School Year: {{ sYear }}</div>
                                 <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                             </div>
                             {% else %}
@@ -271,7 +276,7 @@
 
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-phone text-orange-500"></i> Emergency Contact
+                             <i class="ki-filled ki-phone text-orange-500"></i> Emergency Contact
                         </h3>
                         
                         {% if emergencyContact %}
@@ -281,7 +286,7 @@
                                         {{ emergencyContact.relationship }}
                                     </div>
                                 </div>
-                                <div class="font-bold text-gray-800">{{ emergencyContact.parentName|trim(', ') }}</div>
+                                <div class="font-bold text-gray-800">{{ emergencyContact.parentName|default('')|trim(', ') }}</div>
                                 <div class="text-sm {{ emergencyContact.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
                                     {{ emergencyContact.occupation ?: 'Occupation Not Specified' }}
                                 </div>

@@ -16,7 +16,7 @@
 
         <div class="flex-1 overflow-y-auto p-8">
              <form method="post" class="max-w-7xl mx-auto" id="editForm" enctype="multipart/form-data">
-                
+        
                 {# Header Actions #}
                 <div class="mb-6 flex items-center justify-between">
                     <div class="flex items-center gap-4">
@@ -246,9 +246,11 @@
                                         </div>
                                     </div>
                                     
-                                    {% set nameParts = guardian.parentName|split(',') %}
+                                    {% set parentNameVal = guardian.parentName|default('') %}
+                                    {% set nameParts = parentNameVal|split(',') %}
                                     {% set lastNameVal = nameParts[0]|default('')|trim %}
-                                    {% set givenNameParts = nameParts[1]|default('')|trim|split(' ') %}
+                                    {% set givenNameStr = nameParts|length > 1 ? nameParts[1] : '' %}
+                                    {% set givenNameParts = givenNameStr|trim|split(' ') %}
                                     {% set middleNameVal = givenNameParts|length > 1 ? givenNameParts|last : '' %}
                                     {% set firstNameVal = givenNameParts|length > 1 ? givenNameParts|slice(0, -1)|join(' ') : givenNameParts|join(' ') %}
 
@@ -313,16 +315,21 @@
                             </h3>
                             <div class="space-y-4">
                                 {% for school in registration.schools %}
+                                {# Auto-convert old 4-digit entries (e.g. '2024') to '2023-2024' #}
+                                {% set sYear = school.schoolYear %}
+                                {% if sYear|length == 4 %}
+                                    {% set sYear = (sYear - 1) ~ '-' ~ sYear %}
+                                {% endif %}
                                 <div class="relative pl-4 border-l-2 border-gray-200">
                                     <div class="text-[10px] font-bold text-feu-green-600 uppercase mb-1">
                                         {% if school.level == 'P' %}Primary{% elseif school.level == 'I' %}Junior High{% else %}Senior High{% endif %}
                                     </div>
                                     <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="School Name">
-                                    <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.yearEnd }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="School Year">
+                                    <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ sYear }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
                                     <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                                 </div>
                                 {% else %}
-                                    <div class="text-sm text-gray-400 italic">No history provided.</div>
+                                <div class="text-sm text-gray-400 italic">No history provided.</div>
                                 {% endfor %}
                             </div>
                         </div>
@@ -351,7 +358,7 @@
                                                     </div>
                                                 </div>
                                                 
-                                                {# Delete Trigger (Calls the hidden form below) #}
+                                                {# Delete Trigger #}
                                                 <button type="button" class="btn btn-sm btn-light-danger px-3 py-2 text-xs" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-alabang-{{ req.slug }}').submit();">
                                                     <i class="ki-filled ki-trash"></i> Delete
                                                 </button>
@@ -369,7 +376,7 @@
 
                                 <hr class="mt-6 mb-4 border-gray-200">
                         
-                                {# Dynamic Uploads based on DocumentSetup table #}
+                                {# Dynamic Uploads #}
                                 <h6 class="text-sm font-bold mt-2 mb-3 text-gray-700">Upload / Replace Documents</h6>
                                 {% if documentSetups is defined and documentSetups|length > 0 %}
                                     <div class="space-y-3">
@@ -424,7 +431,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Full Name</label>
-                                        <input type="text" name="guardians[{{ emergencyIndex }}][full_name]" value="{{ emergencyContact ? emergencyContact.parentName|trim(', ') : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Full Name">
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][full_name]" value="{{ emergencyContact ? emergencyContact.parentName|default('')|trim(', ') : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Full Name">
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Relationship</label>
@@ -463,7 +470,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     let isDirty = false;
     const form = document.getElementById('editForm');
-    const backBtn = document.getElementById('btn_discard'); 
+    const backBtn = document.getElementById('btn_discard');
 
     if(form) {
         form.addEventListener('change', () => { isDirty = true; });
@@ -588,5 +595,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+document.addEventListener('input', function(e) {
+        if (e.target && e.target.name && e.target.name.includes('[year]')) {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 4) {
+                val = val.substring(0, 4) + '-' + val.substring(4, 8);
+            }
+            e.target.value = val;
+        }
+    });
 </script>
 {% endblock %}

@@ -26,8 +26,9 @@ class ApplicantBed
     public const GENDER_MALE = 'M';
     public const GENDER_FEMALE = 'F';
 
-    public const TYPE_FRESHMAN = 'Freshman';
+    public const TYPE_NEW_STUDENT = 'New Student';
     public const TYPE_TRANSFEREE = 'Transferee';
+    
 
     #[ORM\Id]
     #[ORM\Column(name: 'student_number', length: 20, unique: true)]
@@ -95,8 +96,8 @@ class ApplicantBed
     #[ORM\Column(length: 255, nullable: true)] private ?string $permanentBarangay = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $permanentAddress = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
-    
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
 
     /**
      * Virtual property for handling the photo upload securely before persisting.
@@ -259,4 +260,7 @@ class ApplicantBed
 
     public function getAdmissionType(): ?string { return $this->admissionType; }
     public function setAdmissionType(?string $t): static { $this->admissionType = $t; return $this; }
+
+    public function getSchoolType(): ?string { return $this->schoolType; }
+    public function setSchoolType(?string $t): static { $this->schoolType = $t; return $this; }
 }
