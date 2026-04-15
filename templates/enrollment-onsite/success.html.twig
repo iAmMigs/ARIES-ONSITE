@@ -42,3 +42,12 @@
     </div>
 </div>
 {% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        sessionStorage.removeItem('dpa_agreed');
+    });
+</script>
+{% endblock %}

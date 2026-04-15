@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initSubmitLock();
     initLrnValidation();
     initUnsavedChangesWarning();
+    initDPAModal();
 
     window.addEventListener('pageshow', function(event) {
         if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
@@ -184,7 +185,7 @@ window.updateGradeLevels = function() {
                     {val: 'Grade 8', label: 'Grade 8'}, {val: 'Grade 9', label: 'Grade 9'}, {val: 'Grade 10', label: 'Grade 10'}
                 ];
             } else if (eduType === 'Senior High School') {
-                options = [{val: 'Grade 12', label: 'Grade 12'}];
+                options = [{val: 'Grade 11', label: 'Grade 11'}, {val: 'Grade 12', label: 'Grade 12'}];
             }
         }
     }
@@ -1013,3 +1014,55 @@ window.ensureInitialRow = function(level) {
         window.addSchoolRow(level);
     }
 };
+
+function initDPAModal() {
+    const overlay = document.getElementById('dpaModalOverlay');
+    const scrollArea = document.getElementById('dpaScrollArea');
+    const checkbox = document.getElementById('dpa_consent_check');
+    const btnAgree = document.getElementById('btnDpaAgree');
+    const hint = document.getElementById('dpaScrollHint');
+
+    if (!overlay) return;
+
+    if (sessionStorage.getItem('dpa_agreed')) {
+        return; // Already agreed this session
+    }
+
+    // Delay slightly to ensure transition works
+    setTimeout(() => {
+        overlay.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }, 100);
+
+    // Initial check in case the content is small enough to not need scrolling
+    setTimeout(() => {
+        if (scrollArea.scrollHeight <= scrollArea.clientHeight + 20) {
+            checkbox.disabled = false;
+            hint.style.display = 'none';
+        }
+    }, 200);
+
+    // Handle scroll to unlock
+    scrollArea.addEventListener('scroll', function() {
+        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
+            checkbox.disabled = false;
+            if (hint) hint.style.display = 'none';
+        }
+    });
+
+    // Handle checkbox to unlock button
+    if (checkbox) {
+        checkbox.addEventListener('change', function() {
+            if (btnAgree) btnAgree.disabled = !this.checked;
+        });
+    }
+
+    // Handle agree button click
+    if (btnAgree) {
+        btnAgree.addEventListener('click', function() {
+            sessionStorage.setItem('dpa_agreed', '1');
+            overlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        });
+    }
+}

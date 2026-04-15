@@ -30,3 +30,4 @@ security:
         # Secure the admin URLs so only actual Admins can enter
         - { path: ^/alabang-admin, roles: ROLE_ADMIN }
         - { path: ^/diliman-admin, roles: ROLE_ADMIN }
+        - { path: ^/admin, roles: ROLE_ADMIN }
