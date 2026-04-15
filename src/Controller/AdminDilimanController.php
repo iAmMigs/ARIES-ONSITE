@@ -88,9 +88,23 @@ class AdminDilimanController extends AbstractController
                ->setParameter('date', "$date%");
         }
 
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = 50;
+        $offset = ($page - 1) * $limit;
+
+        $qb->setFirstResult($offset)
+           ->setMaxResults($limit);
+
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($qb);
+        $totalItems = count($paginator);
+        $totalPages = ceil($totalItems / $limit);
+
         return $this->render('admin-onsite/diliman/registrations.html.twig', [
-            'registrations' => $qb->getQuery()->getResult(),
-            'filters' => $request->query->all()
+            'registrations' => $paginator,
+            'filters' => $request->query->all(),
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+            'totalItems' => $totalItems
         ]);
     }
 
@@ -135,6 +149,10 @@ class AdminDilimanController extends AbstractController
 
             $profileFile = $request->files->get('profile_picture');
             if ($profileFile) {
+                if ($profileFile->getSize() > 5242880) {
+                    $this->addFlash('error', 'The profile picture exceeds the 5MB limit.');
+                    return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+                }
                 $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $profileFile->guessExtension();
                 try {
                     $profileFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics', $filename);
@@ -147,6 +165,10 @@ class AdminDilimanController extends AbstractController
                 $docFile = $request->files->get($inputName);
                 
                 if ($docFile) {
+                    if ($docFile->getSize() > 10485760) {
+                        $this->addFlash('error', 'The document ' . $docSetup->getDocumentName() . ' exceeds the 10MB limit.');
+                        return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+                    }
                     $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
                         'applicant' => $registration, 
                         'Slug' => $inputName
