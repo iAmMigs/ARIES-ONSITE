@@ -1,0 +1,242 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}School Year Management – {{ campusLabel }}{% endblock %}
+
+{% block body %}
+<div class="flex h-screen overflow-hidden bg-gray-50">
+
+    {# Include the correct sidebar based on the campus context #}
+    {% if campus == 'alabang' %}
+        {% include 'admin-onsite/alabang/_sidebar.html.twig' with {'active_menu': 'school_year'} %}
+    {% else %}
+        {% include 'admin-onsite/diliman/_sidebar.html.twig' with {'active_menu': 'school_year'} %}
+    {% endif %}
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {# Header #}
+        {% if campus == 'alabang' %}
+            {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'School Year Management'} %}
+        {% else %}
+            {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'School Year Management'} %}
+        {% endif %}
+
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-7xl mx-auto space-y-8">
+
+                {# Flash Messages #}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flex items-start gap-3 p-4 rounded-xl border
+                            {% if type == 'success' %}bg-green-50 border-green-200 text-green-800
+                            {% elseif type == 'error' %}bg-red-50 border-red-200 text-red-800
+                            {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+                            <i class="ki-filled {% if type == 'success' %}ki-check-circle{% else %}ki-information-2{% endif %} text-xl mt-0.5"></i>
+                            <p class="text-sm font-medium">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {# Current Status Banner #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-800">{{ campusLabel }} — Active School Year</h2>
+                            <p class="text-sm text-gray-500 mt-1">Only one school year may be active at a time. Enrollment can only be opened for the active year.</p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            {% if activeSY %}
+                                <p class="text-2xl font-extrabold text-feu-green-700 font-mono">{{ activeSY.label }}</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ activeSY.yearStart }}–{{ activeSY.yearEnd }}</p>
+                                <span class="inline-flex items-center gap-1 mt-2 px-3 py-1 rounded-full text-xs font-bold
+                                    {% if activeSY.enrollmentOpen %}bg-green-100 text-green-700{% else %}bg-amber-100 text-amber-700{% endif %}">
+                                    <i class="ki-filled {% if activeSY.enrollmentOpen %}ki-check-circle{% else %}ki-time{% endif %}"></i>
+                                    Enrollment {{ activeSY.enrollmentOpen ? 'OPEN' : 'CLOSED' }}
+                                </span>
+                            {% else %}
+                                <p class="text-gray-400 italic text-sm">No active school year set</p>
+                                <p class="text-xs text-red-500 mt-1 font-medium">⚠ Enrollment is disabled until a school year is activated.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Create New School Year #}
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div class="mb-6 border-b border-gray-100 pb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Add New School Year</h3>
+                        <p class="text-sm text-gray-500 mt-1">Enter the starting year. The ending year and label are computed automatically.</p>
+                    </div>
+
+                    <form action="{{ path('app_admin_school_year_index', {campus: campus}) }}" method="POST"
+                          class="flex flex-col sm:flex-row gap-4 items-end bg-gray-50 p-6 rounded-xl border border-gray-200">
+
+                        <div class="flex-grow">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Starting Year</label>
+                            <input type="number"
+                                   name="year_start"
+                                   id="year_start_input"
+                                   min="2020" max="2100"
+                                   placeholder="e.g. 2025"
+                                   class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-feu-green-500 outline-none"
+                                   required>
+                        </div>
+
+                        <div class="flex-grow">
+                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Preview</label>
+                            <p id="sy_preview" class="px-4 py-2.5 bg-gray-100 rounded-lg text-sm font-mono text-gray-500 italic">
+                                — Enter a year to preview —
+                            </p>
+                        </div>
+
+                        <div class="flex-shrink-0">
+                            <button type="submit"
+                                    class="bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
+                                Create School Year
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {# School Years Table #}
+                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
+                    <div class="mb-6 border-b border-gray-100 pb-4">
+                        <h3 class="text-lg font-bold text-gray-800">All School Years — {{ campusLabel }}</h3>
+                        <p class="text-sm text-gray-500 mt-1">{{ schoolYears|length }} school year(s) configured for this campus.</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-400 uppercase bg-gray-50 rounded-t-xl">
+                                <tr>
+                                    <th class="px-6 py-4 rounded-tl-xl">Label</th>
+                                    <th class="px-6 py-4">Period</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Enrollment</th>
+                                    <th class="px-6 py-4">Created</th>
+                                    <th class="px-6 py-4 text-right rounded-tr-xl">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                {% for sy in schoolYears %}
+                                <tr class="hover:bg-gray-50 transition-colors {% if sy.isActive %}bg-feu-green-50/30{% endif %}">
+                                    <td class="px-6 py-4">
+                                        <span class="font-bold font-mono text-lg {% if sy.isActive %}text-feu-green-700{% else %}text-gray-700{% endif %}">
+                                            {{ sy.label }}
+                                        </span>
+                                        {% if sy.isActive %}
+                                            <span class="ml-2 inline-flex items-center gap-1 bg-feu-green-100 text-feu-green-700 px-2 py-0.5 rounded-full text-xs font-bold">
+                                                <i class="ki-filled ki-check-circle text-xs"></i> Active
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-600 font-mono">{{ sy.yearStart }}–{{ sy.yearEnd }}</td>
+                                    <td class="px-6 py-4">
+                                        {% if sy.isActive %}
+                                            <span class="bg-feu-green-100 text-feu-green-700 px-2 py-1 rounded text-xs font-bold">Active</span>
+                                        {% else %}
+                                            <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs font-bold">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {% if sy.isActive %}
+                                            {% if sy.enrollmentOpen %}
+                                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Open</span>
+                                            {% else %}
+                                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">Closed</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-gray-300 text-xs">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-400 text-xs">{{ sy.createdAt|date('M d, Y') }}</td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2">
+
+                                            {# Activate Button (only for inactive school years) #}
+                                            {% if not sy.isActive %}
+                                                <form action="{{ path('app_admin_school_year_activate', {campus: campus, id: sy.id}) }}"
+                                                      method="POST"
+                                                      onsubmit="return confirm('Activate {{ sy.label }}? This will close enrollment and deactivate the current school year.');">
+                                                    <button type="submit"
+                                                            class="inline-flex items-center gap-1.5 bg-feu-green-700 hover:bg-feu-green-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm">
+                                                        <i class="ki-filled ki-check text-xs"></i> Activate
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            {# Toggle Enrollment (only for active school year) #}
+                                            {% if sy.isActive %}
+                                                <form action="{{ path('app_admin_school_year_toggle', {campus: campus, id: sy.id}) }}"
+                                                      method="POST"
+                                                      onsubmit="return confirm('{% if sy.enrollmentOpen %}Close enrollment for {{ sy.label }}?{% else %}Open enrollment for {{ sy.label }}? Students will be able to submit applications.{% endif %}');">
+                                                    <button type="submit"
+                                                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm
+                                                            {% if sy.enrollmentOpen %}bg-amber-100 text-amber-700 hover:bg-amber-200{% else %}bg-blue-100 text-blue-700 hover:bg-blue-200{% endif %}">
+                                                        <i class="ki-filled {% if sy.enrollmentOpen %}ki-exit-right{% else %}ki-entrance-left{% endif %} text-xs"></i>
+                                                        {% if sy.enrollmentOpen %}Close Enrollment{% else %}Open Enrollment{% endif %}
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            {# Delete Button (only for inactive school years) #}
+                                            {% if not sy.isActive %}
+                                                <form action="{{ path('app_admin_school_year_delete', {campus: campus, id: sy.id}) }}"
+                                                      method="POST"
+                                                      onsubmit="return confirm('Permanently delete {{ sy.label }}? This cannot be undone.');">
+                                                    <button type="submit"
+                                                            class="text-gray-400 hover:text-red-600 transition-colors p-2"
+                                                            title="Delete">
+                                                        <i class="ki-filled ki-trash text-lg"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="px-6 py-16 text-center">
+                                        <div class="flex flex-col items-center gap-3 text-gray-400">
+                                            <i class="ki-filled ki-calendar text-5xl"></i>
+                                            <p class="text-base font-medium">No school years configured yet.</p>
+                                            <p class="text-sm">Create one above to enable enrollment for {{ campusLabel }}.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    /**
+     * Live preview: shows the computed school year label and period
+     * as the admin types in the starting year field.
+     */
+    document.getElementById('year_start_input').addEventListener('input', function () {
+        const yearStart = parseInt(this.value, 10);
+        const preview  = document.getElementById('sy_preview');
+        if (isNaN(yearStart) || yearStart < 2020 || yearStart > 2100) {
+            preview.textContent = '— Enter a valid year to preview —';
+            preview.classList.add('italic', 'text-gray-400');
+            return;
+        }
+        const yearEnd    = yearStart + 1;
+        const syLabel    = 'SY' + String(yearStart).slice(-2) + String(yearEnd).slice(-2);
+        preview.textContent = syLabel + ' (' + yearStart + '–' + yearEnd + ')';
+        preview.classList.remove('italic', 'text-gray-400');
+        preview.classList.add('text-feu-green-700', 'font-bold');
+    });
+</script>
+{% endblock %}

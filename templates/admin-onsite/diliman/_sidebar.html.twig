@@ -26,6 +26,12 @@
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'documents' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-folder text-xl"></i><span>Document Setup</span>
         </a>
+
+        {# School Year Management Link #}
+        <a href="{{ path('app_admin_school_year_index', {campus: 'diliman'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'school_year' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-calendar text-xl"></i><span>School Year</span>
+        </a>
     </nav>
     
     <div class="p-4 border-t border-feu-green-800">

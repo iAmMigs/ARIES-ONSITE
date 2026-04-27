@@ -66,6 +66,18 @@
         }
         .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
         .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4; ring: 4px solid rgba(26,77,46,0.1); }
+        .campus-option.campus-closed {
+            opacity: 0.55;
+            cursor: not-allowed;
+            border-color: #e5e7eb;
+            background: #f9fafb;
+        }
+        .campus-option.campus-closed:hover { transform: none; border-color: #e5e7eb; box-shadow: none; }
+        .campus-closed-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            margin-top: 6px; padding: 2px 8px; border-radius: 9999px;
+            background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 700;
+        }
         .campus-option .check-icon {
             position: absolute;
             top: 1rem; right: 1rem; width: 24px; height: 24px; background: var(--feu-green-dark);
@@ -265,25 +277,59 @@
                 </div>
                 <div class="card-body">
                     <div class="campus-selector-row">
-                        <label class="campus-option {{ selected_campus == 'feu_alabang' ? 'active' : '' }}" onclick="selectCampus('feu_alabang')">
-                            <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
-                            <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                            <div class="text-center">
-                                <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
-                                <h5 class="font-bold text-gray-800">FEU Alabang</h5>
-                                <p class="text-xs text-gray-500">Filinvest City, Alabang</p>
-                            </div>
-                        </label>
 
-                        <label class="campus-option {{ selected_campus == 'feu_diliman' ? 'active' : '' }}" onclick="selectCampus('feu_diliman')">
-                            <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
-                            <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                            <div class="text-center">
-                                <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
-                                <h5 class="font-bold text-gray-800">FEU Diliman</h5>
-                                <p class="text-xs text-gray-500">Diliman, Quezon City</p>
+                        {# FEU Alabang Option #}
+                        {% if alabang_enrollment_open|default(false) %}
+                            <label class="campus-option {{ selected_campus == 'feu_alabang' ? 'active' : '' }}"
+                                   onclick="selectCampus('feu_alabang')">
+                                <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
+                                <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
+                                <div class="text-center">
+                                    <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
+                                    <h5 class="font-bold text-gray-800">FEU Alabang</h5>
+                                    <p class="text-xs text-gray-500">Filinvest City, Alabang</p>
+                                </div>
+                            </label>
+                        {% else %}
+                            {# Alabang is closed — show as locked and non-selectable #}
+                            <div class="campus-option campus-closed" title="Enrollment is closed for FEU Alabang">
+                                <div class="text-center">
+                                    <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
+                                    <h5 class="font-bold text-gray-800">FEU Alabang</h5>
+                                    <p class="text-xs text-gray-500">Filinvest City, Alabang</p>
+                                    <span class="campus-closed-badge">
+                                        <i class="ki-filled ki-time" style="font-size:0.65rem"></i> Enrollment is closed
+                                    </span>
+                                </div>
                             </div>
-                        </label>
+                        {% endif %}
+
+                        {# FEU Diliman Option #}
+                        {% if diliman_enrollment_open|default(false) %}
+                            <label class="campus-option {{ selected_campus == 'feu_diliman' ? 'active' : '' }}"
+                                   onclick="selectCampus('feu_diliman')">
+                                <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
+                                <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
+                                <div class="text-center">
+                                    <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
+                                    <h5 class="font-bold text-gray-800">FEU Diliman</h5>
+                                    <p class="text-xs text-gray-500">Diliman, Quezon City</p>
+                                </div>
+                            </label>
+                        {% else %}
+                            {# Diliman is closed — show as locked and non-selectable #}
+                            <div class="campus-option campus-closed" title="Enrollment is closed for FEU Diliman">
+                                <div class="text-center">
+                                    <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
+                                    <h5 class="font-bold text-gray-800">FEU Diliman</h5>
+                                    <p class="text-xs text-gray-500">Diliman, Quezon City</p>
+                                    <span class="campus-closed-badge">
+                                        <i class="ki-filled ki-time" style="font-size:0.65rem"></i> Enrollment is closed
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
+
                     </div>
 
                     <div class="row g-4 mt-4">

@@ -221,12 +221,37 @@
                     </p>
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-                        <a href="{{ path('app_enrollment_apply', {'campus': 'feu_alabang'}) }}" class="btn-primaryinv px-8 py-4 text-lg" id="btn-alabang">
-                            <i class="ki-filled ki-geolocation"></i> FEU Alabang
-                        </a>
-                        <a href="{{ path('app_enrollment_apply', {'campus': 'feu_diliman'}) }}" class="btn-primary px-8 py-4 text-lg" id="btn-diliman">
-                            <i class="ki-filled ki-geolocation"></i> FEU Diliman
-                        </a>
+
+                        {% if alabang_enrollment_open %}
+                            {# Alabang enrollment is open — link goes directly to the form #}
+                            <a href="{{ path('app_enrollment_apply', {'campus': 'feu_alabang'}) }}"
+                               class="btn-primaryinv px-8 py-4 text-lg" id="btn-alabang">
+                                <i class="ki-filled ki-geolocation"></i> FEU Alabang
+                            </a>
+                        {% else %}
+                            {# Alabang enrollment is closed — button triggers a floating info card instead of navigating #}
+                            <button type="button"
+                                    onclick="showClosedCard('FEU Alabang')"
+                                    class="btn-primaryinv px-8 py-4 text-lg opacity-75 cursor-not-allowed" id="btn-alabang">
+                                <i class="ki-filled ki-geolocation"></i> FEU Alabang
+                            </button>
+                        {% endif %}
+
+                        {% if diliman_enrollment_open %}
+                            {# Diliman enrollment is open — link goes directly to the form #}
+                            <a href="{{ path('app_enrollment_apply', {'campus': 'feu_diliman'}) }}"
+                               class="btn-primary px-8 py-4 text-lg" id="btn-diliman">
+                                <i class="ki-filled ki-geolocation"></i> FEU Diliman
+                            </a>
+                        {% else %}
+                            {# Diliman enrollment is closed — button triggers a floating info card instead of navigating #}
+                            <button type="button"
+                                    onclick="showClosedCard('FEU Diliman')"
+                                    class="btn-primary px-8 py-4 text-lg opacity-75 cursor-not-allowed" id="btn-diliman">
+                                <i class="ki-filled ki-geolocation"></i> FEU Diliman
+                            </button>
+                        {% endif %}
+
                     </div>
                 </div>
             </div>
@@ -390,6 +415,32 @@
         <button id="back-to-top-btn" class="fixed bottom-8 right-8 z-[90] w-12 h-12 rounded-full bg-feu-green-600 text-white shadow-lg shadow-feu-green-600/40 flex items-center justify-center opacity-0 translate-y-10 pointer-events-none transition-all duration-500 hover:bg-feu-green-500 hover:-translate-y-1 hover:shadow-xl" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
             <i class="ki-filled ki-arrow-up text-xl"></i>
         </button>
+
+        {# Floating Enrollment Closed Card — shown when user clicks a campus with closed enrollment #}
+        <div id="enrollmentClosedOverlay"
+             class="fixed inset-0 z-[200] flex items-center justify-center p-4"
+             style="display:none !important; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);"
+             onclick="hideClosedCard(event)">
+            <div id="enrollmentClosedCard"
+                 class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center transform transition-all duration-300 scale-95 opacity-0"
+                 onclick="event.stopPropagation()">
+
+                <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ki-filled ki-time text-4xl text-amber-500"></i>
+                </div>
+
+                <h3 class="text-xl font-extrabold text-gray-900 mb-2" id="closedCardTitle">Enrollment Closed</h3>
+                <p class="text-gray-500 text-sm mb-6" id="closedCardBody">
+                    Online enrollment for <strong id="closedCardCampus"></strong> is not currently open.
+                    Please check back later or contact the admissions office.
+                </p>
+
+                <button onclick="hideClosedCard()"
+                        class="w-full py-2.5 px-6 rounded-xl bg-feu-green-700 text-white font-bold text-sm hover:bg-feu-green-800 transition-colors">
+                    Got it
+                </button>
+            </div>
+        </div>
     </main>
 
     {% include 'layouts/_public_footer_onsite.html.twig' %}
@@ -400,6 +451,38 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
+/**
+ * Shows the floating "enrollment closed" card for a specific campus.
+ * Called when the user clicks a campus button whose enrollment is not yet open.
+ *
+ * @param {string} campusName - Human-readable campus name to display in the card
+ */
+function showClosedCard(campusName) {
+    document.getElementById('closedCardCampus').textContent = campusName;
+    const overlay = document.getElementById('enrollmentClosedOverlay');
+    const card    = document.getElementById('enrollmentClosedCard');
+    overlay.style.removeProperty('display'); // Remove inline display:none
+    overlay.style.display = 'flex';
+    // Trigger transition on next frame so the CSS transition fires
+    requestAnimationFrame(() => {
+        card.classList.remove('scale-95', 'opacity-0');
+        card.classList.add('scale-100', 'opacity-100');
+    });
+}
+
+/**
+ * Hides the floating enrollment closed card.
+ * Called when the user clicks the overlay backdrop or the "Got it" button.
+ *
+ * @param {MouseEvent} [event] - Optional click event; stops propagation if card itself was clicked
+ */
+function hideClosedCard(event) {
+    const overlay = document.getElementById('enrollmentClosedOverlay');
+    const card    = document.getElementById('enrollmentClosedCard');
+    card.classList.remove('scale-100', 'opacity-100');
+    card.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+}
 document.addEventListener('DOMContentLoaded', function() {
     sessionStorage.removeItem('dpa_agreed');
 

@@ -15,6 +15,8 @@ use App\Entity\LookupBarangay;
 use App\Entity\LookupReligion;
 use App\Entity\LookupCountry;
 use App\Entity\LookupCitizenship;
+use App\Entity\SchoolYear;
+use App\Repository\SchoolYearRepository;
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,22 +29,44 @@ use Symfony\Component\Routing\Attribute\Route;
 class EnrollmentController extends AbstractController
 {
     #[Route('/apply', name: 'app_enrollment_apply', methods: ['GET'])]
-    public function apply(Request $request, EntityManagerInterface $em): Response
+    public function apply(Request $request, EntityManagerInterface $em, SchoolYearRepository $syRepo): Response
     {
         $campus = $request->query->get('campus');
+
+        // Resolve the URL campus slug to the internal campus code so we can look up the school year
+        $campusCode = match ($campus) {
+            'feu_alabang' => SchoolYear::CAMPUS_ALABANG,
+            'feu_diliman' => SchoolYear::CAMPUS_DILIMAN,
+            default       => null,
+        };
+
+        // Gate enrollment: a campus must have an active school year with enrollment open
+        $activeSY = $campusCode ? $syRepo->findActiveByCampus($campusCode) : null;
+        if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
+            return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
+                'campus' => $campus,
+                'activeSY' => $activeSY,
+            ]);
+        }
         
-        $documents = $em->getRepository(DocumentSetup::class)->findAll();
-        
-        $religions = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
+        $documents    = $em->getRepository(DocumentSetup::class)->findAll();
+        $religions    = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
         $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
-        $countries = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
+        $countries    = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
+
+        // Fetch the other campus's enrollment status so the form can disable the closed option
+        $alabangOpen = ($syRepo->findActiveByCampus(SchoolYear::CAMPUS_ALABANG))?->isEnrollmentOpen() ?? false;
+        $dilimanOpen = ($syRepo->findActiveByCampus(SchoolYear::CAMPUS_DILIMAN))?->isEnrollmentOpen() ?? false;
 
         return $this->render('enrollment-onsite/enroll.html.twig', [
-            'selected_campus' => $campus,
-            'documents' => $documents,
-            'religions' => $religions,
-            'citizenships' => $citizenships,
-            'countries' => $countries
+            'selected_campus'        => $campus,
+            'active_sy'              => $activeSY,
+            'alabang_enrollment_open' => $alabangOpen,
+            'diliman_enrollment_open' => $dilimanOpen,
+            'documents'              => $documents,
+            'religions'              => $religions,
+            'citizenships'           => $citizenships,
+            'countries'              => $countries,
         ]);
     }
 
@@ -50,11 +74,26 @@ class EnrollmentController extends AbstractController
     public function submit(
         Request $request,
         EntityManagerInterface $em,
-        StudentIdGenerator $idGenerator
+        StudentIdGenerator $idGenerator,
+        SchoolYearRepository $syRepo
     ): Response
     {
         $campus = $request->request->get('campus_selected');
-        $yearStart = date('Y');
+
+        // Resolve campus code and retrieve the active school year
+        $campusCode = match ($campus) {
+            'feu_alabang' => SchoolYear::CAMPUS_ALABANG,
+            'feu_diliman' => SchoolYear::CAMPUS_DILIMAN,
+            default       => null,
+        };
+
+        $activeSY = $campusCode ? $syRepo->findActiveByCampus($campusCode) : null;
+
+        // Reject submission if enrollment is not open — guards against direct POST bypasses
+        if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
+            $this->addFlash('error', 'Enrollment is currently closed for this campus.');
+            return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+        }
 
         $lrnInput = $request->request->get('lrn');
         if (!empty($lrnInput)) {
@@ -68,9 +107,10 @@ class EnrollmentController extends AbstractController
         $applicant = new ApplicantBed();
         
         // --- 1. IDENTIFIERS ---
-        $studentNo = $idGenerator->generateStudentNumber($campus, $yearStart);
+        // Generate a sequential student number tied to the active school year and campus
+        $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
         $applicant->setStudentNumber($studentNo);
-        $applicant->setCampus($campus == 'feu_alabang' ? ApplicantBed::CAMPUS_ALABANG : ApplicantBed::CAMPUS_DILIMAN);
+        $applicant->setCampus($campusCode);
         $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
         $applicant->setAdmissionDate(new \DateTime());
 
@@ -80,7 +120,8 @@ class EnrollmentController extends AbstractController
         $applicant->setTrackStrand($request->request->get('strand'));
         $applicant->setSchoolType($request->request->get('school_type'));
         $applicant->setLrn($lrnInput);
-        $applicant->setSchoolYearOfEntry($yearStart . '-' . ($yearStart + 1));
+        // Store the active school year's label (e.g. "SY2526") for display and filtering
+        $applicant->setSchoolYearOfEntry($activeSY->getLabel());
         $applicant->setAdmissionType($request->request->get('admission_type'));
 
         // --- 3. PERSONAL INFORMATION ---
