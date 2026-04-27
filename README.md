@@ -1,148 +1,115 @@
 # ARIES-ONSITE (Onsite Enrollment System)
 
-A web-based enrollment application for FEU Alabang and FEU Diliman built with Symfony 7. It handles student registration, document uploads, and administrative management, featuring a robust database audit trail system.
+Welcome to the **ARIES-ONSITE** project repository! This system is a centralized, web-based enrollment application tailored for **FEU Alabang** and **FEU Diliman**. 
 
-## 1. Project Specifications
+## 1. Details of the Project
+The ARIES-ONSITE application is designed to streamline the onsite student registration and enrollment workflow. It serves as a unified platform for administrative management, providing essential tools to process applicants seamlessly across multiple campuses.
 
-* **Framework:** Symfony 7.4.5 (Latest)
-* **Language:** PHP >= 8.2
-* **Database:** MySQL / MariaDB (managed via Doctrine ORM)
-* **Frontend:**
-    * Twig Templates
-    * Tailwind CSS (via `symfonycasts/tailwind-bundle`)
-* **Key Libraries:**
-    * `doctrine/orm ^3.6` (Data persistence)
-    * `symfony/mailer` (Email notifications)
-    * `symfony/security-bundle` (Admin authentication)
+### Core Features
+*   **Multi-Campus Operations:** Dedicated administrative dashboards and application funnels tailored specifically for the records and processes of FEU Alabang and FEU Diliman.
+*   **Comprehensive Student Registration:** Facilitates the capture of essential applicant details, academic program choices, and securely handles required document uploads.
+*   **Data Integrity & Security:** Contains highly advanced tracking through dynamic database triggers coupled with a robust audit trail mechanism. It tracks all updates and strictly distinguishes between legitimate edits made via the system and direct tampering/changes made at the database backdoor level.
+*   **Performance Optimization:** Engineered for high responsiveness during peak enrollment volume surges, utilizing server-side pagination, strict file upload constraints, and index-optimized database search queries.
 
-## 2. Installation & Setup
+## 2. Specifics and Requirements
 
-Follow these steps to set up the project locally.
+To run this project, ensure your environment meets the following software architectural structural requirements.
 
-### Prerequisites
-* PHP 8.2 or higher
-* Composer
-* XAMPP or any SQL Server
-* Symfony CLI (optional, but recommended)
+### Technology Stack
+*   **Backend Framework:** Symfony 7.4.5
+*   **Programming Language:** PHP 8.2 (or higher)
+*   **Database Management:** MySQL or MariaDB (Integrated via Doctrine ORM)
+*   **Frontend Technologies:**
+    *   Twig Templating Engine
+    *   Tailwind CSS (Compiled via `symfonycasts/tailwind-bundle`)
 
-### Steps
+### System Prerequisites
+*   **PHP:** Version >= 8.2 (Required Extensions: `ctype`, `iconv`, `pdo_mysql`)
+*   **Composer:** Needed for managing PHP library dependencies properly.
+*   **Database Server:** XAMPP, WAMP, or any dedicated local MySQL/MariaDB server instance.
+*   **Git:** For version control and cloning the repository base.
+*   **Symfony CLI:** (Optional but highly recommended for launching a robust local development server)
 
-**1. Clone the Repository**
+## 3. Complete Instructions on How to Install
 
+Follow these step-by-step instructions to get the application running fully functional on your local machine.
+
+### Step 1: Clone the Repository
+Open your terminal or command prompt window and clone the project to your chosen local directory:
 ```bash
 git clone https://github.com/iAmMigs/ARIES-ONSITE.git
-cd aries-onsite
+cd ARIES-ONSITE
 ```
 
-**2. Install Dependencies**
-
+### Step 2: Install PHP Dependencies
+Run Composer to read the `composer.lock` file and install all necessary vendor libraries and packages:
 ```bash
 composer install
 ```
 
-**3. Configure Environment Variables**
+### Step 3: Configure Environment Variables
+You need to establish your local environment file. This file contains critical sensitive details such as your database connection string.
+1. Duplicate the templated environment file `.env` and name the copy `.env.local`:
+   ```bash
+   cp .env .env.local
+   ```
+2. Open `.env.local` in your preferred code editor.
+3. Locate the `DATABASE_URL` variable line. Update it accurately with your current local database credentials using the following structure format:
+   ```dotenv
+   DATABASE_URL="mysql://username:password@127.0.0.1:3306/aries_db?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
+   ```
+   *(Critical Note: Ensure your configured database user account has administrative privileges to create databases AND execute/create TRIGGERS, as the security audit trail relies heavily on them).*
 
-Duplicate the example environment file:
-
+### Step 4: Create and Setup the Database
+*(Skip to Step 5 if you were already handed an existing `.sql` database backup).* 
+If setting up from scratch, let Doctrine create the database schema and execute migrations for you:
 ```bash
-cp .env .env.local
-```
-
-Open `.env.local` and configure your database URL:
-
-```dotenv
-# .env.local
-DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/aries_db?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
-```
-
-> **Note:** Ensure your database user has TRIGGER creation privileges, as the audit trail relies heavily on MySQL Triggers.
-
-**4. Database Setup (IF you have no copy of the Existing Database)**
-
-Create the database and apply migrations (this includes tables and dynamic audit triggers).
-
-```bash
+# 1. Instruct Doctrine to provision the new database
 php bin/console doctrine:database:create
+
+# 2. Execute migrations to generate tables, columns, and audit triggers
 php bin/console doctrine:migrations:migrate
 ```
 
-**5. Build Assets**
-
-Compile Tailwind CSS and install asset maps.
-
+### Step 5: Build Frontend Assets
+Compile the Tailwind CSS structural utilities to ensure all responsive grids and visual styles load successfully:
 ```bash
+# Build the Tailwind CSS files
 php bin/console tailwind:build
+
+# Compile the final asset mapping
 php bin/console asset-map:compile
 ```
 
-**6. Start the Server**
-
+### Step 6: Start the Local Development Server
+Launch your server listener so you can interact with the app in your browser:
 ```bash
+# Preferred method using Symfony CLI
 symfony server:start
-# OR using built-in PHP server
+
+# Alternative method using PHP's standard built-in server utility
 php -S localhost:8000 -t public/
 ```
+You can now access the running application by navigating to `http://localhost:8000` (or the port specified by the CLI) via your web browser.
 
-Access the application at `http://localhost:8000`.
+---
 
-## 3. Useful Commands & Testing
+## Testing & Useful Developer Commands
 
-This project includes custom console commands to help you populate data for testing and manage the database.
+The repository comes packaged with built-in sandbox commands that allow you to rapidly populate your database with dummy data logic for testing workflows.
 
-### Populating Data (Seeding)
-
-Use these commands to generate dummy applicants and admin accounts for testing purposes.
-
-**Create Admin Accounts:**
-Generates default admin users for the dashboard.
-```bash
-php bin/console app:create-admins
-```
-
-**Populate Alabang Applicants:**
-Seeds the database with test applicants for the Alabang campus.
-```bash
-php bin/console app:populate-alabang
-```
-
-**Populate Diliman Applicants:**
-Seeds the database with test applicants for the Diliman campus.
-```bash
-php bin/console app:populate-diliman
-```
+### Populating Mock Data
+*   **Create Admin Accounts:** `php bin/console app:create-admins`
+*   **Seed Alabang Applicants Mock Data:** `php bin/console app:populate-alabang`
+*   **Seed Diliman Applicants Mock Data:** `php bin/console app:populate-diliman`
 
 ### Clearing Mock Data
-> **WARNING:** THIS WILL CLEAR ALL APPLICANT DATA FROM THEIR RESPECTIVE TABLES. THIS IS FOR EXPERIMENTAL USE ONLY.
+> ⚠️ **WARNING:** These commands will aggressively wipe ALL applicant records for the specified campus. Use exclusively for isolated test environments.
+*   **Purge Alabang Data:** `php bin/console app:clear-alabang`
+*   **Purge Diliman Data:** `php bin/console app:clear-diliman`
 
-**Clear Alabang Data:**
-Removes all applicant records for Alabang.
-```bash
-php bin/console app:clear-alabang
-```
-
-**Clear Diliman Data:**
-Removes all applicant records for Diliman.
-```bash
-php bin/console app:clear-diliman
-```
-
-*(Note: Use `php bin/console list` to confirm the exact command signatures if the above alias examples differ from your specific Command class configurations.)*
-
-### Testing Audit Trails
-
-The system uses dynamic Database Triggers paired with a Symfony Event Subscriber (`DatabaseAuditSubscriber`) to log all `UPDATE` actions across the applicant tables, strictly differentiating between application edits and direct database tampering.
-
-1.  **Modify a Record via the App:**
-    * Update a student's details via the Admin Dashboard (`/alabang-admin/registration/{id}/edit`).
-    * The audit table will log the logged-in admin's ID in the `emp_num` column and leave the `remarks` column `NULL`.
-
-2.  **Modify a Record directly in the Database (Tampering):**
-    * Update a record directly in your database software (e.g., PHPMyAdmin or raw SQL).
-    * Because the Symfony application is bypassed, the database trigger will log `NULL` for `emp_num` and flag the action as `BACKDOOR` in the `remarks` column.
-
-3.  **Verify the Log:**
-    Check the corresponding `audit_*` table (e.g., `audit_bed_applicants`).
-
-    ```sql
-    SELECT * FROM audit_bed_applicants ORDER BY audit_date_time DESC;
-    ```
+### Validating the Audit Trail
+The platform's native event subscriber and triggers pair together to lock down database modification trails. Use these steps to test it: 
+1. **Via Dashboard:** Modify a record through the Admin Dashboard UI. The database logs your active Admin ID as the accessor.
+2. **Via Third-Party Database Tool (Tampering Context):** Attempt to modify a row data value externally via a database management GUI like PHPMyAdmin or DBeaver. The background SQL trigger will immediately intercept the raw query, log a `NULL` admin ID indicating absence of application-level authentication, and forcefully insert a `BACKDOOR` system remark.
+3. **Monitor Logs:** Query your system directly to view these interceptions using: `SELECT * FROM audit_bed_applicants ORDER BY audit_date_time DESC;`

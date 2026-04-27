@@ -34,8 +34,8 @@ final class Version20260219232159 extends AbstractMigration
                 'source' => 'student_number, SiblingName, School, IsFeuStudent, FeuStudentNo'
             ],
             'bed_schools' => [
-                'target' => 'student_number, Level, School, YearEnd',
-                'source' => 'student_number, Level, School, YearEnd'
+                'target' => 'student_number, Level, School, SchoolYear',
+                'source' => 'student_number, Level, School, SchoolYear'
             ],
             'bed_requirements' => [
                 'target' => 'student_number, Slug, Requirement, StoredFileName, Status, IsRequired, DateSubmitted',
