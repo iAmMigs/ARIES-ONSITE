@@ -29,6 +29,7 @@ class AuditBedApplicant
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $admissionType = null;
     #[ORM\Column(type: Types::FLOAT, nullable: true)] private ?float $examinationScore = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $examinationDate = null;
 
     // Personal Info
     #[ORM\Column(length: 100, nullable: true)] private ?string $lastName = null;
