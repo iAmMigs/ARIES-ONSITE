@@ -26,9 +26,135 @@
             </div>
 
             {# Chart #}
-            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm mb-8">
                 <h3 class="text-lg font-bold text-gray-800 mb-6">Registration Trends (Last 7 Days)</h3>
                 <div id="registrationChart" style="height: 350px;"></div>
+            </div>
+
+            {# Enrollment Summary Tables #}
+            <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-8">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-feu-green-900 uppercase tracking-tighter">Enrollment Summary - FEU ALABANG</h2>
+                    <p class="text-gray-500 font-bold">Current SY ({{ activeSY ? activeSY.label : 'N/A' }}) vs. Previous SY ({{ prevSY ? prevSY.label : 'N/A' }})</p>
+                </div>
+
+                <div class="overflow-x-auto mb-10">
+                    <table class="w-full text-sm text-center border-collapse">
+                        <thead>
+                            <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
+                                <th class="px-4 py-4 text-left border border-gray-800">Campus - Level</th>
+                                <th class="px-4 py-4 border border-gray-800">New Students</th>
+                                <th class="px-4 py-4 border border-gray-800">Old Students</th>
+                                <th class="px-4 py-4 border border-gray-800">Total Current SY</th>
+                                <th class="px-4 py-4 border border-gray-800">Total Previous SY</th>
+                                <th class="px-4 py-4 border border-gray-800" colspan="2">Inc/(Dec)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-bold text-gray-700">
+                            {% for row in summary.rows %}
+                            <tr class="{% if loop.index is odd %}bg-gray-50{% endif %} hover:bg-feu-green-50 transition-colors">
+                                <td class="px-4 py-3 text-left border border-gray-200">{{ row.name }}</td>
+                                <td class="px-4 py-3 border border-gray-200">{{ row.new }}</td>
+                                <td class="px-4 py-3 border border-gray-200">{{ row.old }}</td>
+                                <td class="px-4 py-3 border border-gray-200">{{ row.current }}</td>
+                                <td class="px-4 py-3 border border-gray-200">{{ row.prev }}</td>
+                                <td class="px-4 py-3 border border-gray-200">{{ row.inc }}</td>
+                                <td class="px-4 py-3 border border-gray-200 {{ row.inc >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ row.perc|number_format(2) }}%</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="bg-gray-100 font-black text-black">
+                                <td class="px-4 py-4 text-left border border-gray-200">Total</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ summary.total.new }}</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ summary.total.old }}</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ summary.total.current }}</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ summary.total.prev }}</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ summary.total.inc }}</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ summary.total.perc|number_format(2) }}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {# GRS Table #}
+                    <div>
+                        <table class="w-full text-sm text-center border-collapse shadow-sm">
+                            <thead>
+                                <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
+                                    <th class="px-4 py-3 border border-gray-800">GRS</th>
+                                    <th class="px-4 py-3 border border-gray-800">Total {{ activeSY ? activeSY.label : '' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="font-bold">
+                                {% set grsTotal = 0 %}
+                                {% for item in summary.grs %}
+                                <tr class="{% if loop.index is odd %}bg-gray-50{% endif %}">
+                                    <td class="px-4 py-2.5 text-left border border-gray-200">{{ item.name }}</td>
+                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.count }}</td>
+                                </tr>
+                                {% set grsTotal = grsTotal + item.count %}
+                                {% endfor %}
+                                <tr class="bg-gray-100 font-black">
+                                    <td class="px-4 py-3 text-left border border-gray-200">Total</td>
+                                    <td class="px-4 py-3 border border-gray-200">{{ grsTotal }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# JHS Table #}
+                    <div>
+                        <table class="w-full text-sm text-center border-collapse shadow-sm">
+                            <thead>
+                                <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
+                                    <th class="px-4 py-3 border border-gray-800">JHS</th>
+                                    <th class="px-4 py-3 border border-gray-800">Total {{ activeSY ? activeSY.label : '' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="font-bold">
+                                {% set jhsTotal = 0 %}
+                                {% for item in summary.jhs %}
+                                <tr class="{% if loop.index is odd %}bg-gray-50{% endif %}">
+                                    <td class="px-4 py-2.5 text-left border border-gray-200">{{ item.name }}</td>
+                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.count }}</td>
+                                </tr>
+                                {% set jhsTotal = jhsTotal + item.count %}
+                                {% endfor %}
+                                <tr class="bg-gray-100 font-black">
+                                    <td class="px-4 py-3 text-left border border-gray-200">Total</td>
+                                    <td class="px-4 py-3 border border-gray-200">{{ jhsTotal }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# SHS Table #}
+                    <div>
+                        <table class="w-full text-sm text-center border-collapse shadow-sm">
+                            <thead>
+                                <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
+                                    <th class="px-4 py-3 border border-gray-800">SHS (Strands)</th>
+                                    <th class="px-4 py-3 border border-gray-800">Total {{ activeSY ? activeSY.label : '' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="font-bold">
+                                {% set shsTotal = 0 %}
+                                {% for item in summary.shs %}
+                                <tr class="{% if loop.index is odd %}bg-gray-50{% endif %}">
+                                    <td class="px-4 py-2.5 text-left border border-gray-200">{{ item.name }}</td>
+                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.count }}</td>
+                                </tr>
+                                {% set shsTotal = shsTotal + item.count %}
+                                {% endfor %}
+                                <tr class="bg-gray-100 font-black">
+                                    <td class="px-4 py-3 text-left border border-gray-200">Total</td>
+                                    <td class="px-4 py-3 border border-gray-200">{{ shsTotal }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="text-[10px] text-red-500 font-bold italic mt-4">** enrollment breakdown per strand</p>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

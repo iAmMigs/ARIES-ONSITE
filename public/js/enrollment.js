@@ -962,13 +962,17 @@ window.updateEducationHistory = function() {
     /** Logic Matrix mapping selected grades to their required previous education history levels. */
     if (grade === 'Grade 1') {
         requireSection('kinder');
-    } else if (['Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'].includes(grade)) {
+    } else if (['Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7'].includes(grade)) {
+        // Grades 2-6 need previous elementary/kinder history
+        // Grade 7 needs Elementary Graduation history
         requireSection('kinder');
         requireSection('elem');
-    } else if (['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'].includes(grade)) {
+    } else if (['Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'].includes(grade)) {
+        // JHS students need at least Elementary and previous JHS history
         requireSection('elem');
         requireSection('jhs');
     } else if (grade === 'Grade 12') {
+        // SHS Grade 12 needs Elementary, JHS, and Grade 11 history
         requireSection('elem');
         requireSection('jhs');
         requireSection('shs');
@@ -982,7 +986,7 @@ window.addSchoolRow = function(level) {
     if (level === 'shs' && container.children.length >= 1) return;
 
     const index = Date.now() + Math.floor(Math.random() * 100);
-    const levelLabel = level === 'elem' ? 'Elementary' : (level === 'jhs' ? 'Junior High School' : 'Senior High School');
+    const levelLabel = level === 'kinder' ? 'Kindergarten' : (level === 'elem' ? 'Elementary' : (level === 'jhs' ? 'Junior High School' : 'Senior High School'));
     const isFirst = container.children.length === 0;
 
     const deleteBtnHtml = !isFirst ? 

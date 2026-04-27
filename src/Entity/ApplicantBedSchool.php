@@ -10,19 +10,16 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'bed_schools')]
 class ApplicantBedSchool
 {
-    public const LEVEL_ELEMENTARY = 'P';
-    public const LEVEL_JUNIOR_HIGH = 'I';
-    public const LEVEL_SENIOR_HIGH = 'S';
-
-    // Composite Primary Key: Applicant (student_number) + Level
-    
     #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'schools')]
     #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
     private ?ApplicantBed $applicant = null;
 
-    #[ORM\Id]
-    #[ORM\Column(name: 'Level', type: Types::STRING, length: 1)]
+    #[ORM\Column(name: 'Level', type: Types::STRING, length: 50)]
     private ?string $Level = null;
 
     #[ORM\Column(name: 'School', type: Types::STRING, length: 255)]
@@ -30,6 +27,8 @@ class ApplicantBedSchool
 
     #[ORM\Column(name: 'SchoolYear', type: Types::STRING, length: 20, nullable: true)]
     private ?string $schoolYear = null;
+
+    public function getId(): ?int { return $this->id; }
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
@@ -42,4 +41,4 @@ class ApplicantBedSchool
     
     public function getSchoolYear(): ?string { return $this->schoolYear; }
     public function setSchoolYear(?string $schoolYear): static { $this->schoolYear = $schoolYear; return $this; }
-}
+}

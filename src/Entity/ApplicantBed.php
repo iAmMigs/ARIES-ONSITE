@@ -30,6 +30,7 @@ class ApplicantBed
 
     public const TYPE_NEW_STUDENT = 'New Student';
     public const TYPE_TRANSFEREE = 'Transferee';
+    public const TYPE_OLD_STUDENT = 'Old Student';
     
 
     #[ORM\Id]
@@ -65,6 +66,9 @@ class ApplicantBed
 
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $examinationScore = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $examinationDate = null;
 
     #[ORM\Column(length: 100)] private ?string $lastName = null;
     #[ORM\Column(length: 100)] private ?string $firstName = null;
@@ -187,6 +191,9 @@ class ApplicantBed
 
     public function getExaminationScore(): ?float { return $this->examinationScore; }
     public function setExaminationScore(?float $score): static { $this->examinationScore = $score; return $this; }
+
+    public function getExaminationDate(): ?\DateTimeInterface { return $this->examinationDate; }
+    public function setExaminationDate(?\DateTimeInterface $d): static { $this->examinationDate = $d; return $this; }
 
     public function getLastName(): ?string { return $this->lastName; }
     public function setLastName(string $n): static { $this->lastName = $n; return $this; }

@@ -8,6 +8,7 @@ use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
 use App\Entity\ApplicantBedRequirement;
 use App\Repository\ApplicantBedRepository;
+use App\Repository\SchoolYearRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\DocumentSetup;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,12 +21,13 @@ use App\Service\ApplicantDeletionService;
 class AdminAlabangController extends AbstractController
 {
     #[Route('/', name: 'app_admin_alabang_dashboard')]
-    public function dashboard(ApplicantBedRepository $repository): Response
+    public function dashboard(ApplicantBedRepository $repository, SchoolYearRepository $syRepo): Response
     {
+        $campus = ApplicantBed::CAMPUS_ALABANG;
         $qb = $repository->createQueryBuilder('a')
             ->select('count(a.studentNumber)')
             ->where('a.campus = :campus')
-            ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG);
+            ->setParameter('campus', $campus);
 
         $total = (clone $qb)->getQuery()->getSingleScalarResult();
         $today = (clone $qb)->andWhere('a.createdAt >= :today')
@@ -42,16 +44,129 @@ class AdminAlabangController extends AbstractController
                 ->select('count(a.studentNumber)')
                 ->where('a.campus = :campus')
                 ->andWhere('a.createdAt BETWEEN :start AND :end')
-                ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
+                ->setParameter('campus', $campus)
                 ->setParameter('start', $date->format('Y-m-d 00:00:00'))
                 ->setParameter('end', $date->format('Y-m-d 23:59:59'))
                 ->getQuery()->getSingleScalarResult();
             $chartData[] = ['date' => $date->format('M d'), 'count' => $count];
         }
 
+        // --- ENROLLMENT SUMMARY LOGIC ---
+        $activeSY = $syRepo->findActiveByCampus($campus);
+        $prevSY = null;
+        if ($activeSY) {
+            $prevSY = $syRepo->findOneBy([
+                'campus' => $campus,
+                'yearStart' => $activeSY->getYearStart() - 1
+            ]);
+        }
+
+        $summary = [
+            'rows' => [],
+            'total' => ['new' => 0, 'old' => 0, 'current' => 0, 'prev' => 0, 'inc' => 0, 'perc' => 0],
+            'grs' => [],
+            'jhs' => [],
+            'shs' => []
+        ];
+
+        $categories = [
+            'K to 10' => ['levels' => ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']],
+            'Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]
+        ];
+
+        foreach ($categories as $catName => $config) {
+            $new = $repository->createQueryBuilder('a')
+                ->select('count(a.studentNumber)')
+                ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.admissionType != :old')
+                ->setParameter('campus', $campus)
+                ->setParameter('levels', $config['levels'])
+                ->setParameter('old', 'Old Student')
+                ->getQuery()->getSingleScalarResult();
+
+            $old = $repository->createQueryBuilder('a')
+                ->select('count(a.studentNumber)')
+                ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.admissionType = :old')
+                ->setParameter('campus', $campus)
+                ->setParameter('levels', $config['levels'])
+                ->setParameter('old', 'Old Student')
+                ->getQuery()->getSingleScalarResult();
+
+            $currentTotal = $new + $old;
+            
+            // For Previous SY, we might not have the breakdown, so we just query by SY label
+            $prevTotal = 0;
+            if ($prevSY) {
+                $prevTotal = $repository->createQueryBuilder('a')
+                    ->select('count(a.studentNumber)')
+                    ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.schoolYearOfEntry = :prevLabel')
+                    ->setParameter('campus', $campus)
+                    ->setParameter('levels', $config['levels'])
+                    ->setParameter('prevLabel', $prevSY->getLabel())
+                    ->getQuery()->getSingleScalarResult();
+            }
+
+            $inc = $currentTotal - $prevTotal;
+            $perc = $prevTotal > 0 ? ($inc / $prevTotal) * 100 : 0;
+
+            $summary['rows'][] = [
+                'name' => "Alabang - $catName",
+                'new' => $new,
+                'old' => $old,
+                'current' => $currentTotal,
+                'prev' => $prevTotal,
+                'inc' => $inc,
+                'perc' => $perc
+            ];
+
+            $summary['total']['new'] += $new;
+            $summary['total']['old'] += $old;
+            $summary['total']['current'] += $currentTotal;
+            $summary['total']['prev'] += $prevTotal;
+        }
+
+        $summary['total']['inc'] = $summary['total']['current'] - $summary['total']['prev'];
+        $summary['total']['perc'] = $summary['total']['prev'] > 0 ? ($summary['total']['inc'] / $summary['total']['prev']) * 100 : 0;
+
+        // Breakdown Tables
+        $grsLevels = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+        foreach ($grsLevels as $l) {
+            $count = $repository->createQueryBuilder('a')
+                ->select('count(a.studentNumber)')
+                ->where('a.campus = :campus AND a.gradeLevel = :lvl')
+                ->setParameter('campus', $campus)
+                ->setParameter('lvl', $l)
+                ->getQuery()->getSingleScalarResult();
+            $summary['grs'][] = ['name' => $l, 'count' => $count];
+        }
+
+        $jhsLevels = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
+        foreach ($jhsLevels as $l) {
+            $count = $repository->createQueryBuilder('a')
+                ->select('count(a.studentNumber)')
+                ->where('a.campus = :campus AND a.gradeLevel = :lvl')
+                ->setParameter('campus', $campus)
+                ->setParameter('lvl', $l)
+                ->getQuery()->getSingleScalarResult();
+            $summary['jhs'][] = ['name' => $l, 'count' => $count];
+        }
+
+        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'SPORTS', 'ARTS & DESIGN'];
+        foreach ($strands as $s) {
+            $count = $repository->createQueryBuilder('a')
+                ->select('count(a.studentNumber)')
+                ->where('a.campus = :campus AND a.trackStrand = :strand')
+                ->setParameter('campus', $campus)
+                ->setParameter('strand', $s)
+                ->getQuery()->getSingleScalarResult();
+            $summary['shs'][] = ['name' => $s, 'count' => $count];
+        }
+
         return $this->render('admin-onsite/alabang/dashboard.html.twig', [
             'stats' => compact('total', 'today', 'week', 'month'),
-            'chartData' => $chartData
+            'chartData' => $chartData,
+            'summary' => $summary,
+            'activeSY' => $activeSY,
+            'prevSY' => $prevSY
         ]);
     }
 
@@ -189,12 +304,19 @@ class AdminAlabangController extends AbstractController
 
             $examTaken = $request->request->get('exam_taken') === '1';
             $score = $request->request->get('exam_score');
+            $examDateStr = $request->request->get('exam_date');
 
-            if ($examTaken && $score !== null && $score !== '') {
-                $registration->setExaminationScore((float)$score);
+            if ($examTaken) {
+                if ($score !== null && $score !== '') {
+                    $registration->setExaminationScore((float)$score);
+                }
+                if ($examDateStr) {
+                    $registration->setExaminationDate(new \DateTime($examDateStr));
+                }
                 $registration->setAdmissionStatus(ApplicantBed::STATUS_COMPLETED);
             } else {
                 $registration->setExaminationScore(null);
+                $registration->setExaminationDate(null);
                 $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             }
 
@@ -350,9 +472,9 @@ class AdminAlabangController extends AbstractController
             $doc->setIsRequired($request->request->get('is_required') === '1');
             $doc->setCampus(ApplicantBed::CAMPUS_ALABANG); 
 
-            $allowedTypes = $request->request->get('allowed_file_types');
-            if (!empty($allowedTypes)) {
-                $doc->setAllowedFileTypes($allowedTypes);
+            $allowedTypesArr = $request->request->all('allowed_file_types');
+            if (!empty($allowedTypesArr)) {
+                $doc->setAllowedFileTypes(implode(', ', $allowedTypesArr));
             }
 
             $em->persist($doc);
@@ -374,6 +496,23 @@ class AdminAlabangController extends AbstractController
             $em->remove($doc);
             $em->flush();
             $this->addFlash('success', 'Configuration permanently deleted.');
+        }
+        return $this->redirectToRoute('app_admin_alabang_documents');
+    }
+
+    #[Route('/document-setup/{id}/update', name: 'app_admin_alabang_documents_update', methods: ['POST'])]
+    public function updateDocumentSetup(int $id, EntityManagerInterface $em, Request $request): Response
+    {
+        $doc = $em->getRepository(DocumentSetup::class)->find($id);
+        if ($doc) {
+            $doc->setDocumentName($request->request->get('name'));
+            
+            $allowedTypesArr = $request->request->all('allowed_file_types');
+            $doc->setAllowedFileTypes(implode(', ', $allowedTypesArr));
+
+            $doc->setIsRequired($request->request->get('is_required') === '1');
+            $em->flush();
+            $this->addFlash('success', 'Document configuration updated!');
         }
         return $this->redirectToRoute('app_admin_alabang_documents');
     }

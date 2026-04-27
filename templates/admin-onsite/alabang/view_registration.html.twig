@@ -77,6 +77,11 @@
                         <div class="text-lg font-bold text-feu-green-700">
                             {% if registration.examinationScore is not null %}
                                 <span class="text-2xl">{{ registration.examinationScore }}</span>
+                                {% if registration.examinationDate %}
+                                    <div class="text-[10px] text-gray-400 uppercase font-bold mt-2 pt-2 border-t border-gray-200">
+                                        Taken: {{ registration.examinationDate|date('M d, Y') }}
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 {{ registration.admissionStatus }}
                             {% endif %}
@@ -193,7 +198,7 @@
                             <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
                         </h3>
                         <div class="space-y-4">
-                            {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High'} %}
+                            {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High', 'E': 'Elementary', 'K': 'Kindergarten'} %}
                             {% for school in registration.schools %}
                             {# Auto-convert old 4-digit entries (e.g. '2024') to '2023-2024' #}
                             {% set sYear = school.schoolYear %}

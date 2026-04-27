@@ -24,9 +24,22 @@
                             <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. Health Certificate" required>
                         </div>
                         
-                        <div class="w-full sm:w-64">
+                        <div class="flex-grow">
                             <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed Types</label>
-                            <input type="text" name="allowed_file_types" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. pdf, jpg, png">
+                            <div class="flex flex-wrap gap-4 bg-white border border-gray-300 rounded-lg px-4 py-2">
+                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input type="checkbox" name="allowed_file_types[]" value="pdf" class="rounded text-feu-green-600 focus:ring-feu-green-500"> PDF
+                                </label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input type="checkbox" name="allowed_file_types[]" value="jpg" class="rounded text-feu-green-600 focus:ring-feu-green-500"> JPG
+                                </label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input type="checkbox" name="allowed_file_types[]" value="png" class="rounded text-feu-green-600 focus:ring-feu-green-500"> PNG
+                                </label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input type="checkbox" name="allowed_file_types[]" value="docx" class="rounded text-feu-green-600 focus:ring-feu-green-500"> DOCX
+                                </label>
+                            </div>
                         </div>
 
                         <div class="w-full sm:w-48">
@@ -68,7 +81,13 @@
                                             <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">Optional</span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-6 py-4 text-right">
+                                    <td class="px-6 py-4 text-right flex justify-end gap-2">
+                                        <button type="button" 
+                                                onclick="openEditModal('{{ doc.id }}', '{{ doc.documentName }}', '{{ doc.allowedFileTypes }}', '{{ doc.isRequired ? '1' : '0' }}')"
+                                                class="text-gray-400 hover:text-blue-600 transition-colors p-2">
+                                            <i class="ki-filled ki-pencil text-lg"></i>
+                                        </button>
+
                                         <form action="{{ path('app_admin_diliman_documents_delete', {id: doc.id}) }}" method="POST" onsubmit="return confirm('Delete this requirement forever?');">
                                             <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-2">
                                                 <i class="ki-filled ki-trash text-lg"></i>
@@ -89,4 +108,85 @@
         </div>
     </main>
 </div>
+
+{# --- EDIT MODAL --- #}
+<div id="editDocModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="text-xl font-bold text-gray-800">Edit Document Configuration</h3>
+            <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600"><i class="ki-filled ki-cross text-xl"></i></button>
+        </div>
+        <form id="editDocForm" method="POST" class="p-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name</label>
+                    <input type="text" name="name" id="edit_name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" required>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed Types</label>
+                    <div class="flex flex-wrap gap-4 bg-gray-50 border border-gray-300 rounded-lg px-4 py-2">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" name="allowed_file_types[]" value="pdf" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> PDF
+                        </label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" name="allowed_file_types[]" value="jpg" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> JPG
+                        </label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" name="allowed_file_types[]" value="png" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> PNG
+                        </label>
+                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="checkbox" name="allowed_file_types[]" value="docx" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> DOCX
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Requirement</label>
+                    <select name="is_required" id="edit_required" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
+                        <option value="1">Strictly Required</option>
+                        <option value="0">Optional</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-8 flex gap-3 justify-end">
+                <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 rounded-lg font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="submit" class="bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditModal(id, name, types, required) {
+    const modal = document.getElementById('editDocModal');
+    const form = document.getElementById('editDocForm');
+    
+    // Set form action dynamically
+    form.action = `/diliman-admin/document-setup/${id}/update`;
+    
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_required').value = required;
+
+    // Handle checkboxes
+    const allowedArr = types.split(',').map(t => t.trim().toLowerCase());
+    document.querySelectorAll('.edit-type-checkbox').forEach(cb => {
+        cb.checked = allowedArr.includes(cb.value.toLowerCase());
+    });
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editDocModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Close on escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeEditModal();
+});
+</script>
 {% endblock %}

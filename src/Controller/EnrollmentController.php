@@ -209,7 +209,13 @@ class EnrollmentController extends AbstractController
                         $school->setApplicant($applicant);
                         $school->setSchool($formatName($schoolName));
                         $school->setSchoolYear($years[$index] ?? null);
-                        $school->setLevel($levelLabels[$index] ?? strtoupper($lvl));
+                        $school->setLevel($levelLabels[$index] ?? match($lvl) {
+                            'kinder' => 'Kindergarten',
+                            'elem' => 'Elementary',
+                            'jhs' => 'Junior High School',
+                            'shs' => 'Senior High School',
+                            default => strtoupper($lvl)
+                        });
                         
                         $applicant->addSchool($school);
                         $em->persist($school);

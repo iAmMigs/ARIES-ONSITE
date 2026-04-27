@@ -773,7 +773,7 @@
                 if (isLoading) {
                     element.dataset.originalText = element.innerHTML;
                     element.disabled = true;
-                    element.innerHTML = '<i class="ki-filled ki-loading-circle animate-spin mr-2"></i>' + (loadingText || 'Loading...');
+                    element.innerHTML = '<img src="/images/loader.gif" class="w-6 h-6 inline-block mr-2" alt="Loading...">' + (loadingText || 'Loading...');
                     element.classList.add('opacity-75', 'cursor-not-allowed');
                 } else {
                     element.disabled = false;

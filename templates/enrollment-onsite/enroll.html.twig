@@ -227,9 +227,8 @@
 
 {# --- PAGE LOADER OVERLAY --- #}
 <div id="enrollmentLoader" class="fixed inset-0 flex flex-col items-center justify-center bg-gray-50 z-[99999] transition-all duration-500">
-    <div class="relative w-16 h-16">
-        <div class="absolute inset-0 rounded-full border-4 border-gray-200"></div>
-        <div class="absolute inset-0 rounded-full border-4 border-feu-green-700 border-t-transparent animate-spin"></div>
+    <div class="relative w-20 h-20 mb-4">
+        <img src="/images/loader.gif" class="w-full h-full object-contain" alt="Loading...">
     </div>
     <h2 class="mt-5 text-xl font-black tracking-widest text-feu-green-700">ARIES</h2>
     <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your application...</p>
@@ -339,6 +338,7 @@
                                 <select name="admission_type" id="admissionType" class="form-select" required onchange="updateGradeLevels()">
                                     <option value="">Select Type</option>
                                     <option value="New Student">New Student</option>
+                                    <option value="Old Student">Old Student</option>
                                     <option value="Transferee">Transferee</option>
                                 </select>
                             </div>
