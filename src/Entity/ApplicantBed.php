@@ -13,6 +13,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ApplicantBedRepository::class)]
 #[ORM\Table(name: 'bed_applicants')]
+#[ORM\Index(name: 'idx_last_name', columns: ['last_name'])]
+#[ORM\Index(name: 'idx_first_name', columns: ['first_name'])]
 #[UniqueEntity(fields: ['studentNumber'], message: 'This Student Number already exists.')]
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBed

@@ -82,7 +82,6 @@
                                 </select>
 
                                 <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
-                                    <option value="">None (K-10)</option>
                                     {% for strand in ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'] %}
                                         <option value="{{ strand }}" {{ registration.trackStrand == strand ? 'selected' }}>{{ strand }}</option>
                                     {% endfor %}
@@ -593,6 +592,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    const gradeSelect = document.querySelector('select[name="grade_level"]');
+    const strandSelect = document.querySelector('select[name="track_strand"]');
+    
+    function toggleStrand() {
+        if (gradeSelect && strandSelect) {
+            const grade = gradeSelect.value;
+            if (grade === 'grade_11' || grade === 'grade_12') {
+                strandSelect.style.display = ''; // Restore default visual
+                strandSelect.disabled = false;
+            } else {
+                strandSelect.style.display = 'none';
+                strandSelect.disabled = true;
+            }
+        }
+    }
+
+    if (gradeSelect) {
+        gradeSelect.addEventListener('change', toggleStrand);
+        toggleStrand();
     }
 });
 

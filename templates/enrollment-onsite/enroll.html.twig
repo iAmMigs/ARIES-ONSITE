@@ -157,6 +157,57 @@
         .step-nav-item:hover .step-label, .step-nav-item.active .step-label { opacity: 1; transform: translateX(0); }
         .step-nav-item.active .step-bar { background: var(--feu-green); width: 8px; }
         .step-nav-item.active .step-label { background: var(--feu-green); color: white; }
+
+        /* DPA Modal Specific Styling */
+        #dpaModalOverlay {
+            position: fixed; inset: 0; z-index: 100000;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        #dpaModalOverlay.visible {
+            opacity: 1; visibility: visible;
+        }
+        #dpaModalContainer {
+            background: white; border-radius: 16px; width: 90%; max-width: 700px;
+            max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #dpaModalOverlay.visible #dpaModalContainer {
+            transform: scale(1);
+        }
+        .dpa-header {
+            padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .dpa-header h2 { font-weight: 800; font-size: 1.5rem; color: var(--feu-green-dark); margin: 0; }
+        .dpa-scroll-content {
+            padding: 2rem; overflow-y: auto; flex: 1;
+            font-size: 0.95rem; line-height: 1.6; color: #4b5563;
+        }
+        /* Custom scrollbar for DPA content */
+        .dpa-scroll-content::-webkit-scrollbar { width: 6px; }
+        .dpa-scroll-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .dpa-scroll-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dpa-scroll-content::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dpa-footer {
+            padding: 1.5rem 2rem; border-top: 1px solid #f3f4f6;
+            display: flex; justify-content: flex-end; align-items: center; gap: 1rem; background: #fafafa; border-radius: 0 0 16px 16px;
+        }
+        .btn-dpa-agree {
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark));
+            color: white; padding: 0.75rem 2rem; border-radius: 50px; font-weight: 700; border: none;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-dpa-agree:hover:not(:disabled) { box-shadow: 0 8px 15px rgba(26,77,46,0.3); transform: translateY(-2px); }
+        .btn-dpa-agree:disabled { background: #9ca3af; cursor: not-allowed; opacity: 0.7; }
+        .dpa-help-text { font-size: 0.8rem; color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .dpa-checkbox-group label {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; margin-bottom: 1rem;
+        }
+        .dpa-checkbox-group input { margin-top: 4px; transform: scale(1.2); }
     </style>
 {% endblock %}
 
@@ -803,6 +854,58 @@
             </div>
 
         </form>
+    </div>
+</div>
+
+{# --- DATA PRIVACY AGREEMENT MODAL --- #}
+<div id="dpaModalOverlay" aria-modal="true" role="dialog">
+    <div id="dpaModalContainer">
+        <div class="dpa-header">
+            <i class="ki-filled ki-shield-tick text-3xl text-feu-green"></i>
+            <h2>Data Privacy Policy Consent</h2>
+        </div>
+        <div class="dpa-scroll-content" id="dpaScrollArea">
+            <div class="alert alert-info bg-blue-50 border-blue-200 text-blue-800 mb-4 p-3 rounded flex items-start gap-3">
+                <i class="ki-filled ki-information-2 mt-1"></i>
+                <p class="m-0 text-sm">Under the Data Privacy Act of 2012 (RA 10173), we are required to obtain your informed consent before collecting and processing your personal information for admission purposes.</p>
+            </div>
+            
+            <h4 class="font-bold text-gray-800 mb-2">Privacy Notice Acknowledgment</h4>
+            <p class="mb-5">
+                I have read and understood all the provisions of the FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools and agree with its full implementation.
+            </p>
+
+            <h4 class="font-bold text-gray-800 mb-2">Data Processing Consent</h4>
+            <p class="mb-5">
+                I hereby give my consent to FEU for the collection and processing of my personal data, relating to my application for admission, in accordance with the FEU Data Privacy Notice and in compliance with Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines, its Implementing Rules and Regulations, other guidelines and issuances by the National Privacy Commission.
+            </p>
+            
+            <p class="mb-2"><strong>The information collected will be used for:</strong></p>
+            <ul class="list-disc pl-5 mb-5">
+                <li>Evaluating your application for admission.</li>
+                <li>Processing enrollment and registration if admitted.</li>
+                <li>Communicating with you regarding your application status.</li>
+                <li>Generating reports required by CHED, DepEd, and other relevant government agencies.</li>
+            </ul>
+
+            <div class="dpa-checkbox-group mt-6">
+                <label for="dpa_consent_check">
+                    <input type="checkbox" id="dpa_consent_check" disabled>
+                    <div>
+                        <span class="font-bold text-gray-800 block">I confirm my consent</span>
+                        <span class="text-sm text-gray-500">I have read, understood, and agree to the Data Privacy terms outlined above.</span>
+                    </div>
+                </label>
+            </div>
+            <div style="height: 10px;"></div> {# Extra space for scrolling trigger #}
+        </div>
+        <div class="dpa-footer">
+            <div class="dpa-help-text" id="dpaScrollHint"><i class="ki-filled ki-arrow-down"></i> Please scroll to the bottom to agree</div>
+            <button type="button" class="btn-dpa-agree" id="btnDpaAgree" disabled>
+                <span>Accept & Continue</span>
+                <i class="ki-filled ki-arrow-right"></i>
+            </button>
+        </div>
     </div>
 </div>
 
