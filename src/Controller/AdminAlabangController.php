@@ -63,7 +63,7 @@ class AdminAlabangController extends AbstractController
         ];
 
         $categories = [
-            'K to 10' => ['levels' => ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']],
+            'K to 10' => ['levels' => ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']],
             'Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]
         ];
 
@@ -121,7 +121,7 @@ class AdminAlabangController extends AbstractController
             ];
         };
 
-        $grsLevels = ['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
+        $grsLevels = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
         foreach ($grsLevels as $l) {
             $data = $getBreakdown($l);
             $summary['grs'][] = array_merge(['name' => $l], $data);
@@ -133,7 +133,7 @@ class AdminAlabangController extends AbstractController
             $summary['jhs'][] = array_merge(['name' => $l], $data);
         }
 
-        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'SPORTS', 'ARTS & DESIGN'];
+        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'];
         foreach ($strands as $s) {
             $data = $getBreakdown(null, $s);
             $summary['shs'][] = array_merge(['name' => $s], $data);
