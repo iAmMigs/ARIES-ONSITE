@@ -118,7 +118,6 @@ class EnrollmentController extends AbstractController
         $applicant->setEducationType($request->request->get('education_type'));
         $applicant->setGradeLevel($request->request->get('grade_level'));
         $applicant->setTrackStrand($request->request->get('strand'));
-        $applicant->setSchoolType($request->request->get('school_type'));
         $applicant->setLrn($lrnInput);
         // Store the active school year's label (e.g. "SY2526") for display and filtering
         $applicant->setSchoolYearOfEntry($activeSY->getLabel());
@@ -201,6 +200,7 @@ class EnrollmentController extends AbstractController
             $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
             $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
             $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
+            $types = $request->request->all()['educ_' . $lvl . '_type'] ?? [];
 
             if (is_array($schools)) {
                 foreach ($schools as $index => $schoolName) {
@@ -209,6 +209,7 @@ class EnrollmentController extends AbstractController
                         $school->setApplicant($applicant);
                         $school->setSchool($formatName($schoolName));
                         $school->setSchoolYear($years[$index] ?? null);
+                        $school->setSchoolType($types[$index] ?? null);
                         $school->setLevel($levelLabels[$index] ?? match($lvl) {
                             'kinder' => 'Kindergarten',
                             'elem' => 'Elementary',

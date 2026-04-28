@@ -28,6 +28,9 @@ class ApplicantBedSchool
     #[ORM\Column(name: 'SchoolYear', type: Types::STRING, length: 20, nullable: true)]
     private ?string $schoolYear = null;
 
+    #[ORM\Column(name: 'SchoolType', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $schoolType = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
@@ -41,4 +44,7 @@ class ApplicantBedSchool
     
     public function getSchoolYear(): ?string { return $this->schoolYear; }
     public function setSchoolYear(?string $schoolYear): static { $this->schoolYear = $schoolYear; return $this; }
+
+    public function getSchoolType(): ?string { return $this->schoolType; }
+    public function setSchoolType(?string $schoolType): static { $this->schoolType = $schoolType; return $this; }
 }

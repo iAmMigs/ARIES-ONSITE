@@ -999,14 +999,23 @@ window.addSchoolRow = function(level) {
     row.id = `row_${index}`;
 
     row.innerHTML = deleteBtnHtml + `
-        <div class="col-md-8">
+        <div class="col-md-5">
             <label class="form-label text-xs">School Name <span class="required">*</span></label>
             <input type="text" name="educ_${level}_school[]" class="form-control form-control-sm educ-input" placeholder="School Name" required oninput="window.isFormDirty = true;">
             <input type="hidden" name="educ_${level}_level[]" value="${levelLabel}">
         </div>
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="form-label text-xs">School Year <span class="required">*</span></label>
             <input type="text" name="educ_${level}_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\\d{4}-\\d{4}" maxlength="9" required oninput="window.isFormDirty = true;">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label text-xs">School Type <span class="required">*</span></label>
+            <select name="educ_${level}_type[]" class="form-control form-control-sm educ-input" required onchange="window.isFormDirty = true;">
+                <option value="">Select Type</option>
+                <option value="Public">Public</option>
+                <option value="Private">Private</option>
+                <option value="International">International</option>
+            </select>
         </div>
     `;
     container.appendChild(row);

@@ -330,7 +330,13 @@
                                         {% if school.level == 'P' or school.level == 'E' or school.level|upper == 'ELEMENTARY' %}Elementary{% elseif school.level == 'I' or school.level|upper == 'JUNIOR HIGH SCHOOL' %}Junior High{% elseif school.level == 'K' or school.level|upper == 'KINDERGARTEN' %}Kindergarten{% else %}Senior High{% endif %}
                                     </div>
                                     <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="School Name">
-                                    <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ sYear }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                    <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ sYear }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                    <select name="schools[{{ loop.index0 }}][type]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <option value="">School Type</option>
+                                        <option value="Public" {{ school.schoolType == 'Public' ? 'selected' }}>Public</option>
+                                        <option value="Private" {{ school.schoolType == 'Private' ? 'selected' }}>Private</option>
+                                        <option value="International" {{ school.schoolType == 'International' ? 'selected' }}>International</option>
+                                    </select>
                                     <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                                 </div>
                                 {% else %}

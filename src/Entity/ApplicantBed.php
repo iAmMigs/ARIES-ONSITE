@@ -30,7 +30,6 @@ class ApplicantBed
 
     public const TYPE_NEW_STUDENT = 'New Student';
     public const TYPE_TRANSFEREE = 'Transferee';
-    public const TYPE_OLD_STUDENT = 'Old Student';
     
 
     #[ORM\Id]

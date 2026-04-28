@@ -23,5 +23,8 @@ class AuditBedSchool
     #[ORM\Column(name: 'SchoolYear', type: Types::STRING, length: 20, nullable: true)]
     private ?string $schoolYear = null;
 
+    #[ORM\Column(name: 'SchoolType', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $schoolType = null;
+
     public function __set($name, $value) { if (property_exists($this, $name)) { $this->$name = $value; } }
 }

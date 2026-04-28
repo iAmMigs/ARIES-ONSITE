@@ -211,6 +211,7 @@
                                 </div>
                                 <div class="text-sm font-bold text-gray-800">{{ school.school }}</div>
                                 <div class="text-xs text-gray-500 mt-1">School Year: {{ sYear }}</div>
+                                {% if school.schoolType %}<div class="text-xs text-gray-400 mt-0.5">{{ school.schoolType }}</div>{% endif %}
                                 <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                             </div>
                             {% else %}
