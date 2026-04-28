@@ -67,17 +67,17 @@ class AdminDilimanController extends AbstractController
         ];
 
         $categories = [
-            'K to 10' => ['levels' => ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']],
+            'K to 10' => ['levels' => ['Kinder', 'kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']],
             'Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]
         ];
 
         foreach ($categories as $catName => $config) {
             $new = $repository->createQueryBuilder('a')
                 ->select('count(a.studentNumber)')
-                ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.admissionType = :type')
+                ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.admissionType IN (:types)')
                 ->setParameter('campus', $campus)
                 ->setParameter('levels', $config['levels'])
-                ->setParameter('type', 'New Student')
+                ->setParameter('types', ['New Student', 'Freshman'])
                 ->getQuery()->getSingleScalarResult();
 
             $transferee = $repository->createQueryBuilder('a')
@@ -103,19 +103,23 @@ class AdminDilimanController extends AbstractController
         }
 
         // Breakdown Tables Logic
-        $getBreakdown = function($levels = null, $strand = null) use ($repository, $campus) {
+        $getBreakdown = function($level = null, $strand = null) use ($repository, $campus) {
             $qb = $repository->createQueryBuilder('a')
                 ->select('count(a.studentNumber)')
                 ->where('a.campus = :campus')
                 ->setParameter('campus', $campus);
 
-            if ($levels) {
-                $qb->andWhere('a.gradeLevel = :lvl')->setParameter('lvl', $levels);
+            if ($level) {
+                if (strtolower($level) === 'kinder') {
+                    $qb->andWhere('a.gradeLevel IN (:lvls)')->setParameter('lvls', ['Kinder', 'kinder']);
+                } else {
+                    $qb->andWhere('a.gradeLevel = :lvl')->setParameter('lvl', $level);
+                }
             } elseif ($strand) {
                 $qb->andWhere('a.trackStrand = :strand')->setParameter('strand', $strand);
             }
 
-            $new = (clone $qb)->andWhere('a.admissionType = :type')->setParameter('type', 'New Student')->getQuery()->getSingleScalarResult();
+            $new = (clone $qb)->andWhere('a.admissionType IN (:types)')->setParameter('types', ['New Student', 'Freshman'])->getQuery()->getSingleScalarResult();
             $trans = (clone $qb)->andWhere('a.admissionType = :type')->setParameter('type', 'Transferee')->getQuery()->getSingleScalarResult();
 
             return [
