@@ -35,5 +35,10 @@ class AuditBedGuardian
     #[ORM\Column(name: 'IsOFW', type: Types::BOOLEAN, nullable: true)]
     private ?bool $OFW = null;
 
+    #[ORM\Column(length: 20, nullable: true)] private ?string $guardian_type = null;
+    #[ORM\Column(length: 100, nullable: true)] private ?string $ofw_country = null;
+    #[ORM\Column(length: 255, nullable: true)] private ?string $email = null;
+    #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $address = null;
+
     public function __set($name, $value) { if (property_exists($this, $name)) { $this->$name = $value; } }
 }
