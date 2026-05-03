@@ -220,6 +220,31 @@
             padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; margin-bottom: 1rem;
         }
         .dpa-checkbox-group input { margin-top: 4px; transform: scale(1.2); }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .autocomplete-suggestion {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .autocomplete-suggestion:hover {
+            background-color: #f3f4f6;
+            color: var(--feu-green-dark);
+        }
+        .autocomplete-suggestion b {
+            color: var(--feu-green);
+        }
     </style>
 {% endblock %}
 
@@ -449,15 +474,16 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Region <span class="required">*</span></label>
-                            <select id="addr_region" name="region" class="form-select" required data-control="select2" data-placeholder="Select Region">
+                            <select id="addr_region" class="form-select" required data-control="select2" data-placeholder="Select Region">
                                 <option value=""></option>
                             </select>
+                            <input type="hidden" name="region" id="addr_region_hidden">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 position-relative">
                             <label class="form-label">Province <span class="required">*</span></label>
-                            <select id="addr_province" name="address_province" class="form-select" required disabled>
-                                <option value=""></option>
-                            </select>
+                            <input type="text" id="addr_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off" required>
+                            <input type="hidden" id="addr_province" name="address_province">
+                            <div id="addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">City/Municipality <span class="required">*</span></label>
@@ -491,15 +517,16 @@
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label">Region <span class="required">*</span></label>
-                                <select id="perm_region" name="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
+                                <select id="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
                                     <option value=""></option>
                                 </select>
+                                <input type="hidden" name="perm_region" id="perm_region_hidden">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label class="form-label">Province <span class="required">*</span></label>
-                                <select id="perm_province" name="perm_province" class="form-select" disabled>
-                                    <option value=""></option>
-                                </select>
+                                <input type="text" id="perm_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                <input type="hidden" id="perm_province" name="perm_province">
+                                <div id="perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">City/Municipality <span class="required">*</span></label>

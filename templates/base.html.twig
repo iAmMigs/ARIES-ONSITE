@@ -804,6 +804,18 @@
         })();
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    if (window.showToast) {
+                        window.showToast("{{ message|e('js') }}", "{{ label == 'error' ? 'error' : (label == 'success' ? 'success' : 'info') }}");
+                    }
+                {% endfor %}
+            {% endfor %}
+        });
+    </script>
+
     {% block javascripts %}{% endblock %}
 
     {% if app.user %}

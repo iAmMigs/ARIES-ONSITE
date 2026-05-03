@@ -220,6 +220,31 @@
             padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; margin-bottom: 1rem;
         }
         .dpa-checkbox-group input { margin-top: 4px; transform: scale(1.2); }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .autocomplete-suggestion {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .autocomplete-suggestion:hover {
+            background-color: #f3f4f6;
+            color: var(--feu-green-dark);
+        }
+        .autocomplete-suggestion b {
+            color: var(--feu-green);
+        }
     </style>
 {% endblock %}
 
@@ -453,15 +478,16 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Region <span class="required">*</span></label>
-                            <select id="addr_region" name="region" class="form-select" required data-control="select2" data-placeholder="Select Region">
+                            <select id="addr_region" class="form-select" required data-control="select2" data-placeholder="Select Region">
                                 <option value=""></option>
                             </select>
+                            <input type="hidden" name="region" id="addr_region_hidden">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 position-relative">
                             <label class="form-label">Province <span class="required">*</span></label>
-                            <select id="addr_province" name="address_province" class="form-select" required disabled>
-                                <option value=""></option>
-                            </select>
+                            <input type="text" id="addr_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off" required>
+                            <input type="hidden" id="addr_province" name="address_province">
+                            <div id="addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">City/Municipality <span class="required">*</span></label>
@@ -495,15 +521,16 @@
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label">Region <span class="required">*</span></label>
-                                <select id="perm_region" name="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
+                                <select id="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
                                     <option value=""></option>
                                 </select>
+                                <input type="hidden" name="perm_region" id="perm_region_hidden">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 position-relative">
                                 <label class="form-label">Province <span class="required">*</span></label>
-                                <select id="perm_province" name="perm_province" class="form-select" disabled>
-                                    <option value=""></option>
-                                </select>
+                                <input type="text" id="perm_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                <input type="hidden" id="perm_province" name="perm_province">
+                                <div id="perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">City/Municipality <span class="required">*</span></label>
@@ -874,6 +901,88 @@
             </button>
             <button type="button" id="btnConfirmSubmit" onclick="confirmSubmission()" class="px-5 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 transition-colors shadow-lg shadow-feu-green-700/30 w-full sm:w-auto flex items-center justify-center gap-2">
                 Yes, I'm sure
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- MISSING DOCUMENTS WARNING MODAL --- #}
+<div id="docWarningModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="docWarningDialog">
+        <div class="p-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-50 mb-6">
+                <i class="ki-filled ki-folder-minus text-5xl text-amber-500"></i>
+            </div>
+            <h3 class="text-2xl font-black text-gray-900 mb-3">Wait, some documents are missing!</h3>
+            <p class="text-base text-gray-500 font-medium px-4">
+                You haven't uploaded all the documents. While these are not strictly required for initial application, providing them now will speed up your evaluation.
+            </p>
+            
+            <div class="mt-8 bg-amber-50 border border-amber-100 rounded-xl p-4 text-left mx-4">
+                <h4 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i class="ki-filled ki-information-2"></i> Missing Items:
+                </h4>
+                <ul class="space-y-2" id="missingDocsList">
+                    {# Dynamic list of missing docs #}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 flex flex-col gap-3 bg-gray-50">
+            <button type="button" onclick="closeDocWarningModal()" class="px-5 py-4 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 w-full flex items-center justify-center gap-2">
+                <i class="ki-filled ki-pencil"></i>
+                Go back and upload
+            </button>
+            <button type="button" onclick="proceedToFinalConfirmation()" class="px-5 py-3 rounded-xl font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all w-full text-sm underline decoration-gray-300 underline-offset-4">
+                Submit without documents
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- PROMISSORY NOTE MODAL --- #}
+<div id="promissoryModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden transform scale-95 transition-transform duration-300" id="promissoryDialog">
+        <div class="p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-12 w-12 rounded-xl bg-feu-green-50 flex items-center justify-center text-feu-green-600">
+                    <i class="ki-filled ki-notepad-edit text-3xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-gray-900">Promissory Agreement</h3>
+                    <p class="text-sm text-gray-500 font-medium">Agreement for late document submission</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-100">
+                <p class="text-gray-700 leading-relaxed text-sm italic">
+                    "I hereby acknowledge that I have not submitted all the required documents for my application at this time. I promise to provide the missing requirements on or before the date selected below. I understand that failure to comply may affect my admission status."
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <label class="block">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">When do you plan to submit these documents?</span>
+                    <div class="relative">
+                        <input type="date" name="documents_agreed_date" id="promissoryDate" 
+                               class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-feu-green-500 focus:ring-0 transition-all outline-none font-bold text-gray-700"
+                               min="{{ "now"|date("Y-m-d") }}">
+                        <i class="ki-filled ki-calendar absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+                </label>
+                <div id="promissoryError" class="text-red-500 text-xs font-bold hidden">
+                    <i class="ki-filled ki-information-2"></i> Please select a valid future date.
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-white">
+            <button type="button" onclick="closePromissoryModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all flex-1">
+                Cancel
+            </button>
+            <button type="button" onclick="validatePromissoryAndContinue()" class="px-6 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 flex-1 flex items-center justify-center gap-2">
+                Agree & Continue
+                <i class="ki-filled ki-arrow-right"></i>
             </button>
         </div>
     </div>

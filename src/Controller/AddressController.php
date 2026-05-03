@@ -57,4 +57,27 @@ class AddressController extends AbstractController
         }
         return $this->json($data);
     }
+
+    #[Route('/provinces-all', name: 'api_address_provinces_all')]
+    public function getAllProvinces(EntityManagerInterface $em): JsonResponse
+    {
+        $provinces = $em->createQuery(
+            'SELECT p.provinceCode, p.provinceDesc, r.regionCode, r.regionDesc 
+             FROM App\Entity\LookupProvince p 
+             LEFT JOIN App\Entity\LookupRegion r WITH p.regionCode = r.regionCode 
+             ORDER BY p.provinceDesc ASC'
+        )->getResult();
+
+        $data = [];
+        foreach ($provinces as $p) {
+            $data[] = [
+                'provinceCode' => $p['provinceCode'],
+                'provinceName' => $p['provinceDesc'],
+                'regionCode' => $p['regionCode'],
+                'regionName' => $p['regionDesc']
+            ];
+        }
+
+        return $this->json($data);
+    }
 }

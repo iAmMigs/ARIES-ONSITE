@@ -15,6 +15,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'bed_applicants')]
 #[ORM\Index(name: 'idx_last_name', columns: ['last_name'])]
 #[ORM\Index(name: 'idx_first_name', columns: ['first_name'])]
+#[ORM\Index(name: 'idx_campus', columns: ['campus'])]
+#[ORM\Index(name: 'idx_admission_status', columns: ['admission_status'])]
+#[ORM\Index(name: 'idx_school_year', columns: ['school_year_of_entry'])]
+#[ORM\Index(name: 'idx_grade_level', columns: ['grade_level'])]
+#[ORM\Index(name: 'idx_admission_type', columns: ['admission_type'])]
+#[ORM\Index(name: 'idx_created_at', columns: ['created_at'])]
 #[UniqueEntity(fields: ['studentNumber'], message: 'This Student Number already exists.')]
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBed
@@ -104,6 +110,9 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
+    
+    #[ORM\Column(name: 'is_documents_agreed', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isDocumentsAgreed = false;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $documentsAgreedDate = null;
@@ -277,6 +286,9 @@ class ApplicantBed
 
     public function getDocumentsAgreedDate(): ?\DateTimeInterface { return $this->documentsAgreedDate; }
     public function setDocumentsAgreedDate(?\DateTimeInterface $d): static { $this->documentsAgreedDate = $d; return $this; }
+
+    public function isDocumentsAgreed(): bool { return $this->isDocumentsAgreed; }
+    public function setDocumentsAgreed(bool $agreed): static { $this->isDocumentsAgreed = $agreed; return $this; }
 
     public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
     public function setIndigenousGroup(?string $v): static { $this->indigenousGroup = $v; return $this; }

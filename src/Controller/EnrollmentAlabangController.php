@@ -65,213 +65,199 @@ class EnrollmentAlabangController extends AbstractController
         SchoolYearRepository $syRepo
     ): Response
     {
+        // Log the incoming request data for debugging
+        error_log('Enrollment Submission POST data: ' . json_encode($request->request->all()));
+        error_log('Enrollment Submission FILES data: ' . json_encode(array_keys($request->files->all())));
+
         $campus = 'feu_alabang';
         $campusCode = SchoolYear::CAMPUS_ALABANG;
         $activeSY = $syRepo->findActiveByCampus($campusCode);
 
         if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
-            $this->addFlash('error', 'Enrollment is currently closed for this campus.');
-            return $this->redirectToRoute('app_enrollment_alabang_apply');
+            error_log("Enrollment Redirect: Enrollment is closed for FALAB (Open: " . ($activeSY ? ($activeSY->isEnrollmentOpen() ? 'YES' : 'NO') : 'SY NOT FOUND') . ")");
+            $this->addFlash('error', 'Enrollment is currently closed.');
         }
 
         $lrnInput = $request->request->get('lrn');
+        
         if (!empty($lrnInput)) {
             $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrnInput]);
             if ($existing) {
+                error_log("Enrollment Redirect: LRN $lrnInput already exists in the system.");
                 $this->addFlash('error', 'The provided LRN is already registered.');
                 return $this->redirectToRoute('app_enrollment_alabang_apply');
             }
         }
 
-        $applicant = new ApplicantBed();
-        
-        $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
-        $applicant->setStudentNumber($studentNo);
-        $applicant->setCampus($campusCode);
-        $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
-        $applicant->setAdmissionDate(new \DateTime());
+        $em->beginTransaction();
+        try {
+            $applicant = new ApplicantBed();
+            
+            $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
+            $applicant->setStudentNumber($studentNo);
+            $applicant->setCampus($campusCode);
+            $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
+            $applicant->setAdmissionDate(new \DateTime());
 
-        $applicant->setEducationType($request->request->get('education_type'));
-        $applicant->setGradeLevel($request->request->get('grade_level'));
-        $applicant->setTrackStrand($request->request->get('strand'));
-        $applicant->setLrn($lrnInput);
-        $applicant->setSchoolYearOfEntry($activeSY->getLabel());
-        $applicant->setAdmissionType($request->request->get('admission_type'));
+            $applicant->setEducationType($request->request->get('education_type'));
+            $applicant->setGradeLevel($request->request->get('grade_level'));
+            $applicant->setTrackStrand($request->request->get('strand'));
+            $applicant->setLrn($lrnInput);
+            $applicant->setSchoolYearOfEntry($activeSY->getLabel());
+            $applicant->setAdmissionType($request->request->get('admission_type'));
 
-        $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
+            $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
 
-        $applicant->setLastName($formatName($request->request->get('last_name')));
-        $applicant->setFirstName($formatName($request->request->get('first_name')));
-        $applicant->setMiddleName($formatName($request->request->get('middle_name')));
-        $applicant->setExtensionName($formatName($request->request->get('suffix')));
-        
-        $applicant->setBirthDate(new \DateTime($request->request->get('birthday')));
-        $applicant->setBirthPlace($formatName($request->request->get('birth_place')));
-        $applicant->setGender($request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE);
-        
-        $religion = $request->request->get('religion');
-        if (strtoupper($religion) === 'OTHER') {
-            $otherReligion = $request->request->get('other_religion');
-            $applicant->setReligion($formatName($otherReligion) ?: 'OTHER');
-        } else {
-            $applicant->setReligion($religion);
-        }
-        
-        $citizenship = $request->request->get('citizenship');
-        $applicant->setCitizenship($citizenship);
-        
-        if (strtoupper($citizenship) !== 'FILIPINO') {
-            $applicant->setPassportNumber($request->request->get('passport_number'));
-            $applicant->setVisaType($request->request->get('visa_type'));
-            $applicant->setVisaStatus($request->request->get('visa_status'));
-        } else {
+            $applicant->setLastName($formatName($request->request->get('last_name')));
+            $applicant->setFirstName($formatName($request->request->get('first_name')));
+            $applicant->setMiddleName($formatName($request->request->get('middle_name')));
+            $applicant->setExtensionName($formatName($request->request->get('suffix')));
+            
+            if ($birthday = $request->request->get('birthday')) {
+                $applicant->setBirthDate(new \DateTime($birthday));
+            }
+            $applicant->setBirthPlace($formatName($request->request->get('birth_place')));
+            $applicant->setGender($request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE);
+            
+            $religion = $request->request->get('religion');
+            if (strtoupper($religion) === 'OTHER') {
+                $otherReligion = $request->request->get('other_religion');
+                $applicant->setReligion($formatName($otherReligion) ?: 'OTHER');
+            } else {
+                $applicant->setReligion($religion);
+            }
+            
+            $citizenship = $request->request->get('citizenship');
+            $applicant->setCitizenship($citizenship);
+            
+            if (strtoupper($citizenship) !== 'FILIPINO') {
+                $applicant->setPassportNumber($request->request->get('passport_number'));
+                $applicant->setVisaType($request->request->get('visa_type'));
+                $applicant->setVisaStatus($request->request->get('visa_status'));
+            }
 
-        }
+            $agreedDateStr = $request->request->get('documents_agreed_date');
+            if (!empty($agreedDateStr)) {
+                $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
+                $applicant->setDocumentsAgreed(true);
+            }
 
-        // --- Document Agreed Date ---
-        $agreedDateStr = $request->request->get('documents_agreed_date');
-        if (!empty($agreedDateStr)) {
-            $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
-        }
+            $applicant->setMobileNumber($request->request->get('contact_number'));
+            $applicant->setPersonalEmail($request->request->get('email'));
+            $applicant->setLandLineNumber($request->request->get('landline'));
 
-        $applicant->setMobileNumber($request->request->get('contact_number'));
-        $applicant->setPersonalEmail($request->request->get('email'));
-        $applicant->setLandLineNumber($request->request->get('landline'));
+            error_log("Enrollment Alabang: Hydrating Address for " . $applicant->getLastName());
+            $this->hydrateAddress($applicant, $request, $em, 'current');
+            if ($request->request->get('sameAsCurrent') === 'on') {
+                $applicant->setPermanentRegion($applicant->getCurrentRegion());
+                $applicant->setPermanentProvince($applicant->getCurrentProvince());
+                $applicant->setPermanentCity($applicant->getCurrentCity());
+                $applicant->setPermanentBarangay($applicant->getCurrentBarangay());
+                $applicant->setPermanentAddress($applicant->getCurrentAddress());
+                $applicant->setPermanentZip($applicant->getCurrentZip());
+            } else {
+                $this->hydrateAddress($applicant, $request, $em, 'permanent');
+            }
 
-        $this->hydrateAddress($applicant, $request, $em, 'current');
-        if ($request->request->get('sameAsCurrent') === 'on') {
-            $applicant->setPermanentRegion($applicant->getCurrentRegion());
-            $applicant->setPermanentProvince($applicant->getCurrentProvince());
-            $applicant->setPermanentCity($applicant->getCurrentCity());
-            $applicant->setPermanentBarangay($applicant->getCurrentBarangay());
-            $applicant->setPermanentAddress($applicant->getCurrentAddress());
-            $applicant->setPermanentZip($applicant->getCurrentZip());
-        } else {
-            $this->hydrateAddress($applicant, $request, $em, 'permanent');
-        }
+            $this->handleGuardian($applicant, $request, 'father', $em);
+            $this->handleGuardian($applicant, $request, 'mother', $em);
+            $this->handleGuardian($applicant, $request, 'guardian', $em);
 
-        $this->handleGuardian($applicant, $request, 'father', $em);
-        $this->handleGuardian($applicant, $request, 'mother', $em);
-        $this->handleGuardian($applicant, $request, 'guardian', $em);
-
-        $siblingNames = $request->request->all()['sibling_name'] ?? [];
-        $siblingSchools = $request->request->all()['sibling_school'] ?? [];
-        $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
-        if (is_array($siblingNames)) {
-            foreach ($siblingNames as $index => $name) {
-                if (!empty($name)) {
-                    $sibling = new ApplicantBedSibling();
-                    $sibling->setApplicant($applicant);
-                    $sibling->setSiblingName($formatName($name));
-                    $sibling->setSchool($siblingSchools[$index] ?? null);
-                    $sibling->setFeuStudentNo($siblingStudentNos[$index] ?? null);
-                    if (!empty($siblingStudentNos[$index])) $sibling->setIsFeuStudent(true);
-                    $applicant->addSibling($sibling);
-                    $em->persist($sibling);
+            $siblingNames = $request->request->all()['sibling_name'] ?? [];
+            $siblingSchools = $request->request->all()['sibling_school'] ?? [];
+            $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
+            if (is_array($siblingNames)) {
+                foreach ($siblingNames as $index => $name) {
+                    if (!empty($name)) {
+                        $sibling = new ApplicantBedSibling();
+                        $sibling->setApplicant($applicant);
+                        $sibling->setSiblingName($formatName($name));
+                        $sibling->setSchool($siblingSchools[$index] ?? null);
+                        $sibling->setFeuStudentNo($siblingStudentNos[$index] ?? null);
+                        if (!empty($siblingStudentNos[$index])) $sibling->setIsFeuStudent(true);
+                        $applicant->addSibling($sibling);
+                        $em->persist($sibling);
+                    }
                 }
             }
-        }
 
-        $levels = ['kinder', 'elem', 'jhs', 'shs'];
-        foreach ($levels as $lvl) {
-            $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
-            $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
-            $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
-            $types = $request->request->all()['educ_' . $lvl . '_type'] ?? [];
-            
-            $isInternationals = $request->request->all()['educ_' . $lvl . '_is_international'] ?? [];
-            $countries = $request->request->all()['educ_' . $lvl . '_country'] ?? [];
-            $regions = $request->request->all()['educ_' . $lvl . '_region'] ?? [];
-            $provinces = $request->request->all()['educ_' . $lvl . '_province'] ?? [];
-            $cities = $request->request->all()['educ_' . $lvl . '_city'] ?? [];
+            $levels = ['kinder', 'elem', 'jhs', 'shs'];
+            foreach ($levels as $lvl) {
+                $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
+                $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
+                $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
+                $types = $request->request->all()['educ_' . $lvl . '_type'] ?? [];
+                
+                $isInternationals = $request->request->all()['educ_' . $lvl . '_is_international'] ?? [];
+                $countries = $request->request->all()['educ_' . $lvl . '_country'] ?? [];
+                $regions = $request->request->all()['educ_' . $lvl . '_region'] ?? [];
+                $provinces = $request->request->all()['educ_' . $lvl . '_province'] ?? [];
+                $cities = $request->request->all()['educ_' . $lvl . '_city'] ?? [];
 
-            if (is_array($schools)) {
-                foreach ($schools as $index => $schoolName) {
-                    if (!empty($schoolName)) {
-                        $school = new ApplicantBedSchool();
-                        $school->setApplicant($applicant);
-                        $school->setSchool($formatName($schoolName));
-                        $school->setSchoolYear($years[$index] ?? null);
-                        $school->setSchoolType($types[$index] ?? null);
-                        $school->setLevel($levelLabels[$index] ?? match($lvl) {
-                            'kinder' => 'Kindergarten',
-                            'elem' => 'Elementary',
-                            'jhs' => 'Junior High School',
-                            'shs' => 'Senior High School',
-                            default => strtoupper($lvl)
-                        });
-                        
-                        $isInt = !empty($isInternationals[$index]);
-                        $school->setIsInternational($isInt);
-                        if ($isInt) {
-                            $school->setCountry($countries[$index] ?? null);
-                        } else {
-                            $school->setRegion($regions[$index] ?? null);
-                            $school->setProvince($provinces[$index] ?? null);
-                            $school->setCity($cities[$index] ?? null);
+                if (is_array($schools)) {
+                    foreach ($schools as $index => $schoolName) {
+                        if (!empty($schoolName)) {
+                            $school = new ApplicantBedSchool();
+                            $school->setApplicant($applicant);
+                            $school->setSchool($formatName($schoolName));
+                            $school->setSchoolYear($years[$index] ?? null);
+                            $school->setSchoolType($types[$index] ?? null);
+                            $school->setLevel($levelLabels[$index] ?? match($lvl) {
+                                'kinder' => 'Kindergarten',
+                                'elem' => 'Elementary',
+                                'jhs' => 'Junior High School',
+                                'shs' => 'Senior High School',
+                                default => strtoupper($lvl)
+                            });
+                            
+                            $isInt = !empty($isInternationals[$index]);
+                            $school->setIsInternational($isInt);
+                            if ($isInt) {
+                                $school->setCountry($countries[$index] ?? null);
+                            } else {
+                                $school->setRegion($regions[$index] ?? null);
+                                $school->setProvince($provinces[$index] ?? null);
+                                $school->setCity($cities[$index] ?? null);
+                            }
+                            
+                            $applicant->addSchool($school);
+                            $em->persist($school);
                         }
-                        
-                        $applicant->addSchool($school);
-                        $em->persist($school);
                     }
                 }
             }
-        }
 
-        $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
-            'campus' => [$applicant->getCampus(), null]
-        ]);
-        
-        foreach ($documentSetups as $docSetup) {
-            // Grouping logic check: Only process documents applicable to this student
-            $docStudentType = $docSetup->getStudentType();
-            $docNationality = $docSetup->getNationalityType();
-            $docGrades = $docSetup->getGradeLevels();
+            $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
+                'campus' => [$applicant->getCampus(), null]
+            ]);
             
-            $isMatch = true;
-            if ($docStudentType && strtoupper($docStudentType) !== strtoupper($applicant->getAdmissionType())) {
-                $isMatch = false;
-            }
-            $isFilipino = strtoupper($applicant->getCitizenship()) === 'FILIPINO';
-            $studentNationality = $isFilipino ? 'LOCAL' : 'INTERNATIONAL';
-            if ($docNationality && strtoupper($docNationality) !== $studentNationality) {
-                $isMatch = false;
-            }
-            if ($docGrades && is_array($docGrades) && count($docGrades) > 0) {
-                if (!in_array($applicant->getGradeLevel(), $docGrades)) {
-                    $isMatch = false;
-                }
-            }
-            
-            if (!$isMatch) continue;
+            foreach ($documentSetups as $docSetup) {
+                $isMatch = true;
+                if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($applicant->getAdmissionType())) $isMatch = false;
+                $studentNationality = strtoupper($applicant->getCitizenship()) === 'FILIPINO' ? 'LOCAL' : 'INTERNATIONAL';
+                if ($docSetup->getNationalityType() && strtoupper($docSetup->getNationalityType()) !== $studentNationality) $isMatch = false;
+                if ($docSetup->getGradeLevels() && !in_array($applicant->getGradeLevel(), $docSetup->getGradeLevels())) $isMatch = false;
+                
+                if (!$isMatch) continue;
 
-            $slug = $docSetup->getSlug();
-            $file = $request->files->get($slug);
-            
-            if ($file instanceof UploadedFile) {
-                if ($file->getSize() > 10485760) {
-                    $this->addFlash('error', 'The document ' . $docSetup->getDocumentName() . ' exceeds the 10MB limit.');
-                    return $this->redirectToRoute('app_enrollment_alabang_apply');
-                }
+                $slug = $docSetup->getSlug();
+                $file = $request->files->get($slug);
+                
+                if ($file instanceof UploadedFile) {
+                    if ($file->getSize() > 10485760) throw new \Exception('File ' . $docSetup->getDocumentName() . ' exceeds 10MB limit.');
 
-                $allowedTypesString = $docSetup->getAllowedFileTypes();
-                if (!empty($allowedTypesString)) {
-                    $allowedExtensions = array_map('trim', explode(',', strtolower($allowedTypesString)));
-                    $fileExtension = strtolower($file->getClientOriginalExtension());
-                    
-                    if (!in_array($fileExtension, $allowedExtensions)) {
-                        $this->addFlash('error', 'Invalid file format for ' . $docSetup->getDocumentName() . '. Allowed formats: ' . strtoupper($allowedTypesString));
-                        return $this->redirectToRoute('app_enrollment_alabang_apply');
+                    $allowedTypesString = $docSetup->getAllowedFileTypes();
+                    if (!empty($allowedTypesString)) {
+                        $allowedExtensions = array_map('trim', explode(',', strtolower($allowedTypesString)));
+                        if (!in_array(strtolower($file->getClientOriginalExtension()), $allowedExtensions)) {
+                            throw new \Exception('Invalid format for ' . $docSetup->getDocumentName());
+                        }
                     }
-                }
 
-                $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
-                if (!file_exists($targetDir)) {
-                    mkdir($targetDir, 0777, true);
-                }
+                    $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
+                    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
-                $filename = strtoupper($slug) . '-' . $studentNo . '.' . $file->guessExtension();
-                try {
+                    $filename = strtoupper($slug) . '-' . $studentNo . '.' . $file->guessExtension();
                     $file->move($targetDir, $filename);
                     
                     $req = new ApplicantBedRequirement();
@@ -285,14 +271,24 @@ class EnrollmentAlabangController extends AbstractController
                     
                     $applicant->addRequirement($req);
                     $em->persist($req);
-                } catch (\Exception $e) { }
+                }
             }
+
+            $em->persist($applicant);
+            $em->flush();
+            $em->commit();
+
+            return $this->redirectToRoute('app_enrollment_alabang_success', ['studentNumber' => $studentNo]);
+
+        } catch (\Throwable $e) {
+            $em->rollback();
+            // Log the error for debugging
+            error_log('Enrollment Submission Error (Alabang): ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+            $this->addFlash('error', 'Submission failed: ' . $e->getMessage());
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
         }
-
-        $em->persist($applicant);
-        $em->flush();
-
-        return $this->redirectToRoute('app_enrollment_alabang_success', ['studentNumber' => $studentNo]);
     }
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)

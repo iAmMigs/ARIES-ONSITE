@@ -64,6 +64,8 @@ class StudentIdGenerator
         // Diliman → 4-digit series (total 9 chars with prefix)
         $seriesPadLength = ($campus === 'feu_alabang') ? 6 : 4;
 
-        return $prefix . str_pad((string) $nextSeries, $seriesPadLength, '0', STR_PAD_LEFT);
+        $generatedId = $prefix . str_pad((string) $nextSeries, $seriesPadLength, '0', STR_PAD_LEFT);
+        error_log("StudentIdGenerator: Generated $generatedId for campus $campus");
+        return $generatedId;
     }
 }

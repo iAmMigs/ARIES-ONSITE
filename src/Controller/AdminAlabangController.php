@@ -24,6 +24,8 @@ class AdminAlabangController extends AbstractController
     public function dashboard(ApplicantBedRepository $repository, SchoolYearRepository $syRepo): Response
     {
         $campus = ApplicantBed::CAMPUS_ALABANG;
+        
+        // Basic stats
         $qb = $repository->createQueryBuilder('a')
             ->select('count(a.studentNumber)')
             ->where('a.campus = :campus')
@@ -37,110 +39,92 @@ class AdminAlabangController extends AbstractController
         $month = (clone $qb)->andWhere('a.createdAt >= :month')
             ->setParameter('month', new \DateTime('first day of this month'))->getQuery()->getSingleScalarResult();
 
+        // Optimized Chart Data (Single Query)
+        $sevenDaysAgo = (new \DateTime())->modify('-6 days')->setTime(0, 0);
+        $rawChart = $repository->createQueryBuilder('a')
+            ->select("SUBSTRING(a.createdAt, 1, 10) as dateStr, count(a.studentNumber) as cnt")
+            ->where('a.campus = :campus AND a.createdAt >= :start')
+            ->setParameter('campus', $campus)
+            ->setParameter('start', $sevenDaysAgo)
+            ->groupBy('dateStr')
+            ->getQuery()
+            ->getResult();
+
+        $chartMap = [];
+        foreach ($rawChart as $r) { $chartMap[$r['dateStr']] = (int)$r['cnt']; }
+
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = (new \DateTime())->modify("-$i days");
-            $count = $repository->createQueryBuilder('a')
-                ->select('count(a.studentNumber)')
-                ->where('a.campus = :campus')
-                ->andWhere('a.createdAt BETWEEN :start AND :end')
-                ->setParameter('campus', $campus)
-                ->setParameter('start', $date->format('Y-m-d 00:00:00'))
-                ->setParameter('end', $date->format('Y-m-d 23:59:59'))
-                ->getQuery()->getSingleScalarResult();
-            $chartData[] = ['date' => $date->format('M d'), 'count' => $count];
+            $ds = $date->format('Y-m-d');
+            $chartData[] = ['date' => $date->format('M d'), 'count' => $chartMap[$ds] ?? 0];
         }
 
-        // --- ENROLLMENT SUMMARY LOGIC ---
+        // Optimized Summary Data (Single Query)
+        $rawSummary = $repository->createQueryBuilder('a')
+            ->select('a.admissionType, a.gradeLevel, a.trackStrand, count(a.studentNumber) as cnt')
+            ->where('a.campus = :campus')
+            ->setParameter('campus', $campus)
+            ->groupBy('a.admissionType, a.gradeLevel, a.trackStrand')
+            ->getQuery()
+            ->getResult();
+
         $activeSY = $syRepo->findActiveByCampus($campus);
-        
         $summary = [
             'rows' => [],
             'total' => ['new' => 0, 'transferee' => 0, 'current' => 0],
-            'grs' => [],
-            'jhs' => [],
             'shs' => []
         ];
 
-        $categories = [
-
-            'Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]
-        ];
+        // Process summary data in PHP
+        $categories = ['Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]];
+        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'];
 
         foreach ($categories as $catName => $config) {
-            $new = $repository->createQueryBuilder('a')
-                ->select('count(a.studentNumber)')
-                ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.admissionType IN (:types)')
-                ->setParameter('campus', $campus)
-                ->setParameter('levels', $config['levels'])
-                ->setParameter('types', ['New Student', 'Freshman'])
-                ->getQuery()->getSingleScalarResult();
-
-            $transferee = $repository->createQueryBuilder('a')
-                ->select('count(a.studentNumber)')
-                ->where('a.campus = :campus AND a.gradeLevel IN (:levels) AND a.admissionType = :type')
-                ->setParameter('campus', $campus)
-                ->setParameter('levels', $config['levels'])
-                ->setParameter('type', 'Transferee')
-                ->getQuery()->getSingleScalarResult();
-
-            $currentTotal = $new + $transferee;
+            $catNew = 0; $catTrans = 0;
+            $targetLevels = $config['levels'] ?? [];
             
+            foreach ($rawSummary as $rs) {
+                // Case-insensitive and underscore-tolerant matching
+                $normalizedLevel = str_replace('_', ' ', strtolower($rs['gradeLevel'] ?? ''));
+                $isMatch = false;
+                foreach ($targetLevels as $tl) {
+                    if (strtolower($tl) === $normalizedLevel) {
+                        $isMatch = true;
+                        break;
+                    }
+                }
+
+                if ($isMatch) {
+                    if (in_array($rs['admissionType'], ['New Student', 'Freshman'])) $catNew += $rs['cnt'];
+                    elseif ($rs['admissionType'] === 'Transferee') $catTrans += $rs['cnt'];
+                }
+            }
             $summary['rows'][] = [
                 'name' => "Alabang - $catName",
-                'new' => $new,
-                'transferee' => $transferee,
-                'current' => $currentTotal
+                'new' => $catNew,
+                'transferee' => $catTrans,
+                'current' => $catNew + $catTrans
             ];
-
-            $summary['total']['new'] += $new;
-            $summary['total']['transferee'] += $transferee;
-            $summary['total']['current'] += $currentTotal;
+            $summary['total']['new'] += $catNew;
+            $summary['total']['transferee'] += $catTrans;
+            $summary['total']['current'] += ($catNew + $catTrans);
         }
 
-        // Breakdown Tables Logic
-        $getBreakdown = function($level = null, $strand = null) use ($repository, $campus) {
-            $qb = $repository->createQueryBuilder('a')
-                ->select('count(a.studentNumber)')
-                ->where('a.campus = :campus')
-                ->setParameter('campus', $campus);
-
-            if ($level) {
-                if (strtolower($level) === 'kinder') {
-                    $qb->andWhere('a.gradeLevel IN (:lvls)')->setParameter('lvls', ['Kinder', 'kinder']);
-                } else {
-                    $qb->andWhere('a.gradeLevel = :lvl')->setParameter('lvl', $level);
-                }
-            } elseif ($strand) {
-                $qb->andWhere('a.trackStrand = :strand')->setParameter('strand', $strand);
-            }
-
-            $new = (clone $qb)->andWhere('a.admissionType IN (:types)')->setParameter('types', ['New Student', 'Freshman'])->getQuery()->getSingleScalarResult();
-            $trans = (clone $qb)->andWhere('a.admissionType = :type')->setParameter('type', 'Transferee')->getQuery()->getSingleScalarResult();
-
-            return [
-                'new' => $new,
-                'transferee' => $trans,
-                'total' => $new + $trans
-            ];
-        };
-
-
-
-
-
-
-
-
-
-
-
-
-
-        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'];
         foreach ($strands as $s) {
-            $data = $getBreakdown(null, $s);
-            $summary['shs'][] = array_merge(['name' => $s], $data);
+            $sNew = 0; $sTrans = 0;
+            foreach ($rawSummary as $rs) {
+                if ($rs['trackStrand'] === $s) {
+                    if (in_array($rs['admissionType'], ['New Student', 'Freshman'])) $sNew += $rs['cnt'];
+                    elseif ($rs['admissionType'] === 'Transferee') $sTrans += $rs['cnt'];
+                }
+            }
+            $summary['shs'][] = [
+                'name' => $s,
+                'new' => $sNew,
+                'transferee' => $sTrans,
+                'total' => $sNew + $sTrans
+            ];
         }
 
         return $this->render('admin-onsite/alabang/dashboard.html.twig', [

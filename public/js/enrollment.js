@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initConditionalFields();
     initDynamicFormatting();
     initFormValidation();
+    
+    // Initial fetch of documents if fields are pre-filled
+    if (typeof window.fetchRequiredDocuments === 'function') {
+        window.fetchRequiredDocuments();
+    }
     initAddressLookups();
     initAnimations();
     initSubmitLock();
@@ -299,6 +304,8 @@ window.updateStrands = function() {
     if (typeof window.updateEducationHistory === 'function') {
         window.updateEducationHistory();
     }
+    
+    fetchRequiredDocuments();
 };
 
 window.togglePermanentAddress = function() {
@@ -852,48 +859,192 @@ function initDynamicFormatting() {
 }
 
 function initAddressLookups() {
+    let allProvinces = [];
+
+    // Fetch all provinces once for autocomplete lookup
+    fetch('/api/address/provinces-all')
+        .then(r => r.json())
+        .then(data => {
+            allProvinces = data;
+        })
+        .catch(err => console.error('Error fetching provinces:', err));
+
     function setupAddressLookup(prefix) {
         const regions = document.getElementById(prefix + '_region');
-        const provinces = document.getElementById(prefix + '_province');
+        const provinceSearch = document.getElementById(prefix + '_province_search');
+        const provinceHidden = document.getElementById(prefix + '_province');
+        const suggestionsContainer = document.getElementById(prefix + '_province_suggestions');
         const cities = document.getElementById(prefix + '_city');
         const barangays = document.getElementById(prefix + '_barangay');
         
-        if(!regions) return;
+        if(!regions || !provinceSearch) return;
 
+        // Populate regions initially
         fetch('/api/address/regions').then(r => r.json()).then(data => {
-            data.forEach(r => regions.innerHTML += `<option value="${r.code}">${r.name}</option>`);
+            const currentVal = regions.value;
+            regions.innerHTML = '<option value="">Select Region</option>';
+            
+            // Add "I am unsure" option first
+            const unsureOpt = document.createElement('option');
+            unsureOpt.value = 'unsure';
+            unsureOpt.textContent = 'I am unsure';
+            regions.appendChild(unsureOpt);
+
+            data.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.code;
+                opt.textContent = r.name;
+                regions.appendChild(opt);
+            });
+            
+            if (currentVal) regions.value = currentVal;
+            
+            // Ensure hidden field is synced initially
+            const hidden = document.getElementById(prefix + '_region_hidden');
+            if (hidden && regions.value) hidden.value = regions.value;
+        });
+
+        // Sync hidden field on change
+        regions.addEventListener('change', function() {
+            const hidden = document.getElementById(prefix + '_region_hidden');
+            if (hidden) {
+                hidden.value = this.value;
+            }
+            window.isFormDirty = true;
+        });
+
+        // Enable regions dropdown
+        regions.disabled = false;
+        regions.removeAttribute('disabled');
+
+        const showSuggestions = (val = '') => {
+            suggestionsContainer.innerHTML = '';
+            const searchVal = val.toLowerCase().trim();
+            const selectedRegion = regions.value;
+
+            let filtered = allProvinces;
+            
+            // Filter by search text if any
+            if (searchVal.length > 0) {
+                filtered = filtered.filter(p => 
+                    p.provinceName.toLowerCase().includes(searchVal)
+                );
+            }
+
+            // Filter by region if selected
+            if (selectedRegion && selectedRegion !== 'unsure' && selectedRegion !== '') {
+                filtered = filtered.filter(p => p.regionCode == selectedRegion);
+            }
+
+            if (filtered.length > 0) {
+                filtered.forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'autocomplete-suggestion';
+                    
+                    let displayName = p.provinceName;
+                    if (searchVal.length > 0) {
+                        const regex = new RegExp(`(${searchVal})`, 'gi');
+                        displayName = p.provinceName.replace(regex, '<b>$1</b>');
+                    }
+                    
+                    div.innerHTML = `${displayName} <span class="text-xs text-gray-400 font-bold ml-1">[${p.regionName}]</span>`;
+                    
+                    div.addEventListener('click', function() {
+                        provinceSearch.value = p.provinceName;
+                        provinceHidden.value = p.provinceCode;
+                        
+                        // Autofill Region
+                        regions.value = p.regionCode;
+                        const regionHidden = document.getElementById(prefix + '_region_hidden');
+                        if (regionHidden) regionHidden.value = p.regionCode;
+
+                        if (typeof jQuery !== 'undefined' && $(regions).hasClass('select2-hidden-accessible')) {
+                            $(regions).trigger('change.select2');
+                            $(regions).trigger('change'); // Trigger normal change too
+                        }
+
+                        suggestionsContainer.classList.add('hidden');
+                        
+                        // Fetch Cities for the selected province
+                        cities.innerHTML = '<option value="">Select City</option>';
+                        cities.disabled = true;
+                        barangays.innerHTML = '<option value="">Select Barangay</option>';
+                        barangays.disabled = true;
+                        
+                        fetch(`/api/address/cities/${p.provinceCode}`).then(r => r.json()).then(data => {
+                            data.forEach(c => {
+                                const opt = document.createElement('option');
+                                opt.value = c.code;
+                                opt.textContent = c.name;
+                                cities.appendChild(opt);
+                            });
+                            cities.disabled = false;
+                        });
+
+                        if (window.ARIESValidation) {
+                            window.ARIESValidation.setValid(provinceSearch, window.ARIESValidation.getErrorElement(provinceSearch));
+                            // Also clear any region error
+                            window.ARIESValidation.setValid(regions, window.ARIESValidation.getErrorElement(regions));
+                        }
+                        
+                        window.isFormDirty = true;
+                    });
+                    suggestionsContainer.appendChild(div);
+                });
+                suggestionsContainer.classList.remove('hidden');
+            } else {
+                suggestionsContainer.classList.add('hidden');
+            }
+        };
+        
+        provinceSearch.addEventListener('input', function() { showSuggestions(this.value); });
+        provinceSearch.addEventListener('focus', function() { showSuggestions(this.value); });
+        provinceSearch.addEventListener('click', function() { showSuggestions(this.value); });
+
+        // Close suggestions on outside click
+        document.addEventListener('click', function(e) {
+            if (!provinceSearch.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                suggestionsContainer.classList.add('hidden');
+            }
         });
 
         regions.addEventListener('change', function() {
-            provinces.innerHTML = '<option value="">Select Province</option>'; provinces.disabled = true;
-            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
-            if(this.value) {
-                fetch(`/api/address/provinces/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(p => provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`);
-                    provinces.disabled = false;
-                });
+            const regionHidden = document.getElementById(prefix + '_region_hidden');
+            if (regionHidden) regionHidden.value = this.value;
+            
+            // If they change region to a specific one, clear province to maintain consistency
+            if (this.value && this.value !== 'unsure') {
+                provinceSearch.value = '';
+                provinceHidden.value = '';
+                cities.innerHTML = '<option value="">Select City</option>';
+                cities.disabled = true;
+                barangays.innerHTML = '<option value="">Select Barangay</option>';
+                barangays.disabled = true;
             }
-        });
-
-        provinces.addEventListener('change', function() {
-            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
-            if(this.value) {
-                fetch(`/api/address/cities/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(c => cities.innerHTML += `<option value="${c.code}">${c.name}</option>`);
-                    cities.disabled = false;
-                });
-            }
+            window.isFormDirty = true;
         });
 
         cities.addEventListener('change', function() {
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
+            barangays.innerHTML = '<option value="">Select Barangay</option>'; 
+            barangays.disabled = true;
             if(this.value) {
                 fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(b => barangays.innerHTML += `<option value="${b.name}" data-zip="${b.zip}">${b.name}</option>`);
+                    data.forEach(b => {
+                        const opt = document.createElement('option');
+                        opt.value = b.name;
+                        opt.textContent = b.name;
+                        opt.dataset.zip = b.zip;
+                        barangays.appendChild(opt);
+                    });
                     barangays.disabled = false;
                 });
             }
+            window.isFormDirty = true;
+        });
+
+        barangays.addEventListener('change', function() {
+            // Zip code autofill disabled as per user request
+            window.isFormDirty = true;
         });
     }
 
