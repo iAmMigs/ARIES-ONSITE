@@ -19,9 +19,17 @@
         {{ r.studentNumber }}
     </td>
 
-    {# --- 3. FULL NAME --- #}
-    <td class="px-6 py-3 font-semibold text-gray-800">
-        {{ r.lastName }}, {{ r.firstName }}
+    <td class="px-6 py-3">
+        <div class="font-semibold text-gray-800">
+            {{ r.lastName }}, {{ r.firstName }}
+        </div>
+        {% if r.documentsAgreedDate %}
+            <div class="mt-1">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black bg-orange-100 text-orange-700 border border-orange-200 uppercase tracking-tighter" title="Promissory Date: {{ r.documentsAgreedDate|date('M d, Y') }}">
+                    <i class="ki-filled ki-notepad-edit text-[10px] mr-0.5"></i> Promissory: {{ r.documentsAgreedDate|date('M d') }}
+                </span>
+            </div>
+        {% endif %}
     </td>
 
     {# --- 4. LEVEL / STRAND --- #}

@@ -1,0 +1,68 @@
+{# templates/security/login_alabang.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}FEU Alabang - Admin Portal Login{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+        
+        {# Login Header #}
+        <div class="bg-gradient-to-r from-feu-gold-600 to-feu-gold-500 p-8 text-center relative">
+            <div class="relative z-10">
+                <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-4" alt="FEU Alabang">
+                <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Alabang Admin</h1>
+                <p class="text-gray-800 text-sm mt-1">Authorized University Personnel Only</p>
+            </div>
+        </div>
+
+        {# Login Form #}
+        <div class="p-8">
+            {% if error %}
+                <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3 animate-fade-in">
+                    <i class="ki-filled ki-information-2 text-red-500 text-xl mt-0.5"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-red-800">Authentication Error</h4>
+                        <p class="text-xs text-red-600 mt-0.5">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_auth_login_check') }}" class="space-y-5">
+                <input type="hidden" name="_failure_path" value="{{ path('app_auth_login_alabang') }}">
+                <div>
+                    <label for="username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ki-filled ki-sms text-gray-400"></i>
+                        </div>
+                        <input type="email" value="{{ last_username }}" name="_username" id="username" class="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-feu-gold-500 focus:border-transparent transition-all font-medium" placeholder="admin@feualabang.edu.ph" required autofocus autocomplete="email">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="ki-filled ki-lock-2 text-gray-400"></i>
+                        </div>
+                        <input type="password" name="_password" id="password" class="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-feu-gold-500 focus:border-transparent transition-all font-medium" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-feu-gold-900/10 text-sm font-bold text-gray-900 bg-gradient-to-r from-feu-gold-500 to-feu-gold-400 hover:from-feu-gold-600 hover:to-feu-gold-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-feu-gold-500 transition-all transform active:scale-95">
+                    Sign In to Alabang Portal
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <a href="{{ path('app_home_alabang') }}" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-feu-gold-700 transition-colors">
+                    <i class="ki-filled ki-arrow-left text-xs mr-2"></i> Return to Homepage
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

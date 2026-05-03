@@ -16,17 +16,22 @@ security:
         main:
             lazy: true
             provider: app_admin_provider
+            entry_point: App\Security\CampusAuthenticationEntryPoint
             form_login:
-                login_path: app_auth_login
-                check_path: app_auth_login
-                enable_csrf: true
-                # THIS IS THE KEY CHANGE:
+                login_path: app_auth_login_diliman
+                check_path: app_auth_login_check
                 default_target_path: app_admin_dispatch
+                failure_path_parameter: _failure_path
             logout:
                 path: app_logout
-                target: app_home
+                target: app_home_diliman
 
     access_control:
+        # Allow public access to login pages to prevent redirect loops
+        - { path: ^/admin/diliman/login, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/alabang/login, roles: PUBLIC_ACCESS }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        
         # Secure the admin URLs so only actual Admins can enter
         - { path: ^/alabang-admin, roles: ROLE_ADMIN }
         - { path: ^/diliman-admin, roles: ROLE_ADMIN }

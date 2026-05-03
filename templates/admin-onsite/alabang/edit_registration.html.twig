@@ -350,6 +350,19 @@
                             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                                 <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
                             </h3>
+
+                            {# Promissory Date Edit #}
+                            <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                                <label class="block">
+                                    <span class="text-[10px] text-amber-800 uppercase font-bold mb-2 block flex items-center gap-1">
+                                        <i class="ki-filled ki-calendar"></i> Promissory Submission Date
+                                    </span>
+                                    <input type="date" name="documents_agreed_date" value="{{ registration.documentsAgreedDate ? registration.documentsAgreedDate|date('Y-m-d') : '' }}" 
+                                           class="w-full border-gray-300 rounded-lg text-sm font-bold text-gray-700 px-3 py-2">
+                                    <p class="text-[9px] text-amber-600 mt-2 italic">Leave blank if all documents are submitted.</p>
+                                </label>
+                            </div>
+
                             <div class="space-y-4">
                                 {% set hasActiveDocs = false %}
                                 {% for req in registration.requirements %}

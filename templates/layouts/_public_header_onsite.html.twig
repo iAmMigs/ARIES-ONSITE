@@ -18,8 +18,12 @@
 <header class="header-main fixed top-0 left-0 w-full z-50 bg-feu-green-800/95 backdrop-blur-md border-b border-feu-green-700 shadow-sm" id="mainHeader">
     <div class="container mx-auto px-4 lg:px-8">
         <div class="flex items-center justify-between h-14 lg:h-16">
-            {# Logo #}
-            <a href="{{ path('app_home') }}" class="logo-group flex items-center gap-2.5 group">
+            {% set current_route = app.request.attributes.get('_route')|default('') %}
+            {% set home_route = 'app_home_diliman' %}
+            {% if 'alabang' in current_route %}
+                {% set home_route = 'app_home_alabang' %}
+            {% endif %}
+            <a href="{{ path(home_route) }}" class="logo-group flex items-center gap-2.5 group">
                 <div class="logo-icon flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105 bg-feu-gold-400">
                     <i class="ki-filled ki-abstract-26 text-feu-green-900 text-lg lg:text-xl"></i>
                 </div>
@@ -63,20 +67,23 @@
 {# Admin Warning Modal Script #}
 <script>
     function confirmAdminAccess() {
-        // Checks for the globally available showModal (from base.html.twig)
+        {% set login_route = 'app_auth_login_diliman' %}
+        {% if 'alabang' in app.request.attributes.get('_route')|default('') %}
+            {% set login_route = 'app_auth_login_alabang' %}
+        {% endif %}
+        
         if (typeof window.showModal === 'function') {
             window.showModal({
                 title: '⚠️ Restricted Access',
                 content: 'This portal is strictly for authorized University Administrators only. Unauthorized access is prohibited.',
                 type: 'warning',
                 onConfirm: function() {
-                    window.location.href = "{{ path('app_auth_login') }}";
+                    window.location.href = "{{ path(login_route) }}";
                 }
             });
         } else {
-            // Fallback
             if(confirm('Restricted Access: Admins Only. Proceed?')) {
-                window.location.href = "{{ path('app_auth_login') }}";
+                window.location.href = "{{ path(login_route) }}";
             }
         }
     }

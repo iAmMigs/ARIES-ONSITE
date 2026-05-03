@@ -23,8 +23,14 @@ class DocumentSetup
     #[ORM\Column(length: 100)]
     private ?string $folderName = null;
 
-    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
-    private bool $isRequired = true;
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $studentType = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $nationalityType = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $gradeLevels = null;
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $campus = null;
@@ -59,10 +65,24 @@ class DocumentSetup
         return $this; 
     }
     
-    public function isRequired(): bool { return $this->isRequired; }
+    public function getStudentType(): ?string { return $this->studentType; }
     
-    public function setIsRequired(bool $isRequired): static { 
-        $this->isRequired = $isRequired; 
+    public function setStudentType(?string $studentType): static { 
+        $this->studentType = $studentType; 
+        return $this; 
+    }
+
+    public function getNationalityType(): ?string { return $this->nationalityType; }
+    
+    public function setNationalityType(?string $nationalityType): static { 
+        $this->nationalityType = $nationalityType; 
+        return $this; 
+    }
+
+    public function getGradeLevels(): ?array { return $this->gradeLevels; }
+    
+    public function setGradeLevels(?array $gradeLevels): static { 
+        $this->gradeLevels = $gradeLevels; 
         return $this; 
     }
     

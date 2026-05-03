@@ -18,44 +18,90 @@
                         <p class="text-sm text-gray-500 mt-1">Add or remove the documents required for enrollment. These instantly update the public forms.</p>
                     </div>
 
-                    <form action="{{ path('app_admin_diliman_documents') }}" method="POST" class="flex flex-col sm:flex-row gap-4 mb-10 bg-gray-50 p-6 rounded-xl border border-gray-200">
-                        <div class="flex-grow">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name</label>
-                            <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. Health Certificate" required>
-                        </div>
-                        
-                        <div class="flex-grow">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed Types</label>
-                            <div class="flex flex-wrap gap-4 bg-white border border-gray-300 rounded-lg px-4 py-2">
-                                <label class="flex items-center gap-2 text-sm cursor-pointer">
-                                    <input type="checkbox" name="allowed_file_types[]" value="pdf" class="rounded text-feu-green-600 focus:ring-feu-green-500"> PDF
-                                </label>
-                                <label class="flex items-center gap-2 text-sm cursor-pointer">
-                                    <input type="checkbox" name="allowed_file_types[]" value="jpg" class="rounded text-feu-green-600 focus:ring-feu-green-500"> JPG
-                                </label>
-                                <label class="flex items-center gap-2 text-sm cursor-pointer">
-                                    <input type="checkbox" name="allowed_file_types[]" value="png" class="rounded text-feu-green-600 focus:ring-feu-green-500"> PNG
-                                </label>
-                                <label class="flex items-center gap-2 text-sm cursor-pointer">
-                                    <input type="checkbox" name="allowed_file_types[]" value="docx" class="rounded text-feu-green-600 focus:ring-feu-green-500"> DOCX
-                                </label>
-                            </div>
-                        </div>
+                    <div class="mb-10 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" id="addDocContainer">
+                        <button type="button" onclick="document.getElementById('addDocFormContainer').classList.toggle('hidden'); document.getElementById('addDocIcon').classList.toggle('rotate-180');" class="w-full px-6 py-4 md:px-8 text-left flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <h4 class="text-md font-bold text-gray-800 flex items-center gap-2 m-0">
+                                <i class="ki-filled ki-plus-circle text-feu-green-600 text-xl"></i> Add New Requirement
+                            </h4>
+                            <i id="addDocIcon" class="ki-filled ki-down text-gray-500 transform transition-transform duration-300"></i>
+                        </button>
+                        <form id="addDocFormContainer" action="{{ path('app_admin_diliman_documents') }}" method="POST" class="hidden p-6 md:p-8 border-t border-gray-100">
 
-                        <div class="w-full sm:w-48">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Requirement</label>
-                            <select name="is_required" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
-                                <option value="1">Strictly Required</option>
-                                <option value="0">Optional</option>
-                            </select>
-                        </div>
-                        
-                        <div class="w-full sm:w-auto flex items-end">
-                            <button type="submit" class="w-full sm:w-auto bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
-                                Add Document
-                            </button>
-                        </div>
-                    </form>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Document Name -->
+        <div class="col-span-1 lg:col-span-2">
+            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name <span class="text-red-500">*</span></label>
+            <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-feu-green-500 focus:border-feu-green-500 outline-none transition-all shadow-sm" placeholder="e.g. Form 138 (Report Card)" required>
+        </div>
+
+        <!-- Allowed Types -->
+        <div class="col-span-1">
+            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed File Types</label>
+            <div class="flex flex-wrap gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2">
+                <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
+                    <input type="checkbox" name="allowed_file_types[]" value="pdf" class="rounded text-feu-green-600 focus:ring-feu-green-500 w-4 h-4"> PDF
+                </label>
+                <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
+                    <input type="checkbox" name="allowed_file_types[]" value="jpg" class="rounded text-feu-green-600 focus:ring-feu-green-500 w-4 h-4"> JPG
+                </label>
+                <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
+                    <input type="checkbox" name="allowed_file_types[]" value="png" class="rounded text-feu-green-600 focus:ring-feu-green-500 w-4 h-4"> PNG
+                </label>
+                <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
+                    <input type="checkbox" name="allowed_file_types[]" value="docx" class="rounded text-feu-green-600 focus:ring-feu-green-500 w-4 h-4"> DOCX
+                </label>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-1.5 ml-1">Leave all unchecked to allow any format.</p>
+        </div>
+
+        <!-- Target Audience: Student Type -->
+        <div class="col-span-1">
+            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Student Type</label>
+            <select name="student_type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-feu-green-500 focus:border-feu-green-500 outline-none transition-all shadow-sm bg-gray-50">
+                <option value="">All Types (New & Transferee)</option>
+                <option value="New Student">New Student Only</option>
+                <option value="Transferee">Transferee Only</option>
+            </select>
+        </div>
+
+        <!-- Target Audience: Nationality -->
+        <div class="col-span-1 lg:col-span-2">
+            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Nationality</label>
+            <select name="nationality_type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-feu-green-500 focus:border-feu-green-500 outline-none transition-all shadow-sm bg-gray-50">
+                <option value="">All Nationalities (Filipino & Foreign)</option>
+                <option value="FILIPINO">Filipino Citizens Only</option>
+                <option value="FOREIGN">Foreign Citizens Only</option>
+            </select>
+        </div>
+
+        <!-- Applicable Grade Levels -->
+        <div class="col-span-1 md:col-span-2 lg:col-span-3">
+            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Applicable Grade Levels</label>
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-3 gap-x-4">
+                    {% for lvl in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] %}
+                        <label class="flex items-center gap-2.5 text-sm cursor-pointer hover:bg-gray-100 p-1.5 rounded-lg transition-colors">
+                            <input type="checkbox" name="grade_levels[]" value="{{ lvl }}" class="rounded text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 shadow-sm"> 
+                            <span class="text-gray-700 font-medium">{{ lvl }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
+                    <p class="text-[11px] text-gray-500"><i class="ki-filled ki-information text-blue-500"></i> Leave all unchecked to apply to ALL grade levels.</p>
+                    <button type="button" onclick="document.querySelectorAll('input[name=\'grade_levels[]\']').forEach(cb => cb.checked = false)" class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">Clear Selection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 flex justify-end">
+        <button type="submit" class="bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center gap-2 transform hover:-translate-y-0.5">
+            <i class="ki-filled ki-check-circle text-lg"></i>
+            Save Requirement
+        </button>
+    </div>
+</form>
+</div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
@@ -64,7 +110,7 @@
                                     <th class="px-6 py-4 rounded-tl-xl">Document Name</th>
                                     <th class="px-6 py-4">Internal Slug</th>
                                     <th class="px-6 py-4">Allowed Types</th>
-                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Applies To</th>
                                     <th class="px-6 py-4 text-right rounded-tr-xl">Actions</th>
                                 </tr>
                             </thead>
@@ -74,16 +120,40 @@
                                     <td class="px-6 py-4 font-bold text-gray-800">{{ doc.documentName }}</td>
                                     <td class="px-6 py-4 text-gray-500 font-mono text-xs">{{ doc.slug }}</td>
                                     <td class="px-6 py-4 font-mono text-xs text-blue-600">{{ doc.allowedFileTypes ? doc.allowedFileTypes : '<span class="text-gray-400 italic">All formats</span>'|raw }}</td>
-                                    <td class="px-6 py-4">
-                                        {% if doc.isRequired %}
-                                            <span class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold">Required</span>
-                                        {% else %}
-                                            <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">Optional</span>
-                                        {% endif %}
+                                                                                                            <td class="px-6 py-4">
+                                        <div class="flex flex-col gap-1.5">
+                                            {% if doc.studentType %}
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100 w-fit">
+                                                    <i class="ki-filled ki-profile-circle"></i> {{ doc.studentType }}
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 w-fit">
+                                                    <i class="ki-filled ki-profile-circle"></i> All Types
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if doc.nationalityType %}
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-100 w-fit">
+                                                    <i class="ki-filled ki-flag"></i> {{ doc.nationalityType|title }}
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if doc.gradeLevels %}
+                                                <div class="flex flex-wrap gap-1 mt-1">
+                                                    {% for lvl in doc.gradeLevels %}
+                                                        <span class="inline-flex px-1.5 py-0.5 rounded text-[9px] font-bold bg-feu-green-50 text-feu-green-700 border border-feu-green-100">{{ lvl|replace({'Grade ': 'G'}) }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 w-fit mt-1">
+                                                    <i class="ki-filled ki-book-square"></i> All Grades
+                                                </span>
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 text-right flex justify-end gap-2">
                                         <button type="button" 
-                                                onclick="openEditModal('{{ doc.id }}', '{{ doc.documentName }}', '{{ doc.allowedFileTypes }}', '{{ doc.isRequired ? '1' : '0' }}')"
+                                                onclick='openEditModal({{ doc.id|json_encode|raw }}, {{ doc.documentName|json_encode|raw }}, {{ doc.allowedFileTypes|default("")|json_encode|raw }}, {{ doc.studentType|default("")|json_encode|raw }}, {{ doc.nationalityType|default("")|json_encode|raw }}, {{ doc.gradeLevels|default([])|json_encode|raw }})'
                                                 class="text-gray-400 hover:text-blue-600 transition-colors p-2">
                                             <i class="ki-filled ki-pencil text-lg"></i>
                                         </button>
@@ -111,43 +181,74 @@
 
 {# --- EDIT MODAL --- #}
 <div id="editDocModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
         <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <h3 class="text-xl font-bold text-gray-800">Edit Document Configuration</h3>
             <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600"><i class="ki-filled ki-cross text-xl"></i></button>
         </div>
-        <form id="editDocForm" method="POST" class="p-6">
-            <div class="space-y-4">
+                <form id="editDocForm" method="POST" class="p-6">
+            <div class="space-y-5">
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name</label>
-                    <input type="text" name="name" id="edit_name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" required>
+                    <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" id="edit_name" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-feu-green-500 focus:border-feu-green-500 outline-none transition-all" required>
                 </div>
+                
                 <div>
                     <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed Types</label>
-                    <div class="flex flex-wrap gap-4 bg-gray-50 border border-gray-300 rounded-lg px-4 py-2">
-                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                    <div class="flex flex-wrap gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
                             <input type="checkbox" name="allowed_file_types[]" value="pdf" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> PDF
                         </label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
                             <input type="checkbox" name="allowed_file_types[]" value="jpg" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> JPG
                         </label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
                             <input type="checkbox" name="allowed_file_types[]" value="png" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> PNG
                         </label>
-                        <label class="flex items-center gap-2 text-sm cursor-pointer">
+                        <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-700 transition-colors">
                             <input type="checkbox" name="allowed_file_types[]" value="docx" class="edit-type-checkbox rounded text-feu-green-600 focus:ring-feu-green-500"> DOCX
                         </label>
                     </div>
                 </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Student Type</label>
+                        <select name="student_type" id="edit_student_type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none bg-gray-50">
+                            <option value="">All Types</option>
+                            <option value="New Student">New Student Only</option>
+                            <option value="Transferee">Transferee Only</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Nationality</label>
+                        <select name="nationality_type" id="edit_nationality_type" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none bg-gray-50">
+                            <option value="">All Nationalities</option>
+                            <option value="FILIPINO">Filipino Only</option>
+                            <option value="FOREIGN">Foreign Only</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Requirement</label>
-                    <select name="is_required" id="edit_required" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
-                        <option value="1">Strictly Required</option>
-                        <option value="0">Optional</option>
-                    </select>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase block">Applicable Grade Levels</label>
+                        <button type="button" onclick="document.querySelectorAll('.edit-grade-checkbox').forEach(cb => cb.checked = false)" class="text-[10px] text-blue-600 hover:text-blue-800 font-medium transition-colors">Clear All</button>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-y-2 gap-x-2">
+                            {% for lvl in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] %}
+                                <label class="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-100 p-1 rounded transition-colors">
+                                    <input type="checkbox" name="grade_levels[]" value="{{ lvl }}" class="edit-grade-checkbox rounded text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 shadow-sm"> 
+                                    <span class="text-gray-700 font-medium whitespace-nowrap">{{ lvl|replace({'Grade ': 'G'}) }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="mt-8 flex gap-3 justify-end">
+            
+            <div class="mt-8 flex gap-3 justify-end pt-4 border-t border-gray-100">
                 <button type="button" onclick="closeEditModal()" class="px-6 py-2.5 rounded-lg font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
                 <button type="submit" class="bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
                     Save Changes
@@ -158,7 +259,7 @@
 </div>
 
 <script>
-function openEditModal(id, name, types, required) {
+function openEditModal(id, name, types, studentType, nationalityType, gradeLevels) {
     const modal = document.getElementById('editDocModal');
     const form = document.getElementById('editDocForm');
     
@@ -166,10 +267,16 @@ function openEditModal(id, name, types, required) {
     form.action = `/diliman-admin/document-setup/${id}/update`;
     
     document.getElementById('edit_name').value = name;
-    document.getElementById('edit_required').value = required;
+        document.getElementById('edit_student_type').value = studentType || '';
+    document.getElementById('edit_nationality_type').value = nationalityType || '';
+
+    let gradesArr = Array.isArray(gradeLevels) ? gradeLevels : [];
+    document.querySelectorAll('.edit-grade-checkbox').forEach(cb => {
+        cb.checked = gradesArr.includes(cb.value);
+    });
 
     // Handle checkboxes
-    const allowedArr = types.split(',').map(t => t.trim().toLowerCase());
+    const allowedArr = types ? types.split(',').map(t => t.trim().toLowerCase()) : [];
     document.querySelectorAll('.edit-type-checkbox').forEach(cb => {
         cb.checked = allowedArr.includes(cb.value.toLowerCase());
     });

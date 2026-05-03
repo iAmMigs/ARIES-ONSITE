@@ -1,0 +1,461 @@
+{# templates/home-onsite/diliman/index.html.twig #}
+{# ============================================================================
+   ARIES Homepage - ARIES Onsite Enrollment System
+   Modern University Website inspired by FEU Design
+   
+   Framework: Symfony 7 + Metronic v9.4.0 + Tailwind CSS
+   ============================================================================ #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Home - ARIES Onsite Enrollment FEU Diliman{% endblock %}
+{% block og_title %}ARIES - Onsite Enrollment System FEU Diliman{% endblock %}
+{% block og_description %}Experience seamless onsite enrollment at FEU Diliman. For Tertiary (College) and Basic Education (K-12) students.{% endblock %}
+
+{# We add this block to let the base template know this page has the hero section to hide the custom scrollbar #}
+{% block body_class %}has-hero-section{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+
+<style>
+    :root {
+        --swiper-theme-color: #fbbf24;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Fixed Hero Section Configuration */
+    .hero-section {
+        height: calc(100dvh - 88px);
+        width: 100%;
+        position: sticky;
+        top: 88px;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    @media (min-width: 1024px) {
+        .hero-section {
+            height: calc(100dvh - 64px);
+            top: 64px;
+        }
+    }
+    
+    .hero-swiper {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .hero-slide {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .hero-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(26, 77, 46, 0.85) 0%, rgba(26, 77, 46, 0.60) 50%, rgba(45, 106, 79, 0.40) 100%);
+        z-index: 1; 
+    }
+    
+    .hero-pattern {
+        position: absolute;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+        background-size: 50px 50px;
+        z-index: 2;
+        pointer-events: none;
+    }
+    
+    .hero-content {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding-bottom: 6rem;
+    }
+    
+    .section-header { text-align: center; margin-bottom: 3rem; }
+    .section-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: linear-gradient(135deg, rgba(26, 77, 46, 0.1), rgba(45, 106, 79, 0.1)); border: 1px solid rgba(26, 77, 46, 0.2); border-radius: 9999px; font-size: 0.875rem; font-weight: 600; color: #1a4d2e; margin-bottom: 1rem; }
+    .section-title { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; color: #111827; line-height: 1.2; margin-bottom: 1rem; }
+    .section-title-gradient { background: linear-gradient(135deg, #1a4d2e 0%, #2d6a4f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    
+    .feature-card { background: white; border-radius: 1.25rem; padding: 2rem; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #e5e7eb; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .feature-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #1a4d2e, #fbbf24); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+    .feature-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgba(26, 77, 46, 0.15); border-color: transparent; }
+    .feature-card:hover::before { transform: scaleX(1); }
+    
+    .service-card { background: white; border-radius: 1.25rem; padding: 2rem; text-align: center; border: 1px solid #e5e7eb; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+    .service-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26, 77, 46, 0.03), rgba(251, 191, 36, 0.03)); opacity: 0; transition: opacity 0.3s ease; }
+    .service-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(26, 77, 46, 0.15); border-color: #1a4d2e; }
+    .service-card:hover::before { opacity: 1; }
+    .service-icon { width: 70px; height: 70px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; transition: all 0.3s ease; }
+    .service-card:hover .service-icon { transform: scale(1.1) rotate(5deg); }
+
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 700; color: #1a4d2e; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); border: none; cursor: pointer; }
+    .btn-primaryinv { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem 2rem; font-size: 1rem; font-weight: 700; color: #f59e0b; background: linear-gradient(135deg, #347357 0%, #1a4d2e 100%); border-radius: 0.875rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(1, 121, 27, 0.5); border: none; cursor: pointer; }
+    .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5); }
+    .btn-primaryinv:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(1, 190, 42, 0.5); }
+
+    /* Layering logic to ensure normal scrolling once past the hero */
+    #programs {
+        position: relative;
+        z-index: 10;
+        background-color: #f9fafb;
+        box-shadow: 0 -20px 40px rgba(0,0,0,0.15);
+        scroll-margin-top: 88px;
+    }
+
+    #enrollment-steps {
+        position: relative;
+        z-index: 10;
+        background-color: #ffffff;
+        scroll-margin-top: 88px;
+    }
+    
+    @media (min-width: 1024px) {
+        #programs, #enrollment-steps {
+            scroll-margin-top: 64px;
+        }
+    }
+
+    /* Custom Scrollbar for Program Lists */
+    .program-list-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(26, 77, 46, 0.3) transparent;
+    }
+    .program-list-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .program-list-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .program-list-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(26, 77, 46, 0.3);
+        border-radius: 10px;
+    }
+    .program-list-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(26, 77, 46, 0.6);
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-feu-green-700 focus:text-white focus:rounded-lg">
+        Skip to main content
+    </a>
+
+    {% include 'layouts/_public_header_onsite.html.twig' %}
+
+    <main id="main-content">
+        <section class="hero-section">
+            <div class="swiper hero-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="hero-slide">
+                            <div class="hero-bg" style="background-image: url('{{ asset('images/hero/pic2.jpg') }}');"></div>
+                            <div class="hero-overlay"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-pattern"></div>
+
+            <div class="hero-content container mx-auto px-4 lg:px-8">
+                <div class="max-w-4xl" data-aos="fade-up">
+                    <h1 class="text-5xl md:text-6xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
+                        Start your campus life with <span class="text-feu-gold-500">FEU Diliman</span>
+                    </h1>
+                
+                    <p class="text-xl md:text-2xl text-white/80 mb-12 font-medium">
+                        Begin your journey here.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+
+                        {% if enrollment_open %}
+                            <a href="{{ path('app_enrollment_diliman_apply') }}"
+                               class="btn-primary px-8 py-4 text-lg" id="btn-diliman">
+                                <i class="ki-filled ki-notepad-edit"></i> Apply Now
+                            </a>
+                        {% else %}
+                            <button type="button"
+                                    onclick="showClosedCard('FEU Diliman')"
+                                    class="btn-primary px-8 py-4 text-lg opacity-75 cursor-not-allowed" id="btn-diliman">
+                                <i class="ki-filled ki-time"></i> Enrollment Closed
+                            </button>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+            {# Bouncing Scroll Indicator #}
+            <div class="absolute bottom-6 left-0 w-full flex justify-center z-20 pointer-events-none">
+                <div class="flex flex-col items-center cursor-pointer pointer-events-auto" onclick="document.getElementById('programs').scrollIntoView({behavior: 'smooth'})">
+                    <span class="text-sm font-bold text-white mb-3 tracking-widest uppercase text-center" style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">Want to know more?</span>
+                    <div class="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center animate-bounce hover:bg-white/30 transition-colors shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                        <i class="ki-filled ki-arrow-down text-white text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="programs" class="py-16">
+            <div class="container mx-auto px-4 lg:px-8">
+                <div class="text-center mb-12" data-aos="fade-up">
+                    <span class="section-badge">Academic Excellence</span>
+                    <h2 class="section-title">Explore Our <span class="section-title-gradient">Programs</span></h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Discover a wide range of basic education and collegiate programs designed to prepare you for global success at FEU Diliman.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-1 gap-8 max-w-4xl mx-auto items-stretch">
+                    {# FEU Diliman Programs #}
+                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="flex items-center gap-4 mb-6 shrink-0">
+                            <div class="w-14 h-14 bg-gradient-to-br from-feu-green-500 to-feu-green-700 text-white rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="ki-filled ki-bank text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900">FEU Diliman</h3>
+                                <p class="text-sm text-gray-500">Holistic Student Development</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex-1 overflow-y-auto pr-2 program-list-scroll relative h-[320px]">
+                            <div class="space-y-8 pb-4">
+                                
+                                {# Basic Education Section #}
+                                <div>
+                                    <h4 class="font-bold text-feu-green-700 border-b border-gray-200 pb-2 mb-3 flex items-center gap-2 sticky top-0 bg-gray-50/95 backdrop-blur-sm z-10 pt-1">
+                                        <i class="ki-filled ki-book-open"></i> Basic Education
+                                    </h4>
+                                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Kindergarten</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Grade School (Grades 1-6)</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> Junior High School (Grades 7-10)</li>
+                                     </ul>
+                                </div>
+
+                                {# Senior High School Section #}
+                                <div>
+                                    <h4 class="font-bold text-feu-green-700 border-b border-gray-200 pb-2 mb-3 flex items-center gap-2 sticky top-0 bg-gray-50/95 backdrop-blur-sm z-10 pt-1">
+                                        <i class="ki-filled ki-medal-star"></i> Senior High School
+                                    </h4>
+                                    <ul class="grid grid-cols-1 gap-3">
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> <strong>ABM</strong> - Accountancy, Business and Management</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> <strong>GAS</strong> - General Academic Strand</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> <strong>HUMSS</strong> - Humanities and Social Sciences</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> <strong>SPORTS</strong> - Sports Track</li>
+                                        <li class="flex items-start gap-2 text-sm text-gray-600"><i class="ki-filled ki-right text-feu-gold-500 mt-0.5"></i> <strong>STEM</strong> - Science, Technology, Engineering and Mathematics</li>
+                                     </ul>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="enrollment-steps" class="py-24 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-feu-green-50 to-transparent opacity-50 z-0 pointer-events-none"></div>
+            
+            <div class="container mx-auto px-4 lg:px-8 relative z-10">
+                <div class="text-center mb-16" data-aos="fade-up">
+                    <span class="section-badge">Fast & Easy</span>
+                    <h2 class="section-title">Your Path to <span class="section-title-gradient">Enrollment</span></h2>
+                    <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                        Follow these simple steps to complete your onsite registration and secure your future with FEU Diliman.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="service-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="service-icon bg-blue-100 text-blue-600">
+                            <i class="ki-filled ki-click text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">1. Select Program</h3>
+                        <p class="text-gray-600">Choose your preferred program to start the specific registration process.</p>
+                    </div>
+
+                    <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="service-icon bg-amber-100 text-amber-600">
+                            <i class="ki-filled ki-notepad-edit text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">2. Fill Application</h3>
+                        <p class="text-gray-600">Provide your personal information, educational background, and program choices accurately.</p>
+                    </div>
+
+                    <div class="service-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="service-icon bg-purple-100 text-purple-600">
+                            <i class="ki-filled ki-folder text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">3. Submit Docs</h3>
+                        <p class="text-gray-600">Bring your physical requirements and documents to the admissions office for verification.</p>
+                    </div>
+
+                    <div class="service-card" data-aos="fade-up" data-aos-delay="400">
+                        <div class="service-icon bg-green-100 text-green-600">
+                            <i class="ki-filled ki-verify text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">4. Get Enrolled</h3>
+                        <p class="text-gray-600">Complete your fee payment onsite to officially join the FEU Tamaraw community.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# Floating Back to Top Button #}
+        <button id="back-to-top-btn" class="fixed bottom-8 right-8 z-[90] w-12 h-12 rounded-full bg-feu-green-600 text-white shadow-lg shadow-feu-green-600/40 flex items-center justify-center opacity-0 translate-y-10 pointer-events-none transition-all duration-500 hover:bg-feu-green-500 hover:-translate-y-1 hover:shadow-xl" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top">
+            <i class="ki-filled ki-arrow-up text-xl"></i>
+        </button>
+
+        {# Floating Enrollment Closed Card — shown when user clicks a campus with closed enrollment #}
+        <div id="enrollmentClosedOverlay"
+             class="fixed inset-0 z-[200] flex items-center justify-center p-4"
+             style="display:none !important; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);"
+             onclick="hideClosedCard(event)">
+            <div id="enrollmentClosedCard"
+                 class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-8 text-center transform transition-all duration-300 scale-95 opacity-0"
+                 onclick="event.stopPropagation()">
+
+                <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ki-filled ki-time text-4xl text-amber-500"></i>
+                </div>
+
+                <h3 class="text-xl font-extrabold text-gray-900 mb-2" id="closedCardTitle">Enrollment Closed</h3>
+                <p class="text-gray-500 text-sm mb-6" id="closedCardBody">
+                    Online enrollment for <strong id="closedCardCampus"></strong> is not currently open.
+                    Please check back later or contact the admissions office.
+                </p>
+
+                <button onclick="hideClosedCard()"
+                        class="w-full py-2.5 px-6 rounded-xl bg-feu-green-700 text-white font-bold text-sm hover:bg-feu-green-800 transition-colors">
+                    Got it
+                </button>
+            </div>
+        </div>
+    </main>
+
+    {% include 'layouts/_public_footer_onsite.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<script>
+function showClosedCard(campusName) {
+    document.getElementById('closedCardCampus').textContent = campusName;
+    const overlay = document.getElementById('enrollmentClosedOverlay');
+    const card    = document.getElementById('enrollmentClosedCard');
+    overlay.style.removeProperty('display');
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => {
+        card.classList.remove('scale-95', 'opacity-0');
+        card.classList.add('scale-100', 'opacity-100');
+    });
+}
+
+function hideClosedCard(event) {
+    const overlay = document.getElementById('enrollmentClosedOverlay');
+    const card    = document.getElementById('enrollmentClosedCard');
+    card.classList.remove('scale-100', 'opacity-100');
+    card.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => { overlay.style.display = 'none'; }, 300);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    sessionStorage.removeItem('dpa_agreed');
+
+    AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 50
+    });
+
+    const floatingBtn = document.getElementById('back-to-top-btn');
+
+    const updateFloatingButton = () => {
+        if (window.scrollY > 100) {
+            if (floatingBtn) {
+                floatingBtn.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+                floatingBtn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            }
+        } else {
+            if (floatingBtn) {
+                floatingBtn.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+                floatingBtn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            }
+        }
+    };
+
+    window.addEventListener('scroll', updateFloatingButton, { passive: true });
+    updateFloatingButton();
+
+    const programsSection = document.getElementById('programs');
+    if (programsSection) {
+        let isSnapping = false;
+        let lastScroll = window.scrollY;
+
+        window.addEventListener('scroll', () => {
+            if (isSnapping) {
+                lastScroll = window.scrollY;
+                return;
+            }
+            
+            const currentScroll = window.scrollY;
+            const scrollDirection = currentScroll > lastScroll ? 'down' : 'up';
+            const programsTop = programsSection.offsetTop;
+            
+            const headerBuffer = window.innerWidth >= 1024 ? 64 : 88;
+            const restingPoint = programsTop - headerBuffer;
+            
+            if (scrollDirection === 'down' && currentScroll > 10 && currentScroll < restingPoint - 10) {
+                isSnapping = true;
+                window.scrollTo({ top: restingPoint, behavior: 'smooth' });
+                
+                setTimeout(() => { 
+                    isSnapping = false; 
+                    lastScroll = window.scrollY; 
+                }, 800);
+            }
+            else if (scrollDirection === 'up' && currentScroll < restingPoint - 5 && currentScroll > 10) {
+                isSnapping = true;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                setTimeout(() => { 
+                    isSnapping = false; 
+                    lastScroll = window.scrollY; 
+                }, 800);
+            }
+
+            lastScroll = currentScroll <= 0 ? 0 : currentScroll;
+        }, { passive: true });
+    }
+});
+</script>
+{% endblock %}

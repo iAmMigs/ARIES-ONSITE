@@ -11,20 +11,44 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_auth_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function loginChoice(): Response
     {
-        // If already logged in, let the dispatcher handle it
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_admin_dispatch');
+        }
+        return $this->render('security/login_choice.html.twig');
+    }
+
+    #[Route('/admin/diliman/login', name: 'app_auth_login_diliman')]
+    public function loginDiliman(AuthenticationUtils $authenticationUtils): Response
+    {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_admin_dispatch');
         }
 
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $lastUsername = $authenticationUtils->getLastUsername();
-
-        return $this->render('security/login.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
+        return $this->render('security/login_diliman.html.twig', [
+            'last_username' => $authenticationUtils->getLastUsername(),
+            'error' => $authenticationUtils->getLastAuthenticationError(),
         ]);
+    }
+
+    #[Route('/admin/alabang/login', name: 'app_auth_login_alabang')]
+    public function loginAlabang(AuthenticationUtils $authenticationUtils): Response
+    {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_admin_dispatch');
+        }
+
+        return $this->render('security/login_alabang.html.twig', [
+            'last_username' => $authenticationUtils->getLastUsername(),
+            'error' => $authenticationUtils->getLastAuthenticationError(),
+        ]);
+    }
+
+    #[Route('/login/check', name: 'app_auth_login_check')]
+    public function loginCheck(): void
+    {
+        throw new \LogicException('This method can be blank - it will be intercepted by the login key on your firewall.');
     }
 
     #[Route('/logout', name: 'app_logout')]
@@ -44,16 +68,14 @@ class SecurityController extends AbstractController
     {
         $user = $this->getUser();
 
-        // 1. Safety Check: If not an AdminUser, kick them out
         if (!$user instanceof AdminUser) {
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('app_auth_login_diliman');
         }
 
-        // 2. Strict Campus Redirection
         return match ($user->getCampus()) {
             'feu_alabang' => $this->redirectToRoute('app_admin_alabang_dashboard'),
             'feu_diliman' => $this->redirectToRoute('app_admin_diliman_dashboard'),
-            default       => $this->redirectToRoute('app_home'),
+            default       => $this->redirectToRoute('app_auth_login_diliman'),
         };
     }
 }

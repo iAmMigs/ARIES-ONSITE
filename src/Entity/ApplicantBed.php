@@ -82,7 +82,8 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
+    #[ORM\Column(length: 100, nullable: true)] private ?string $indigenousGroup = null;
+
 
     #[ORM\Column(length: 50)] private ?string $mobileNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $landLineNumber = null;
@@ -103,6 +104,9 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $documentsAgreedDate = null;
 
     /**
      * Virtual property for handling the photo upload securely before persisting.
@@ -221,8 +225,7 @@ class ApplicantBed
     public function getVisaStatus(): ?string { return $this->visaStatus; }
     public function setVisaStatus(?string $v): static { $this->visaStatus = $v; return $this; }
 
-    public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
-    public function setIndigenousGroup(?string $i): static { $this->indigenousGroup = $i; return $this; }
+
 
     public function getMobileNumber(): ?string { return $this->mobileNumber; }
     public function setMobileNumber(string $n): static { $this->mobileNumber = $n; return $this; }
@@ -271,4 +274,10 @@ class ApplicantBed
 
     public function getSchoolType(): ?string { return $this->schoolType; }
     public function setSchoolType(?string $t): static { $this->schoolType = $t; return $this; }
+
+    public function getDocumentsAgreedDate(): ?\DateTimeInterface { return $this->documentsAgreedDate; }
+    public function setDocumentsAgreedDate(?\DateTimeInterface $d): static { $this->documentsAgreedDate = $d; return $this; }
+
+    public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
+    public function setIndigenousGroup(?string $v): static { $this->indigenousGroup = $v; return $this; }
 }

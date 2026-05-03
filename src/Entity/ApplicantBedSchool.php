@@ -31,6 +31,21 @@ class ApplicantBedSchool
     #[ORM\Column(name: 'SchoolType', type: Types::STRING, length: 50, nullable: true)]
     private ?string $schoolType = null;
 
+    #[ORM\Column(name: 'is_international', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isInternational = false;
+
+    #[ORM\Column(name: 'country', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $country = null;
+
+    #[ORM\Column(name: 'region', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $region = null;
+
+    #[ORM\Column(name: 'province', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $province = null;
+
+    #[ORM\Column(name: 'city', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $city = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
@@ -47,4 +62,19 @@ class ApplicantBedSchool
 
     public function getSchoolType(): ?string { return $this->schoolType; }
     public function setSchoolType(?string $schoolType): static { $this->schoolType = $schoolType; return $this; }
+
+    public function isInternational(): bool { return $this->isInternational; }
+    public function setIsInternational(bool $isInternational): static { $this->isInternational = $isInternational; return $this; }
+
+    public function getCountry(): ?string { return $this->country; }
+    public function setCountry(?string $country): static { $this->country = $country; return $this; }
+
+    public function getRegion(): ?string { return $this->region; }
+    public function setRegion(?string $region): static { $this->region = $region; return $this; }
+
+    public function getProvince(): ?string { return $this->province; }
+    public function setProvince(?string $province): static { $this->province = $province; return $this; }
+
+    public function getCity(): ?string { return $this->city; }
+    public function setCity(?string $city): static { $this->city = $city; return $this; }
 }

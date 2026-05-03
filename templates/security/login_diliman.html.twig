@@ -1,7 +1,7 @@
-{# templates/security/login.html.twig #}
+{# templates/security/login_diliman.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Admin Portal Login{% endblock %}
+{% block title %}FEU Diliman - Admin Portal Login{% endblock %}
 
 {% block body %}
 <div class="min-h-screen flex items-center justify-center bg-gray-100 px-4 py-12">
@@ -10,10 +10,8 @@
         {# Login Header #}
         <div class="bg-gradient-to-r from-feu-green-800 to-feu-green-700 p-8 text-center relative">
             <div class="relative z-10">
-                <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 backdrop-blur-sm border border-white/20">
-                    <i class="ki-filled ki-shield-tick text-3xl text-feu-gold-400"></i>
-                </div>
-                <h1 class="text-2xl font-bold text-white tracking-tight">Admin Portal</h1>
+                <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-4" alt="FEU Diliman">
+                <h1 class="text-2xl font-bold text-white tracking-tight">Diliman Admin</h1>
                 <p class="text-feu-green-100 text-sm mt-1">Authorized University Personnel Only</p>
             </div>
         </div>
@@ -30,7 +28,8 @@
                 </div>
             {% endif %}
 
-            <form method="post" class="space-y-5">
+            <form method="post" action="{{ path('app_auth_login_check') }}" class="space-y-5">
+                <input type="hidden" name="_failure_path" value="{{ path('app_auth_login_diliman') }}">
                 <div>
                     <label for="username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email Address</label>
                     <div class="relative">
@@ -54,16 +53,14 @@
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                 <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-feu-green-900/10 text-sm font-bold text-white bg-gradient-to-r from-feu-green-700 to-feu-green-600 hover:from-feu-green-800 hover:to-feu-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-feu-green-500 transition-all transform active:scale-95">
-                    Sign In
+                    Sign In to Diliman Portal
                 </button>
             </form>
 
             <div class="mt-8 text-center">
-                <div class="flex items-center justify-center gap-6">
-                    <a href="javascript:history.back()" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-feu-green-700 transition-colors">
-                        <i class="ki-filled ki-arrow-left text-xs mr-2"></i> Return to Previous Page
-                    </a>
-                </div>
+                <a href="{{ path('app_home_diliman') }}" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-feu-green-700 transition-colors">
+                    <i class="ki-filled ki-arrow-left text-xs mr-2"></i> Return to Homepage
+                </a>
             </div>
         </div>
     </div>

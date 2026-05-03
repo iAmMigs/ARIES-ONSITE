@@ -226,6 +226,18 @@
                             <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
                         </h3>
                         <div class="space-y-3">
+                            {% if registration.documentsAgreedDate %}
+                                <div class="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                                    <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase mb-1">
+                                        <i class="ki-filled ki-information-2"></i> Promissory Agreement
+                                    </div>
+                                    <div class="text-sm text-amber-900 leading-tight">
+                                        Applicant promised to submit missing documents by:
+                                        <div class="text-lg font-black mt-1">{{ registration.documentsAgreedDate|date('F j, Y') }}</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
                             {% set hasActiveDocs = false %}
                             {% for req in registration.requirements %}
                                 {% if not req.isDeleted %}

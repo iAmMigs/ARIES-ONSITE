@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Application Submitted | ARIES Alabang{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
+    <style>
+        .success-card {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .success-header {
+            background: linear-gradient(135deg, #1a4d2e, #143d24);
+            padding: 3rem 2rem;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+        .success-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 40px;
+            background: white;
+            clip-path: ellipse(50% 100% at 50% 100%);
+        }
+        .check-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: scale-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .student-no-box {
+            background: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            transition: all 0.3s ease;
+        }
+        .student-no-box:hover {
+            border-color: #1a4d2e;
+            background: #f0fdf4;
+        }
+        .btn-home {
+            background: #1a4d2e;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-home:hover {
+            background: #143d24;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+        @keyframes scale-in {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4 font-sans">
+    <div class="success-card animate-fade-in-up">
+        <div class="success-header">
+            <div class="check-icon-wrapper">
+                <i class="ki-filled ki-check text-4xl text-white"></i>
+            </div>
+            <h1 class="text-3xl font-black tracking-tight mb-2">Application Received!</h1>
+            <p class="text-white/80 font-medium">Your journey starts here.</p>
+        </div>
+
+        <div class="p-8 md:p-12 text-center">
+            <p class="text-gray-600 text-lg mb-2">
+                Congratulations, <span class="font-bold text-gray-900">{{ student_name }}</span>!
+            </p>
+            <p class="text-gray-500">
+                Your application has been successfully submitted to ARIES Alabang.
+            </p>
+
+            <div class="student-no-box">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Reference Student Number</span>
+                <span class="text-4xl font-black text-[#1a4d2e] tracking-tight font-mono">{{ student_number }}</span>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex gap-4 text-left mb-8">
+                <div class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="ki-filled ki-information-2 text-xl text-amber-600"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-amber-900 mb-1">Important Instruction</h4>
+                    <p class="text-xs text-amber-800 leading-relaxed">
+                        Please take a screenshot or copy your <strong>Student Number</strong>. You will need this to pay for your entrance examination and check your admission status.
+                    </p>
+                </div>
+            </div>
+
+            <a href="{{ path('app_home_alabang') }}" class="btn-home">
+                <i class="ki-filled ki-home"></i>
+                Back to Homepage
+            </a>
+            
+            <p class="mt-8 text-xs text-gray-400">
+                A confirmation email has also been sent to your registered email address.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            sessionStorage.removeItem('dpa_agreed');
+        });
+    </script>
+{% endblock %}

@@ -25,44 +25,31 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/enrollment')]
-class EnrollmentController extends AbstractController
+#[Route('/diliman/apply')]
+class EnrollmentDilimanController extends AbstractController
 {
-    #[Route('/apply', name: 'app_enrollment_apply', methods: ['GET'])]
+    #[Route('', name: 'app_enrollment_diliman_apply', methods: ['GET'])]
     public function apply(Request $request, EntityManagerInterface $em, SchoolYearRepository $syRepo): Response
     {
-        $campus = $request->query->get('campus');
+        $campus = 'feu_diliman';
+        $campusCode = SchoolYear::CAMPUS_DILIMAN;
 
-        // Resolve the URL campus slug to the internal campus code so we can look up the school year
-        $campusCode = match ($campus) {
-            'feu_alabang' => SchoolYear::CAMPUS_ALABANG,
-            'feu_diliman' => SchoolYear::CAMPUS_DILIMAN,
-            default       => null,
-        };
-
-        // Gate enrollment: a campus must have an active school year with enrollment open
-        $activeSY = $campusCode ? $syRepo->findActiveByCampus($campusCode) : null;
+        $activeSY = $syRepo->findActiveByCampus($campusCode);
         if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
-            return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
+            return $this->render('enrollment-onsite/diliman/enrollment_closed.html.twig', [
                 'campus' => $campus,
                 'activeSY' => $activeSY,
             ]);
         }
         
-        $documents    = $em->getRepository(DocumentSetup::class)->findAll();
+        $documents    = $em->getRepository(DocumentSetup::class)->findBy(['campus' => [$campusCode, null]]);
         $religions    = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
         $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
         $countries    = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
-        // Fetch the other campus's enrollment status so the form can disable the closed option
-        $alabangOpen = ($syRepo->findActiveByCampus(SchoolYear::CAMPUS_ALABANG))?->isEnrollmentOpen() ?? false;
-        $dilimanOpen = ($syRepo->findActiveByCampus(SchoolYear::CAMPUS_DILIMAN))?->isEnrollmentOpen() ?? false;
-
-        return $this->render('enrollment-onsite/enroll.html.twig', [
+        return $this->render('enrollment-onsite/diliman/enroll.html.twig', [
             'selected_campus'        => $campus,
             'active_sy'              => $activeSY,
-            'alabang_enrollment_open' => $alabangOpen,
-            'diliman_enrollment_open' => $dilimanOpen,
             'documents'              => $documents,
             'religions'              => $religions,
             'citizenships'           => $citizenships,
@@ -70,7 +57,7 @@ class EnrollmentController extends AbstractController
         ]);
     }
 
-    #[Route('/apply/submit', name: 'app_enrollment_apply_submit', methods: ['POST'])]
+    #[Route('/submit', name: 'app_enrollment_diliman_submit', methods: ['POST'])]
     public function submit(
         Request $request,
         EntityManagerInterface $em,
@@ -78,21 +65,13 @@ class EnrollmentController extends AbstractController
         SchoolYearRepository $syRepo
     ): Response
     {
-        $campus = $request->request->get('campus_selected');
+        $campus = 'feu_diliman';
+        $campusCode = SchoolYear::CAMPUS_DILIMAN;
+        $activeSY = $syRepo->findActiveByCampus($campusCode);
 
-        // Resolve campus code and retrieve the active school year
-        $campusCode = match ($campus) {
-            'feu_alabang' => SchoolYear::CAMPUS_ALABANG,
-            'feu_diliman' => SchoolYear::CAMPUS_DILIMAN,
-            default       => null,
-        };
-
-        $activeSY = $campusCode ? $syRepo->findActiveByCampus($campusCode) : null;
-
-        // Reject submission if enrollment is not open — guards against direct POST bypasses
         if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
             $this->addFlash('error', 'Enrollment is currently closed for this campus.');
-            return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+            return $this->redirectToRoute('app_enrollment_diliman_apply');
         }
 
         $lrnInput = $request->request->get('lrn');
@@ -100,30 +79,25 @@ class EnrollmentController extends AbstractController
             $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrnInput]);
             if ($existing) {
                 $this->addFlash('error', 'The provided LRN is already registered.');
-                return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+                return $this->redirectToRoute('app_enrollment_diliman_apply');
             }
         }
 
         $applicant = new ApplicantBed();
         
-        // --- 1. IDENTIFIERS ---
-        // Generate a sequential student number tied to the active school year and campus
         $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
         $applicant->setStudentNumber($studentNo);
         $applicant->setCampus($campusCode);
         $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
         $applicant->setAdmissionDate(new \DateTime());
 
-        // --- 2. ACADEMIC INFO ---
         $applicant->setEducationType($request->request->get('education_type'));
         $applicant->setGradeLevel($request->request->get('grade_level'));
         $applicant->setTrackStrand($request->request->get('strand'));
         $applicant->setLrn($lrnInput);
-        // Store the active school year's label (e.g. "SY2526") for display and filtering
         $applicant->setSchoolYearOfEntry($activeSY->getLabel());
         $applicant->setAdmissionType($request->request->get('admission_type'));
 
-        // --- 3. PERSONAL INFORMATION ---
         $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
 
         $applicant->setLastName($formatName($request->request->get('last_name')));
@@ -151,10 +125,15 @@ class EnrollmentController extends AbstractController
             $applicant->setVisaType($request->request->get('visa_type'));
             $applicant->setVisaStatus($request->request->get('visa_status'));
         } else {
-            $applicant->setIndigenousGroup($request->request->get('indigenous_group'));
+
         }
 
-        // --- 4. CONTACT & ADDRESS ---
+        // --- Document Agreed Date ---
+        $agreedDateStr = $request->request->get('documents_agreed_date');
+        if (!empty($agreedDateStr)) {
+            $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
+        }
+
         $applicant->setMobileNumber($request->request->get('contact_number'));
         $applicant->setPersonalEmail($request->request->get('email'));
         $applicant->setLandLineNumber($request->request->get('landline'));
@@ -171,7 +150,6 @@ class EnrollmentController extends AbstractController
             $this->hydrateAddress($applicant, $request, $em, 'permanent');
         }
 
-        // --- 5. FAMILY & EDUCATION ---
         $this->handleGuardian($applicant, $request, 'father', $em);
         $this->handleGuardian($applicant, $request, 'mother', $em);
         $this->handleGuardian($applicant, $request, 'guardian', $em);
@@ -194,13 +172,18 @@ class EnrollmentController extends AbstractController
             }
         }
 
-        // --- 5.1 MULTIPLE EDUCATION HISTORY ---
         $levels = ['kinder', 'elem', 'jhs', 'shs'];
         foreach ($levels as $lvl) {
             $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
             $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
             $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
             $types = $request->request->all()['educ_' . $lvl . '_type'] ?? [];
+            
+            $isInternationals = $request->request->all()['educ_' . $lvl . '_is_international'] ?? [];
+            $countries = $request->request->all()['educ_' . $lvl . '_country'] ?? [];
+            $regions = $request->request->all()['educ_' . $lvl . '_region'] ?? [];
+            $provinces = $request->request->all()['educ_' . $lvl . '_province'] ?? [];
+            $cities = $request->request->all()['educ_' . $lvl . '_city'] ?? [];
 
             if (is_array($schools)) {
                 foreach ($schools as $index => $schoolName) {
@@ -218,6 +201,16 @@ class EnrollmentController extends AbstractController
                             default => strtoupper($lvl)
                         });
                         
+                        $isInt = !empty($isInternationals[$index]);
+                        $school->setIsInternational($isInt);
+                        if ($isInt) {
+                            $school->setCountry($countries[$index] ?? null);
+                        } else {
+                            $school->setRegion($regions[$index] ?? null);
+                            $school->setProvince($provinces[$index] ?? null);
+                            $school->setCity($cities[$index] ?? null);
+                        }
+                        
                         $applicant->addSchool($school);
                         $em->persist($school);
                     }
@@ -225,26 +218,42 @@ class EnrollmentController extends AbstractController
             }
         }
 
-        // --- 6. ROBUST FILE UPLOADS ---
-
-        // 6B. Process Dynamic Document Requirements
         $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
             'campus' => [$applicant->getCampus(), null]
         ]);
         
         foreach ($documentSetups as $docSetup) {
+            // Grouping logic check: Only process documents applicable to this student
+            $docStudentType = $docSetup->getStudentType();
+            $docNationality = $docSetup->getNationalityType();
+            $docGrades = $docSetup->getGradeLevels();
+            
+            $isMatch = true;
+            if ($docStudentType && strtoupper($docStudentType) !== strtoupper($applicant->getAdmissionType())) {
+                $isMatch = false;
+            }
+            $isFilipino = strtoupper($applicant->getCitizenship()) === 'FILIPINO';
+            $studentNationality = $isFilipino ? 'LOCAL' : 'INTERNATIONAL';
+            if ($docNationality && strtoupper($docNationality) !== $studentNationality) {
+                $isMatch = false;
+            }
+            if ($docGrades && is_array($docGrades) && count($docGrades) > 0) {
+                if (!in_array($applicant->getGradeLevel(), $docGrades)) {
+                    $isMatch = false;
+                }
+            }
+            
+            if (!$isMatch) continue;
+
             $slug = $docSetup->getSlug();
             $file = $request->files->get($slug);
             
             if ($file instanceof UploadedFile) {
-                
-                // Server-Side Size Validation (10MB)
                 if ($file->getSize() > 10485760) {
                     $this->addFlash('error', 'The document ' . $docSetup->getDocumentName() . ' exceeds the 10MB limit.');
-                    return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+                    return $this->redirectToRoute('app_enrollment_diliman_apply');
                 }
 
-                // Dynamic File Type Validation based on Admin Settings
                 $allowedTypesString = $docSetup->getAllowedFileTypes();
                 if (!empty($allowedTypesString)) {
                     $allowedExtensions = array_map('trim', explode(',', strtolower($allowedTypesString)));
@@ -252,7 +261,7 @@ class EnrollmentController extends AbstractController
                     
                     if (!in_array($fileExtension, $allowedExtensions)) {
                         $this->addFlash('error', 'Invalid file format for ' . $docSetup->getDocumentName() . '. Allowed formats: ' . strtoupper($allowedTypesString));
-                        return $this->redirectToRoute('app_enrollment_apply', ['campus' => $campus]);
+                        return $this->redirectToRoute('app_enrollment_diliman_apply');
                     }
                 }
 
@@ -272,7 +281,6 @@ class EnrollmentController extends AbstractController
                     $req->setSlug($slug);
                     $req->setStatus('S');
                     $req->setDateSubmitted(new \DateTime());
-                    $req->setIsRequired($docSetup->isRequired());
                     $req->setIsDeleted(false);
                     
                     $applicant->addRequirement($req);
@@ -284,7 +292,7 @@ class EnrollmentController extends AbstractController
         $em->persist($applicant);
         $em->flush();
 
-        return $this->redirectToRoute('app_enrollment_success', ['studentNumber' => $studentNo]);
+        return $this->redirectToRoute('app_enrollment_diliman_success', ['studentNumber' => $studentNo]);
     }
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
@@ -300,14 +308,17 @@ class EnrollmentController extends AbstractController
         if($regionId) {
             $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regionId]);
             if($r) $applicant->{'set'.$fieldPrefix.'Region'}($r->getRegionDesc());
+            else $applicant->{'set'.$fieldPrefix.'Region'}(strtoupper($regionId));
         }
         if($provId) {
             $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provId]);
             if($p) $applicant->{'set'.$fieldPrefix.'Province'}($p->getProvinceDesc());
+            else $applicant->{'set'.$fieldPrefix.'Province'}(strtoupper($provId));
         }
         if($cityId) {
             $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityId]);
             if($c) $applicant->{'set'.$fieldPrefix.'City'}($c->getCityDesc());
+            else $applicant->{'set'.$fieldPrefix.'City'}(strtoupper($cityId));
         }
         if($brgyId) {
             $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyId); 
@@ -378,19 +389,19 @@ class EnrollmentController extends AbstractController
         $em->persist($guardian);
     }
 
-    #[Route('/apply/success/{studentNumber}', name: 'app_enrollment_success', methods: ['GET'])]
+    #[Route('/success/{studentNumber}', name: 'app_enrollment_diliman_success', methods: ['GET'])]
     public function success(string $studentNumber, EntityManagerInterface $em): Response
     {
         $applicant = $em->getRepository(ApplicantBed::class)->findOneBy(['studentNumber' => $studentNumber]);
         if (!$applicant) throw $this->createNotFoundException('Application not found.');
 
-        return $this->render('enrollment-onsite/success.html.twig', [
+        return $this->render('enrollment-onsite/diliman/success.html.twig', [
             'student_number' => $applicant->getStudentNumber(),
             'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName()
         ]);
     }
 
-    #[Route('/api/check-lrn', name: 'app_enrollment_check_lrn', methods: ['GET'])]
+    #[Route('/api/check-lrn', name: 'app_enrollment_diliman_check_lrn', methods: ['GET'])]
     public function checkLrn(Request $request, EntityManagerInterface $em): Response
     {
         $lrn = $request->query->get('lrn');

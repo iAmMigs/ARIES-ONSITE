@@ -259,79 +259,15 @@
 <div class="main-content py-12 bg-gray-50">
     <div class="container mx-auto px-4 max-w-5xl">
  
-        <form action="{{ path('app_enrollment_apply_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="{{ selected_campus|default('') }}">
+        <form action="{{ path('app_enrollment_diliman_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="feu_diliman">
             
-            {% for label, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} mb-4 rounded-xl font-medium flex items-center gap-2">
-                        <i class="ki-filled ki-information-5 text-lg"></i> {{ message }}
-                    </div>
-                {% endfor %}
-            {% endfor %}
-
             {# --- CARD 1: ADMISSION DETAILS --- #}
             <div class="card mb-5 animate-section" id="step-card-1">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ki-filled ki-bank text-feu-green-600 fs-1"></i>STEP 1 : Admission Information</h3>
                 </div>
                 <div class="card-body">
-                    <div class="campus-selector-row">
-
-                        {# FEU Alabang Option #}
-                        {% if alabang_enrollment_open|default(false) %}
-                            <label class="campus-option {{ selected_campus == 'feu_alabang' ? 'active' : '' }}"
-                                   onclick="selectCampus('feu_alabang')">
-                                <input type="radio" name="campus_selected" value="feu_alabang" class="d-none" {{ selected_campus == 'feu_alabang' ? 'checked' : '' }} required>
-                                <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                                <div class="text-center">
-                                    <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
-                                    <h5 class="font-bold text-gray-800">FEU Alabang</h5>
-                                    <p class="text-xs text-gray-500">Filinvest City, Alabang</p>
-                                </div>
-                            </label>
-                        {% else %}
-                            {# Alabang is closed — show as locked and non-selectable #}
-                            <div class="campus-option campus-closed" title="Enrollment is closed for FEU Alabang">
-                                <div class="text-center">
-                                    <img src="{{ asset('images/hero/alabang.png') }}" class="h-16 mx-auto mb-3" alt="Alabang">
-                                    <h5 class="font-bold text-gray-800">FEU Alabang</h5>
-                                    <p class="text-xs text-gray-500">Filinvest City, Alabang</p>
-                                    <span class="campus-closed-badge">
-                                        <i class="ki-filled ki-time" style="font-size:0.65rem"></i> Enrollment is closed
-                                    </span>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        {# FEU Diliman Option #}
-                        {% if diliman_enrollment_open|default(false) %}
-                            <label class="campus-option {{ selected_campus == 'feu_diliman' ? 'active' : '' }}"
-                                   onclick="selectCampus('feu_diliman')">
-                                <input type="radio" name="campus_selected" value="feu_diliman" class="d-none" {{ selected_campus == 'feu_diliman' ? 'checked' : '' }}>
-                                <div class="check-icon"><i class="ki-filled ki-check text-white"></i></div>
-                                <div class="text-center">
-                                    <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
-                                    <h5 class="font-bold text-gray-800">FEU Diliman</h5>
-                                    <p class="text-xs text-gray-500">Diliman, Quezon City</p>
-                                </div>
-                            </label>
-                        {% else %}
-                            {# Diliman is closed — show as locked and non-selectable #}
-                            <div class="campus-option campus-closed" title="Enrollment is closed for FEU Diliman">
-                                <div class="text-center">
-                                    <img src="{{ asset('images/hero/diliman.png') }}" class="h-16 mx-auto mb-3" alt="Diliman">
-                                    <h5 class="font-bold text-gray-800">FEU Diliman</h5>
-                                    <p class="text-xs text-gray-500">Diliman, Quezon City</p>
-                                    <span class="campus-closed-badge">
-                                        <i class="ki-filled ki-time" style="font-size:0.65rem"></i> Enrollment is closed
-                                    </span>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                    </div>
-
-                    <div class="row g-4 mt-4">
+                    <div class="row g-4">
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label class="form-label">Admission Type<span class="required">*</span></label>
@@ -369,7 +305,7 @@
                         
                         <div class="col-md-4" id="strandGroup" style="display:none;">
                             <div class="form-group">
-                                <label class="form-label">Strand <span class="required">*</span></label>
+                                <label class="form-label">Framework <span class="required">*</span></label>
                                 <select name="strand" id="strand" class="form-select">
                                     <option value="">Select Option</option>
                                 </select>
@@ -460,12 +396,7 @@
                         </div>
                     </div>
                     
-                    <div class="row g-4 mt-2">
-                        <div class="col-md-12">
-                            <label class="form-label">Indigenous Group</label>
-                            <input type="text" name="indigenous_group" class="form-control" placeholder="If applicable">
-                        </div>
-                    </div>
+
 
                     <div id="foreign_fields_container" style="display: none;" class="mt-4 p-3 bg-light rounded border">
                         <p class="text-primary small mb-3 fw-bold">
@@ -608,19 +539,25 @@
                     
                     {# Father #}
                     <div class="bg-gray-50 p-5 rounded mb-5">
-                        <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Father's Information</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0">Father's Information</h6>
+                            <div class="form-check">
+                                <input class="form-check-input guardian-checkbox" type="checkbox" id="f_is_guardian" name="father_is_guardian" value="1" onchange="setGuardian('father')">
+                                <label class="form-check-label text-sm fw-bold cursor-pointer" for="f_is_guardian">Set as Guardian</label>
+                            </div>
+                        </div>
                         <div class="row g-4 mb-4">
                             <div class="col-md-4">
                                 <label class="form-label">Last Name <span class="required">*</span></label>
-                                <input type="text" name="father_lastname" class="form-control" placeholder="Last Name" required>
+                                <input type="text" name="father_lastname" id="father_lastname" class="form-control" placeholder="Last Name" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">First Name <span class="required">*</span></label>
-                                <input type="text" name="father_firstname" class="form-control" placeholder="First Name" required>
+                                <input type="text" name="father_firstname" id="father_firstname" class="form-control" placeholder="First Name" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Middle Name</label>
-                                <input type="text" name="father_middlename" class="form-control" placeholder="Middle Name">
+                                <input type="text" name="father_middlename" id="father_middlename" class="form-control" placeholder="Middle Name">
                             </div>
                         </div>
                         <div class="row g-4">
@@ -658,19 +595,25 @@
 
                     {# Mother #}
                     <div class="bg-gray-50 p-5 rounded mb-5">
-                        <h6 class="fw-bold text-dark mb-4 border-bottom pb-2">Mother's Information</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0">Mother's Information</h6>
+                            <div class="form-check">
+                                <input class="form-check-input guardian-checkbox" type="checkbox" id="m_is_guardian" name="mother_is_guardian" value="1" onchange="setGuardian('mother')">
+                                <label class="form-check-label text-sm fw-bold cursor-pointer" for="m_is_guardian">Set as Guardian</label>
+                            </div>
+                        </div>
                         <div class="row g-4 mb-4">
                             <div class="col-md-4">
                                 <label class="form-label">Maiden Name <span class="required">*</span></label>
-                                <input type="text" name="mother_lastname" class="form-control" placeholder="Maiden Name" required>
+                                <input type="text" name="mother_lastname" id="mother_lastname" class="form-control" placeholder="Maiden Name" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">First Name <span class="required">*</span></label>
-                                <input type="text" name="mother_firstname" class="form-control" placeholder="First Name" required>
+                                <input type="text" name="mother_firstname" id="mother_firstname" class="form-control" placeholder="First Name" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Middle Name</label>
-                                <input type="text" name="mother_middlename" class="form-control" placeholder="Middle Name">
+                                <input type="text" name="mother_middlename" id="mother_middlename" class="form-control" placeholder="Middle Name">
                             </div>
                         </div>
                         <div class="row g-4">
@@ -712,23 +655,23 @@
                         <div class="row g-4">
                             <div class="col-md-4">
                                 <label class="form-label">Full Name <span class="required">*</span></label>
-                                <input type="text" name="guardian_name" class="form-control" placeholder="Full Name" required>
+                                <input type="text" name="guardian_name" id="guardian_name" class="form-control" placeholder="Full Name" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Relationship <span class="required">*</span></label>
-                                <input type="text" name="guardian_relation" class="form-control" placeholder="Relationship" required>
+                                <input type="text" name="guardian_relation" id="guardian_relation" class="form-control" placeholder="Relationship" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                                <input type="tel" name="guardian_contact" id="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Email Address <span class="required">*</span></label>
-                                <input type="email" name="guardian_email" class="form-control" placeholder="Email Address" required>
+                                <input type="email" name="guardian_email" id="guardian_email" class="form-control" placeholder="Email Address" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Address <span class="required">*</span></label>
-                                <input type="text" name="guardian_address" class="form-control" placeholder="Complete Address" required>
+                                <input type="text" name="guardian_address" id="guardian_address" class="form-control" placeholder="Complete Address" required>
                             </div>
                         </div>
                     </div>
@@ -817,49 +760,18 @@
                     <h3 class="card-title"><i class="ki-filled ki-folder-added text-feu-green-600 fs-1"></i>STEP 6 : Submission of Documents</h3>
                 </div>
                 <div class="card-body">
-                    {% if documents is defined and documents|length > 0 %}
-                        <div id="dynamic-documents-container">
-                            {% for doc in documents %}
-                                <div class="file-upload-group mb-4 document-item" data-campus="{{ doc.campus }}">
-                                    <label class="form-label d-block">
-                                        {{ doc.documentName }} 
-                                        {% if doc.isRequired %}<span class="required">*</span>{% endif %}
-                                    </label>
-                                    
-                                    {% set accept_attr = '' %}
-                                    {% if doc.allowedFileTypes %}
-                                        {% for ext in doc.allowedFileTypes|split(',') %}
-                                            {% set accept_attr = accept_attr ~ '.' ~ ext|trim ~ (loop.last ? '' : ', ') %}
-                                        {% endfor %}
-                                    {% endif %}
-
-                                    <input type="file" name="{{ doc.slug }}" class="form-control document-input" 
-                                           data-is-required="{{ doc.isRequired ? 'true' : 'false' }}"
-                                           {% if doc.isRequired %}required{% endif %} 
-                                           {% if accept_attr %}accept="{{ accept_attr }}"{% endif %}>
-                                    
-                                    <p class="text-xs text-gray-500 mt-2">
-                                        Max size: 10MB. 
-                                        {% if doc.allowedFileTypes %}
-                                            Accepted formats: <span class="uppercase font-bold text-gray-600">{{ doc.allowedFileTypes }}</span>
-                                        {% else %}
-                                            Accepted formats: All Formats
-                                        {% endif %}
-                                    </p>
-                                </div>
-                            {% endfor %}
+                    <div id="dynamic-documents-container">
+                        <div class="text-center p-5 text-gray-500">
+                            <i class="ki-filled ki-loading animate-spin text-3xl mb-2 text-feu-green-600"></i>
+                            <p>Loading required documents...</p>
                         </div>
+                    </div>
                         
-                        <div id="no-docs-message" class="alert alert-warning text-center" style="display: none;">
+                    <div id="no-docs-message" class="alert alert-warning text-center" style="display: none;">
                             <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
                             <p class="mb-0">No documents are currently required for this campus.</p>
                         </div>
-                    {% else %}
-                        <div class="alert alert-warning text-center">
-                            <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
-                            <p class="mb-0">No documents are currently required for enrollment. Proceed to submit.</p>
-                        </div>
-                    {% endif %}
+
                 </div>
             </div>
 

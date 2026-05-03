@@ -1,0 +1,981 @@
+{# templates/enrollment-onsite/enroll.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Application{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/base.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/pages/admission.css') }}?v=22">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <style>
+        :root {
+            --feu-green-dark: #143d24;
+            --feu-green: #1a4d2e;
+            --feu-gold: #d4af37;
+        }
+
+        .aries-sticky-header {
+            position: fixed;
+            top: 0; left: 0; right: 0; z-index: 999;
+            padding: 0.75rem 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+        }
+        .aries-sticky-header.scrolled {
+            padding: 0.5rem 0;
+            background: var(--feu-green-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            align-items: center; justify-content: center; position: relative;
+        }
+        .header-logo-area {
+            position: absolute;
+            left: 0; display: flex; align-items: center; gap: 8px;
+            color: white; text-decoration: none; cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .header-logo-area:hover {
+            color: var(--feu-gold) !important;
+        }
+        
+        .header-title {
+            font-weight: 900;
+            font-size: 1.5rem; color: white; letter-spacing: 2px;
+            opacity: 0; transform: translateY(-10px); transition: all 0.3s;
+        }
+        .aries-sticky-header.scrolled .header-title {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .page-banner { padding-top: 6rem !important; }
+
+        .text-feu-gold { color: var(--feu-gold) !important; }
+        
+        .campus-selector-row { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .campus-option {
+            background: white; border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; width: 280px;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+        }
+        .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4; ring: 4px solid rgba(26,77,46,0.1); }
+        .campus-option.campus-closed {
+            opacity: 0.55;
+            cursor: not-allowed;
+            border-color: #e5e7eb;
+            background: #f9fafb;
+        }
+        .campus-option.campus-closed:hover { transform: none; border-color: #e5e7eb; box-shadow: none; }
+        .campus-closed-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            margin-top: 6px; padding: 2px 8px; border-radius: 9999px;
+            background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 700;
+        }
+        .campus-option .check-icon {
+            position: absolute;
+            top: 1rem; right: 1rem; width: 24px; height: 24px; background: var(--feu-green-dark);
+            color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transform: scale(0); transition: all 0.3s ease;
+        }
+        .campus-option.active .check-icon { opacity: 1; transform: scale(1); }
+        
+        .status-checkbox-group { display: flex; gap: 10px; }
+        .btn-check-custom { position: absolute; clip: rect(0,0,0,0); pointer-events: none; }
+        .btn-check-label {
+            display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #6b7280;
+            cursor: pointer; transition: all 0.2s; background: white;
+        }
+        .btn-check-custom:checked + .btn-check-label { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .btn-check-custom:disabled + .btn-check-label { opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6; }
+
+        .sibling-row { position: relative; padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem; }
+        .btn-remove-sibling {
+            position: absolute; top: -10px; left: -10px; width: 28px; height: 28px; border-radius: 50%;
+            background: #ef4444; color: white; border: none; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s;
+        }
+        .btn-remove-sibling:hover { background: #dc2626; transform: scale(1.1); }
+
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
+        .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark)); color: white;
+            padding: 1rem 3rem; border-radius: 50px; font-weight: 700; border: none;
+            box-shadow: 0 10px 20px rgba(26,77,46,0.2); transition: all 0.3s ease; width: 100%;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(26,77,46,0.3); }
+        .btn-submit:disabled { background: #9ca3af; transform: none; box-shadow: none; cursor: not-allowed; }
+
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 0.75rem 1rem; }
+        .required { color: #dc2626; margin-left: 2px; }
+        
+        .animate-section { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .animate-section.visible { opacity: 1; transform: translateY(0); }
+
+        .is-invalid {
+            border-color: #dc2626 !important; padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc2626'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc2626' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right calc(0.375em + 0.1875rem) center; background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        .is-valid { border-color: #16a34a !important; background-image: none !important; }
+
+        .summary-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+        .summary-item { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.4rem; border-bottom: 1px dashed #e5e7eb;}
+        .summary-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .summary-label { color: #6b7280; font-weight: 600; font-size: 0.85rem; }
+        .summary-val { color: #111827; font-weight: 700; font-size: 0.9rem; text-align: right; max-width: 60%; word-wrap: break-word;}
+
+        /** Styling declarations for the floating scroll spy component */
+        body::-webkit-scrollbar { width: 0px; }
+        body { scrollbar-width: none; }
+        
+        .step-nav-container {
+            position: fixed; right: 25px; top: 50%; transform: translateY(-50%); z-index: 1000;
+            display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
+        }
+
+        .step-nav-item {
+            display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.3s ease; position: relative;
+        }
+
+        .step-bar {
+            width: 4px; height: 35px; background: #cbd5e1; border-radius: 4px; transition: all 0.3s ease;
+        }
+
+        .step-label {
+            font-size: 0.7rem; font-weight: 800; color: #475569; background: white;
+            padding: 4px 12px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            opacity: 0; transform: translateX(10px); transition: all 0.3s ease; border: 1px solid #e2e8f0; white-space: nowrap;
+            display: flex; align-items: center; justify-content: center; min-width: 25px; height: 25px;
+        }
+
+        .step-text { display: none; }
+        .step-number { display: inline; }
+
+        .step-nav-item:hover .step-text, .step-nav-item.active .step-text { display: inline; }
+        .step-nav-item:hover .step-number, .step-nav-item.active .step-number { display: none; }
+        .step-nav-item:hover .step-label, .step-nav-item.active .step-label { opacity: 1; transform: translateX(0); }
+        .step-nav-item.active .step-bar { background: var(--feu-green); width: 8px; }
+        .step-nav-item.active .step-label { background: var(--feu-green); color: white; }
+
+        /* DPA Modal Specific Styling */
+        #dpaModalOverlay {
+            position: fixed; inset: 0; z-index: 100000;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        #dpaModalOverlay.visible {
+            opacity: 1; visibility: visible;
+        }
+        #dpaModalContainer {
+            background: white; border-radius: 16px; width: 90%; max-width: 700px;
+            max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #dpaModalOverlay.visible #dpaModalContainer {
+            transform: scale(1);
+        }
+        .dpa-header {
+            padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6;
+            display: flex; align-items: center; gap: 1rem;
+        }
+        .dpa-header h2 { font-weight: 800; font-size: 1.5rem; color: var(--feu-green-dark); margin: 0; }
+        .dpa-scroll-content {
+            padding: 2rem; overflow-y: auto; flex: 1;
+            font-size: 0.95rem; line-height: 1.6; color: #4b5563;
+        }
+        /* Custom scrollbar for DPA content */
+        .dpa-scroll-content::-webkit-scrollbar { width: 6px; }
+        .dpa-scroll-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .dpa-scroll-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dpa-scroll-content::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dpa-footer {
+            padding: 1.5rem 2rem; border-top: 1px solid #f3f4f6;
+            display: flex; justify-content: flex-end; align-items: center; gap: 1rem; background: #fafafa; border-radius: 0 0 16px 16px;
+        }
+        .btn-dpa-agree {
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark));
+            color: white; padding: 0.75rem 2rem; border-radius: 50px; font-weight: 700; border: none;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-dpa-agree:hover:not(:disabled) { box-shadow: 0 8px 15px rgba(26,77,46,0.3); transform: translateY(-2px); }
+        .btn-dpa-agree:disabled { background: #9ca3af; cursor: not-allowed; opacity: 0.7; }
+        .dpa-help-text { font-size: 0.8rem; color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .dpa-checkbox-group label {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; margin-bottom: 1rem;
+        }
+        .dpa-checkbox-group input { margin-top: 4px; transform: scale(1.2); }
+    </style>
+{% endblock %}
+
+{% block body %}
+
+{# --- PAGE LOADER OVERLAY --- #}
+<div id="enrollmentLoader" class="fixed inset-0 flex flex-col items-center justify-center bg-gray-50 z-[99999] transition-all duration-500">
+    <div class="relative w-20 h-20 mb-4">
+        <img src="/images/loader.gif" class="w-full h-full object-contain" alt="Loading...">
+    </div>
+    <h2 class="mt-5 text-xl font-black tracking-widest text-feu-green-700">ARIES</h2>
+    <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your application...</p>
+</div>
+
+{# --- STICKY HEADER --- #}
+<header class="aries-sticky-header" id="stickyHeader">
+    <div class="container mx-auto px-4 header-content">
+        <a href="javascript:history.back()" class="header-logo-area">
+            <i class="ki-filled ki-arrow-left fs-2"></i>
+            <span class="font-bold text-sm hidden md:block">Back</span>
+        </a>
+        <div class="header-title">ARIES</div>
+    </div>
+</header>
+
+{# --- BANNER --- #}
+<section class="page-banner bg-gradient-to-r from-feu-green-900 to-feu-green-800 text-white py-12 relative overflow-hidden">
+    <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
+   
+    <div class="container mx-auto px-4 relative z-10 text-center pt-4 pb-2">
+        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions 2025-2026</span>
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
+        <p class="text-base text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
+    </div>
+</section>
+
+<div class="main-content py-12 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-5xl">
+ 
+        <form action="{{ path('app_enrollment_alabang_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="feu_alabang">
+            
+            {# --- CARD 1: ADMISSION DETAILS --- #}
+            <div class="card mb-5 animate-section" id="step-card-1">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-bank text-feu-green-600 fs-1"></i>STEP 1 : Admission Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Admission Type<span class="required">*</span></label>
+                                <select name="admission_type" id="admissionType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="New Student">New Student</option>
+                                    <option value="Transferee">Transferee</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Education Type<span class="required">*</span></label>
+                                <select name="education_type" id="educationType" class="form-select bg-gray-100" required onchange="updateGradeLevels()" style="pointer-events: none;" tabindex="-1">
+                                    <option value="Senior High School" selected>Senior High School</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Grade Level <span class="required">*</span></label>
+                                <select name="grade_level" id="gradeLevel" class="form-select" required onchange="updateStrands()">
+                                    <option value="">Select Education Type First</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4" id="strandGroup" style="display:none;">
+                            <div class="form-group">
+                                <label class="form-label">Strand <span class="required">*</span></label>
+                                <select name="strand" id="strand" class="form-select">
+                                    <option value="">Select Option</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">LRN (Learner Reference No.) <span class="required" id="lrnRequiredSpan">*</span></label>
+                                <input type="text" name="lrn" id="lrnInput" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 2: PERSONAL INFORMATION --- #}
+            <div class="card mb-5 animate-section" id="step-card-2">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-user text-feu-green-600 fs-1"></i>STEP 2 : Personal Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Last Name <span class="required">*</span></label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="required">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Suffix</label>
+                            <input type="text" name="suffix" class="form-control" placeholder="e.g. Jr.">
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Date of Birth <span class="required">*</span></label>
+                            <input type="date" name="birthday" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Birth Place <span class="required">*</span></label>
+                            <input type="text" name="birth_place" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Gender <span class="required">*</span></label>
+                            <select name="gender" class="form-select" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Religion</label>
+                            <select name="religion" id="religionSelect" class="form-select" data-control="select2" data-placeholder="Select Religion">
+                                <option value=""></option>
+                                {% for rel in religions %}
+                                    {% if rel.religionName|upper != 'OTHER' %}
+                                        <option value="{{ rel.religionName }}">{{ rel.religionName }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="OTHER">Other (Please specify)</option>
+                            </select>
+                            
+                            <div id="other_religion_container" style="display: none;" class="mt-2">
+                                <input type="text" name="other_religion" id="otherReligionInput" class="form-control" placeholder="Enter your religion">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Citizenship <span class="required">*</span></label>
+                            <select name="citizenship" id="citizenshipSelect" class="form-select" required data-control="select2" data-placeholder="Select Citizenship">
+                                <option value="FILIPINO" selected>FILIPINO</option>
+                                {% for cit in citizenships %}
+                                    {% if cit.citizenshipName|upper != 'FILIPINO' %}
+                                        <option value="{{ cit.citizenshipName }}">{{ cit.citizenshipName }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+
+
+                    <div id="foreign_fields_container" style="display: none;" class="mt-4 p-3 bg-light rounded border">
+                        <p class="text-primary small mb-3 fw-bold">
+                            <i class="fas fa-info-circle me-1"></i> Please ensure your visa and passport details are correct and valid.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Number <span class="text-danger">*</span></label>
+                                <input type="text" name="passport_number" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Visa Type <span class="text-danger">*</span></label>
+                                <select name="visa_type" id="visaType" class="form-select">
+                                    <option value="">Select Visa Type</option>
+                                    <option value="student">Student Visa (9F)</option>
+                                    <option value="special_student">Special Study Permit (SSP)</option>
+                                    <option value="tourist">Tourist Visa</option>
+                                    <option value="immigrant">Immigrant Visa</option>
+                                    <option value="permanent_resident">Permanent Resident</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Visa Status <span class="text-danger">*</span></label>
+                                <input type="text" name="visa_status" class="form-control" placeholder="e.g., Active, Expired">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 3: CONTACT & ADDRESS --- #}
+            <div class="card mb-5 animate-section" id="step-card-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-map text-feu-green-600 fs-1"></i>STEP 3 : Contact & Address</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-4">
+                            <label class="form-label">Mobile Number <span class="required">*</span></label>
+                            <input type="tel" name="contact_number" class="form-control" required placeholder="09xxxxxxxxx" maxlength="11" minlength="11" pattern="\d{11}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Landline</label>
+                            <input type="tel" name="landline" class="form-control">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-gray-600 mb-3 border-bottom pb-2">Current Address</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Region <span class="required">*</span></label>
+                            <select id="addr_region" name="region" class="form-select" required data-control="select2" data-placeholder="Select Region">
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Province <span class="required">*</span></label>
+                            <select id="addr_province" name="address_province" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">City/Municipality <span class="required">*</span></label>
+                            <select id="addr_city" name="address_city" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Barangay <span class="required">*</span></label>
+                            <select id="addr_barangay" name="address_barangay" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                            <input type="text" name="address" class="form-control" required>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <label class="form-label">Zip Code <span class="required">*</span></label>
+                            <input type="text" name="address_zip" id="addr_zip" class="form-control" required placeholder="Enter Zip Code">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-gray-600 mt-5 mb-3 border-bottom pb-2">Permanent Address</h5>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sameAsCurrent" name="sameAsCurrent" onchange="togglePermanentAddress()" checked>
+                        <label class="form-check-label text-sm" for="sameAsCurrent">Same as Current Address</label>
+                    </div>
+
+                    <div id="permanentAddressBlock" style="display:none;">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Region <span class="required">*</span></label>
+                                <select id="perm_region" name="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Province <span class="required">*</span></label>
+                                <select id="perm_province" name="perm_province" class="form-select" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">City/Municipality <span class="required">*</span></label>
+                                <select id="perm_city" name="perm_city" class="form-select" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Barangay <span class="required">*</span></label>
+                                <select id="perm_barangay" name="perm_barangay" class="form-select" disabled>
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                                <input type="text" name="perm_address" class="form-control">
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label">Zip Code <span class="required">*</span></label>
+                                <input type="text" name="perm_zip" id="perm_zip" class="form-control" placeholder="Enter Zip Code">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 4: FAMILY BACKGROUND --- #}
+            <div class="card mb-5 animate-section" id="step-card-4">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-people text-feu-green-600 fs-1"></i>STEP 4 : Family Background</h3>
+                </div>
+                <div class="card-body">
+                    
+                    {# Father #}
+                    <div class="bg-gray-50 p-5 rounded mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0">Father's Information</h6>
+                            <div class="form-check">
+                                <input class="form-check-input guardian-checkbox" type="checkbox" id="f_is_guardian" name="father_is_guardian" value="1" onchange="setGuardian('father')">
+                                <label class="form-check-label text-sm fw-bold cursor-pointer" for="f_is_guardian">Set as Guardian</label>
+                            </div>
+                        </div>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="father_lastname" id="father_lastname" class="form-control" placeholder="Last Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="father_firstname" id="father_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="father_middlename" id="father_middlename" class="form-control" placeholder="Middle Name">
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label d-block">Status</label>
+                                <div class="status-checkbox-group">
+                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw', 'father')">
+                                    <label class="btn-check-label" for="f_deceased"><i class="ki-filled ki-cross-circle"></i> Deceased</label>
+
+                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased', 'father')">
+                                    <label class="btn-check-label" for="f_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="father_occupation_group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4" id="father_contact_group">
+                                <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
+                                <input type="tel" name="father_contact" id="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                        <div class="row g-4 mt-1" id="father_ofw_country_group" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Country of Work <span class="required">*</span></label>
+                                <select name="father_ofw_country" id="father_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Mother #}
+                    <div class="bg-gray-50 p-5 rounded mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0">Mother's Information</h6>
+                            <div class="form-check">
+                                <input class="form-check-input guardian-checkbox" type="checkbox" id="m_is_guardian" name="mother_is_guardian" value="1" onchange="setGuardian('mother')">
+                                <label class="form-check-label text-sm fw-bold cursor-pointer" for="m_is_guardian">Set as Guardian</label>
+                            </div>
+                        </div>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Maiden Name <span class="required">*</span></label>
+                                <input type="text" name="mother_lastname" id="mother_lastname" class="form-control" placeholder="Maiden Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="mother_firstname" id="mother_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="mother_middlename" id="mother_middlename" class="form-control" placeholder="Middle Name">
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label d-block">Status</label>
+                                <div class="status-checkbox-group">
+                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw', 'mother')">
+                                    <label class="btn-check-label" for="m_deceased"><i class="ki-filled ki-cross-circle"></i> Deceased</label>
+
+                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased', 'mother')">
+                                    <label class="btn-check-label" for="m_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4" id="mother_occupation_group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-4" id="mother_contact_group">
+                                <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
+                                <input type="tel" name="mother_contact" id="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                        </div>
+                        <div class="row g-4 mt-1" id="mother_ofw_country_group" style="display: none;">
+                            <div class="col-md-4">
+                                <label class="form-label">Country of Work <span class="required">*</span></label>
+                                <select name="mother_ofw_country" id="mother_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Guardian #}
+                    <div class="bg-blue-50 p-5 rounded">
+                        <h6 class="fw-bold text-dark mb-4">Guardian / Emergency Contact</h6>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Full Name <span class="required">*</span></label>
+                                <input type="text" name="guardian_name" id="guardian_name" class="form-control" placeholder="Full Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Relationship <span class="required">*</span></label>
+                                <input type="text" name="guardian_relation" id="guardian_relation" class="form-control" placeholder="Relationship" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                <input type="tel" name="guardian_contact" id="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address <span class="required">*</span></label>
+                                <input type="email" name="guardian_email" id="guardian_email" class="form-control" placeholder="Email Address" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Address <span class="required">*</span></label>
+                                <input type="text" name="guardian_address" id="guardian_address" class="form-control" placeholder="Complete Address" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 5: EDUCATION --- #}
+            <div class="card mb-5 animate-section" id="step-card-5">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-teacher text-feu-green-600 fs-1"></i>STEP 5 : Education History</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <div id="educ_history_placeholder" class="text-center text-muted fw-bold">
+                        Please select a Grade Level in Step 1 to view required education history.
+                    </div>
+
+                    <div id="educ_history_fields" style="display:none;">
+                        
+                        {# Kinder #}
+                        <div id="section_educ_kinder" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Kindergarten</h6>
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-8">
+                                    <label class="form-label text-xs">School Name <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_school[]" class="form-control form-control-sm educ-input" placeholder="School Name">
+                                    <input type="hidden" name="educ_kinder_level[]" value="Kinder">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs">School Year <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Elementary #}
+                        <div id="section_educ_elem" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Elementary (Grade School)</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('elem')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_elem"></div>
+                        </div>
+
+                        {# Junior High School #}
+                        <div id="section_educ_jhs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Junior High School</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('jhs')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_jhs"></div>
+                        </div>
+
+                        {# Senior High School #}
+                        <div id="section_educ_shs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Senior High School</h6>
+                            <div id="container_educ_shs"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 6: SIBLINGS (Optional) --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-profile-user text-feu-green-600 fs-1"></i> Siblings (Enrolled in FEU)</h3>
+                </div>
+                <div class="card-body">
+                    <div id="siblings_container">
+                        {# Dynamic Rows #}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light-primary mt-3" onclick="addSibling()">
+                        <i class="ki-filled ki-plus"></i> Add Sibling
+                    </button>
+                </div>
+            </div>
+
+            {# --- CARD 7: REQUIREMENTS --- #}
+            <div class="card mb-5 animate-section" id="step-card-6">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-folder-added text-feu-green-600 fs-1"></i>STEP 6 : Submission of Documents</h3>
+                </div>
+                <div class="card-body">
+                    <div id="dynamic-documents-container">
+                        <div class="text-center p-5 text-gray-500">
+                            <i class="ki-filled ki-loading animate-spin text-3xl mb-2 text-feu-green-600"></i>
+                            <p>Loading required documents...</p>
+                        </div>
+                    </div>
+                        
+                    <div id="no-docs-message" class="alert alert-warning text-center" style="display: none;">
+                            <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
+                            <p class="mb-0">No documents are currently required for this campus.</p>
+                        </div>
+
+                </div>
+            </div>
+
+            {# --- SUBMIT BUTTON --- #}
+            <div class="text-center pt-5 pb-10">
+                <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
+                <div id="submitWarning" class="text-danger fw-bold fs-7 mt-3" style="display: none;">
+                    <i class="ki-filled ki-information-2 text-danger"></i> There are missing or incorrect fields. Please check the highlighted boxes.
+                </div>
+            </div>
+
+            {# --- DATA PRIVACY AGREEMENT MODAL --- #}
+            <div id="dpaModalOverlay" aria-modal="true" role="dialog">
+                <div id="dpaModalContainer">
+                    <div class="dpa-header">
+                        <i class="ki-filled ki-shield-tick text-3xl text-feu-green"></i>
+                        <h2>Data Privacy Policy Consent</h2>
+                    </div>
+                    <div class="dpa-scroll-content" id="dpaScrollArea">
+                        <div class="alert alert-info bg-blue-50 border-blue-200 text-blue-800 mb-4 p-3 rounded flex items-start gap-3">
+                            <i class="ki-filled ki-information-2"></i>
+                            <p class="m-0 text-sm">Under the Data Privacy Act of 2012 (RA 10173), we are required to obtain your informed consent before collecting and processing your personal information for admission purposes.</p>
+                        </div>
+                        
+                        <h4 class="font-bold text-gray-800 mb-2">Privacy Notice Acknowledgment</h4>
+                        <p class="mb-5">
+                            I have read and understood all the provisions of the FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools and agree with its full implementation.
+                        </p>
+
+                        <h4 class="font-bold text-gray-800 mb-2">Data Processing Consent</h4>
+                        <p class="mb-5">
+                            I hereby give my consent to FEU for the collection and processing of my personal data, relating to my application for admission, in accordance with the FEU Data Privacy Notice and in compliance with Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines, its Implementing Rules and Regulations, other guidelines and issuances by the National Privacy Commission.
+                        </p>
+                        
+                        <p class="mb-2"><strong>The information collected will be used for:</strong></p>
+                        <ul class="list-disc pl-5 mb-5">
+                            <li>Evaluating your application for admission.</li>
+                            <li>Processing enrollment and registration if admitted.</li>
+                            <li>Communicating with you regarding your application status.</li>
+                            <li>Generating reports required by CHED, DepEd, and other relevant government agencies.</li>
+                        </ul>
+
+                        <div class="dpa-checkbox-group mt-6">
+                            <label for="dpa_consent_check">
+                                <input type="checkbox" id="dpa_consent_check" disabled>
+                                <div>
+                                    <span class="font-bold text-gray-800 block">I confirm my consent</span>
+                                    <span class="text-sm text-gray-500">I have read, understood, and agree to the Data Privacy terms outlined above.</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div style="height: 10px;"></div> {# Extra space for scrolling trigger #}
+                    </div>
+                    <div class="dpa-footer">
+                        <div class="dpa-help-text" id="dpaScrollHint"><i class="ki-filled ki-arrow-down"></i> Please scroll to the bottom to agree</div>
+                        <button type="button" class="btn-dpa-agree" id="btnDpaAgree" disabled>
+                            <span>Accept & Continue</span>
+                            <i class="ki-filled ki-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# --- SUBMIT CONFIRMATION MODAL --- #}
+            <div id="submitConfirmModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="modalDialog">
+                    <div class="p-6 text-center border-b border-gray-100">
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
+                            <i class="ki-filled ki-information-3 text-4xl text-amber-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-gray-900">Are you sure you want to submit?</h3>
+                        <p class="text-sm text-gray-500 mt-2 font-medium">This cannot be undone. Please review your details below.</p>
+                    </div>
+                    <div class="p-6 bg-gray-50 text-left" id="summaryContent">
+                    </div>
+                    <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
+                        <button type="button" onclick="closeConfirmationModal()" class="px-5 py-3 rounded-xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors w-full sm:w-auto">
+                            No, I have some changes
+                        </button>
+                        <button type="button" id="btnConfirmSubmit" onclick="confirmSubmission()" class="px-5 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 transition-colors shadow-lg shadow-feu-green-700/30 w-full sm:w-auto flex items-center justify-center gap-2">
+                            Yes, I'm sure
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# --- MISSING DOCUMENTS WARNING MODAL --- #}
+            <div id="docWarningModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="docWarningDialog">
+                    <div class="p-8 text-center">
+                        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-50 mb-6">
+                            <i class="ki-filled ki-folder-minus text-5xl text-amber-500"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-gray-900 mb-3">Wait, some documents are missing!</h3>
+                        <p class="text-base text-gray-500 font-medium px-4">
+                            You haven't uploaded all the documents. While these are not strictly required for initial application, providing them now will speed up your evaluation.
+                        </p>
+                        
+                        <div class="mt-8 bg-amber-50 border border-amber-100 rounded-xl p-4 text-left mx-4">
+                            <h4 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="ki-filled ki-information-2"></i> Missing Items:
+                            </h4>
+                            <ul class="space-y-2" id="missingDocsList">
+                                {# Dynamic list of missing docs #}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-100 flex flex-col gap-3 bg-gray-50">
+                        <button type="button" onclick="closeDocWarningModal()" class="px-5 py-4 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 w-full flex items-center justify-center gap-2">
+                            <i class="ki-filled ki-pencil"></i>
+                            Go back and upload
+                        </button>
+                        <button type="button" onclick="proceedToFinalConfirmation()" class="px-5 py-3 rounded-xl font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all w-full text-sm underline decoration-gray-300 underline-offset-4">
+                            Submit without documents
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# --- PROMISSORY NOTE MODAL --- #}
+            <div id="promissoryModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden transform scale-95 transition-transform duration-300" id="promissoryDialog">
+                    <div class="p-8">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="h-12 w-12 rounded-xl bg-feu-green-50 flex items-center justify-center text-feu-green-600">
+                                <i class="ki-filled ki-notepad-edit text-3xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-gray-900">Promissory Agreement</h3>
+                                <p class="text-sm text-gray-500 font-medium">Agreement for late document submission</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-100">
+                            <p class="text-gray-700 leading-relaxed text-sm italic">
+                                "I hereby acknowledge that I have not submitted all the required documents for my application at this time. I promise to provide the missing requirements on or before the date selected below. I understand that failure to comply may affect my admission status."
+                            </p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <label class="block">
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">When do you plan to submit these documents?</span>
+                                <div class="relative">
+                                    <input type="date" name="documents_agreed_date" id="promissoryDate" 
+                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-feu-green-500 focus:ring-0 transition-all outline-none font-bold text-gray-700"
+                                           min="{{ "now"|date("Y-m-d") }}">
+                                    <i class="ki-filled ki-calendar absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                </div>
+                            </label>
+                            <div id="promissoryError" class="text-red-500 text-xs font-bold hidden">
+                                <i class="ki-filled ki-information-2"></i> Please select a valid future date.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-white">
+                        <button type="button" onclick="closePromissoryModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all flex-1">
+                            Cancel
+                        </button>
+                        <button type="button" onclick="validatePromissoryAndContinue()" class="px-6 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 flex-1 flex items-center justify-center gap-2">
+                            Agree & Continue
+                            <i class="ki-filled ki-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {# Floating Step Navigation (Replaces right-side scrollbar) #}
+            <div class="step-nav-container" id="stepNav">
+                {% set steps = [
+                    'Admission Info', 'Personal Info', 'Contact & Address', 
+                    'Family Background', 'Education History', 'Document Submission'
+                ] %}
+                {% for label in steps %}
+                    <div class="step-nav-item {% if loop.first %}active{% endif %}" data-step="{{ loop.index }}" onclick="window.scrollToStep({{ loop.index }})">
+                        <span class="step-label">
+                            <span class="step-text">STEP {{ loop.index }}: {{ label }}</span>
+                            <span class="step-number">{{ loop.index }}</span>
+                        </span>
+                        <div class="step-bar"></div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </form>
+
+
+<script src="{{ asset('js/validation.js') }}"></script>
+<script src="{{ asset('js/enrollment.js') }}"></script>
+
+<script>
+    const loader = document.getElementById('enrollmentLoader');
+    if (loader) {
+        const minLoadTime = 1500;
+        const startTime = Date.now();
+        
+        window.addEventListener('load', function() {
+            const timeElapsed = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadTime - timeElapsed);
+            
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(() => loader.remove(), 500);
+            }, remainingTime); 
+        });
+    }
+</script>
+
+{% endblock %}

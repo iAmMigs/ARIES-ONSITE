@@ -41,7 +41,7 @@ class AuditBedApplicant
     #[ORM\Column(length: 10, nullable: true)] private ?string $gender = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
+
     #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
@@ -69,6 +69,8 @@ class AuditBedApplicant
     // Other
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $admissionDate = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $documentsAgreedDate = null;
 
     public function __set($name, $value) {
         if (property_exists($this, $name)) {

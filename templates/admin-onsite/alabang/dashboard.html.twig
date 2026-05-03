@@ -67,70 +67,7 @@
                     </table>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {# GRS Table #}
-                    <div>
-                        <table class="w-full text-sm text-center border-collapse shadow-sm">
-                            <thead>
-                                <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
-                                    <th class="px-4 py-3 border border-gray-800">GRS</th>
-                                    <th class="px-4 py-3 border border-gray-800">New</th>
-                                    <th class="px-4 py-3 border border-gray-800">Trans</th>
-                                    <th class="px-4 py-3 border border-gray-800">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="font-bold">
-                                {% set grsNew = 0 %}{% set grsTrans = 0 %}{% set grsTotal = 0 %}
-                                {% for item in summary.grs %}
-                                <tr class="{% if loop.index is odd %}bg-gray-50{% endif %}">
-                                    <td class="px-4 py-2.5 text-left border border-gray-200 text-[11px]">{{ item.name }}</td>
-                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.new }}</td>
-                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.transferee }}</td>
-                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.total }}</td>
-                                </tr>
-                                {% set grsNew = grsNew + item.new %}{% set grsTrans = grsTrans + item.transferee %}{% set grsTotal = grsTotal + item.total %}
-                                {% endfor %}
-                                <tr class="bg-gray-100 font-black">
-                                    <td class="px-4 py-3 text-left border border-gray-200">Total</td>
-                                    <td class="px-4 py-3 border border-gray-200">{{ grsNew }}</td>
-                                    <td class="px-4 py-3 border border-gray-200">{{ grsTrans }}</td>
-                                    <td class="px-4 py-3 border border-gray-200">{{ grsTotal }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {# JHS Table #}
-                    <div>
-                        <table class="w-full text-sm text-center border-collapse shadow-sm">
-                            <thead>
-                                <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
-                                    <th class="px-4 py-3 border border-gray-800">JHS</th>
-                                    <th class="px-4 py-3 border border-gray-800">New</th>
-                                    <th class="px-4 py-3 border border-gray-800">Trans</th>
-                                    <th class="px-4 py-3 border border-gray-800">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody class="font-bold">
-                                {% set jhsNew = 0 %}{% set jhsTrans = 0 %}{% set jhsTotal = 0 %}
-                                {% for item in summary.jhs %}
-                                <tr class="{% if loop.index is odd %}bg-gray-50{% endif %}">
-                                    <td class="px-4 py-2.5 text-left border border-gray-200 text-[11px]">{{ item.name }}</td>
-                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.new }}</td>
-                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.transferee }}</td>
-                                    <td class="px-4 py-2.5 border border-gray-200">{{ item.total }}</td>
-                                </tr>
-                                {% set jhsNew = jhsNew + item.new %}{% set jhsTrans = jhsTrans + item.transferee %}{% set jhsTotal = jhsTotal + item.total %}
-                                {% endfor %}
-                                <tr class="bg-gray-100 font-black">
-                                    <td class="px-4 py-3 text-left border border-gray-200">Total</td>
-                                    <td class="px-4 py-3 border border-gray-200">{{ jhsNew }}</td>
-                                    <td class="px-4 py-3 border border-gray-200">{{ jhsTrans }}</td>
-                                    <td class="px-4 py-3 border border-gray-200">{{ jhsTotal }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="grid grid-cols-1 gap-8">
 
                     {# SHS Table #}
                     <div>

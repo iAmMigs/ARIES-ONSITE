@@ -63,7 +63,7 @@ class AdminAlabangController extends AbstractController
         ];
 
         $categories = [
-            'K to 10' => ['levels' => ['Kinder', 'kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']],
+
             'Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]
         ];
 
@@ -125,17 +125,17 @@ class AdminAlabangController extends AbstractController
             ];
         };
 
-        $grsLevels = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
-        foreach ($grsLevels as $l) {
-            $data = $getBreakdown($l);
-            $summary['grs'][] = array_merge(['name' => $l], $data);
-        }
 
-        $jhsLevels = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
-        foreach ($jhsLevels as $l) {
-            $data = $getBreakdown($l);
-            $summary['jhs'][] = array_merge(['name' => $l], $data);
-        }
+
+
+
+
+
+
+
+
+
+
 
         $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'];
         foreach ($strands as $s) {
@@ -200,6 +200,71 @@ class AdminAlabangController extends AbstractController
         ]);
     }
 
+    #[Route('/registrations/export', name: 'app_admin_alabang_registrations_export')]
+    public function export(Request $request, ApplicantBedRepository $repository): Response
+    {
+        $qb = $repository->createQueryBuilder('a')
+            ->where('a.campus = :campus')
+            ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
+            ->orderBy('a.createdAt', 'DESC');
+
+        if ($search = $request->query->get('search')) {
+            $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
+               ->setParameter('search', "%$search%");
+        }
+
+        if ($eduType = $request->query->get('education_type')) {
+            $qb->andWhere('a.educationType = :eduType')
+               ->setParameter('eduType', $eduType);
+        }
+
+        $grades = array_filter($request->query->all()['grade_levels'] ?? []);
+        if (!empty($grades)) {
+            $qb->andWhere('a.gradeLevel IN (:grades)')
+               ->setParameter('grades', $grades);
+        }
+
+        if ($date = $request->query->get('date')) {
+            $qb->andWhere('a.createdAt LIKE :date')
+               ->setParameter('date', "$date%");
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($results) {
+            $handle = fopen('php://output', 'w+');
+            
+            // Add CSV headers
+            fputcsv($handle, [
+                'Student Number', 'First Name', 'Last Name', 'Middle Name',
+                'Email', 'Mobile Number', 'Grade Level', 'Track/Strand',
+                'Admission Type', 'Status', 'Date Applied'
+            ]);
+
+            foreach ($results as $applicant) {
+                fputcsv($handle, [
+                    $applicant->getStudentNumber(),
+                    $applicant->getFirstName(),
+                    $applicant->getLastName(),
+                    $applicant->getMiddleName(),
+                    $applicant->getPersonalEmail(),
+                    $applicant->getMobileNumber(),
+                    $applicant->getGradeLevel(),
+                    $applicant->getTrackStrand(),
+                    $applicant->getAdmissionType(),
+                    $applicant->getAdmissionStatus(),
+                    $applicant->getCreatedAt() ? $applicant->getCreatedAt()->format('Y-m-d H:i:s') : ''
+                ]);
+            }
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="alabang_applicants_export.csv"');
+
+        return $response;
+    }
+
     #[Route('/registration/{id}/view', name: 'app_admin_alabang_registration_view')]
     public function view(string $id, ApplicantBedRepository $repository): Response
     {
@@ -236,6 +301,12 @@ class AdminAlabangController extends AbstractController
                 $registration->setBirthDate(new \DateTime($dob));
             }
 
+            if ($agreedDateStr = $request->request->get('documents_agreed_date')) {
+                $registration->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
+            } else {
+                $registration->setDocumentsAgreedDate(null);
+            }
+
             foreach ($documentSetups as $docSetup) {
                 $inputName = $docSetup->getSlug();
                 $docFile = $request->files->get($inputName);
@@ -255,7 +326,6 @@ class AdminAlabangController extends AbstractController
                         $req->setApplicant($registration);
                         $req->setSlug($inputName);
                         $req->setRequirement($docSetup->getDocumentName());
-                        $req->setIsRequired($docSetup->isRequired());
                         $em->persist($req);
                     }
                     
@@ -451,7 +521,10 @@ class AdminAlabangController extends AbstractController
             $doc->setDocumentName($name);
             $doc->setSlug($slug);
             $doc->setFolderName('onsite-' . str_replace('_', '-', $slug));
-            $doc->setIsRequired($request->request->get('is_required') === '1');
+            $doc->setStudentType($request->request->get('student_type') ?: null);
+            $doc->setNationalityType($request->request->get('nationality_type') ?: null);
+            $grades = $request->request->all('grade_levels');
+            $doc->setGradeLevels(empty($grades) ? null : $grades);
             $doc->setCampus(ApplicantBed::CAMPUS_ALABANG); 
 
             $allowedTypesArr = $request->request->all('allowed_file_types');
@@ -492,7 +565,10 @@ class AdminAlabangController extends AbstractController
             $allowedTypesArr = $request->request->all('allowed_file_types');
             $doc->setAllowedFileTypes(implode(', ', $allowedTypesArr));
 
-            $doc->setIsRequired($request->request->get('is_required') === '1');
+            $doc->setStudentType($request->request->get('student_type') ?: null);
+            $doc->setNationalityType($request->request->get('nationality_type') ?: null);
+            $grades = $request->request->all('grade_levels');
+            $doc->setGradeLevels(empty($grades) ? null : $grades);
             $em->flush();
             $this->addFlash('success', 'Document configuration updated!');
         }

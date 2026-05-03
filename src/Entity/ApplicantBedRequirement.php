@@ -41,9 +41,6 @@ class ApplicantBedRequirement
     #[ORM\Column(name: 'Status', type: Types::STRING, length: 1, options: ['default' => 'P'])]
     private string $Status = 'P';
 
-    #[ORM\Column(name: 'IsRequired', type: Types::BOOLEAN)]
-    private bool $IsRequired = true;
-
     #[ORM\Column(name: 'IsDeleted', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $IsDeleted = false;
 
@@ -66,8 +63,6 @@ class ApplicantBedRequirement
 
     public function getStatus(): string { return $this->Status; }
     public function setStatus(string $Status): static { $this->Status = $Status; return $this; }
-    public function isRequired(): bool { return $this->IsRequired; }
-    public function setIsRequired(bool $IsRequired): static { $this->IsRequired = $IsRequired; return $this; }
     public function getDateSubmitted(): ?\DateTimeInterface { return $this->DateSubmitted; }
     public function setDateSubmitted(?\DateTimeInterface $DateSubmitted): static { $this->DateSubmitted = $DateSubmitted; return $this; }
     public function isDeleted(): bool { return $this->IsDeleted; }

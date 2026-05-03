@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initLrnValidation();
     initUnsavedChangesWarning();
     initDPAModal();
+    initGuardianSync();
 
     window.addEventListener('pageshow', function(event) {
         if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
@@ -73,30 +74,7 @@ window.selectCampus = function(campus) {
         activeInput.checked = true;
     }
 
-    const docItems = document.querySelectorAll('.document-item');
-    let visibleCount = 0;
-    let mappedCampusName = (campus === 'feu_alabang') ? 'FALAB' : 'FDIL';
-    
-    docItems.forEach(item => {
-        const docCampus = item.getAttribute('data-campus');
-        const input = item.querySelector('.document-input');
-        
-        if (!docCampus || docCampus === campus || docCampus === mappedCampusName) {
-            item.style.display = 'block';
-            if (input && input.getAttribute('data-is-required') === 'true') {
-                input.required = true;
-            }
-            visibleCount++;
-        } else {
-            item.style.display = 'none';
-            if (input) input.required = false; 
-        }
-    });
-    
-    const noDocsMsg = document.getElementById('no-docs-message');
-    if (noDocsMsg) {
-        noDocsMsg.style.display = (visibleCount === 0) ? 'block' : 'none';
-    }
+    fetchRequiredDocuments();
 
     const eduSelect = document.getElementById('educationType');
     const admType = document.getElementById('admissionType')?.value;
@@ -106,13 +84,13 @@ window.selectCampus = function(campus) {
     const gsOpt = eduSelect.querySelector('option[value="Grade School"]');
     const jhsOpt = eduSelect.querySelector('option[value="Junior High School"]');
     
-    eduSelect.value = ""; 
-    
     if (campus === 'feu_alabang') {
         if(kinderOpt) { kinderOpt.disabled = true; kinderOpt.hidden = true; }
         if(gsOpt) { gsOpt.disabled = true; gsOpt.hidden = true; }
         if(jhsOpt) { jhsOpt.disabled = true; jhsOpt.hidden = true; }
+        eduSelect.value = "Senior High School";
     } else {
+        eduSelect.value = ""; 
         if(kinderOpt) { 
             if (admType === 'Transferee') {
                 kinderOpt.disabled = true; kinderOpt.hidden = true;
@@ -224,6 +202,68 @@ window.updateGradeLevels = function() {
     if (typeof window.updateEducationHistory === 'function') {
         window.updateEducationHistory();
     }
+
+    fetchRequiredDocuments();
+};
+
+window.fetchRequiredDocuments = function() {
+    const container = document.getElementById('dynamic-documents-container');
+    const noDocsMsg = document.getElementById('no-docs-message');
+    if (!container) return;
+
+    const campus = window.currentCampus;
+    const admType = document.getElementById('admissionType')?.value;
+    const gradeLevel = document.getElementById('gradeLevel')?.value;
+
+    if (!campus || !admType || !gradeLevel) {
+        container.innerHTML = '<div class="text-center p-5 text-gray-500"><i class="ki-filled ki-information-5 text-3xl mb-2 text-gray-400"></i><p>Please complete Admission Information (Step 1) to view required documents.</p></div>';
+        if (noDocsMsg) noDocsMsg.style.display = 'none';
+        return;
+    }
+
+    const nationality = document.getElementById('citizenshipSelect')?.value || 'FILIPINO';
+
+    container.innerHTML = '<div class="text-center p-5 text-gray-500"><i class="ki-filled ki-loading animate-spin text-3xl mb-2 text-feu-green-600"></i><p>Loading required documents...</p></div>';
+
+    fetch(`/api/documents/required?campus=${encodeURIComponent(campus)}&admissionType=${encodeURIComponent(admType)}&gradeLevel=${encodeURIComponent(gradeLevel)}&nationality=${encodeURIComponent(nationality)}`)
+        .then(response => response.json())
+        .then(data => {
+            container.innerHTML = '';
+            
+            if (data.length === 0) {
+                if (noDocsMsg) noDocsMsg.style.display = 'block';
+                return;
+            }
+
+            if (noDocsMsg) noDocsMsg.style.display = 'none';
+
+            data.forEach(doc => {
+                let acceptAttr = '';
+                if (doc.allowedFileTypes) {
+                    const exts = doc.allowedFileTypes.split(',');
+                    acceptAttr = 'accept="' + exts.map(e => '.' + e.trim()).join(', ') + '"';
+                }
+
+                let extDisplay = doc.allowedFileTypes ? `<span class="uppercase font-bold text-gray-600">${doc.allowedFileTypes}</span>` : 'All Formats';
+
+                const html = `
+                    <div class="file-upload-group mb-4 document-item" data-campus="${doc.campus}">
+                        <label class="form-label d-block">
+                            ${doc.documentName} 
+                        </label>
+                        <input type="file" name="${doc.slug}" class="form-control document-input" data-is-required="true" data-doc-name="${doc.documentName}" ${acceptAttr}>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Max size: 10MB. Accepted formats: ${extDisplay}
+                        </p>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching documents:', error);
+            container.innerHTML = '<div class="text-center p-5 text-red-500"><i class="ki-filled ki-cross-circle text-3xl mb-2"></i><p>Error loading documents. Please try refreshing.</p></div>';
+        });
 };
 
 window.updateStrands = function() {
@@ -347,6 +387,67 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
     }
 };
 
+window.setGuardian = function(type) {
+    const fCheckbox = document.getElementById('f_is_guardian');
+    const mCheckbox = document.getElementById('m_is_guardian');
+    
+    let isChecked = false;
+    
+    if (type === 'father') {
+        isChecked = fCheckbox.checked;
+        if (mCheckbox && isChecked) mCheckbox.checked = false;
+    } else if (type === 'mother') {
+        isChecked = mCheckbox.checked;
+        if (fCheckbox && isChecked) fCheckbox.checked = false;
+    }
+
+    const gName = document.getElementById('guardian_name');
+    const gRelation = document.getElementById('guardian_relation');
+    const gContact = document.getElementById('guardian_contact');
+    
+    if (!gName || !gRelation || !gContact) return;
+
+    if (isChecked) {
+        const pLast = document.getElementById(`${type}_lastname`)?.value || '';
+        const pFirst = document.getElementById(`${type}_firstname`)?.value || '';
+        const pMiddle = document.getElementById(`${type}_middlename`)?.value || '';
+        const pContact = document.getElementById(`${type}_contact`)?.value || '';
+        
+        let fullName = '';
+        if (pLast && pFirst) {
+            fullName = `${pLast}, ${pFirst} ${pMiddle}`.trim();
+        } else if (pLast) {
+            fullName = pLast;
+        } else if (pFirst) {
+            fullName = pFirst;
+        }
+
+        gName.value = fullName;
+        gRelation.value = type.charAt(0).toUpperCase() + type.slice(1);
+        gContact.value = pContact;
+
+        // Lock fields
+        gName.readOnly = true;
+        gRelation.readOnly = true;
+        gContact.readOnly = true;
+        gName.classList.add('bg-gray-50', 'cursor-not-allowed');
+        gRelation.classList.add('bg-gray-50', 'cursor-not-allowed');
+        gContact.classList.add('bg-gray-50', 'cursor-not-allowed');
+    } else {
+        gName.value = '';
+        gRelation.value = '';
+        gContact.value = '';
+
+        // Unlock fields
+        gName.readOnly = false;
+        gRelation.readOnly = false;
+        gContact.readOnly = false;
+        gName.classList.remove('bg-gray-50', 'cursor-not-allowed');
+        gRelation.classList.remove('bg-gray-50', 'cursor-not-allowed');
+        gContact.classList.remove('bg-gray-50', 'cursor-not-allowed');
+    }
+};
+
 window.addSibling = function() {
     const container = document.getElementById('siblings_container');
     if(!container) return;
@@ -411,6 +512,15 @@ window.showConfirmationModal = function() {
     const fullName = `${lastName}, ${firstName}`.trim();
     const email = document.querySelector('[name="email"]')?.value || 'N/A';
     const mobile = document.querySelector('[name="contact_number"]')?.value || 'N/A';
+    
+    const promissoryDate = document.getElementById('promissoryDate')?.value;
+    const promissoryHtml = promissoryDate ? `
+        <div class="summary-item mt-3 bg-amber-50 p-2 rounded border border-amber-100 flex-column align-items-start">
+            <span class="summary-label text-amber-800">Promissory Date:</span> 
+            <span class="summary-val text-amber-900 font-black">${new Date(promissoryDate).toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}</span>
+            <p class="text-[10px] text-amber-700 mt-1 italic">You agreed to submit missing documents by this date.</p>
+        </div>
+    ` : '';
 
     summaryContainer.innerHTML = `
         <div class="summary-grid">
@@ -420,6 +530,7 @@ window.showConfirmationModal = function() {
             <div class="summary-item mt-2"><span class="summary-label">Applicant Name:</span> <span class="summary-val text-feu-green-700">${fullName}</span></div>
             <div class="summary-item"><span class="summary-label">Email:</span> <span class="summary-val">${email}</span></div>
             <div class="summary-item"><span class="summary-label">Mobile:</span> <span class="summary-val">${mobile}</span></div>
+            ${promissoryHtml}
         </div>
     `;
 
@@ -462,6 +573,100 @@ window.confirmSubmission = function() {
     
     window.isFormDirty = false;
     HTMLFormElement.prototype.submit.call(form); 
+};
+
+/** Logic for Missing Documents Warning Modal */
+window.showDocWarningModal = function(missingDocs) {
+    const modal = document.getElementById('docWarningModal');
+    const dialog = document.getElementById('docWarningDialog');
+    const list = document.getElementById('missingDocsList');
+    
+    if (!modal || !list) return;
+
+    list.innerHTML = '';
+    missingDocs.forEach(name => {
+        list.innerHTML += `
+            <li class="flex items-center gap-2 text-sm text-amber-900 font-semibold">
+                <i class="ki-filled ki-cross text-amber-400"></i>
+                ${name}
+            </li>`;
+    });
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        if (dialog) dialog.classList.remove('scale-95');
+    }, 10);
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeDocWarningModal = function() {
+    const modal = document.getElementById('docWarningModal');
+    const dialog = document.getElementById('docWarningDialog');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        if (dialog) dialog.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+    document.body.style.overflow = '';
+};
+
+window.proceedToFinalConfirmation = function() {
+    window.closeDocWarningModal();
+    setTimeout(() => {
+        window.showPromissoryModal();
+    }, 400);
+};
+
+window.showPromissoryModal = function() {
+    const modal = document.getElementById('promissoryModal');
+    const dialog = document.getElementById('promissoryDialog');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        if (dialog) dialog.classList.remove('scale-95');
+    }, 10);
+    document.body.style.overflow = 'hidden';
+};
+
+window.closePromissoryModal = function() {
+    const modal = document.getElementById('promissoryModal');
+    const dialog = document.getElementById('promissoryDialog');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        if (dialog) dialog.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+    document.body.style.overflow = '';
+};
+
+window.validatePromissoryAndContinue = function() {
+    const dateInput = document.getElementById('promissoryDate');
+    const errorEl = document.getElementById('promissoryError');
+    
+    if (!dateInput || !dateInput.value) {
+        if (errorEl) errorEl.classList.remove('hidden');
+        dateInput.classList.add('border-red-500');
+        return;
+    }
+
+    if (errorEl) errorEl.classList.add('hidden');
+    dateInput.classList.remove('border-red-500');
+
+    window.closePromissoryModal();
+    setTimeout(() => {
+        window.showConfirmationModal();
+    }, 400);
 };
 
 function initUnsavedChangesWarning() {
@@ -580,9 +785,33 @@ function initConditionalFields() {
                 if (visaTypeInput) visaTypeInput.value = '';
                 if (visaStatusInput) visaStatusInput.value = '';
             }
+            
+            fetchRequiredDocuments();
         });
         citizenshipSelect.dispatchEvent(new Event('change'));
     }
+}
+
+function initGuardianSync() {
+    const parentFields = [
+        'father_lastname', 'father_firstname', 'father_middlename', 'father_contact',
+        'mother_lastname', 'mother_firstname', 'mother_middlename', 'mother_contact'
+    ];
+
+    parentFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                const type = fieldId.startsWith('father') ? 'father' : 'mother';
+                const checkboxId = type === 'father' ? 'f_is_guardian' : 'm_is_guardian';
+                const checkbox = document.getElementById(checkboxId);
+                
+                if (checkbox && checkbox.checked) {
+                    window.setGuardian(type);
+                }
+            });
+        }
+    });
 }
 
 function initDynamicFormatting() {
@@ -848,7 +1077,20 @@ function initFormValidation() {
         if (lrnInput && lrnInput.classList.contains('is-invalid')) isFormValid = false;
 
         if (isFormValid) {
-            window.showConfirmationModal();
+            // Check for missing documents
+            const docInputs = form.querySelectorAll('.document-input');
+            const missingDocs = [];
+            docInputs.forEach(input => {
+                if (!input.files || input.files.length === 0) {
+                    missingDocs.push(input.getAttribute('data-doc-name') || 'Required Document');
+                }
+            });
+
+            if (missingDocs.length > 0) {
+                window.showDocWarningModal(missingDocs);
+            } else {
+                window.showConfirmationModal();
+            }
         } else {
             const warning = document.getElementById('submitWarning');
             if (warning) {
@@ -967,13 +1209,15 @@ window.updateEducationHistory = function() {
         // Grade 7 needs Elementary Graduation history
         requireSection('kinder');
         requireSection('elem');
-    } else if (['Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'].includes(grade)) {
+    } else if (['Grade 8', 'Grade 9', 'Grade 10'].includes(grade)) {
         // JHS students need at least Elementary and previous JHS history
         requireSection('elem');
         requireSection('jhs');
+    } else if (grade === 'Grade 11') {
+        // SHS Grade 11 only needs JHS history
+        requireSection('jhs');
     } else if (grade === 'Grade 12') {
-        // SHS Grade 12 needs Elementary, JHS, and Grade 11 history
-        requireSection('elem');
+        // SHS Grade 12 needs JHS and Grade 11 history
         requireSection('jhs');
         requireSection('shs');
     }

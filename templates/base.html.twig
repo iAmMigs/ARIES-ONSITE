@@ -146,7 +146,7 @@
     <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
     
     <link href="{{ asset('metronic/css/styles.css') }}" rel="stylesheet"/>
-    <link href="{{ asset('assets/css/aries-theme.css') }}" rel="stylesheet"/>
+
     
     <style>
         :root {
@@ -805,5 +805,9 @@
     </script>
 
     {% block javascripts %}{% endblock %}
+
+    {% if app.user %}
+        <script src="{{ asset('js/admin-idle-timeout.js') }}"></script>
+    {% endif %}
 </body>
 </html>
