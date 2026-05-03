@@ -270,13 +270,16 @@ class AdminDilimanController extends AbstractController
     }
 
     #[Route('/registration/{id}/view', name: 'app_admin_diliman_registration_view')]
-    public function view(string $id, ApplicantBedRepository $repository): Response
+    public function view(string $id, ApplicantBedRepository $repository, EntityManagerInterface $em): Response
     {
         $registration = $repository->find($id); 
         if (!$registration) throw $this->createNotFoundException();
 
+        $documentSetups = $this->getFilteredDocumentSetups($registration, $em, ApplicantBed::CAMPUS_DILIMAN);
+
         return $this->render('admin-onsite/diliman/view_registration.html.twig', [
-            'registration' => $registration
+            'registration' => $registration,
+            'documentSetups' => $documentSetups
         ]);
     }
 
@@ -286,9 +289,7 @@ class AdminDilimanController extends AbstractController
         $registration = $repository->find($id);
         if (!$registration) throw $this->createNotFoundException();
 
-        $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
-            'campus' => [ApplicantBed::CAMPUS_DILIMAN, null]
-        ]);
+        $documentSetups = $this->getFilteredDocumentSetups($registration, $em, ApplicantBed::CAMPUS_DILIMAN);
 
         if ($request->isMethod('POST')) {
             $registration->setFirstName($request->request->get('first_name'));
@@ -595,5 +596,51 @@ class AdminDilimanController extends AbstractController
             }
         }
         return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+    }
+
+    private function getFilteredDocumentSetups(ApplicantBed $registration, EntityManagerInterface $em, string $campus): array
+    {
+        $allSetups = $em->getRepository(DocumentSetup::class)->findBy([
+            'campus' => [$campus, null]
+        ]);
+
+        $filtered = [];
+        $gradeLevel = $registration->getGradeLevel();
+        $admissionType = $registration->getAdmissionType(); // 'Freshman' or 'Transferee'
+        $citizenship = $registration->getCitizenship(); // 'Filipino', 'Foreign', 'Dual'
+
+        foreach ($allSetups as $setup) {
+            // 1. Grade Level Check
+            $grades = $setup->getGradeLevels();
+            if ($grades && !empty($grades) && !in_array($gradeLevel, $grades)) {
+                continue;
+            }
+
+            // 2. Student Type Check
+            $sReq = $setup->getStudentType(); // 'All', 'New', 'Transferee', 'Old'
+            if ($sReq && strtoupper($sReq) !== 'ALL') {
+                if (strtoupper($sReq) === 'NEW' && strtoupper($admissionType) !== 'FRESHMAN') {
+                    continue;
+                }
+                if (strtoupper($sReq) === 'TRANSFEREE' && strtoupper($admissionType) !== 'TRANSFEREE') {
+                    continue;
+                }
+            }
+
+            // 3. Nationality Check
+            $nReq = $setup->getNationalityType(); // 'All', 'Filipino', 'Foreign'
+            if ($nReq && strtoupper($nReq) !== 'ALL') {
+                if (strtoupper($nReq) === 'FILIPINO' && strtoupper($citizenship) !== 'FILIPINO') {
+                    continue;
+                }
+                if (strtoupper($nReq) === 'FOREIGN' && (strtoupper($citizenship) === 'FILIPINO' || strtoupper($citizenship) === 'DUAL')) {
+                    continue;
+                }
+            }
+
+            $filtered[] = $setup;
+        }
+
+        return $filtered;
     }
 }

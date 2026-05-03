@@ -226,10 +226,15 @@
                             <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
                         </h3>
                         <div class="space-y-3">
-                            {% set hasActiveDocs = false %}
-                            {% for req in registration.requirements %}
-                                {% if not req.isDeleted %}
-                                    {% set hasActiveDocs = true %}
+                            {% for setup in documentSetups %}
+                                {% set req = null %}
+                                {% for r in registration.requirements %}
+                                    {% if r.Slug|lower == setup.slug|lower and not r.isDeleted %}
+                                        {% set req = r %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if req %}
                                     <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
                                         <div class="flex-shrink-0">
                                             <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
@@ -245,11 +250,21 @@
                                             </div>
                                         </div>
                                     </a>
+                                {% else %}
+                                    <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                        <div class="flex-shrink-0">
+                                            <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
+                                            <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
+                                        </div>
+                                    </div>
                                 {% endif %}
                             {% endfor %}
                             
-                            {% if not hasActiveDocs %}
-                                <div class="text-center py-6 text-gray-400 text-sm italic">No documents found.</div>
+                            {% if documentSetups|length == 0 %}
+                                <div class="text-center py-6 text-gray-400 text-sm italic">No document requirements for this student type.</div>
                             {% endif %}
                         </div>
                     </div>

@@ -77,13 +77,14 @@
                                                             
                                 <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1">
                                     {% for level in ['kinder', 'grade_1', 'grade_2', 'grade_3', 'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9', 'grade_10', 'grade_11', 'grade_12'] %}
-                                        <option value="{{ level }}" {{ registration.gradeLevel == level ? 'selected' }}>{{ level|replace({'_': ' '})|title }}</option>
+                                        <option value="{{ level }}" {{ (registration.gradeLevel|lower|replace({' ': '_'}) == level|lower) ? 'selected' }}>{{ level|replace({'_': ' '})|title }}</option>
                                     {% endfor %}
                                 </select>
 
                                 <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
+                                    <option value="">Select Strand</option>
                                     {% for strand in ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track'] %}
-                                        <option value="{{ strand }}" {{ registration.trackStrand == strand ? 'selected' }}>{{ strand }}</option>
+                                        <option value="{{ strand }}" {{ (registration.trackStrand|upper == strand|upper) ? 'selected' }}>{{ strand }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -352,7 +353,14 @@
                             <div class="space-y-4">
                                 {% set hasActiveDocs = false %}
                                 {% for req in registration.requirements %}
-                                    {% if not req.isDeleted %}
+                                    {% set isRelevant = false %}
+                                    {% for setup in documentSetups %}
+                                        {% if setup.slug|lower == req.Slug|lower %}
+                                            {% set isRelevant = true %}
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if not req.isDeleted and isRelevant %}
                                         {% set hasActiveDocs = true %}
                                         <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
                                             <div class="flex items-center justify-between mb-2">
@@ -369,7 +377,7 @@
                                                 </div>
                                                 
                                                 {# Delete Trigger #}
-                                                <button type="button" class="btn btn-sm btn-light-danger px-3 py-2 text-xs" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-diliman-{{ req.slug }}').submit();">
+                                                <button type="button" class="btn btn-sm btn-light-danger px-3 py-2 text-xs" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-diliman-{{ req.Slug }}').submit();">
                                                     <i class="ki-filled ki-trash"></i> Delete
                                                 </button>
                                             </div>
@@ -381,7 +389,7 @@
                                 {% endfor %}
                                 
                                 {% if not hasActiveDocs %}
-                                    <div class="text-center py-6 text-gray-400 text-sm italic">No active documents found.</div>
+                                    <div class="text-center py-6 text-gray-400 text-sm italic">No relevant documents found.</div>
                                 {% endif %}
 
                                 <hr class="mt-6 mb-4 border-gray-200">
