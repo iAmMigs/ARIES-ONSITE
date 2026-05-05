@@ -114,7 +114,11 @@
                 <div>
                     <h4 class="text-sm font-bold text-amber-900 mb-1">Important Instruction</h4>
                     <p class="text-xs text-amber-800 leading-relaxed">
-                        Please take a screenshot or copy your <strong>Student Number</strong>. You will need this to pay for your entrance examination and check your admission status.
+                        {% if education_type == 'SHS' %}
+                            Please take a screenshot or copy your <strong>Student Number</strong>. You will need this to pay for your entrance examination and check your admission status.
+                        {% else %}
+                            Please take a screenshot or copy your <strong>Student Number</strong>. You will need this to check your admission status.
+                        {% endif %}
                     </p>
                 </div>
             </div>

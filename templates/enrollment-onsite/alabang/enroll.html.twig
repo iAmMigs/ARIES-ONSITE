@@ -387,7 +387,7 @@
                     </div>
 
                     <div class="row g-4 mt-2">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label">Religion</label>
                             <select name="religion" id="religionSelect" class="form-select" data-control="select2" data-placeholder="Select Religion">
                                 <option value=""></option>
@@ -404,16 +404,19 @@
                             </div>
                         </div>
                         
-                        <div class="col-md-6">
-                            <label class="form-label">Citizenship <span class="required">*</span></label>
-                            <select name="citizenship" id="citizenshipSelect" class="form-select" required data-control="select2" data-placeholder="Select Citizenship">
-                                <option value="FILIPINO" selected>FILIPINO</option>
-                                {% for cit in citizenships %}
-                                    {% if cit.citizenshipName|upper != 'FILIPINO' %}
-                                        <option value="{{ cit.citizenshipName }}">{{ cit.citizenshipName }}</option>
-                                    {% endif %}
+                        <div class="col-md-4">
+                            <label class="form-label">Nationality <span class="required">*</span></label>
+                            <select name="nationality" id="nationalitySelect" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                <option value=""></option>
+                                {% for nat in nationalities %}
+                                    <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Citizenship <span class="required">*</span></label>
+                            <input type="text" name="citizenship" id="citizenshipInput" class="form-control bg-gray-100" required readonly value="LOCAL">
                         </div>
                     </div>
                     
@@ -614,7 +617,9 @@
                                 </select>
                             </div>
                         </div>
+
                     </div>
+
 
                     {# Mother #}
                     <div class="bg-gray-50 p-5 rounded mb-5">
@@ -670,12 +675,15 @@
                                 </select>
                             </div>
                         </div>
+
+                    </div>
+
                     </div>
 
                     {# Guardian #}
                     <div class="bg-blue-50 p-5 rounded">
                         <h6 class="fw-bold text-dark mb-4">Guardian / Emergency Contact</h6>
-                        <div class="row g-4">
+                        <div class="row g-4 mb-4">
                             <div class="col-md-4">
                                 <label class="form-label">Full Name <span class="required">*</span></label>
                                 <input type="text" name="guardian_name" id="guardian_name" class="form-control" placeholder="Full Name" required>
@@ -692,9 +700,81 @@
                                 <label class="form-label">Email Address <span class="required">*</span></label>
                                 <input type="email" name="guardian_email" id="guardian_email" class="form-control" placeholder="Email Address" required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Address <span class="required">*</span></label>
-                                <input type="text" name="guardian_address" id="guardian_address" class="form-control" placeholder="Complete Address" required>
+                        </div>
+
+                        {# Guardian Address with Same as Applicant #}
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="guardian_same_as_applicant" name="guardian_same_as_applicant" value="1" onchange="toggleGuardianAddress()" checked>
+                                <label class="form-check-label text-sm fw-bold" for="guardian_same_as_applicant">Same address as Applicant</label>
+                            </div>
+                            <div id="guardian_address_block" style="display:none;">
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address</h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Region</label>
+                                        <select id="guardian_addr_region" name="guardian_addr_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                        <input type="hidden" name="guardian_addr_region_hidden" id="guardian_addr_region_hidden">
+                                    </div>
+                                    <div class="col-md-3 position-relative">
+                                        <label class="form-label text-xs">Province</label>
+                                        <input type="text" id="guardian_addr_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                        <input type="hidden" id="guardian_addr_province" name="guardian_addr_province">
+                                        <div id="guardian_addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">City/Municipality</label>
+                                        <select id="guardian_addr_city" name="guardian_addr_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Barangay</label>
+                                        <select id="guardian_addr_barangay" name="guardian_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                        <input type="text" name="guardian_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                    </div>
+                                    <div class="col-md-4 mt-2">
+                                        <label class="form-label text-xs">Zip Code</label>
+                                        <input type="text" name="guardian_addr_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                    </div>
+                                </div>
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="guardian_perm_same" name="guardian_perm_same" value="1" onchange="toggleParentPermAddress('guardian')" checked>
+                                    <label class="form-check-label text-xs" for="guardian_perm_same">Same as Current</label>
+                                </div>
+                                <div id="guardian_perm_block" style="display:none;">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Region</label>
+                                            <select id="guardian_perm_region" name="guardian_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                            <input type="hidden" name="guardian_perm_region_hidden" id="guardian_perm_region_hidden">
+                                        </div>
+                                        <div class="col-md-3 position-relative">
+                                            <label class="form-label text-xs">Province</label>
+                                            <input type="text" id="guardian_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                            <input type="hidden" id="guardian_perm_province" name="guardian_perm_province">
+                                            <div id="guardian_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">City/Municipality</label>
+                                            <select id="guardian_perm_city" name="guardian_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Barangay</label>
+                                            <select id="guardian_perm_barangay" name="guardian_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                            <input type="text" name="guardian_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        </div>
+                                        <div class="col-md-4 mt-2">
+                                            <label class="form-label text-xs">Zip Code</label>
+                                            <input type="text" name="guardian_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -712,20 +792,71 @@
                         Please select a Grade Level in Step 1 to view required education history.
                     </div>
 
+                    <template id="country_options_template">
+                        <option value="">Select Country</option>
+                        {% for country in countries %}
+                            <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                        {% endfor %}
+                    </template>
+
                     <div id="educ_history_fields" style="display:none;">
                         
                         {# Kinder #}
                         <div id="section_educ_kinder" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
                             <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Kindergarten</h6>
-                            <div class="row g-3 align-items-center">
-                                <div class="col-md-8">
+                            <div class="row g-3 align-items-center mb-3">
+                                <div class="col-md-5">
                                     <label class="form-label text-xs">School Name <span class="required">*</span></label>
                                     <input type="text" name="educ_kinder_school[]" class="form-control form-control-sm educ-input" placeholder="School Name">
                                     <input type="hidden" name="educ_kinder_level[]" value="Kinder">
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-xs">School Type <span class="required">*</span></label>
+                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input">
+                                        <option value="Private">Private</option>
+                                        <option value="Public">Public</option>
+                                        <option value="International">International</option>
+                                    </select>
+                                </div>
                                 <div class="col-md-4">
                                     <label class="form-label text-xs">School Year <span class="required">*</span></label>
                                     <input type="text" name="educ_kinder_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                </div>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input type="hidden" name="educ_kinder_is_international[]" class="intl-hidden-input" value="0">
+                                <input class="form-check-input intl-checkbox" type="checkbox" id="educ_kinder_0_intl">
+                                <label class="form-check-label text-xs fw-bold" for="educ_kinder_0_intl">International School</label>
+                            </div>
+
+                            <div class="row g-2 mt-2 location-local-group" id="educ_kinder_0_local">
+                                <div class="col-md-4">
+                                    <select id="educ_kinder_0_region" class="form-select form-select-sm" data-placeholder="Region">
+                                        <option value=""></option>
+                                    </select>
+                                    <input type="hidden" name="educ_kinder_region[]" id="educ_kinder_0_region_hidden">
+                                </div>
+                                <div class="col-md-4 position-relative">
+                                    <input type="text" id="educ_kinder_0_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
+                                    <input type="hidden" id="educ_kinder_0_province" name="educ_kinder_province[]">
+                                    <div id="educ_kinder_0_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <select id="educ_kinder_0_city" name="educ_kinder_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-2 location-intl-group" id="educ_kinder_0_intl_group" style="display:none;">
+                                <div class="col-md-6">
+                                    <select name="educ_kinder_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
+                                        <option value="">Select Country</option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -984,7 +1115,7 @@
 
 
 <script src="{{ asset('js/validation.js') }}"></script>
-<script src="{{ asset('js/enrollment.js') }}"></script>
+<script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
 
 <script>
     const loader = document.getElementById('enrollmentLoader');

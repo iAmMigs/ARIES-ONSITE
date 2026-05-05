@@ -1,9 +1,10 @@
 {# templates/layouts/_public_footer_onsite.html.twig #}
-{# ARIES Public Site Footer - Adapted for Onsite Enrollment System #}
+{# ARIES Public Site Footer - Campus-Specific #}
+{# Expects 'campus' variable ('alabang' or 'diliman') from the controller #}
 
 <footer class="footer-main bg-gray-900 text-gray-300" id="contact">
     <div class="container mx-auto px-4 lg:px-8 py-16 relative z-10">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             
             <div class="lg:col-span-1">
                 <div class="flex items-center gap-3 mb-5">
@@ -16,7 +17,11 @@
                     </div>
                 </div>
                 <p class="text-sm text-gray-400 mb-6 leading-relaxed">
-                    Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Diliman and FEU Alabang.
+                    {% if campus is defined and campus == 'alabang' %}
+                        Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Alabang.
+                    {% else %}
+                        Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Diliman.
+                    {% endif %}
                 </p>
                 
                 <div class="footer-badge inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl">
@@ -26,6 +31,7 @@
             </div>
 
             <div>
+                {% if campus is defined and campus == 'alabang' %}
                 <h4 class="text-white font-bold text-lg mb-6 border-b border-white/10 pb-2 inline-block">FEU Alabang Tracks</h4>
                 <ul class="space-y-3">
                     <li>
@@ -74,9 +80,7 @@
                         </span>
                     </li>
                 </ul>
-            </div>
-
-            <div>
+                {% else %}
                 <h4 class="text-white font-bold text-lg mb-6 border-b border-white/10 pb-2 inline-block">FEU Diliman Tracks</h4>
                 <ul class="space-y-3">
                     <li>
@@ -105,23 +109,16 @@
                         </span>
                     </li>
                 </ul>
+                {% endif %}
             </div>
 
             <div>
                 <h4 class="text-white font-bold mb-6 flex items-center gap-2">
                     <i class="ki-filled ki-phone text-feu-gold-400 text-sm"></i>
-                    Onsite Locations
+                    Campus Location
                 </h4>
                 <ul class="space-y-4">
-                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
-                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900/50 flex-shrink-0">
-                            <i class="ki-filled ki-geolocation text-blue-400 text-sm"></i>
-                        </div>
-                        <span class="text-sm text-gray-400 leading-relaxed">
-                            <strong class="text-gray-300">FEU Diliman</strong><br>
-                            Regalado Ave., Fairview, QC
-                        </span>
-                    </li>
+                    {% if campus is defined and campus == 'alabang' %}
                     <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
                         <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-900/50 flex-shrink-0">
                             <i class="ki-filled ki-geolocation text-purple-400 text-sm"></i>
@@ -131,6 +128,17 @@
                             Alabang-Zapote Rd., Las Piñas
                         </span>
                     </li>
+                    {% else %}
+                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900/50 flex-shrink-0">
+                            <i class="ki-filled ki-geolocation text-blue-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm text-gray-400 leading-relaxed">
+                            <strong class="text-gray-300">FEU Diliman</strong><br>
+                            Regalado Ave., Fairview, QC
+                        </span>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

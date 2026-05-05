@@ -41,8 +41,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initSubmitLock();
     initLrnValidation();
     initUnsavedChangesWarning();
+    initSessionTimeout();
     initDPAModal();
     initGuardianSync();
+    initGuardianAddressSync();
 
     window.addEventListener('pageshow', function(event) {
         if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
@@ -325,6 +327,29 @@ window.togglePermanentAddress = function() {
             i.setAttribute('required', 'required');
         }
     });
+};
+
+window.toggleGuardianAddress = function() {
+    const isChecked = document.getElementById('guardian_same_as_applicant').checked;
+    const block = document.getElementById('guardian_address_block');
+    const permCheckbox = document.getElementById('guardian_perm_same');
+    
+    if (block) {
+        block.style.display = isChecked ? 'none' : 'block';
+    }
+    
+    if (isChecked && permCheckbox) {
+        permCheckbox.checked = true;
+        window.toggleParentPermAddress('guardian');
+    }
+};
+
+window.toggleParentPermAddress = function(prefix) {
+    const isChecked = document.getElementById(`${prefix}_perm_same`).checked;
+    const block = document.getElementById(`${prefix}_perm_block`);
+    if(!block) return;
+
+    block.style.display = isChecked ? 'none' : 'block';
 };
 
 window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
@@ -684,11 +709,161 @@ function initUnsavedChangesWarning() {
     form.addEventListener('change', () => { window.isFormDirty = true; });
 
     window.addEventListener('beforeunload', function (e) {
+        if (window._bypassBeforeUnload) return;
         if (window.isFormDirty) {
             e.preventDefault();
             e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
         }
     });
+}
+
+/**
+ * Session Timeout Handler
+ * After 5 minutes of inactivity, shows a floating warning card.
+ * The card has a 10-minute countdown. If the user does not interact,
+ * the page redirects to the campus landing page.
+ */
+function initSessionTimeout() {
+    const form = document.getElementById('enrollmentForm');
+    if (!form) return;
+
+    const IDLE_LIMIT    = 5 * 60 * 1000;   // 5 minutes before warning
+    const COUNTDOWN_SEC = 10 * 60;          // 10-minute countdown
+
+    const campus = form.getAttribute('data-selected-campus') || '';
+    const landingUrl = campus === 'feu_alabang' ? '/alabang' : '/diliman';
+
+    let idleTimer       = null;
+    let countdownTimer  = null;
+    let overlay         = null;
+    let remainingSec    = COUNTDOWN_SEC;
+
+    // --- Build the overlay + card once ---
+    function buildOverlay() {
+        overlay = document.createElement('div');
+        overlay.id = 'sessionTimeoutOverlay';
+        overlay.style.cssText = `
+            position:fixed;inset:0;z-index:99999;
+            background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
+            display:none;align-items:center;justify-content:center;
+            opacity:0;transition:opacity .3s ease;
+        `;
+
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background:#fff;border-radius:16px;padding:36px 32px 28px;
+            max-width:400px;width:90%;text-align:center;
+            box-shadow:0 20px 60px rgba(0,0,0,.25);
+            transform:scale(.92);transition:transform .3s ease;
+        `;
+        card.innerHTML = `
+            <div style="margin-bottom:18px">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+                     stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+            </div>
+            <h3 style="margin:0 0 6px;font-size:1.25rem;font-weight:700;color:#1f2937">Are you still there?</h3>
+            <p style="margin:0 0 20px;font-size:.9rem;color:#6b7280">
+                This session will be lost in
+                <span id="sessionCountdown" style="font-weight:700;color:#ef4444;font-size:1rem"></span>
+            </p>
+            <button id="sessionContinueBtn" type="button" style="
+                background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;
+                border:none;border-radius:10px;padding:12px 36px;font-size:.95rem;
+                font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;
+                box-shadow:0 4px 14px rgba(22,163,74,.35);
+            ">Continue</button>
+        `;
+
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        // Continue button
+        document.getElementById('sessionContinueBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            dismissWarning();
+        });
+
+        // Click outside card
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) dismissWarning();
+        });
+
+        // Hover effect on button
+        const btn = document.getElementById('sessionContinueBtn');
+        btn.addEventListener('mouseenter', () => { btn.style.transform = 'scale(1.04)'; });
+        btn.addEventListener('mouseleave', () => { btn.style.transform = 'scale(1)'; });
+    }
+
+    // --- Format mm:ss ---
+    function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    // --- Show the warning overlay ---
+    function showWarning() {
+        if (!overlay) buildOverlay();
+        remainingSec = COUNTDOWN_SEC;
+        document.getElementById('sessionCountdown').textContent = formatTime(remainingSec);
+
+        overlay.style.display = 'flex';
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+            overlay.querySelector('div').style.transform = 'scale(1)';
+        });
+
+        countdownTimer = setInterval(() => {
+            remainingSec--;
+            document.getElementById('sessionCountdown').textContent = formatTime(remainingSec);
+            if (remainingSec <= 0) {
+                clearInterval(countdownTimer);
+                redirectToLanding();
+            }
+        }, 1000);
+    }
+
+    // --- Dismiss warning and reset idle ---
+    function dismissWarning() {
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+        if (overlay) {
+            overlay.style.opacity = '0';
+            overlay.querySelector('div').style.transform = 'scale(.92)';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+        resetIdleTimer();
+    }
+
+    // --- Redirect, bypassing beforeunload ---
+    function redirectToLanding() {
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+        window._bypassBeforeUnload = true;
+        window.isFormDirty = false;
+        window.location.href = landingUrl;
+    }
+
+    // --- Reset the 5-minute idle timer ---
+    function resetIdleTimer() {
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(showWarning, IDLE_LIMIT);
+    }
+
+    // --- Listen for any user activity ---
+    const activityEvents = ['mousemove','mousedown','keydown','touchstart','scroll','input','change'];
+    activityEvents.forEach(evt => {
+        document.addEventListener(evt, () => {
+            // Only reset idle if the warning is NOT currently visible
+            if (!overlay || overlay.style.display === 'none') {
+                resetIdleTimer();
+            }
+        }, { passive: true });
+    });
+
+    // Start the idle timer
+    resetIdleTimer();
 }
 
 function initCampusSelection() {
@@ -726,7 +901,8 @@ function initStickyHeader() {
 }
 
 function initConditionalFields() {
-    const citizenshipSelect = document.querySelector('[name="citizenship"]');
+    const nationalitySelect = document.getElementById('nationalitySelect');
+    const citizenshipInput = document.getElementById('citizenshipInput');
     const foreignFieldsContainer = document.getElementById('foreign_fields_container');
     const indigenousGroupContainer = document.getElementById('indigenous_group_container');
     
@@ -759,8 +935,28 @@ function initConditionalFields() {
         religionSelect.dispatchEvent(new Event('change'));
     }
 
-    if (citizenshipSelect) {
-        citizenshipSelect.addEventListener('change', function() {
+    function updateCitizenship() {
+        if (!nationalitySelect || !citizenshipInput) return;
+        const nat = nationalitySelect.value.trim().toUpperCase();
+        if (nat === 'FILIPINO' || nat === '') {
+            citizenshipInput.value = 'LOCAL';
+        } else {
+            citizenshipInput.value = 'INTERNATIONAL';
+        }
+        if (citizenshipInput) {
+            citizenshipInput.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // Since nationalitySelect is using select2, bind to change
+    if (typeof jQuery !== 'undefined') {
+        $(nationalitySelect).on('change', updateCitizenship);
+    } else if (nationalitySelect) {
+        nationalitySelect.addEventListener('change', updateCitizenship);
+    }
+
+    if (citizenshipInput) {
+        citizenshipInput.addEventListener('change', function() {
             const val = this.value.toUpperCase();
             
             if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'none';
@@ -779,14 +975,14 @@ function initConditionalFields() {
                 if (window.ARIESValidation) window.ARIESValidation.resetField(visaStatusInput, window.ARIESValidation.getErrorElement(visaStatusInput));
             }
             
-            if (val && val !== 'FILIPINO') { 
+            if (val === 'INTERNATIONAL') { 
                 if (foreignFieldsContainer) foreignFieldsContainer.style.display = 'block';
                 if (passportInput) passportInput.required = true;
                 if (visaTypeInput) visaTypeInput.required = true;
                 if (visaStatusInput) visaStatusInput.required = true;
                 if (indigenousInput) indigenousInput.value = '';
                 
-            } else if (val === 'FILIPINO') {
+            } else if (val === 'LOCAL') {
                 if (indigenousGroupContainer) indigenousGroupContainer.style.display = 'block';
                 if (passportInput) passportInput.value = '';
                 if (visaTypeInput) visaTypeInput.value = '';
@@ -795,7 +991,7 @@ function initConditionalFields() {
             
             fetchRequiredDocuments();
         });
-        citizenshipSelect.dispatchEvent(new Event('change'));
+        citizenshipInput.dispatchEvent(new Event('change'));
     }
 }
 
@@ -869,7 +1065,7 @@ function initAddressLookups() {
         })
         .catch(err => console.error('Error fetching provinces:', err));
 
-    function setupAddressLookup(prefix) {
+    window.setupAddressLookup = function(prefix) {
         const regions = document.getElementById(prefix + '_region');
         const provinceSearch = document.getElementById(prefix + '_province_search');
         const provinceHidden = document.getElementById(prefix + '_province');
@@ -968,8 +1164,10 @@ function initAddressLookups() {
                         // Fetch Cities for the selected province
                         cities.innerHTML = '<option value="">Select City</option>';
                         cities.disabled = true;
-                        barangays.innerHTML = '<option value="">Select Barangay</option>';
-                        barangays.disabled = true;
+                        if (barangays) {
+                            barangays.innerHTML = '<option value="">Select Barangay</option>';
+                            barangays.disabled = true;
+                        }
                         
                         fetch(`/api/address/cities/${p.provinceCode}`).then(r => r.json()).then(data => {
                             data.forEach(c => {
@@ -1018,38 +1216,68 @@ function initAddressLookups() {
                 provinceHidden.value = '';
                 cities.innerHTML = '<option value="">Select City</option>';
                 cities.disabled = true;
-                barangays.innerHTML = '<option value="">Select Barangay</option>';
-                barangays.disabled = true;
+                if (barangays) {
+                    barangays.innerHTML = '<option value="">Select Barangay</option>';
+                    barangays.disabled = true;
+                }
             }
             window.isFormDirty = true;
         });
 
         cities.addEventListener('change', function() {
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; 
-            barangays.disabled = true;
+            if (barangays) {
+                barangays.innerHTML = '<option value="">Select Barangay</option>'; 
+                barangays.disabled = true;
+            }
             if(this.value) {
                 fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(b => {
-                        const opt = document.createElement('option');
-                        opt.value = b.name;
-                        opt.textContent = b.name;
-                        opt.dataset.zip = b.zip;
-                        barangays.appendChild(opt);
-                    });
-                    barangays.disabled = false;
+                    if (barangays) {
+                        data.forEach(b => {
+                            const opt = document.createElement('option');
+                            opt.value = b.name;
+                            opt.textContent = b.name;
+                            opt.dataset.zip = b.zip;
+                            barangays.appendChild(opt);
+                        });
+                        barangays.disabled = false;
+                    }
                 });
             }
             window.isFormDirty = true;
         });
 
-        barangays.addEventListener('change', function() {
-            // Zip code autofill disabled as per user request
-            window.isFormDirty = true;
-        });
+        if (barangays) {
+            barangays.addEventListener('change', function() {
+                // Zip code autofill disabled as per user request
+                window.isFormDirty = true;
+            });
+        }
     }
 
-    setupAddressLookup('addr'); 
-    setupAddressLookup('perm'); 
+    window.setupAddressLookup('addr'); 
+    window.setupAddressLookup('perm'); 
+    window.setupAddressLookup('educ_kinder_0');
+    window.setupAddressLookup('guardian_addr');
+    window.setupAddressLookup('guardian_perm');
+    
+    const kinderCheckbox = document.getElementById('educ_kinder_0_intl');
+    if (kinderCheckbox) {
+        kinderCheckbox.addEventListener('change', function() {
+            const row = this.closest('.educ-section');
+            const hidden = row.querySelector('.intl-hidden-input');
+            if (hidden) hidden.value = this.checked ? "1" : "0";
+            
+            const localGroup = document.getElementById('educ_kinder_0_local');
+            const intlGroup = document.getElementById('educ_kinder_0_intl_group');
+            if (this.checked) {
+                if (localGroup) localGroup.style.display = 'none';
+                if (intlGroup) intlGroup.style.display = 'flex';
+            } else {
+                if (localGroup) localGroup.style.display = 'flex';
+                if (intlGroup) intlGroup.style.display = 'none';
+            }
+        });
+    }
 }
 
 /** Initializes UI animations and updates the floating step navigation state based on scroll coordinates. */
@@ -1389,31 +1617,88 @@ window.addSchoolRow = function(level) {
             <i class="ki-filled ki-trash"></i>
         </button>` : '';
 
+    const prefix = `educ_${level}_${index}`;
+    const countryOptions = document.getElementById('country_options_template')?.innerHTML || '';
+
     const row = document.createElement('div');
-    row.className = 'sibling-row row g-3 align-items-center mb-3 school-row position-relative';
+    row.className = 'sibling-row p-3 bg-light rounded border border-gray-200 mb-3 school-row position-relative';
     row.id = `row_${index}`;
 
     row.innerHTML = deleteBtnHtml + `
-        <div class="col-md-5">
-            <label class="form-label text-xs">School Name <span class="required">*</span></label>
-            <input type="text" name="educ_${level}_school[]" class="form-control form-control-sm educ-input" placeholder="School Name" required oninput="window.isFormDirty = true;">
-            <input type="hidden" name="educ_${level}_level[]" value="${levelLabel}">
+        <div class="row g-3 align-items-center mb-3">
+            <div class="col-md-5">
+                <label class="form-label text-xs">School Name <span class="required">*</span></label>
+                <input type="text" name="educ_${level}_school[]" class="form-control form-control-sm educ-input" placeholder="School Name" required oninput="window.isFormDirty = true;">
+                <input type="hidden" name="educ_${level}_level[]" value="${levelLabel}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-xs">School Type <span class="required">*</span></label>
+                <select name="educ_${level}_type[]" class="form-select form-control-sm educ-input" required onchange="window.isFormDirty = true;">
+                    <option value="Private">Private</option>
+                    <option value="Public">Public</option>
+                    <option value="International">International</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-xs">School Year <span class="required">*</span></label>
+                <input type="text" name="educ_${level}_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\\d{4}-\\d{4}" maxlength="9" required oninput="window.isFormDirty = true;">
+            </div>
         </div>
-        <div class="col-md-3">
-            <label class="form-label text-xs">School Year <span class="required">*</span></label>
-            <input type="text" name="educ_${level}_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\\d{4}-\\d{4}" maxlength="9" required oninput="window.isFormDirty = true;">
+
+        <div class="form-check mb-2">
+            <input type="hidden" name="educ_${level}_is_international[]" class="intl-hidden-input" value="0">
+            <input class="form-check-input intl-checkbox" type="checkbox" id="${prefix}_intl">
+            <label class="form-check-label text-xs fw-bold" for="${prefix}_intl">International School</label>
         </div>
-        <div class="col-md-4">
-            <label class="form-label text-xs">School Type <span class="required">*</span></label>
-            <select name="educ_${level}_type[]" class="form-control form-control-sm educ-input" required onchange="window.isFormDirty = true;">
-                <option value="">Select Type</option>
-                <option value="Public">Public</option>
-                <option value="Private">Private</option>
-                <option value="International">International</option>
-            </select>
+
+        <div class="row g-2 mt-2 location-local-group" id="${prefix}_local">
+            <div class="col-md-4">
+                <select id="${prefix}_region" class="form-select form-select-sm" data-placeholder="Region">
+                    <option value=""></option>
+                </select>
+                <input type="hidden" name="educ_${level}_region[]" id="${prefix}_region_hidden">
+            </div>
+            <div class="col-md-4 position-relative">
+                <input type="text" id="${prefix}_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
+                <input type="hidden" id="${prefix}_province" name="educ_${level}_province[]">
+                <div id="${prefix}_province_suggestions" class="autocomplete-suggestions hidden"></div>
+            </div>
+            <div class="col-md-4">
+                <select id="${prefix}_city" name="educ_${level}_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
+                    <option value=""></option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="row g-2 location-intl-group" id="${prefix}_intl_group" style="display:none;">
+            <div class="col-md-6">
+                <select name="educ_${level}_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
+                    ${countryOptions}
+                </select>
+            </div>
         </div>
     `;
     container.appendChild(row);
+
+    const checkbox = row.querySelector('.intl-checkbox');
+    const localGroup = row.querySelector('.location-local-group');
+    const intlGroup = row.querySelector('.location-intl-group');
+    const hiddenInput = row.querySelector('.intl-hidden-input');
+    
+    checkbox.addEventListener('change', function() {
+        hiddenInput.value = this.checked ? "1" : "0";
+        if (this.checked) {
+            localGroup.style.display = 'none';
+            intlGroup.style.display = 'flex';
+        } else {
+            localGroup.style.display = 'flex';
+            intlGroup.style.display = 'none';
+        }
+    });
+
+    if (window.setupAddressLookup) {
+        window.setupAddressLookup(prefix);
+    }
 };
 
 window.ensureInitialRow = function(level) {
@@ -1473,4 +1758,35 @@ function initDPAModal() {
             document.body.style.overflow = '';
         });
     }
+}
+
+/**
+ * Guardian Address Sync (Guardian-Only)
+ * - Guardian "Same as Applicant" checkbox: hides/shows the guardian's own address block.
+ * - Guardian also has a "Permanent same as Current" checkbox for their own addresses.
+ * - Parents (Father/Mother) always have independent address blocks with their own perm toggles.
+ */
+function initGuardianAddressSync() {
+    // --- Guardian "Same as Applicant" toggle ---
+    const guardianSync = document.getElementById('guardian_same_as_applicant');
+    const guardianBlock = document.getElementById('guardian_address_block');
+
+    if (guardianSync && guardianBlock) {
+        // Initial state
+        guardianBlock.style.display = guardianSync.checked ? 'none' : '';
+
+        guardianSync.addEventListener('change', function() {
+            guardianBlock.style.display = this.checked ? 'none' : '';
+        });
+    }
+
+    // --- Guardian permanent address toggle ---
+    const guardianPermSame = document.getElementById('guardian_perm_same');
+    const guardianPermBlock = document.getElementById('guardian_perm_block');
+    if (guardianPermSame && guardianPermBlock) {
+        guardianPermSame.addEventListener('change', function() {
+            guardianPermBlock.style.display = this.checked ? 'none' : '';
+        });
+    }
+
 }

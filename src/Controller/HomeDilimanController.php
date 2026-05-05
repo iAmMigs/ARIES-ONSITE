@@ -17,6 +17,7 @@ class HomeDilimanController extends AbstractController
 
         return $this->render('home-onsite/diliman/index.html.twig', [
             'enrollment_open' => $dilimanSY && $dilimanSY->isEnrollmentOpen(),
+            'campus' => 'diliman',
         ]);
     }
 }

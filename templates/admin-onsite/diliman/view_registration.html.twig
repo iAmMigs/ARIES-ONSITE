@@ -66,6 +66,7 @@
                         </div>
                     </div>
 
+                    {% if registration.educationType == 'SHS' %}
                     <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
                         <div class="text-xs font-bold text-gray-400 uppercase mb-2">
                              {% if registration.examinationScore is not null %}
@@ -83,10 +84,22 @@
                                     </div>
                                 {% endif %}
                             {% else %}
-                                {{ registration.admissionStatus }}
+                                {{ registration.admissionStatus == 'Pending' or registration.admissionStatus == 'P' ? 'Pending Exam' : registration.admissionStatus }}
                             {% endif %}
                         </div>
                      </div>
+                    {% else %}
+                    <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
+                        <div class="text-xs font-bold text-gray-400 uppercase mb-2">Payment Status</div>
+                        <div class="text-lg font-bold text-feu-green-700">
+                            {% if registration.admissionStatus == 'Paid' %}
+                                <span class="text-green-600">Paid</span>
+                            {% else %}
+                                <span class="text-orange-500">For Payment</span>
+                            {% endif %}
+                        </div>
+                     </div>
+                    {% endif %}
                 </div>
 
                 {# --- 2. DETAILS GRID --- #}
@@ -100,6 +113,7 @@
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Birthday</div><div class="font-medium text-gray-800">{{ registration.birthDate|date('F j, Y') }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Birth Place</div><div class="font-medium text-gray-800">{{ registration.birthPlace }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Religion</div><div class="font-medium text-gray-800">{{ registration.religion }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Nationality</div><div class="font-medium text-gray-800">{{ registration.nationality }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Citizenship</div><div class="font-medium text-gray-800">{{ registration.citizenship }}</div></div>
                         </div>
                     </div>
@@ -212,6 +226,13 @@
                                 <div class="text-sm font-bold text-gray-800">{{ school.school }}</div>
                                 <div class="text-xs text-gray-500 mt-1">School Year: {{ sYear }}</div>
                                 {% if school.schoolType %}<div class="text-xs text-gray-400 mt-0.5">{{ school.schoolType }}</div>{% endif %}
+                                {% if school.isInternational %}
+                                    <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.country }}</div>
+                                {% else %}
+                                    {% if school.region or school.province or school.city %}
+                                        <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.city }}, {{ school.province }}, {{ school.region }}</div>
+                                    {% endif %}
+                                {% endif %}
                                 <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                             </div>
                             {% else %}
@@ -306,12 +327,23 @@
                                     <div class="text-xs text-orange-600 font-bold uppercase">
                                         {{ emergencyContact.relationship }}
                                     </div>
+                                    {% if emergencyContact.sameAsApplicant is defined and emergencyContact.sameAsApplicant %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Same as Applicant
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <div class="font-bold text-gray-800">{{ emergencyContact.parentName|default('')|trim(', ') }}</div>
                                 <div class="text-sm {{ emergencyContact.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
                                     {{ emergencyContact.occupation ?: 'Occupation Not Specified' }}
                                 </div>
                                 <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ emergencyContact.contactNo ?: 'No Contact Provided' }}</div>
+                                {% if emergencyContact.currentAddress or emergencyContact.currentCity %}
+                                    <div class="text-sm text-gray-500 mt-2 pt-2 border-t border-orange-100">
+                                        <i class="ki-filled ki-map text-xs mr-1"></i>
+                                        {{ emergencyContact.currentAddress }}{% if emergencyContact.currentBarangay %}, {{ emergencyContact.currentBarangay }}{% endif %}{% if emergencyContact.currentCity %}, {{ emergencyContact.currentCity }}{% endif %}{% if emergencyContact.currentProvince %}, {{ emergencyContact.currentProvince }}{% endif %} {{ emergencyContact.currentZip }}
+                                    </div>
+                                {% endif %}
                             </div>
                         {% else %}
                             <div class="p-4 rounded-xl border bg-gray-50 border-gray-100 text-center">

@@ -17,6 +17,7 @@ class HomeAlabangController extends AbstractController
 
         return $this->render('home-onsite/alabang/index.html.twig', [
             'enrollment_open' => $alabangSY && $alabangSY->isEnrollmentOpen(),
+            'campus' => 'alabang',
         ]);
     }
 }

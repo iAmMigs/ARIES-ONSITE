@@ -85,6 +85,7 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
 
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
+    #[ORM\Column(length: 100, nullable: true)] private ?string $nationality = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
@@ -227,6 +228,12 @@ class ApplicantBed
     public function setReligion(?string $r): static { $this->religion = $r; return $this; }
     public function getCitizenship(): ?string { return $this->citizenship; }
     public function setCitizenship(?string $c): static { $this->citizenship = $c; return $this; }
+    
+    public function getNationality(): ?string { return $this->nationality; }
+    public function setNationality(?string $n): static { $this->nationality = $n; return $this; }
+    
+
+
     public function getPassportNumber(): ?string { return $this->passportNumber; }
     public function setPassportNumber(?string $p): static { $this->passportNumber = $p; return $this; }
     public function getVisaType(): ?string { return $this->visaType; }

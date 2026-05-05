@@ -13,8 +13,8 @@ use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
 use App\Entity\LookupBarangay;
 use App\Entity\LookupReligion;
-use App\Entity\LookupCountry;
 use App\Entity\LookupCitizenship;
+use App\Entity\LookupCountry;
 use App\Entity\SchoolYear;
 use App\Repository\SchoolYearRepository;
 use App\Service\StudentIdGenerator;
@@ -45,6 +45,7 @@ class EnrollmentAlabangController extends AbstractController
         $documents    = $em->getRepository(DocumentSetup::class)->findBy(['campus' => [$campusCode, null]]);
         $religions    = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
         $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
+        $nationalities = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
         $countries    = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
         return $this->render('enrollment-onsite/alabang/enroll.html.twig', [
@@ -53,6 +54,7 @@ class EnrollmentAlabangController extends AbstractController
             'documents'              => $documents,
             'religions'              => $religions,
             'citizenships'           => $citizenships,
+            'nationalities'          => $nationalities,
             'countries'              => $countries,
         ]);
     }
@@ -129,8 +131,9 @@ class EnrollmentAlabangController extends AbstractController
             
             $citizenship = $request->request->get('citizenship');
             $applicant->setCitizenship($citizenship);
+            $applicant->setNationality($request->request->get('nationality'));
             
-            if (strtoupper($citizenship) !== 'FILIPINO') {
+            if (strtoupper($citizenship) === 'INTERNATIONAL') {
                 $applicant->setPassportNumber($request->request->get('passport_number'));
                 $applicant->setVisaType($request->request->get('visa_type'));
                 $applicant->setVisaStatus($request->request->get('visa_status'));
@@ -234,7 +237,7 @@ class EnrollmentAlabangController extends AbstractController
             foreach ($documentSetups as $docSetup) {
                 $isMatch = true;
                 if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($applicant->getAdmissionType())) $isMatch = false;
-                $studentNationality = strtoupper($applicant->getCitizenship()) === 'FILIPINO' ? 'LOCAL' : 'INTERNATIONAL';
+                $studentNationality = strtoupper($applicant->getCitizenship());
                 if ($docSetup->getNationalityType() && strtoupper($docSetup->getNationalityType()) !== $studentNationality) $isMatch = false;
                 if ($docSetup->getGradeLevels() && !in_array($applicant->getGradeLevel(), $docSetup->getGradeLevels())) $isMatch = false;
                 
@@ -385,7 +388,70 @@ class EnrollmentAlabangController extends AbstractController
         $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
         $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
         $guardian->setEmail($request->request->get($slot . '_email'));
-        $guardian->setAddress($request->request->get($slot . '_address'));
+
+        // --- Address handling ---
+        if ($slot === 'guardian') {
+            // Guardian slot: check "Same as Applicant" flag
+            $sameAsApplicant = $request->request->get('guardian_same_as_applicant') ? true : false;
+            $guardian->setSameAsApplicant($sameAsApplicant);
+
+            if ($sameAsApplicant) {
+                // Copy applicant's addresses to guardian
+                $guardian->setCurrentRegion($applicant->getCurrentRegion());
+                $guardian->setCurrentProvince($applicant->getCurrentProvince());
+                $guardian->setCurrentCity($applicant->getCurrentCity());
+                $guardian->setCurrentBarangay($applicant->getCurrentBarangay());
+                $guardian->setCurrentAddress($applicant->getCurrentAddress());
+                $guardian->setCurrentZip($applicant->getCurrentZip());
+                $guardian->setPermanentRegion($applicant->getPermanentRegion());
+                $guardian->setPermanentProvince($applicant->getPermanentProvince());
+                $guardian->setPermanentCity($applicant->getPermanentCity());
+                $guardian->setPermanentBarangay($applicant->getPermanentBarangay());
+                $guardian->setPermanentAddress($applicant->getPermanentAddress());
+                $guardian->setPermanentZip($applicant->getPermanentZip());
+            } else {
+                // Guardian's own current address
+                $guardian->setCurrentRegion(strtoupper($request->request->get('guardian_addr_region', '') ?: ''));
+                $guardian->setCurrentProvince(strtoupper($request->request->get('guardian_addr_province', '') ?: ''));
+                $guardian->setCurrentCity(strtoupper($request->request->get('guardian_addr_city', '') ?: ''));
+                $guardian->setCurrentBarangay($request->request->get('guardian_addr_barangay', ''));
+                $guardian->setCurrentAddress(strtoupper($request->request->get('guardian_addr_street', '') ?: ''));
+                $guardian->setCurrentZip($request->request->get('guardian_addr_zip', ''));
+
+                // Guardian's permanent address
+                $permSame = $request->request->get('guardian_perm_same');
+                if ($permSame) {
+                    $guardian->setPermanentRegion($guardian->getCurrentRegion());
+                    $guardian->setPermanentProvince($guardian->getCurrentProvince());
+                    $guardian->setPermanentCity($guardian->getCurrentCity());
+                    $guardian->setPermanentBarangay($guardian->getCurrentBarangay());
+                    $guardian->setPermanentAddress($guardian->getCurrentAddress());
+                    $guardian->setPermanentZip($guardian->getCurrentZip());
+                } else {
+                    $guardian->setPermanentRegion(strtoupper($request->request->get('guardian_perm_region', '') ?: ''));
+                    $guardian->setPermanentProvince(strtoupper($request->request->get('guardian_perm_province', '') ?: ''));
+                    $guardian->setPermanentCity(strtoupper($request->request->get('guardian_perm_city', '') ?: ''));
+                    $guardian->setPermanentBarangay($request->request->get('guardian_perm_barangay', ''));
+                    $guardian->setPermanentAddress(strtoupper($request->request->get('guardian_perm_street', '') ?: ''));
+                    $guardian->setPermanentZip($request->request->get('guardian_perm_zip', ''));
+                }
+            }
+        } else {
+            // Father/Mother: personal/contact only (no address collection)
+            $guardian->setSameAsApplicant(false);
+            $guardian->setCurrentRegion(null);
+            $guardian->setCurrentProvince(null);
+            $guardian->setCurrentCity(null);
+            $guardian->setCurrentBarangay(null);
+            $guardian->setCurrentAddress(null);
+            $guardian->setCurrentZip(null);
+            $guardian->setPermanentRegion(null);
+            $guardian->setPermanentProvince(null);
+            $guardian->setPermanentCity(null);
+            $guardian->setPermanentBarangay(null);
+            $guardian->setPermanentAddress(null);
+            $guardian->setPermanentZip(null);
+        }
 
         $em->persist($guardian);
     }
@@ -398,7 +464,8 @@ class EnrollmentAlabangController extends AbstractController
 
         return $this->render('enrollment-onsite/alabang/success.html.twig', [
             'student_number' => $applicant->getStudentNumber(),
-            'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName()
+            'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName(),
+            'education_type' => $applicant->getEducationType(),
         ]);
     }
 

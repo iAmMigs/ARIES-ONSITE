@@ -270,6 +270,8 @@ class AdminAlabangController extends AbstractController
         if (!$registration) throw $this->createNotFoundException();
 
         $documentSetups = $this->getFilteredDocumentSetups($registration, $em, ApplicantBed::CAMPUS_ALABANG);
+        $nationalities = $em->getRepository(\App\Entity\LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
+        $countries = $em->getRepository(\App\Entity\LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             $registration->setFirstName($request->request->get('first_name'));
@@ -282,7 +284,18 @@ class AdminAlabangController extends AbstractController
             $registration->setBirthPlace($request->request->get('birth_place'));
             $registration->setReligion($request->request->get('religion'));
             $registration->setCitizenship($request->request->get('citizenship'));
-            $registration->setGradeLevel($request->request->get('grade_level'));
+            $registration->setNationality($request->request->get('nationality'));
+            $gradeLevel = $request->request->get('grade_level');
+            $registration->setGradeLevel($gradeLevel);
+            
+            // Determine education type from grade level
+            $levelLower = strtolower(str_replace(' ', '_', $gradeLevel));
+            if ($levelLower === 'grade_11' || $levelLower === 'grade_12') {
+                $registration->setEducationType('SHS');
+            } else {
+                $registration->setEducationType('K-10');
+            }
+            
             $registration->setTrackStrand($request->request->get('track_strand'));
             
             if ($dob = $request->request->get('birth_date')) {
@@ -342,21 +355,33 @@ class AdminAlabangController extends AbstractController
             }
 
             $examTaken = $request->request->get('exam_taken') === '1';
+            $paymentPaid = $request->request->get('payment_paid') === '1';
             $score = $request->request->get('exam_score');
             $examDateStr = $request->request->get('exam_date');
 
-            if ($examTaken) {
-                if ($score !== null && $score !== '') {
-                    $registration->setExaminationScore((float)$score);
+            if ($registration->getEducationType() === 'SHS') {
+                if ($examTaken) {
+                    if ($score !== null && $score !== '') {
+                        $registration->setExaminationScore((float)$score);
+                    }
+                    if ($examDateStr) {
+                        $registration->setExaminationDate(new \DateTime($examDateStr));
+                    }
+                    $registration->setAdmissionStatus(ApplicantBed::STATUS_COMPLETED);
+                } else {
+                    $registration->setExaminationScore(null);
+                    $registration->setExaminationDate(null);
+                    $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
                 }
-                if ($examDateStr) {
-                    $registration->setExaminationDate(new \DateTime($examDateStr));
-                }
-                $registration->setAdmissionStatus(ApplicantBed::STATUS_COMPLETED);
             } else {
+                // K-10
+                if ($paymentPaid) {
+                    $registration->setAdmissionStatus('Paid');
+                } else {
+                    $registration->setAdmissionStatus('For Payment');
+                }
                 $registration->setExaminationScore(null);
                 $registration->setExaminationDate(null);
-                $registration->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             }
 
             $this->hydrateAddress($registration, $request, $em, 'current');
@@ -440,6 +465,20 @@ class AdminAlabangController extends AbstractController
                     $sch->setSchool($data['name']);
                     $sch->setSchoolYear($data['year']);
                     $sch->setSchoolType($data['type'] ?? null);
+                    
+                    $isInt = !empty($data['is_international']);
+                    $sch->setIsInternational($isInt);
+                    if ($isInt) {
+                        $sch->setCountry($data['country'] ?? null);
+                        $sch->setRegion(null);
+                        $sch->setProvince(null);
+                        $sch->setCity(null);
+                    } else {
+                        $sch->setCountry(null);
+                        $sch->setRegion($data['region'] ?? null);
+                        $sch->setProvince($data['province'] ?? null);
+                        $sch->setCity($data['city'] ?? null);
+                    }
                 }
             }
             
@@ -455,7 +494,9 @@ class AdminAlabangController extends AbstractController
 
         return $this->render('admin-onsite/alabang/edit_registration.html.twig', [
             'registration' => $registration,
-            'documentSetups' => $documentSetups
+            'documentSetups' => $documentSetups,
+            'nationalities' => $nationalities,
+            'countries' => $countries
         ]);
     }
 
@@ -611,12 +652,12 @@ class AdminAlabangController extends AbstractController
             }
 
             // 3. Nationality Check
-            $nReq = $setup->getNationalityType(); // 'All', 'Filipino', 'Foreign'
+            $nReq = $setup->getNationalityType(); // 'All', 'Local', 'International'
             if ($nReq && strtoupper($nReq) !== 'ALL') {
-                if (strtoupper($nReq) === 'FILIPINO' && strtoupper($citizenship) !== 'FILIPINO') {
+                if (strtoupper($nReq) === 'LOCAL' && strtoupper($citizenship) !== 'LOCAL') {
                     continue;
                 }
-                if (strtoupper($nReq) === 'FOREIGN' && (strtoupper($citizenship) === 'FILIPINO' || strtoupper($citizenship) === 'DUAL')) {
+                if (strtoupper($nReq) === 'INTERNATIONAL' && strtoupper($citizenship) !== 'INTERNATIONAL') {
                     continue;
                 }
             }

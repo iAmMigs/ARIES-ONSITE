@@ -75,7 +75,7 @@
                                     <option value="Transferee" {{ registration.admissionType == 'Transferee' ? 'selected' }}>Transferee</option>
                                 </select>
                                                             
-                                <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1">
+                                <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1" onchange="if(window.updateGradeDependents) window.updateGradeDependents()">
                                     {% for level in ['grade_11', 'grade_12'] %}
                                         <option value="{{ level }}" {{ (registration.gradeLevel|lower|replace({' ': '_'}) == level|lower) ? 'selected' }}>{{ level|replace({'_': ' '})|title }}</option>
                                     {% endfor %}
@@ -101,27 +101,47 @@
                             </div>
                         </div>
 
-                        {# Examination Status #}
-                        <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[200px]">
-                            <div class="text-xs font-bold text-gray-400 uppercase mb-3">Examination Status</div>
-                            
-                            <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
-                                <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.examinationScore is not null ? 'checked' : '' }}>
-                                <span class="text-sm font-bold text-gray-700">Exam Taken</span>
-                            </label>
+                        {# Dynamic Status Section #}
+                        <div id="statusSectionContainer" class="flex-shrink-0 self-start md:self-center min-w-[200px]">
+                            {# Examination Status - Only for SHS #}
+                            <div id="shsExamSection" class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center" style="{{ registration.educationType == 'SHS' ? '' : 'display: none;' }}">
+                                <div class="text-xs font-bold text-gray-400 uppercase mb-3">Examination Status</div>
+                                
+                                <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
+                                    <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.examinationScore is not null ? 'checked' : '' }}>
+                                    <span class="text-sm font-bold text-gray-700">Exam Taken</span>
+                                </label>
 
-                            <div id="scoreBox" style="display: none;" class="space-y-3">
-                                <div>
-                                    <input type="number" step="0.01" name="exam_score" value="{{ registration.examinationScore }}" class="w-full text-center border-gray-400 border-2 rounded-lg text-lg font-bold text-feu-green-700 shadow-inner px-3 py-2" placeholder="00.00">
-                                    <div class="text-[10px] text-gray-400 mt-1 uppercase font-bold">Examination Score</div>
+                                <div id="scoreBox" style="{{ registration.examinationScore is not null ? '' : 'display: none;' }}" class="space-y-3">
+                                    <div>
+                                        <input type="number" step="0.01" name="exam_score" value="{{ registration.examinationScore }}" class="w-full text-center border-gray-400 border-2 rounded-lg text-lg font-bold text-feu-green-700 shadow-inner px-3 py-2" placeholder="00.00">
+                                        <div class="text-[10px] text-gray-400 mt-1 uppercase font-bold">Examination Score</div>
+                                    </div>
+                                    <div>
+                                        <input type="date" name="exam_date" value="{{ registration.examinationDate ? registration.examinationDate|date('Y-m-d') : '' }}" class="w-full text-center border-gray-300 border rounded-lg text-sm font-bold text-gray-700 px-3 py-2 mt-2">
+                                        <div class="text-[10px] text-gray-400 mt-1 uppercase font-bold">Examination Date</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <input type="date" name="exam_date" value="{{ registration.examinationDate ? registration.examinationDate|date('Y-m-d') : '' }}" class="w-full text-center border-gray-300 border rounded-lg text-sm font-bold text-gray-700 px-3 py-2 mt-2">
-                                    <div class="text-[10px] text-gray-400 mt-1 uppercase font-bold">Examination Date</div>
+                                <div id="pendingBox" style="{{ registration.examinationScore is not null ? 'display: none;' : '' }}" class="text-sm font-bold text-orange-500">
+                                    Pending Examination
                                 </div>
                             </div>
-                            <div id="pendingBox" class="text-sm font-bold text-orange-500">
-                                Pending Examination
+
+                            {# Payment Status - For K-10 #}
+                            <div id="k10PaymentSection" class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center" style="{{ registration.educationType != 'SHS' ? '' : 'display: none;' }}">
+                                <div class="text-xs font-bold text-gray-400 uppercase mb-3">Payment Status</div>
+                                
+                                <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
+                                    <input type="checkbox" name="payment_paid" id="paymentPaidCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Paid' ? 'checked' : '' }}>
+                                    <span class="text-sm font-bold text-gray-700">Paid</span>
+                                </label>
+
+                                <div id="paymentPendingBox" class="text-sm font-bold text-orange-500" style="{{ registration.admissionStatus == 'Paid' ? 'display: none;' : '' }}">
+                                    For Payment
+                                </div>
+                                <div id="paymentPaidBox" class="text-sm font-bold text-green-600" style="{{ registration.admissionStatus == 'Paid' ? '' : 'display: none;' }}">
+                                    Paid
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -154,11 +174,19 @@
                                     <input type="text" name="religion" value="{{ registration.religion }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                 </div>
                                 <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Nationality</label>
+                                    <select name="nationality" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <option value="">Select Nationality</option>
+                                        {% for nat in nationalities %}
+                                            <option value="{{ nat.citizenshipName }}" {{ registration.nationality|upper == nat.citizenshipName|upper ? 'selected' : '' }}>{{ nat.citizenshipName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
                                     <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value="Filipino" {{ registration.citizenship|upper == 'FILIPINO' ? 'selected' : '' }}>Filipino</option>
-                                        <option value="Foreign" {{ registration.citizenship|upper == 'FOREIGN' ? 'selected' : '' }}>Foreign</option>
-                                        <option value="Dual" {{ registration.citizenship|upper == 'DUAL' ? 'selected' : '' }}>Dual</option>
+                                        <option value="LOCAL" {{ registration.citizenship|upper == 'LOCAL' ? 'selected' : '' }}>Local</option>
+                                        <option value="INTERNATIONAL" {{ registration.citizenship|upper == 'INTERNATIONAL' ? 'selected' : '' }}>International</option>
                                     </select>
                                 </div>
                             </div>
@@ -178,19 +206,19 @@
                                 <div class="grid grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label class="text-[10px] text-gray-500">Region</label>
-                                        <select id="addr_region" name="addr_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-control="select2"><option value=""></option></select>
+                                        <select id="addr_region" name="addr_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-selected="{{ registration.currentRegion }}"><option value=""></option></select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500">Province</label>
-                                        <select id="addr_province" name="addr_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                        <select id="addr_province" name="addr_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.currentProvince }}"><option value=""></option></select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500">City</label>
-                                        <select id="addr_city" name="addr_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                        <select id="addr_city" name="addr_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.currentCity }}"><option value=""></option></select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500">Barangay</label>
-                                        <select id="addr_barangay" name="addr_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                        <select id="addr_barangay" name="addr_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.currentBarangay }}"><option value=""></option></select>
                                     </div>
                                 </div>
                                 <input type="text" name="current_address" value="{{ registration.currentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
@@ -205,19 +233,19 @@
                                 <div class="grid grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label class="text-[10px] text-gray-500">Region</label>
-                                        <select id="perm_region" name="perm_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-control="select2"><option value=""></option></select>
+                                        <select id="perm_region" name="perm_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-selected="{{ registration.permanentRegion }}"><option value=""></option></select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500">Province</label>
-                                        <select id="perm_province" name="perm_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                        <select id="perm_province" name="perm_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentProvince }}"><option value=""></option></select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500">City</label>
-                                        <select id="perm_city" name="perm_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                        <select id="perm_city" name="perm_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentCity }}"><option value=""></option></select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500">Barangay</label>
-                                        <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled><option value=""></option></select>
+                                        <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentBarangay }}"><option value=""></option></select>
                                     </div>
                                 </div>
                                 <input type="text" name="permanent_address" value="{{ registration.permanentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
@@ -332,12 +360,30 @@
                                     </div>
                                     <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="School Name">
                                     <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ sYear }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
-                                    <select name="schools[{{ loop.index0 }}][type]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <select name="schools[{{ loop.index0 }}][type]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5 mb-1">
                                         <option value="">School Type</option>
                                         <option value="Public" {{ school.schoolType == 'Public' ? 'selected' }}>Public</option>
                                         <option value="Private" {{ school.schoolType == 'Private' ? 'selected' }}>Private</option>
                                         <option value="International" {{ school.schoolType == 'International' ? 'selected' }}>International</option>
                                     </select>
+                                    
+                                    <div class="mt-2 mb-1 flex items-center">
+                                        <input type="checkbox" id="school_{{ loop.index0 }}_intl" name="schools[{{ loop.index0 }}][is_international]" value="1" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-3 h-3 mr-1" {{ school.isInternational ? 'checked' : '' }} onchange="toggleAdminSchoolLocation({{ loop.index0 }})">
+                                        <label for="school_{{ loop.index0 }}_intl" class="text-[10px] uppercase font-bold text-gray-500 cursor-pointer">International School</label>
+                                    </div>
+                                    <div id="school_{{ loop.index0 }}_local_group" class="grid grid-cols-3 gap-2 mb-2" style="{{ school.isInternational ? 'display:none;' : '' }}">
+                                        <select id="school_{{ loop.index0 }}_region" name="schools[{{ loop.index0 }}][region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-1" data-selected="{{ school.region }}"><option value="">Region</option></select>
+                                        <select id="school_{{ loop.index0 }}_province" name="schools[{{ loop.index0 }}][province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-1" data-selected="{{ school.province }}"><option value="">Province</option></select>
+                                        <select id="school_{{ loop.index0 }}_city" name="schools[{{ loop.index0 }}][city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-1" data-selected="{{ school.city }}"><option value="">City</option></select>
+                                    </div>
+                                    <div id="school_{{ loop.index0 }}_intl_group" class="mb-2" style="{{ not school.isInternational ? 'display:none;' : '' }}">
+                                        <select name="schools[{{ loop.index0 }}][country]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <option value="">Select Country</option>
+                                            {% for country in countries %}
+                                                <option value="{{ country.countryName }}" {{ school.country == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
                                     <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                                 </div>
                                 {% else %}
@@ -567,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function setupAddressLookup(prefix) {
+    async function setupAddressLookup(prefix) {
         const regions = document.getElementById(prefix + '_region');
         const provinces = document.getElementById(prefix + '_province');
         const cities = document.getElementById(prefix + '_city');
@@ -575,46 +621,109 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if(!regions) return;
 
-        fetch('/api/address/regions').then(r => r.json()).then(data => {
+        const selR = regions.getAttribute('data-selected') || '';
+        const selP = provinces ? (provinces.getAttribute('data-selected') || '') : '';
+        const selC = cities ? (cities.getAttribute('data-selected') || '') : '';
+        const selB = barangays ? (barangays.getAttribute('data-selected') || '') : '';
+
+        const loadRegions = async () => {
+            const res = await fetch('/api/address/regions');
+            const data = await res.json();
             data.forEach(r => { regions.innerHTML += `<option value="${r.code}">${r.name}</option>`; });
+        };
+        
+        const loadProvinces = async (rCode) => {
+            if(!provinces) return;
+            provinces.innerHTML = '<option value="">Select Province</option>';
+            provinces.disabled = true;
+            if(!rCode) return;
+            const res = await fetch(`/api/address/provinces/${rCode}`);
+            const data = await res.json();
+            data.forEach(p => { provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`; });
+            provinces.disabled = false;
+        };
+
+        const loadCities = async (pCode) => {
+            if(!cities) return;
+            cities.innerHTML = '<option value="">Select City</option>';
+            cities.disabled = true;
+            if(!pCode) return;
+            const res = await fetch(`/api/address/cities/${pCode}`);
+            const data = await res.json();
+            data.forEach(c => { cities.innerHTML += `<option value="${c.code}">${c.name}</option>`; });
+            cities.disabled = false;
+        };
+
+        const loadBarangays = async (cCode) => {
+            if(!barangays) return;
+            barangays.innerHTML = '<option value="">Select Barangay</option>';
+            barangays.disabled = true;
+            if(!cCode) return;
+            const res = await fetch(`/api/address/barangays/${cCode}`);
+            const data = await res.json();
+            data.forEach(b => { barangays.innerHTML += `<option value="${b.name}">${b.name}</option>`; });
+            barangays.disabled = false;
+        };
+
+        regions.addEventListener('change', async function() {
+            await loadProvinces(this.value);
+            if(cities) { cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true; }
+            if(barangays) { barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true; }
         });
 
-        regions.addEventListener('change', function() {
-            provinces.innerHTML = '<option value="">Select Province</option>'; provinces.disabled = true;
-            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
-            
-            if(this.value) {
-                fetch(`/api/address/provinces/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(p => provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`);
-                    provinces.disabled = false;
-                });
-            }
-        });
+        if(provinces) {
+            provinces.addEventListener('change', async function() {
+                await loadCities(this.value);
+                if(barangays) { barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true; }
+            });
+        }
 
-        provinces.addEventListener('change', function() {
-            cities.innerHTML = '<option value="">Select City</option>'; cities.disabled = true;
-            if(this.value) {
-                fetch(`/api/address/cities/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(c => cities.innerHTML += `<option value="${c.code}">${c.name}</option>`);
-                    cities.disabled = false;
-                });
-            }
-        });
+        if(cities && barangays) {
+            cities.addEventListener('change', async function() {
+                await loadBarangays(this.value);
+            });
+        }
 
-        cities.addEventListener('change', function() {
-            barangays.innerHTML = '<option value="">Select Barangay</option>'; barangays.disabled = true;
-            if(this.value) {
-                fetch(`/api/address/barangays/${this.value}`).then(r => r.json()).then(data => {
-                    data.forEach(b => barangays.innerHTML += `<option value="${b.name}">${b.name}</option>`);
-                    barangays.disabled = false;
-                });
+        // Initial Load Pre-selection
+        await loadRegions();
+        if(selR) {
+            regions.value = selR;
+            await loadProvinces(selR);
+            if(selP && provinces) {
+                provinces.value = selP;
+                await loadCities(selP);
+                if(selC && cities) {
+                    cities.value = selC;
+                    await loadBarangays(selC);
+                    if(selB && barangays) {
+                        barangays.value = selB;
+                    }
+                }
             }
-        });
+        }
     }
 
     setupAddressLookup('addr');
     setupAddressLookup('perm');
+    
+    document.querySelectorAll('[id^="school_"][id$="_intl"]').forEach((cb) => {
+        const index = cb.id.split('_')[1];
+        setupAddressLookup(`school_${index}`);
+    });
+
+    window.toggleAdminSchoolLocation = function(index) {
+        const isIntl = document.getElementById(`school_${index}_intl`).checked;
+        const localGroup = document.getElementById(`school_${index}_local_group`);
+        const intlGroup = document.getElementById(`school_${index}_intl_group`);
+
+        if(isIntl) {
+            localGroup.style.display = 'none';
+            intlGroup.style.display = '';
+        } else {
+            localGroup.style.display = '';
+            intlGroup.style.display = 'none';
+        }
+    };
 
     window.previewImage = function(input) {
         if (input.files && input.files[0]) {
@@ -627,26 +736,93 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- DYNAMIC FORM LOGIC ---
+
     const gradeSelect = document.querySelector('select[name="grade_level"]');
     const strandSelect = document.querySelector('select[name="track_strand"]');
-    
-    function toggleStrand() {
-        if (gradeSelect && strandSelect) {
-            const grade = gradeSelect.value;
-            if (grade === 'grade_11' || grade === 'grade_12') {
-                strandSelect.style.display = ''; // Restore default visual
+    const shsSection = document.getElementById('shsExamSection');
+    const k10Section = document.getElementById('k10PaymentSection');
+
+    window.updateGradeDependents = function() {
+        if (!gradeSelect) return;
+        
+        const level = gradeSelect.value.toLowerCase();
+        // Robust check for SHS: includes '11' or '12' or 'shs'
+        const isSHS = level.includes('11') || level.includes('12') || level.includes('shs');
+        
+        // 1. Toggle Strand Dropdown
+        if (strandSelect) {
+            if (isSHS) {
+                strandSelect.style.display = ''; 
                 strandSelect.disabled = false;
             } else {
                 strandSelect.style.display = 'none';
                 strandSelect.disabled = true;
+                strandSelect.value = ''; 
             }
         }
-    }
+
+        // 2. Toggle Examination vs Payment Sections
+        if (shsSection && k10Section) {
+            shsSection.style.display = isSHS ? '' : 'none';
+            k10Section.style.display = isSHS ? 'none' : '';
+        }
+    };
 
     if (gradeSelect) {
-        gradeSelect.addEventListener('change', toggleStrand);
-        toggleStrand();
+        gradeSelect.addEventListener('change', window.updateGradeDependents);
+        gradeSelect.addEventListener('input', window.updateGradeDependents);
+        window.updateGradeDependents();
     }
+
+    // Exam Checkbox Toggle (Internal visibility)
+    const examCheck = document.getElementById('examCheck');
+    const scoreBox = document.getElementById('scoreBox');
+    const pendingBox = document.getElementById('pendingBox');
+    
+    window.updateExamUI = function() {
+        if (!examCheck) return;
+        if (scoreBox) scoreBox.style.display = examCheck.checked ? '' : 'none';
+        if (pendingBox) pendingBox.style.display = examCheck.checked ? 'none' : '';
+    };
+
+    if (examCheck) {
+        examCheck.addEventListener('change', window.updateExamUI);
+        window.updateExamUI();
+    }
+
+    // Payment Checkbox Toggle
+    const paymentPaidCheck = document.getElementById('paymentPaidCheck');
+    const paymentPendingBox = document.getElementById('paymentPendingBox');
+    const paymentPaidBox = document.getElementById('paymentPaidBox');
+    
+    window.updatePaymentUI = function() {
+        if (!paymentPaidCheck) return;
+        if (paymentPendingBox) paymentPendingBox.style.display = paymentPaidCheck.checked ? 'none' : '';
+        if (paymentPaidBox) paymentPaidBox.style.display = paymentPaidCheck.checked ? '' : 'none';
+    };
+
+    if (paymentPaidCheck) {
+        paymentPaidCheck.addEventListener('change', window.updatePaymentUI);
+        window.updatePaymentUI();
+    }
+
+    // --- INTERNATIONAL SCHOOL LOGIC ---
+    window.toggleAdminSchoolLocation = function(index) {
+        const cb = document.getElementById(`school_${index}_intl`);
+        const localGroup = document.getElementById(`school_${index}_local_group`);
+        const intlGroup = document.getElementById(`school_${index}_intl_group`);
+
+        if (!cb || !localGroup || !intlGroup) return;
+
+        if (cb.checked) {
+            localGroup.style.display = 'none';
+            intlGroup.style.display = '';
+        } else {
+            localGroup.style.display = '';
+            intlGroup.style.display = 'none';
+        }
+    };
 });
 
 document.addEventListener('input', function(e) {
