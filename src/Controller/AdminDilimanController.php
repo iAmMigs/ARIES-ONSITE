@@ -445,6 +445,31 @@ class AdminDilimanController extends AbstractController
                     $g->setDeceased(isset($data['deceased']));
                     $g->setOFW(isset($data['ofw']));
 
+                    if ($gType === 'GUARDIAN') {
+                        $sameAsApplicant = isset($data['same_as_applicant']);
+                        $g->setSameAsApplicant($sameAsApplicant);
+
+                        if ($sameAsApplicant) {
+                            $g->setCurrentRegion($registration->getCurrentRegion());
+                            $g->setCurrentProvince($registration->getCurrentProvince());
+                            $g->setCurrentCity($registration->getCurrentCity());
+                            $g->setCurrentBarangay($registration->getCurrentBarangay());
+                            $g->setCurrentAddress($registration->getCurrentAddress());
+                            $g->setCurrentZip($registration->getCurrentZip());
+                        } else {
+                            $this->hydrateGuardianAddress($g, $data, $em);
+                        }
+                    } else {
+                        // Parents: clear addresses per Zero-Address Policy
+                        $g->setSameAsApplicant(false);
+                        $g->setCurrentRegion(null);
+                        $g->setCurrentProvince(null);
+                        $g->setCurrentCity(null);
+                        $g->setCurrentBarangay(null);
+                        $g->setCurrentAddress(null);
+                        $g->setCurrentZip(null);
+                    }
+
                     unset($guardiansData[$index]); 
                 }
             }
@@ -516,6 +541,33 @@ class AdminDilimanController extends AbstractController
             'nationalities' => $nationalities,
             'countries' => $countries
         ]);
+    }
+
+    private function hydrateGuardianAddress(\App\Entity\ApplicantBedGuardian $g, array $data, EntityManagerInterface $em)
+    {
+        $regionCode = $data['addr_region'] ?? null;
+        $provCode = $data['addr_province'] ?? null;
+        $cityCode = $data['addr_city'] ?? null;
+        $brgyName = $data['addr_barangay'] ?? null;
+
+        if ($regionCode) {
+            $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regionCode]);
+            if ($r) $g->setCurrentRegion($r->getRegionDesc());
+        }
+        if ($provCode) {
+            $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provCode]);
+            if ($p) $g->setCurrentProvince($p->getProvinceDesc());
+        }
+        if ($cityCode) {
+            $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityCode]);
+            if ($c) $g->setCurrentCity($c->getCityDesc());
+        }
+        if ($brgyName) {
+            $g->setCurrentBarangay($brgyName);
+        }
+
+        $g->setCurrentAddress(strtoupper($data['addr_street'] ?? ''));
+        $g->setCurrentZip($data['addr_zip'] ?? '');
     }
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)

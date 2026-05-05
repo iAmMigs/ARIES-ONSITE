@@ -282,8 +282,9 @@ window.updateStrands = function() {
     const grade = gradeSelect.value;
     select.innerHTML = '<option value="">Select Option</option>';
     
-    const isDilimanGrade11 = (window.currentCampus === 'feu_diliman' && grade === 'Grade 11');
-    const isShs = (grade === 'Grade 11' || grade === 'Grade 12');
+    const lowerGrade = grade.toLowerCase();
+    const isDilimanGrade11 = (window.currentCampus === 'feu_diliman' && lowerGrade.includes('11'));
+    const isShs = lowerGrade.includes('11') || lowerGrade.includes('12') || lowerGrade.includes('shs');
 
     if (isShs && !isDilimanGrade11) {
         strandGroup.style.display = 'block';

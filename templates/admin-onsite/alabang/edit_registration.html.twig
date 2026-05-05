@@ -360,7 +360,7 @@
                                     </div>
                                     <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="School Name">
                                     <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ sYear }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
-                                    <select name="schools[{{ loop.index0 }}][type]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5 mb-1">
+                                    <select name="schools[{{ loop.index0 }}][type]" onchange="syncAdminSchoolType({{ loop.index0 }})" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5 mb-1">
                                         <option value="">School Type</option>
                                         <option value="Public" {{ school.schoolType == 'Public' ? 'selected' }}>Public</option>
                                         <option value="Private" {{ school.schoolType == 'Private' ? 'selected' }}>Private</option>
@@ -516,7 +516,7 @@
                                         <input type="text" name="guardians[{{ emergencyIndex }}][relationship]" value="{{ emergencyContact ? emergencyContact.relationship : 'GUARDIAN' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
                                         <input type="text" name="guardians[{{ emergencyIndex }}][occupation]" value="{{ emergencyContact ? emergencyContact.occupation : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
@@ -524,6 +524,45 @@
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
                                         <input type="text" name="guardians[{{ emergencyIndex }}][contact]" value="{{ emergencyContact ? emergencyContact.contactNo : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                    </div>
+                                </div>
+
+                                {# Guardian Address with Same as Applicant #}
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <div class="flex items-center mb-3">
+                                        <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-4 h-4 mr-2" type="checkbox" id="guardian_same_as_applicant" name="guardians[{{ emergencyIndex }}][same_as_applicant]" value="1" onchange="toggleGuardianAddress()" {{ (emergencyContact and emergencyContact.sameAsApplicant) ? 'checked' : '' }}>
+                                        <label class="text-xs font-bold text-gray-700 cursor-pointer" for="guardian_same_as_applicant">Same address as Applicant</label>
+                                    </div>
+                                    
+                                    <div id="guardian_address_block" style="{{ (emergencyContact and emergencyContact.sameAsApplicant) ? 'display:none;' : '' }}">
+                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                            <div>
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Region</label>
+                                                <select id="guardian_addr_region" name="guardians[{{ emergencyIndex }}][addr_region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentRegion : '' }}"><option value="">Region</option></select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Province</label>
+                                                <select id="guardian_addr_province" name="guardians[{{ emergencyIndex }}][addr_province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentProvince : '' }}"><option value="">Province</option></select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold">City/Municipality</label>
+                                                <select id="guardian_addr_city" name="guardians[{{ emergencyIndex }}][addr_city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentCity : '' }}"><option value="">City</option></select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Barangay</label>
+                                                <select id="guardian_addr_barangay" name="guardians[{{ emergencyIndex }}][addr_barangay]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentBarangay : '' }}"><option value="">Barangay</option></select>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                            <div class="md:col-span-2">
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold">House No. / Street / Bldg</label>
+                                                <input type="text" name="guardians[{{ emergencyIndex }}][addr_street]" value="{{ emergencyContact ? emergencyContact.currentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2" placeholder="Street Address">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Zip Code</label>
+                                                <input type="text" name="guardians[{{ emergencyIndex }}][addr_zip]" value="{{ emergencyContact ? emergencyContact.currentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2" placeholder="Zip Code">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -577,27 +616,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(isDirty) { e.preventDefault(); e.returnValue = ''; }
     });
 
-    const check = document.getElementById('examCheck');
-    const scoreBox = document.getElementById('scoreBox');
-    const pendingBox = document.getElementById('pendingBox');
-
-    function toggleScore() {
-        if(check && check.checked) {
-            scoreBox.style.display = 'block';
-            pendingBox.style.display = 'none';
-        } else if(check) {
-            scoreBox.style.display = 'none';
-            pendingBox.style.display = 'block';
-        }
-    }
-    
-    if(check) {
-        check.addEventListener('change', () => {
-            toggleScore();
-            isDirty = true;
-        });
-        toggleScore();
-    }
 
     if(typeof ARIESValidation !== 'undefined') {
         const nameInputs = document.querySelectorAll('input[name="last_name"], input[name="first_name"], input[name="middle_name"]');
@@ -705,25 +723,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     setupAddressLookup('addr');
     setupAddressLookup('perm');
+    setupAddressLookup('guardian_addr');
     
     document.querySelectorAll('[id^="school_"][id$="_intl"]').forEach((cb) => {
         const index = cb.id.split('_')[1];
         setupAddressLookup(`school_${index}`);
     });
 
-    window.toggleAdminSchoolLocation = function(index) {
-        const isIntl = document.getElementById(`school_${index}_intl`).checked;
-        const localGroup = document.getElementById(`school_${index}_local_group`);
-        const intlGroup = document.getElementById(`school_${index}_intl_group`);
-
-        if(isIntl) {
-            localGroup.style.display = 'none';
-            intlGroup.style.display = '';
-        } else {
-            localGroup.style.display = '';
-            intlGroup.style.display = 'none';
+    window.toggleGuardianAddress = function() {
+        const cb = document.getElementById('guardian_same_as_applicant');
+        const block = document.getElementById('guardian_address_block');
+        if (cb && block) {
+            block.style.display = cb.checked ? 'none' : '';
         }
     };
+
+
 
     window.previewImage = function(input) {
         if (input.files && input.files[0]) {
@@ -812,15 +827,31 @@ document.addEventListener('DOMContentLoaded', function() {
         const cb = document.getElementById(`school_${index}_intl`);
         const localGroup = document.getElementById(`school_${index}_local_group`);
         const intlGroup = document.getElementById(`school_${index}_intl_group`);
+        const typeSelect = document.querySelector(`select[name="schools[${index}][type]"]`);
 
         if (!cb || !localGroup || !intlGroup) return;
 
         if (cb.checked) {
             localGroup.style.display = 'none';
             intlGroup.style.display = '';
+            if (typeSelect && typeSelect.value !== 'International') {
+                typeSelect.value = 'International';
+            }
         } else {
             localGroup.style.display = '';
             intlGroup.style.display = 'none';
+            if (typeSelect && typeSelect.value === 'International') {
+                typeSelect.value = '';
+            }
+        }
+    };
+
+    window.syncAdminSchoolType = function(index) {
+        const typeSelect = document.querySelector(`select[name="schools[${index}][type]"]`);
+        const cb = document.getElementById(`school_${index}_intl`);
+        if (typeSelect && cb) {
+            cb.checked = (typeSelect.value === 'International');
+            window.toggleAdminSchoolLocation(index);
         }
     };
 });
