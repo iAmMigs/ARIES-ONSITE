@@ -57,6 +57,14 @@
                 {{ r.admissionStatus }}
             </span>
         {% endif %}
+
+        {% if r.documentsAgreedDate %}
+            <div class="mt-1">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black bg-orange-100 text-orange-700 border border-orange-200 uppercase tracking-tighter" title="Promissory Date: {{ r.documentsAgreedDate|date('M d, Y') }}">
+                    <i class="ki-filled ki-notepad-edit text-[10px] mr-0.5"></i> Promissory: {{ r.documentsAgreedDate|date('M d') }}
+                </span>
+            </div>
+        {% endif %}
     </td>
 
     {# --- 6. DATE APPLIED --- #}

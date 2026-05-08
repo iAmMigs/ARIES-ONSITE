@@ -139,6 +139,12 @@ class EnrollmentDilimanController extends AbstractController
                 $applicant->setVisaStatus($request->request->get('visa_status'));
             }
 
+            $marketingSource = $request->request->get('marketing_source');
+            if ($marketingSource === 'Other') {
+                $marketingSource = $request->request->get('marketing_source_other');
+            }
+            $applicant->setMarketingSource($marketingSource);
+
             $agreedDateStr = $request->request->get('documents_agreed_date');
             if (!empty($agreedDateStr)) {
                 $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));

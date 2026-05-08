@@ -68,6 +68,13 @@ class SchoolYear
      */
     #[ORM\Column(options: ['default' => false])]
     private bool $enrollmentOpen = false;
+    
+    /**
+     * The deadline for submitting missing documents for this school year.
+     * Only relevant for Alabang campus for now, but available for both.
+     */
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $promissoryDeadline = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private ?\DateTimeImmutable $createdAt = null;
@@ -97,6 +104,9 @@ class SchoolYear
 
     public function isEnrollmentOpen(): bool { return $this->enrollmentOpen; }
     public function setEnrollmentOpen(bool $enrollmentOpen): static { $this->enrollmentOpen = $enrollmentOpen; return $this; }
+
+    public function getPromissoryDeadline(): ?\DateTimeInterface { return $this->promissoryDeadline; }
+    public function setPromissoryDeadline(?\DateTimeInterface $promissoryDeadline): static { $this->promissoryDeadline = $promissoryDeadline; return $this; }
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }

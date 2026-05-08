@@ -89,7 +89,9 @@ const ARIESValidation = (function() {
     // ===== DOM Helpers =====
     function getErrorElement(input) {
         if (input.type === 'radio') {
-            const groupContainer = input.closest('.campus-selector-row') || input.closest('.form-group');
+            const groupContainer = input.closest('.campus-selector-row') || input.closest('.form-group') || input.closest('.card-body') || input.parentElement;
+            if (!groupContainer) return null;
+
             let err = groupContainer.querySelector('.group-error-message');
             if (!err) {
                 err = document.createElement('div');

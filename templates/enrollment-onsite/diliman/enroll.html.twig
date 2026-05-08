@@ -275,7 +275,7 @@
     <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
    
     <div class="container mx-auto px-4 relative z-10 text-center pt-4 pb-2">
-        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions 2025-2026</span>
+        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions {{ active_sy.yearStart }}-{{ active_sy.yearEnd }}</span>
         <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
         <p class="text-base text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
     </div>
@@ -932,6 +932,45 @@
                 </div>
             </div>
 
+            {# --- CARD 8: SURVEY --- #}
+            <div class="card mb-5 animate-section" id="step-card-7">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-questionnaire text-feu-green-600 fs-1"></i>STEP 7 : Survey</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">How did you learn about {{ selected_campus == 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman' }}?<span class="required">*</span></label>
+                                <div class="row g-3">
+                                    {% set sources = [
+                                        'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
+                                        'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
+                                        'Referral: Friends', 'Referral: Family/Relatives',
+                                        'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'
+                                    ] %}
+                                    {% for source in sources %}
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="marketing_source" id="source_{{ loop.index }}" value="{{ source }}" required>
+                                                <label class="form-check-label" for="source_{{ loop.index }}">{{ source }}</label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="marketing_source" id="source_other" value="Other" required onchange="toggleOtherSource()">
+                                            <label class="form-check-label" for="source_other">Other:</label>
+                                        </div>
+                                        <input type="text" name="marketing_source_other" id="marketing_source_other" class="form-control form-control-sm mt-2" style="display:none;" placeholder="Please specify">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {# --- SUBMIT BUTTON --- #}
             <div class="text-center pt-5 pb-10">
                 <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
@@ -944,7 +983,7 @@
             <div class="step-nav-container" id="stepNav">
                 {% set steps = [
                     'Admission Info', 'Personal Info', 'Contact & Address', 
-                    'Family Background', 'Education History', 'Document Submission'
+                    'Family Background', 'Education History', 'Document Submission', 'Survey'
                 ] %}
                 {% for label in steps %}
                     <div class="step-nav-item {% if loop.first %}active{% endif %}" data-step="{{ loop.index }}" onclick="window.scrollToStep({{ loop.index }})">
@@ -1122,6 +1161,13 @@
 <script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
 
 <script>
+    function toggleOtherSource() {
+        const otherInput = document.getElementById('marketing_source_other');
+        const isOther = document.getElementById('source_other').checked;
+        otherInput.style.display = isOther ? 'block' : 'none';
+        otherInput.required = isOther;
+    }
+
     const loader = document.getElementById('enrollmentLoader');
     if (loader) {
         const minLoadTime = 1500;

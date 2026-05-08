@@ -608,8 +608,11 @@ window.confirmSubmission = function() {
     HTMLFormElement.prototype.submit.call(form); 
 };
 
+window.currentMissingDocs = [];
+
 /** Logic for Missing Documents Warning Modal */
 window.showDocWarningModal = function(missingDocs) {
+    window.currentMissingDocs = missingDocs;
     const modal = document.getElementById('docWarningModal');
     const dialog = document.getElementById('docWarningDialog');
     const list = document.getElementById('missingDocsList');
@@ -660,6 +663,28 @@ window.showPromissoryModal = function() {
     const dialog = document.getElementById('promissoryDialog');
     if (!modal) return;
 
+    // Populate Applicant Name for Alabang
+    const nameEl = document.getElementById('promissoryApplicantName');
+    if (nameEl) {
+        const firstName = document.querySelector('[name="first_name"]')?.value || '';
+        const lastName = document.querySelector('[name="last_name"]')?.value || '';
+        nameEl.textContent = `${firstName} ${lastName}`.trim().toUpperCase();
+    }
+
+    // Populate Missing Docs List
+    const listEl = document.getElementById('promissoryMissingDocsList');
+    if (listEl) {
+        listEl.innerHTML = '';
+        const docs = window.currentMissingDocs || [];
+        docs.forEach(doc => {
+            listEl.innerHTML += `
+                <li class="flex items-center gap-2 text-sm text-gray-700 font-medium">
+                    <i class="ki-filled ki-cross-circle text-red-500"></i>
+                    ${doc}
+                </li>`;
+        });
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     setTimeout(() => {
@@ -685,16 +710,24 @@ window.closePromissoryModal = function() {
 
 window.validatePromissoryAndContinue = function() {
     const dateInput = document.getElementById('promissoryDate');
+    const agreementInput = document.getElementById('promissoryAgreement');
     const errorEl = document.getElementById('promissoryError');
     
-    if (!dateInput || !dateInput.value) {
-        if (errorEl) errorEl.classList.remove('hidden');
-        dateInput.classList.add('border-red-500');
-        return;
+    // For Alabang, we removed the date input. For Diliman, it might still be there.
+    if (dateInput) {
+        if (!dateInput.value) {
+            if (errorEl) errorEl.classList.remove('hidden');
+            dateInput.classList.add('border-red-500');
+            return;
+        }
+        if (errorEl) errorEl.classList.add('hidden');
+        dateInput.classList.remove('border-red-500');
     }
 
-    if (errorEl) errorEl.classList.add('hidden');
-    dateInput.classList.remove('border-red-500');
+    // Set the agreement flag if the hidden input exists
+    if (agreementInput) {
+        agreementInput.value = '1';
+    }
 
     window.closePromissoryModal();
     setTimeout(() => {
@@ -1260,26 +1293,29 @@ function initAddressLookups() {
     window.setupAddressLookup('educ_kinder_0');
     window.setupAddressLookup('guardian_addr');
     window.setupAddressLookup('guardian_perm');
-    
-    const kinderCheckbox = document.getElementById('educ_kinder_0_intl');
-    if (kinderCheckbox) {
-        kinderCheckbox.addEventListener('change', function() {
-            const row = this.closest('.educ-section');
-            const hidden = row.querySelector('.intl-hidden-input');
-            if (hidden) hidden.value = this.checked ? "1" : "0";
-            
-            const localGroup = document.getElementById('educ_kinder_0_local');
-            const intlGroup = document.getElementById('educ_kinder_0_intl_group');
-            if (this.checked) {
-                if (localGroup) localGroup.style.display = 'none';
-                if (intlGroup) intlGroup.style.display = 'flex';
-            } else {
-                if (localGroup) localGroup.style.display = 'flex';
-                if (intlGroup) intlGroup.style.display = 'none';
-            }
-        });
-    }
 }
+
+window.toggleSchoolType = function(select, prefix) {
+    const row = select.closest('.educ-section') || select.closest('.school-row');
+    if (!row) return;
+
+    const isInternational = select.value === 'International';
+    const localGroup = document.getElementById(`${prefix}_local`);
+    const intlGroup = document.getElementById(`${prefix}_intl_group`);
+    const hiddenInput = row.querySelector('.intl-hidden-input');
+
+    if (hiddenInput) hiddenInput.value = isInternational ? "1" : "0";
+    
+    if (isInternational) {
+        if (localGroup) localGroup.style.display = 'none';
+        if (intlGroup) intlGroup.style.display = 'flex';
+    } else {
+        if (localGroup) localGroup.style.display = 'flex';
+        if (intlGroup) intlGroup.style.display = 'none';
+    }
+    
+    window.isFormDirty = true;
+};
 
 /** Initializes UI animations and updates the floating step navigation state based on scroll coordinates. */
 function initAnimations() {
@@ -1646,56 +1682,46 @@ window.addSchoolRow = function(level) {
             </div>
         </div>
 
-        <div class="form-check mb-2">
-            <input type="hidden" name="educ_${level}_is_international[]" class="intl-hidden-input" value="0">
-            <input class="form-check-input intl-checkbox" type="checkbox" id="${prefix}_intl">
-            <label class="form-check-label text-xs fw-bold" for="${prefix}_intl">International School</label>
-        </div>
-
         <div class="row g-2 mt-2 location-local-group" id="${prefix}_local">
             <div class="col-md-4">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region</label>
                 <select id="${prefix}_region" class="form-select form-select-sm" data-placeholder="Region">
                     <option value=""></option>
                 </select>
                 <input type="hidden" name="educ_${level}_region[]" id="${prefix}_region_hidden">
             </div>
             <div class="col-md-4 position-relative">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province</label>
                 <input type="text" id="${prefix}_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
                 <input type="hidden" id="${prefix}_province" name="educ_${level}_province[]">
                 <div id="${prefix}_province_suggestions" class="autocomplete-suggestions hidden"></div>
             </div>
             <div class="col-md-4">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality</label>
                 <select id="${prefix}_city" name="educ_${level}_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
                     <option value=""></option>
                 </select>
             </div>
         </div>
         
-        <div class="row g-2 location-intl-group" id="${prefix}_intl_group" style="display:none;">
+        <div class="row g-2 mt-2 location-intl-group" id="${prefix}_intl_group" style="display:none;">
             <div class="col-md-6">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
                 <select name="educ_${level}_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
                     ${countryOptions}
                 </select>
             </div>
         </div>
+        <input type="hidden" name="educ_${level}_is_international[]" class="intl-hidden-input" value="0">
     `;
     container.appendChild(row);
 
-    const checkbox = row.querySelector('.intl-checkbox');
-    const localGroup = row.querySelector('.location-local-group');
-    const intlGroup = row.querySelector('.location-intl-group');
-    const hiddenInput = row.querySelector('.intl-hidden-input');
-    
-    checkbox.addEventListener('change', function() {
-        hiddenInput.value = this.checked ? "1" : "0";
-        if (this.checked) {
-            localGroup.style.display = 'none';
-            intlGroup.style.display = 'flex';
-        } else {
-            localGroup.style.display = 'flex';
-            intlGroup.style.display = 'none';
-        }
-    });
+    const select = row.querySelector(`select[name="educ_${level}_type[]"]`);
+    if (select) {
+        select.addEventListener('change', function() {
+            window.toggleSchoolType(this, prefix);
+        });
+    }
 
     if (window.setupAddressLookup) {
         window.setupAddressLookup(prefix);

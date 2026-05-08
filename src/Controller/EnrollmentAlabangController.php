@@ -139,9 +139,21 @@ class EnrollmentAlabangController extends AbstractController
                 $applicant->setVisaStatus($request->request->get('visa_status'));
             }
 
+            $marketingSource = $request->request->get('marketing_source');
+            if ($marketingSource === 'Other') {
+                $marketingSource = $request->request->get('marketing_source_other');
+            }
+            $applicant->setMarketingSource($marketingSource);
+
             $agreedDateStr = $request->request->get('documents_agreed_date');
+            $promissoryAgreement = $request->request->get('promissory_agreement');
+
             if (!empty($agreedDateStr)) {
                 $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
+                $applicant->setDocumentsAgreed(true);
+            } elseif ($promissoryAgreement === '1' && $activeSY->getPromissoryDeadline()) {
+                // If agreement flag is set (Alabang specific) use the school year's deadline
+                $applicant->setDocumentsAgreedDate($activeSY->getPromissoryDeadline());
                 $applicant->setDocumentsAgreed(true);
             }
 

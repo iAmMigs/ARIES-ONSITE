@@ -44,10 +44,16 @@ class SchoolYearController extends AbstractController
         if ($request->isMethod('POST')) {
             $yearStart = (int) $request->request->get('year_start');
             $yearEnd   = $yearStart + 1;
+            $promissoryDeadlineStr = $request->request->get('promissory_deadline');
 
             // Validate: year must be a plausible value
             if ($yearStart < 2020 || $yearStart > 2100) {
                 $this->addFlash('error', 'Please enter a valid starting year (e.g. 2025).');
+                return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+            }
+
+            if (!$promissoryDeadlineStr) {
+                $this->addFlash('error', 'Promissory deadline is mandatory.');
                 return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
             }
 
@@ -66,6 +72,7 @@ class SchoolYearController extends AbstractController
             $sy->setYearStart($yearStart);
             $sy->setYearEnd($yearEnd);
             $sy->setCampus($campusCode);
+            $sy->setPromissoryDeadline(new \DateTime($promissoryDeadlineStr));
             $sy->setIsActive(false);
             $sy->setEnrollmentOpen(false);
 
@@ -151,6 +158,43 @@ class SchoolYearController extends AbstractController
 
         $state = $sy->isEnrollmentOpen() ? 'opened' : 'closed';
         $this->addFlash('success', 'Enrollment has been ' . $state . ' for ' . $sy->getLabel() . '.');
+
+        return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+    }
+
+    /**
+     * Updates the promissory deadline for a school year.
+     */
+    #[Route('/{campus}/{id}/update-promissory-deadline', name: 'app_admin_school_year_deadline', methods: ['POST'])]
+    public function updatePromissoryDeadline(
+        string $campus,
+        int $id,
+        Request $request,
+        SchoolYearRepository $syRepo,
+        EntityManagerInterface $em
+    ): Response {
+        $campusCode = $this->resolveCampusCode($campus);
+        $sy = $syRepo->find($id);
+
+        if (!$sy || $sy->getCampus() !== $campusCode) {
+            throw $this->createNotFoundException();
+        }
+
+        $deadlineStr = $request->request->get('promissory_deadline');
+        if ($deadlineStr) {
+            try {
+                $deadline = new \DateTime($deadlineStr);
+                $sy->setPromissoryDeadline($deadline);
+                $em->flush();
+                $this->addFlash('success', 'Promissory deadline for ' . $sy->getLabel() . ' has been updated.');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Invalid date format for deadline.');
+            }
+        } else {
+            $sy->setPromissoryDeadline(null);
+            $em->flush();
+            $this->addFlash('success', 'Promissory deadline has been removed.');
+        }
 
         return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
     }

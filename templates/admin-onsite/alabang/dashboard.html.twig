@@ -103,6 +103,44 @@
                     </div>
                 </div>
             </div>
+
+            {# University Discovery #}
+            <div class="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mb-8">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black text-feu-green-900 uppercase tracking-tighter">University Discovery</h2>
+                    <p class="text-gray-500 font-bold">Survey Tracking</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-center border-collapse">
+                        <thead>
+                            <tr class="bg-black text-white uppercase text-[10px] tracking-widest font-black">
+                                <th class="px-4 py-4 text-left border border-gray-800">Source</th>
+                                <th class="px-4 py-4 border border-gray-800">Count</th>
+                                <th class="px-4 py-4 border border-gray-800">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody class="font-bold text-gray-700">
+                            {% set discoveryTotal = 0 %}
+                            {% for ds in discoveryStats %}{% set discoveryTotal = discoveryTotal + ds.cnt %}{% endfor %}
+
+                            {% for ds in discoveryStats %}
+                            <tr class="{% if loop.index is odd %}bg-gray-50{% endif %} hover:bg-feu-green-50 transition-colors">
+                                <td class="px-4 py-3 text-left border border-gray-200">{{ ds.source }}</td>
+                                <td class="px-4 py-3 border border-gray-200">{{ ds.cnt }}</td>
+                                <td class="px-4 py-3 border border-gray-200">
+                                    {{ discoveryTotal > 0 ? (ds.cnt / discoveryTotal * 100)|number_format(1) : 0 }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="bg-gray-100 font-black text-black">
+                                <td class="px-4 py-4 text-left border border-gray-200">Total Surveyed</td>
+                                <td class="px-4 py-4 border border-gray-200">{{ discoveryTotal }}</td>
+                                <td class="px-4 py-4 border border-gray-200">100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </main>
 </div>

@@ -23,13 +23,6 @@
         <div class="font-semibold text-gray-800">
             {{ r.lastName }}, {{ r.firstName }}
         </div>
-        {% if r.documentsAgreedDate %}
-            <div class="mt-1">
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black bg-orange-100 text-orange-700 border border-orange-200 uppercase tracking-tighter" title="Promissory Date: {{ r.documentsAgreedDate|date('M d, Y') }}">
-                    <i class="ki-filled ki-notepad-edit text-[10px] mr-0.5"></i> Promissory: {{ r.documentsAgreedDate|date('M d') }}
-                </span>
-            </div>
-        {% endif %}
     </td>
 
     {# --- 4. LEVEL / STRAND --- #}
@@ -52,6 +45,10 @@
             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
                 <i class="ki-filled ki-time text-[10px] mr-1"></i> {% if r.educationType == 'SHS' %}Pending Exam{% else %}For Payment{% endif %}
             </span>
+        {% elseif r.admissionStatus == 'Promissory' %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                Promissory
+            </span>
         {% elseif r.admissionStatus == 'Paid' %}
             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
                 <i class="ki-filled ki-check-tick text-[10px] mr-1"></i> Paid
@@ -64,6 +61,14 @@
             <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200">
                 {{ r.admissionStatus }}
             </span>
+        {% endif %}
+
+        {% if r.documentsAgreedDate %}
+            <div class="mt-1">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black bg-orange-100 text-orange-700 border border-orange-200 uppercase tracking-tighter" title="Promissory Date: {{ r.documentsAgreedDate|date('M d, Y') }}">
+                    <i class="ki-filled ki-notepad-edit text-[10px] mr-0.5"></i> Promissory: {{ r.documentsAgreedDate|date('M d') }}
+                </span>
+            </div>
         {% endif %}
     </td>
 

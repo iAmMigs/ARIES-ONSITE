@@ -1,7 +1,7 @@
-{# templates/enrollment-onsite/enroll.html.twig #}
+{# templates/enrollment-onsite/alabang/enroll.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Application{% endblock %}
+{% block title %}Application - FEU Alabang{% endblock %}
 
 {% block stylesheets %}
     <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
@@ -275,7 +275,7 @@
     <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
    
     <div class="container mx-auto px-4 relative z-10 text-center pt-4 pb-2">
-        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions 2025-2026</span>
+        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions {{ active_sy.yearStart }}-{{ active_sy.yearEnd }}</span>
         <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
         <p class="text-base text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
     </div>
@@ -678,7 +678,6 @@
 
                     </div>
 
-                    </div>
 
                     {# Guardian #}
                     <div class="bg-blue-50 p-5 rounded">
@@ -812,7 +811,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-xs">School Type <span class="required">*</span></label>
-                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input">
+                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input" onchange="toggleSchoolType(this, 'educ_kinder_0')">
                                         <option value="Private">Private</option>
                                         <option value="Public">Public</option>
                                         <option value="International">International</option>
@@ -824,33 +823,31 @@
                                 </div>
                             </div>
                             
-                            <div class="form-check mb-2">
-                                <input type="hidden" name="educ_kinder_is_international[]" class="intl-hidden-input" value="0">
-                                <input class="form-check-input intl-checkbox" type="checkbox" id="educ_kinder_0_intl">
-                                <label class="form-check-label text-xs fw-bold" for="educ_kinder_0_intl">International School</label>
-                            </div>
-
                             <div class="row g-2 mt-2 location-local-group" id="educ_kinder_0_local">
                                 <div class="col-md-4">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region</label>
                                     <select id="educ_kinder_0_region" class="form-select form-select-sm" data-placeholder="Region">
                                         <option value=""></option>
                                     </select>
                                     <input type="hidden" name="educ_kinder_region[]" id="educ_kinder_0_region_hidden">
                                 </div>
                                 <div class="col-md-4 position-relative">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province</label>
                                     <input type="text" id="educ_kinder_0_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
                                     <input type="hidden" id="educ_kinder_0_province" name="educ_kinder_province[]">
                                     <div id="educ_kinder_0_province_suggestions" class="autocomplete-suggestions hidden"></div>
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality</label>
                                     <select id="educ_kinder_0_city" name="educ_kinder_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
                                         <option value=""></option>
                                     </select>
                                 </div>
                             </div>
                             
-                            <div class="row g-2 location-intl-group" id="educ_kinder_0_intl_group" style="display:none;">
+                            <div class="row g-2 mt-2 location-intl-group" id="educ_kinder_0_intl_group" style="display:none;">
                                 <div class="col-md-6">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
                                     <select name="educ_kinder_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
                                         <option value="">Select Country</option>
                                         {% for country in countries %}
@@ -859,6 +856,7 @@
                                     </select>
                                 </div>
                             </div>
+                            <input type="hidden" name="educ_kinder_is_international[]" id="educ_kinder_0_intl_hidden" class="intl-hidden-input" value="0">
                         </div>
 
                         {# Elementary #}
@@ -929,6 +927,45 @@
                 </div>
             </div>
 
+            {# --- CARD 8: SURVEY --- #}
+            <div class="card mb-5 animate-section" id="step-card-7">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-questionnaire text-feu-green-600 fs-1"></i>STEP 7 : Survey</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">How did you learn about {{ selected_campus == 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman' }}?<span class="required">*</span></label>
+                                <div class="row g-3">
+                                    {% set sources = [
+                                        'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
+                                        'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
+                                        'Referral: Friends', 'Referral: Family/Relatives',
+                                        'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'
+                                    ] %}
+                                    {% for source in sources %}
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="marketing_source" id="source_{{ loop.index }}" value="{{ source }}" required>
+                                                <label class="form-check-label" for="source_{{ loop.index }}">{{ source }}</label>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="marketing_source" id="source_other" value="Other" required onchange="toggleOtherSource()">
+                                            <label class="form-check-label" for="source_other">Other:</label>
+                                        </div>
+                                        <input type="text" name="marketing_source_other" id="marketing_source_other" class="form-control form-control-sm mt-2" style="display:none;" placeholder="Please specify">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {# --- SUBMIT BUTTON --- #}
             <div class="text-center pt-5 pb-10">
                 <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
@@ -937,168 +974,11 @@
                 </div>
             </div>
 
-            {# --- DATA PRIVACY AGREEMENT MODAL --- #}
-            <div id="dpaModalOverlay" aria-modal="true" role="dialog">
-                <div id="dpaModalContainer">
-                    <div class="dpa-header">
-                        <i class="ki-filled ki-shield-tick text-3xl text-feu-green"></i>
-                        <h2>Data Privacy Policy Consent</h2>
-                    </div>
-                    <div class="dpa-scroll-content" id="dpaScrollArea">
-                        <div class="alert alert-info bg-blue-50 border-blue-200 text-blue-800 mb-4 p-3 rounded flex items-start gap-3">
-                            <i class="ki-filled ki-information-2"></i>
-                            <p class="m-0 text-sm">Under the Data Privacy Act of 2012 (RA 10173), we are required to obtain your informed consent before collecting and processing your personal information for admission purposes.</p>
-                        </div>
-                        
-                        <h4 class="font-bold text-gray-800 mb-2">Privacy Notice Acknowledgment</h4>
-                        <p class="mb-5">
-                            I have read and understood all the provisions of the FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools and agree with its full implementation.
-                        </p>
-
-                        <h4 class="font-bold text-gray-800 mb-2">Data Processing Consent</h4>
-                        <p class="mb-5">
-                            I hereby give my consent to FEU for the collection and processing of my personal data, relating to my application for admission, in accordance with the FEU Data Privacy Notice and in compliance with Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines, its Implementing Rules and Regulations, other guidelines and issuances by the National Privacy Commission.
-                        </p>
-                        
-                        <p class="mb-2"><strong>The information collected will be used for:</strong></p>
-                        <ul class="list-disc pl-5 mb-5">
-                            <li>Evaluating your application for admission.</li>
-                            <li>Processing enrollment and registration if admitted.</li>
-                            <li>Communicating with you regarding your application status.</li>
-                            <li>Generating reports required by CHED, DepEd, and other relevant government agencies.</li>
-                        </ul>
-
-                        <div class="dpa-checkbox-group mt-6">
-                            <label for="dpa_consent_check">
-                                <input type="checkbox" id="dpa_consent_check" disabled>
-                                <div>
-                                    <span class="font-bold text-gray-800 block">I confirm my consent</span>
-                                    <span class="text-sm text-gray-500">I have read, understood, and agree to the Data Privacy terms outlined above.</span>
-                                </div>
-                            </label>
-                        </div>
-                        <div style="height: 10px;"></div> {# Extra space for scrolling trigger #}
-                    </div>
-                    <div class="dpa-footer">
-                        <div class="dpa-help-text" id="dpaScrollHint"><i class="ki-filled ki-arrow-down"></i> Please scroll to the bottom to agree</div>
-                        <button type="button" class="btn-dpa-agree" id="btnDpaAgree" disabled>
-                            <span>Accept & Continue</span>
-                            <i class="ki-filled ki-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {# --- SUBMIT CONFIRMATION MODAL --- #}
-            <div id="submitConfirmModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
-                <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="modalDialog">
-                    <div class="p-6 text-center border-b border-gray-100">
-                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
-                            <i class="ki-filled ki-information-3 text-4xl text-amber-600"></i>
-                        </div>
-                        <h3 class="text-2xl font-extrabold text-gray-900">Are you sure you want to submit?</h3>
-                        <p class="text-sm text-gray-500 mt-2 font-medium">This cannot be undone. Please review your details below.</p>
-                    </div>
-                    <div class="p-6 bg-gray-50 text-left" id="summaryContent">
-                    </div>
-                    <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
-                        <button type="button" onclick="closeConfirmationModal()" class="px-5 py-3 rounded-xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors w-full sm:w-auto">
-                            No, I have some changes
-                        </button>
-                        <button type="button" id="btnConfirmSubmit" onclick="confirmSubmission()" class="px-5 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 transition-colors shadow-lg shadow-feu-green-700/30 w-full sm:w-auto flex items-center justify-center gap-2">
-                            Yes, I'm sure
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {# --- MISSING DOCUMENTS WARNING MODAL --- #}
-            <div id="docWarningModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
-                <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="docWarningDialog">
-                    <div class="p-8 text-center">
-                        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-50 mb-6">
-                            <i class="ki-filled ki-folder-minus text-5xl text-amber-500"></i>
-                        </div>
-                        <h3 class="text-2xl font-black text-gray-900 mb-3">Wait, some documents are missing!</h3>
-                        <p class="text-base text-gray-500 font-medium px-4">
-                            You haven't uploaded all the documents. While these are not strictly required for initial application, providing them now will speed up your evaluation.
-                        </p>
-                        
-                        <div class="mt-8 bg-amber-50 border border-amber-100 rounded-xl p-4 text-left mx-4">
-                            <h4 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <i class="ki-filled ki-information-2"></i> Missing Items:
-                            </h4>
-                            <ul class="space-y-2" id="missingDocsList">
-                                {# Dynamic list of missing docs #}
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="p-6 border-t border-gray-100 flex flex-col gap-3 bg-gray-50">
-                        <button type="button" onclick="closeDocWarningModal()" class="px-5 py-4 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 w-full flex items-center justify-center gap-2">
-                            <i class="ki-filled ki-pencil"></i>
-                            Go back and upload
-                        </button>
-                        <button type="button" onclick="proceedToFinalConfirmation()" class="px-5 py-3 rounded-xl font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all w-full text-sm underline decoration-gray-300 underline-offset-4">
-                            Submit without documents
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {# --- PROMISSORY NOTE MODAL --- #}
-            <div id="promissoryModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
-                <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden transform scale-95 transition-transform duration-300" id="promissoryDialog">
-                    <div class="p-8">
-                        <div class="flex items-center gap-4 mb-6">
-                            <div class="h-12 w-12 rounded-xl bg-feu-green-50 flex items-center justify-center text-feu-green-600">
-                                <i class="ki-filled ki-notepad-edit text-3xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-black text-gray-900">Promissory Agreement</h3>
-                                <p class="text-sm text-gray-500 font-medium">Agreement for late document submission</p>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-100">
-                            <p class="text-gray-700 leading-relaxed text-sm italic">
-                                "I hereby acknowledge that I have not submitted all the required documents for my application at this time. I promise to provide the missing requirements on or before the date selected below. I understand that failure to comply may affect my admission status."
-                            </p>
-                        </div>
-
-                        <div class="space-y-4">
-                            <label class="block">
-                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">When do you plan to submit these documents?</span>
-                                <div class="relative">
-                                    <input type="date" name="documents_agreed_date" id="promissoryDate" 
-                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-feu-green-500 focus:ring-0 transition-all outline-none font-bold text-gray-700"
-                                           min="{{ "now"|date("Y-m-d") }}">
-                                    <i class="ki-filled ki-calendar absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                                </div>
-                            </label>
-                            <div id="promissoryError" class="text-red-500 text-xs font-bold hidden">
-                                <i class="ki-filled ki-information-2"></i> Please select a valid future date.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-white">
-                        <button type="button" onclick="closePromissoryModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all flex-1">
-                            Cancel
-                        </button>
-                        <button type="button" onclick="validatePromissoryAndContinue()" class="px-6 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 flex-1 flex items-center justify-center gap-2">
-                            Agree & Continue
-                            <i class="ki-filled ki-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             {# Floating Step Navigation (Replaces right-side scrollbar) #}
             <div class="step-nav-container" id="stepNav">
                 {% set steps = [
                     'Admission Info', 'Personal Info', 'Contact & Address', 
-                    'Family Background', 'Education History', 'Document Submission'
+                    'Family Background', 'Education History', 'Document Submission', 'Survey'
                 ] %}
                 {% for label in steps %}
                     <div class="step-nav-item {% if loop.first %}active{% endif %}" data-step="{{ loop.index }}" onclick="window.scrollToStep({{ loop.index }})">
@@ -1112,12 +992,166 @@
             </div>
 
         </form>
+    </div>
+</div>
+
+{# --- DATA PRIVACY AGREEMENT MODAL --- #}
+<div id="dpaModalOverlay" aria-modal="true" role="dialog">
+    <div id="dpaModalContainer">
+        <div class="dpa-header">
+            <i class="ki-filled ki-shield-tick text-3xl text-feu-green"></i>
+            <h2>Data Privacy Policy Consent</h2>
+        </div>
+        <div class="dpa-scroll-content" id="dpaScrollArea">
+            <div class="space-y-6">
+                <div class="flex items-start gap-3">
+                    <div class="text-feu-green font-bold text-xl">✓</div>
+                    <p class="m-0">I have read and understood all the provisions of <strong>FEU Alabang Data Privacy Notice for Students Applying for Admission to FEU Alabang</strong> and agree with its full implementation.</p>
+                </div>
+
+                <div class="flex items-start gap-3">
+                    <div class="text-feu-green font-bold text-xl">✓</div>
+                    <p class="m-0">I hereby give my consent to <strong>FEU Alabang</strong> for the collection and processing of my personal data, relating to my application for admission, in accordance with the <strong>Data Privacy Notice for Students Applying for Admission to FEU Alabang</strong> and in compliance with <strong>Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines</strong>, its implementing Rules and regulations, other guidelines and issuances by the National Privacy Commission.</p>
+                </div>
+            </div>
+
+            <div class="dpa-checkbox-group mt-8">
+                <label for="dpa_consent_check" class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border-2 border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
+                    <input type="checkbox" id="dpa_consent_check" class="w-5 h-5 accent-feu-green" disabled>
+                    <span class="font-bold text-gray-800">I have read and agree to the above terms</span>
+                </label>
+            </div>
+            <div style="height: 10px;"></div> {# Extra space for scrolling trigger #}
+        </div>
+        <div class="dpa-footer">
+            <div class="dpa-help-text" id="dpaScrollHint"><i class="ki-filled ki-arrow-down"></i> Please scroll to the bottom to agree</div>
+            <button type="button" class="btn-dpa-agree" id="btnDpaAgree" disabled>
+                <span>Accept & Continue</span>
+                <i class="ki-filled ki-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- SUBMIT CONFIRMATION MODAL --- #}
+<div id="submitConfirmModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="modalDialog">
+        <div class="p-6 text-center border-b border-gray-100">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
+                <i class="ki-filled ki-information-3 text-4xl text-amber-600"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-gray-900">Are you sure you want to submit?</h3>
+            <p class="text-sm text-gray-500 mt-2 font-medium">This cannot be undone. Please review your details below.</p>
+        </div>
+        <div class="p-6 bg-gray-50 text-left" id="summaryContent">
+        </div>
+        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
+            <button type="button" onclick="closeConfirmationModal()" class="px-5 py-3 rounded-xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors w-full sm:w-auto">
+                No, I have some changes
+            </button>
+            <button type="button" id="btnConfirmSubmit" onclick="confirmSubmission()" class="px-5 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 transition-colors shadow-lg shadow-feu-green-700/30 w-full sm:w-auto flex items-center justify-center gap-2">
+                Yes, I'm sure
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- MISSING DOCUMENTS WARNING MODAL --- #}
+<div id="docWarningModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="docWarningDialog">
+        <div class="p-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-50 mb-6">
+                <i class="ki-filled ki-folder-minus text-5xl text-amber-500"></i>
+            </div>
+            <h3 class="text-2xl font-black text-gray-900 mb-3">Wait, some documents are missing!</h3>
+            <p class="text-base text-gray-500 font-medium px-4">
+                You haven't uploaded all the documents. While these are not strictly required for initial application, providing them now will speed up your evaluation.
+            </p>
+            
+            <div class="mt-8 bg-amber-50 border border-amber-100 rounded-xl p-4 text-left mx-4">
+                <h4 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <i class="ki-filled ki-information-2"></i> Missing Items:
+                </h4>
+                <ul class="space-y-2" id="missingDocsList">
+                    {# Dynamic list of missing docs #}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 flex flex-col gap-3 bg-gray-50">
+            <button type="button" onclick="closeDocWarningModal()" class="px-5 py-4 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 w-full flex items-center justify-center gap-2">
+                <i class="ki-filled ki-pencil"></i>
+                Go back and upload
+            </button>
+            <button type="button" onclick="proceedToFinalConfirmation()" class="px-5 py-3 rounded-xl font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all w-full text-sm underline decoration-gray-300 underline-offset-4">
+                Submit without documents
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- PROMISSORY NOTE MODAL --- #}
+<div id="promissoryModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden transform scale-95 transition-transform duration-300" id="promissoryDialog">
+        <div class="p-8">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-12 w-12 rounded-xl bg-feu-green-50 flex items-center justify-center text-feu-green-600">
+                    <i class="ki-filled ki-notepad-edit text-3xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-gray-900">Promissory Agreement</h3>
+                    <p class="text-sm text-gray-500 font-medium">Agreement for late document submission</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-2xl p-8 mb-6 border border-gray-100 shadow-sm">
+                <p class="text-gray-800 leading-relaxed text-base">
+                    I the Guardian/Parent of the applicant 
+                    <span id="promissoryApplicantName" class="font-bold border-b-2 border-gray-400 px-2 min-w-[150px] inline-block text-center mx-1"></span>,
+                    SHS student for S.Y. 2026-2027, recognize my duties and responsibilities regarding the submission of all Enrollment Requirements to FEU Alabang.
+                </p>
+                
+                <p class="text-gray-800 leading-relaxed text-base mt-4">
+                    I acknowledge that my child’s enrollment is provisional to his completion of the requirements enumerated below and shall be made official when I/we submit to the school the original copy of the documents on or before <strong>{{ active_sy.promissoryDeadline ? active_sy.promissoryDeadline|date('F j, Y') : 'July 24, 2026' }}</strong>.
+                </p>
+
+                <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <i class="ki-filled ki-documents"></i> Outstanding Documents:
+                    </h4>
+                    <ul id="promissoryMissingDocsList" class="space-y-2">
+                        {# Dynamic list of missing docs #}
+                    </ul>
+                </div>
+            </div>
+
+            <input type="hidden" name="promissory_agreement" id="promissoryAgreement" value="0">
+        </div>
+        
+        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-white">
+            <button type="button" onclick="closePromissoryModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all flex-1">
+                Cancel
+            </button>
+            <button type="button" onclick="validatePromissoryAndContinue()" class="px-6 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 flex-1 flex items-center justify-center gap-2">
+                Agree & Continue
+                <i class="ki-filled ki-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
 
 
 <script src="{{ asset('js/validation.js') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
 
 <script>
+    function toggleOtherSource() {
+        const otherInput = document.getElementById('marketing_source_other');
+        const isOther = document.getElementById('source_other').checked;
+        otherInput.style.display = isOther ? 'block' : 'none';
+        otherInput.required = isOther;
+    }
+
     const loader = document.getElementById('enrollmentLoader');
     if (loader) {
         const minLoadTime = 1500;

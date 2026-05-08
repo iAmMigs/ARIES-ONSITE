@@ -127,11 +127,53 @@ class AdminAlabangController extends AbstractController
             ];
         }
 
+        // Discovery Stats (Marketing Source)
+        $rawDiscovery = $repository->createQueryBuilder('a')
+            ->select('a.marketingSource as source, count(a.studentNumber) as cnt')
+            ->where('a.campus = :campus')
+            ->setParameter('campus', $campus)
+            ->groupBy('a.marketingSource')
+            ->getQuery()
+            ->getResult();
+
+        $sources = [
+            'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
+            'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
+            'Referral: Friends', 'Referral: Family/Relatives',
+            'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in', 'Other'
+        ];
+
+        $discoveryMap = [];
+        foreach ($sources as $s) { $discoveryMap[$s] = 0; }
+        
+        $otherCount = 0;
+        foreach ($rawDiscovery as $rd) {
+            $src = $rd['source'];
+            if (!$src) continue;
+            
+            if (isset($discoveryMap[$src])) {
+                $discoveryMap[$src] += $rd['cnt'];
+            } else {
+                // If not in the list, it's an "Other" specification
+                $otherCount += $rd['cnt'];
+            }
+        }
+        $discoveryMap['Other'] += $otherCount;
+
+        $discoveryStats = [];
+        foreach ($discoveryMap as $source => $cnt) {
+            $discoveryStats[] = ['source' => $source, 'cnt' => $cnt];
+        }
+
+        // Sort discovery stats by count DESC
+        usort($discoveryStats, function($a, $b) { return $b['cnt'] <=> $a['cnt']; });
+
         return $this->render('admin-onsite/alabang/dashboard.html.twig', [
             'stats' => compact('total', 'today', 'week', 'month'),
             'chartData' => $chartData,
             'summary' => $summary,
-            'activeSY' => $activeSY
+            'activeSY' => $activeSY,
+            'discoveryStats' => $discoveryStats
         ]);
     }
 

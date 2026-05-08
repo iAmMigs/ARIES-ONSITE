@@ -112,6 +112,9 @@ class ApplicantBed
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
     
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $marketingSource = null;
+
     #[ORM\Column(name: 'is_documents_agreed', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $isDocumentsAgreed = false;
 
@@ -299,4 +302,7 @@ class ApplicantBed
 
     public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
     public function setIndigenousGroup(?string $v): static { $this->indigenousGroup = $v; return $this; }
+
+    public function getMarketingSource(): ?string { return $this->marketingSource; }
+    public function setMarketingSource(?string $s): static { $this->marketingSource = $s; return $this; }
 }

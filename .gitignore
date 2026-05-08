@@ -23,3 +23,5 @@
 /public/uploads/*
 !/public/uploads/.gitignore
 ### < User Uploads ###
+
+/Temps/

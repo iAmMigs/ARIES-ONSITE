@@ -471,6 +471,17 @@
                                     <span class="text-gray-500">School Year</span>
                                     <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
                                 </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500">Source</span>
+                                    <span class="font-medium text-gray-800">
+                                        {% set standardSources = ['Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media', 'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster', 'Referral: Friends', 'Referral: Family/Relatives', 'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'] %}
+                                        {% if registration.marketingSource in standardSources or registration.marketingSource is null %}
+                                            {{ registration.marketingSource|default('N/A') }}
+                                        {% else %}
+                                            Other: {{ registration.marketingSource }}
+                                        {% endif %}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
