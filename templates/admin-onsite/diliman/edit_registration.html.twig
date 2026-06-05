@@ -82,9 +82,9 @@
                                 </select>
 
                                 <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
-                                    <option value="">Select Strand</option>
-                                    {% for strand in ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track'] %}
-                                        <option value="{{ strand }}" {{ (registration.trackStrand|upper == strand|upper) ? 'selected' }}>{{ strand }}</option>
+                                    <option value="">Select Framework</option>
+                                    {% for framework in ['Accountancy, Business Administration, and Management', 'Arts and Humanities', 'Engineering and Architecture', 'IT and Computer Science', 'Medicine and Health Sciences', 'Tourism and Hospitality', 'Mixed Framework'] %}
+                                        <option value="{{ framework }}" {{ (registration.trackStrand|upper == framework|upper) ? 'selected' }}>{{ framework }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -775,7 +775,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Robust check for SHS: includes '11' or '12' or 'shs'
         const isSHS = level.includes('11') || level.includes('12') || level.includes('shs');
         
-        // 1. Toggle Strand Dropdown
+        // 1. Toggle Framework Dropdown
         if (strandSelect) {
             if (isSHS) {
                 strandSelect.style.display = ''; 

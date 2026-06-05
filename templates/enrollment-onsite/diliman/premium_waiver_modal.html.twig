@@ -1,0 +1,196 @@
+<style>
+    .interactive-check-card {
+        transition: all 0.2s ease;
+    }
+    .interactive-check-card.checked {
+        background-color: #f0fdf4;
+        border-color: #86efac;
+    }
+    .interactive-check-card.checked .custom-checkbox-design {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+    .interactive-check-card.checked .custom-checkbox-design i {
+        transform: scale(1);
+        opacity: 1;
+    }
+    .signature-verify-box.verified {
+        border-color: #10b981;
+        background-color: #f0fdf4;
+    }
+</style>
+
+<div id="premiumWaiverModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[90vh]" id="premiumWaiverDialog">
+        
+        {# Header #}
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-feu-green-700 rounded-t-2xl text-white shrink-0">
+            <h3 class="text-lg md:text-xl font-black uppercase tracking-wider flex items-center gap-2 m-0">
+                <i class="ki-filled ki-document"></i>
+                Waiver for Incomplete Documents
+            </h3>
+            <button type="button" onclick="closePremiumWaiverModal()" class="text-white/80 hover:text-white transition-colors bg-transparent border-0 p-0 cursor-pointer">
+                <i class="ki-filled ki-cross text-2xl"></i>
+            </button>
+        </div>
+
+        {# Scrollable Body #}
+        <div class="p-6 md:p-8 flex-1 overflow-y-auto min-h-0 bg-white" style="scrollbar-width: thin;">
+            <div class="text-sm text-gray-600 mb-6 leading-relaxed text-justify">
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg">
+                    <p class="mb-0 text-amber-800">You are about to submit your enrollment application with <strong>pending requirements</strong>. By proceeding, you agree to submit the missing documents on or before <strong class="bg-amber-200 text-amber-900 px-1 rounded">{{ active_sy.promissoryDeadline ? active_sy.promissoryDeadline|date('F j, Y') : 'the specified deadline' }}</strong>.</p>
+                </div>
+                
+                <div class="bg-slate-800 text-white font-bold py-2 px-4 uppercase text-sm mb-0 rounded-t-lg flex items-center gap-2">
+                    <i class="ki-filled ki-archive"></i>
+                    Credential Submission & Reservation Agreement
+                </div>
+                <div class="border border-slate-200 rounded-b-lg p-5 mb-8 bg-slate-50">
+                    <div class="text-sm font-semibold text-slate-700 mb-4 pb-2 border-b border-slate-200">
+                        Applicant is a <strong>CONFIRMED CANDIDATE FOR ADMISSION</strong> on the basis of the following credential/s submitted.
+                    </div>
+                    
+                    <div class="font-bold text-red-600 mb-3 text-sm flex items-center gap-2">
+                        <i class="ki-filled ki-information-circle"></i>
+                        Missing Documents:
+                    </div>
+                    <ul class="grid grid-cols-1 gap-3 m-0 p-0 list-none ml-2" id="waiverMissingDocsList">
+                        {# Populated via JS #}
+                    </ul>
+                </div>
+
+                {# Certifications #}
+                <div class="space-y-4 mb-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="h-px bg-gray-200 flex-1"></div>
+                        <h4 class="text-sm font-black text-feu-green-800 uppercase tracking-wider text-center m-0">Affiliation Information & Certifications</h4>
+                        <div class="h-px bg-gray-200 flex-1"></div>
+                    </div>
+                    
+                    {% set certs = [
+                        'Non-compliance with the submission of documents will invalidate my admission and enrollment.',
+                        'The reservation fee of P5,000.00 is non-refundable should I decide not to enroll.',
+                        'There will be Php1,000.00 processing fee should I decide to withdraw my enrollment.',
+                        'Scholarship application is subject for approval of the scholarship committee.',
+                        'Enrollment for this coming term will be null and void in case there will be any medical findings that may affect my studies.',
+                        'Any misinformation shall serve as a ground for the nullification of my enrolment at FEU Diliman.',
+                        'By signing this form, I agree to the terms and conditions, as well as the data privacy stated in this form.'
+                    ] %}
+                    
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+                        <ul class="text-[13px] text-slate-700 leading-relaxed m-0 pl-4 space-y-2 list-decimal">
+                            {% for cert in certs %}
+                                <li>{{ cert }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="interactive-check-card p-4 flex gap-4 items-center cursor-pointer border border-gray-300 rounded-xl hover:bg-gray-50 transition-all shadow-sm" onclick="toggleCardCheckbox('cert_agree_all')">
+                        <div class="shrink-0">
+                            <input type="checkbox" id="cert_agree_all" class="custom-checkbox-input hidden">
+                            <div class="custom-checkbox-design w-6 h-6 rounded-md border-2 border-slate-300 flex items-center justify-center text-white transition-all bg-white">
+                                <i class="ki-filled ki-check text-sm scale-0 opacity-0 transition-transform"></i>
+                            </div>
+                        </div>
+                        <span class="text-[14px] font-bold text-feu-green-800">I agree to all terms and conditions stated above.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Footer #}
+        <div class="p-4 md:p-5 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 bg-gray-50 rounded-b-2xl shrink-0">
+            <button type="button" onclick="closePremiumWaiverModal()" class="px-6 py-3 rounded-xl font-bold text-gray-600 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-800 transition-all cursor-pointer">Cancel</button>
+            <button type="button" id="btnConfirmWaiverSubmit" onclick="confirmWaiverSubmission()" class="px-6 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 opacity-50 cursor-not-allowed transition-all border-0 shadow-lg shadow-feu-green-700/30 flex items-center justify-center gap-2" disabled>
+                <i class="ki-filled ki-check-circle text-lg"></i>
+                Confirm & Submit
+            </button>
+        </div>
+    </div>
+</div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnSubmit = document.getElementById('btnConfirmWaiverSubmit');
+
+        // Global functions for modal
+        window.showPremiumWaiverModal = function(missingDocs) {
+            window.currentMissingDocs = missingDocs;
+            const modal = document.getElementById('premiumWaiverModal');
+            const dialog = document.getElementById('premiumWaiverDialog');
+            const list = document.getElementById('waiverMissingDocsList');
+            
+            if (!modal || !list) return;
+
+            list.innerHTML = '';
+            missingDocs.forEach(name => {
+                list.innerHTML += `
+                    <li class="flex items-center gap-2 text-[13px] text-slate-700 font-medium">
+                        <input type="checkbox" disabled class="w-3.5 h-3.5 border-gray-400">
+                        ${name}
+                    </li>`;
+            });
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                if (dialog) dialog.classList.remove('scale-95');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closePremiumWaiverModal = function() {
+            const modal = document.getElementById('premiumWaiverModal');
+            const dialog = document.getElementById('premiumWaiverDialog');
+            if (modal) {
+                modal.classList.add('opacity-0');
+                if (dialog) dialog.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            }
+            document.body.style.overflow = '';
+        };
+
+        window.confirmWaiverSubmission = function() {
+            if (btnSubmit.disabled) return;
+            
+            window.closePremiumWaiverModal();
+            
+            // Re-trigger the main form submission (the backend logic will now process the inputs since they are in the form)
+            // But wait, the standard submit button shows the Confirm Modal first, or submits directly.
+            // In ARIES, confirmSubmission() submits the form bypassing modals.
+            setTimeout(() => {
+                window.confirmSubmission();
+            }, 300);
+        };
+
+        window.toggleCardCheckbox = function(id) {
+            const checkbox = document.getElementById(id);
+            if (!checkbox) return;
+            
+            checkbox.checked = !checkbox.checked;
+            const card = checkbox.closest('.interactive-check-card');
+            if (checkbox.checked) {
+                card.classList.add('checked');
+            } else {
+                card.classList.remove('checked');
+            }
+            checkWaiverValidity();
+        };
+
+        function checkWaiverValidity() {
+            const agreeCheckbox = document.getElementById('cert_agree_all');
+
+            if (agreeCheckbox && agreeCheckbox.checked) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('cursor-not-allowed', 'opacity-50');
+            } else {
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('cursor-not-allowed', 'opacity-50');
+            }
+        }
+    });
+</script>

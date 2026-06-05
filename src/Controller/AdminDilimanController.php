@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
@@ -585,7 +587,7 @@ class AdminDilimanController extends AbstractController
         ]);
     }
 
-    private function hydrateGuardianAddress(\App\Entity\ApplicantBedGuardian $g, array $data, EntityManagerInterface $em)
+    private function hydrateGuardianAddress(\App\Entity\ApplicantBedGuardian $g, array $data, EntityManagerInterface $em): void
     {
         $regionCode = $data['addr_region'] ?? null;
         $provCode = $data['addr_province'] ?? null;
@@ -612,7 +614,7 @@ class AdminDilimanController extends AbstractController
         $g->setCurrentZip($data['addr_zip'] ?? '');
     }
 
-    private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
+    private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type): void
     {
         $prefix = ($type === 'current') ? 'addr' : 'perm';
         $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
@@ -749,13 +751,13 @@ class AdminDilimanController extends AbstractController
         $citizenship = $registration->getCitizenship(); // 'Filipino', 'Foreign', 'Dual'
 
         foreach ($allSetups as $setup) {
-            // 1. Grade Level Check
+            /* Check if applicant meets grade level requirement */
             $grades = $setup->getGradeLevels();
             if ($grades && !empty($grades) && !in_array($gradeLevel, $grades)) {
                 continue;
             }
 
-            // 2. Student Type Check
+            /* Check if applicant meets student admission type requirement */
             $sReq = $setup->getStudentType(); // 'All', 'New', 'Transferee', 'Old'
             if ($sReq && strtoupper($sReq) !== 'ALL') {
                 if (strtoupper($sReq) === 'NEW' && strtoupper($admissionType) !== 'FRESHMAN') {
@@ -766,8 +768,8 @@ class AdminDilimanController extends AbstractController
                 }
             }
 
-            // 3. Nationality Check
-            $nReq = $setup->getNationalityType(); // 'All', 'LOCAL', 'INTERNATIONAL'
+            /* Check if applicant meets citizenship/nationality requirement */
+            $nReq = $setup->getNationalityType(); // 'All', 'Local', 'International'
             if ($nReq && strtoupper($nReq) !== 'ALL') {
                 if (strtoupper($nReq) === 'LOCAL' && strtoupper($citizenship) !== 'LOCAL') {
                     continue;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
@@ -64,12 +66,13 @@ class EnrollmentDilimanController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         StudentIdGenerator $idGenerator,
-        SchoolYearRepository $syRepo
+        SchoolYearRepository $syRepo,
+        \Psr\Log\LoggerInterface $logger
     ): Response
     {
         // Log the incoming request data for debugging
-        error_log('Enrollment Submission POST data (Diliman): ' . json_encode($request->request->all()));
-        error_log('Enrollment Submission FILES data (Diliman): ' . json_encode(array_keys($request->files->all())));
+        $logger->info('Enrollment Submission POST data (Diliman): ' . json_encode($request->request->all()));
+        $logger->info('Enrollment Submission FILES data (Diliman): ' . json_encode(array_keys($request->files->all())));
 
         $campus = 'feu_diliman';
         $campusCode = SchoolYear::CAMPUS_DILIMAN;
@@ -95,8 +98,49 @@ class EnrollmentDilimanController extends AbstractController
         try {
             $applicant = new ApplicantBed();
             
+            // --- PRE-CHECK MISSING DOCS ---
+            $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
+                'campus' => [$campusCode, null]
+            ]);
+
+            $missingDocs = [];
+            $tempAdmType = $request->request->get('admission_type', '');
+            $tempNat = strtoupper($request->request->get('citizenship', ''));
+            $tempGrade = $request->request->get('grade_level', '');
+
+            $processedPrecheckSlugs = [];
+            foreach ($documentSetups as $docSetup) {
+                $isMatch = true;
+                if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($tempAdmType)) $isMatch = false;
+                if ($docSetup->getNationalityType() && strtoupper($docSetup->getNationalityType()) !== $tempNat) $isMatch = false;
+                if ($docSetup->getGradeLevels() && !in_array($tempGrade, $docSetup->getGradeLevels())) $isMatch = false;
+                
+                if (!$isMatch) continue;
+
+                $slug = $docSetup->getSlug();
+                if (in_array($slug, $processedPrecheckSlugs)) continue;
+                $processedPrecheckSlugs[] = $slug;
+
+                $file = $request->files->get($slug);
+                if (!$file instanceof UploadedFile) {
+                    $missingDocs[] = $docSetup->getDocumentName();
+                }
+            }
+
+            if (count($missingDocs) > 0) {
+                // If there are missing docs, we assume the user signed the waiver modal if they got here.
+                // We no longer require a tentative date.
+                $applicant->setDocumentsAgreed(true);
+                $applicant->setDocumentsAgreedDate($activeSY->getPromissoryDeadline());
+            }
+
+            // --- ALL CLEAR, GENERATE STUDENT NUMBER ---
             $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
             $applicant->setStudentNumber($studentNo);
+            
+            // Persist the applicant immediately so that child entities (with derived identities) can safely map their ManyToOne primary keys.
+            $em->persist($applicant);
+            
             $applicant->setCampus($campusCode);
             $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             $applicant->setAdmissionDate(new \DateTime());
@@ -104,7 +148,7 @@ class EnrollmentDilimanController extends AbstractController
             $applicant->setEducationType($request->request->get('education_type'));
             $applicant->setGradeLevel($request->request->get('grade_level'));
             $applicant->setTrackStrand($request->request->get('strand'));
-            $applicant->setLrn($lrnInput);
+            $applicant->setLrn($lrnInput !== '' ? $lrnInput : null);
             $applicant->setSchoolYearOfEntry($activeSY->getLabel());
             $applicant->setAdmissionType($request->request->get('admission_type'));
 
@@ -145,11 +189,7 @@ class EnrollmentDilimanController extends AbstractController
             }
             $applicant->setMarketingSource($marketingSource);
 
-            $agreedDateStr = $request->request->get('documents_agreed_date');
-            if (!empty($agreedDateStr)) {
-                $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
-                $applicant->setDocumentsAgreed(true);
-            }
+            // Waiver check already performed earlier.
 
             $applicant->setMobileNumber($request->request->get('contact_number'));
             $applicant->setPersonalEmail($request->request->get('email'));
@@ -239,6 +279,7 @@ class EnrollmentDilimanController extends AbstractController
                 'campus' => [$applicant->getCampus(), null]
             ]);
             
+            $processedReqSlugs = [];
             foreach ($documentSetups as $docSetup) {
                 $isMatch = true;
                 if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($applicant->getAdmissionType())) $isMatch = false;
@@ -249,6 +290,9 @@ class EnrollmentDilimanController extends AbstractController
                 if (!$isMatch) continue;
 
                 $slug = $docSetup->getSlug();
+                if (in_array($slug, $processedReqSlugs)) continue;
+                $processedReqSlugs[] = $slug;
+                
                 $file = $request->files->get($slug);
                 
                 if ($file instanceof UploadedFile) {
@@ -265,7 +309,8 @@ class EnrollmentDilimanController extends AbstractController
                     $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                     if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
-                    $filename = strtoupper($slug) . '-' . $studentNo . '.' . $file->guessExtension();
+                    $ext = $file->guessExtension() ?: $file->getClientOriginalExtension();
+                    $filename = strtoupper($slug) . '-' . $studentNo . '.' . $ext;
                     $file->move($targetDir, $filename);
                     
                     $req = new ApplicantBedRequirement();
@@ -282,17 +327,25 @@ class EnrollmentDilimanController extends AbstractController
                 }
             }
 
-            $em->persist($applicant);
             $em->flush();
             $em->commit();
 
             return $this->redirectToRoute('app_enrollment_diliman_success', ['studentNumber' => $studentNo]);
 
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+            $em->rollback();
+            $logger->error('Enrollment DB Constraint Error (Diliman): ' . $e->getMessage());
+            $this->addFlash('error', 'Submission failed: A record with this unique information already exists.');
+            return $this->redirectToRoute('app_enrollment_diliman_apply');
         } catch (\Exception $e) {
             $em->rollback();
             // Log the error for debugging
-            error_log('Enrollment Submission Error (Diliman): ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
-            error_log('Stack trace: ' . $e->getTraceAsString());
+            $logger->error('Enrollment Submission Error (Diliman): ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'studentNo' => $studentNo ?? 'unknown'
+            ]);
 
             $this->addFlash('error', 'Submission failed: ' . $e->getMessage());
             return $this->redirectToRoute('app_enrollment_diliman_apply');
@@ -476,5 +529,43 @@ class EnrollmentDilimanController extends AbstractController
         if (!$lrn) return $this->json(['exists' => false]);
         $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrn]);
         return $this->json(['exists' => $existing !== null]);
+    }
+
+
+
+    private function hasMissingRequiredDocs(ApplicantBed $applicant, EntityManagerInterface $em): bool
+    {
+        return count($this->getMissingRequiredDocs($applicant, $em)) > 0;
+    }
+
+    private function getMissingRequiredDocs(ApplicantBed $applicant, EntityManagerInterface $em): array
+    {
+        $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
+            'campus' => [$applicant->getCampus(), null]
+        ]);
+        
+        $submittedSlugs = [];
+        foreach ($applicant->getRequirements() as $req) {
+            if (!$req->getIsDeleted() && $req->getStoredFileName()) {
+                $submittedSlugs[] = $req->getSlug();
+            }
+        }
+        
+        $missingDocs = [];
+        foreach ($documentSetups as $docSetup) {
+            $isMatch = true;
+            if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($applicant->getAdmissionType())) $isMatch = false;
+            $studentNationality = strtoupper($applicant->getCitizenship());
+            if ($docSetup->getNationalityType() && strtoupper($docSetup->getNationalityType()) !== $studentNationality) $isMatch = false;
+            if ($docSetup->getGradeLevels() && !in_array($applicant->getGradeLevel(), $docSetup->getGradeLevels())) $isMatch = false;
+            
+            if (!$isMatch) continue;
+
+            if (!in_array($docSetup->getSlug(), $submittedSlugs)) {
+                $missingDocs[] = $docSetup->getDocumentName();
+            }
+        }
+        
+        return $missingDocs;
     }
 }

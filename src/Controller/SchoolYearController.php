@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
@@ -185,6 +187,22 @@ class SchoolYearController extends AbstractController
             try {
                 $deadline = new \DateTime($deadlineStr);
                 $sy->setPromissoryDeadline($deadline);
+                
+                $altLabel = $sy->getYearStart() . '-' . $sy->getYearEnd();
+
+                $em->createQuery(
+                    'UPDATE App\Entity\ApplicantBed a 
+                     SET a.documentsAgreedDate = :deadline 
+                     WHERE a.campus = :campus 
+                     AND (a.schoolYearOfEntry = :label OR a.schoolYearOfEntry = :altLabel) 
+                     AND a.documentsAgreedDate IS NOT NULL'
+                )
+                ->setParameter('deadline', $deadline)
+                ->setParameter('campus', $campusCode)
+                ->setParameter('label', $sy->getLabel())
+                ->setParameter('altLabel', $altLabel)
+                ->execute();
+
                 $em->flush();
                 $this->addFlash('success', 'Promissory deadline for ' . $sy->getLabel() . ' has been updated.');
             } catch (\Exception $e) {
@@ -192,6 +210,21 @@ class SchoolYearController extends AbstractController
             }
         } else {
             $sy->setPromissoryDeadline(null);
+            
+            $altLabel = $sy->getYearStart() . '-' . $sy->getYearEnd();
+
+            $em->createQuery(
+                'UPDATE App\Entity\ApplicantBed a 
+                 SET a.documentsAgreedDate = NULL 
+                 WHERE a.campus = :campus 
+                 AND (a.schoolYearOfEntry = :label OR a.schoolYearOfEntry = :altLabel) 
+                 AND a.documentsAgreedDate IS NOT NULL'
+            )
+            ->setParameter('campus', $campusCode)
+            ->setParameter('label', $sy->getLabel())
+            ->setParameter('altLabel', $altLabel)
+            ->execute();
+
             $em->flush();
             $this->addFlash('success', 'Promissory deadline has been removed.');
         }

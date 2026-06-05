@@ -109,6 +109,16 @@
         .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
         .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
 
+        /* Fix stacking context for dropdowns in animated cards */
+        #step-card-1 { z-index: 20; position: relative; }
+        #step-card-2 { z-index: 19; position: relative; }
+        #step-card-3 { z-index: 18; position: relative; }
+        #step-card-4 { z-index: 17; position: relative; }
+        #step-card-5 { z-index: 16; position: relative; }
+        #step-card-6 { z-index: 15; position: relative; }
+        #step-card-7 { z-index: 14; position: relative; }
+        #step-card-8 { z-index: 13; position: relative; }
+
         .btn-submit {
             background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark)); color: white;
             padding: 1rem 3rem; border-radius: 50px; font-weight: 700; border: none;
@@ -371,7 +381,7 @@
                     <div class="row g-4 mt-2">
                         <div class="col-md-4">
                             <label class="form-label">Date of Birth <span class="required">*</span></label>
-                            <input type="date" name="birthday" class="form-control" required>
+                            <input type="date" name="birthday" class="form-control" max="9999-12-31" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Birth Place <span class="required">*</span></label>
@@ -999,7 +1009,7 @@
 <div id="dpaModalOverlay" aria-modal="true" role="dialog">
     <div id="dpaModalContainer">
         <div class="dpa-header">
-            <i class="ki-filled ki-shield-tick text-3xl text-feu-green"></i>
+            <img src="{{ asset('images/hero/alabang.png') }}" alt="FEU Alabang" class="h-8">
             <h2>Data Privacy Policy Consent</h2>
         </div>
         <div class="dpa-scroll-content" id="dpaScrollArea">
@@ -1168,6 +1178,29 @@
             }, remainingTime); 
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const lrnInput = document.getElementById('lrnInput');
+        if (lrnInput) {
+            lrnInput.addEventListener('blur', function() {
+                const lrn = this.value;
+                if(lrn.length === 12) {
+                    fetch('{{ path("app_enrollment_alabang_check_lrn") }}?lrn=' + encodeURIComponent(lrn))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.exists) {
+                                this.classList.add('is-invalid', 'border-red-400');
+                                this.setCustomValidity('LRN is already taken');
+                                if (window.showToast) window.showToast('The provided LRN is already registered in the system.', 'error');
+                            } else {
+                                this.classList.remove('is-invalid', 'border-red-400');
+                                this.setCustomValidity('');
+                            }
+                        });
+                }
+            });
+        }
+    });
 </script>
 
 {% endblock %}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
@@ -97,6 +99,10 @@ class EnrollmentAlabangController extends AbstractController
             
             $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
             $applicant->setStudentNumber($studentNo);
+            
+            // Persist the applicant immediately so that child entities (with derived identities) can safely map their ManyToOne primary keys.
+            $em->persist($applicant);
+            
             $applicant->setCampus($campusCode);
             $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
             $applicant->setAdmissionDate(new \DateTime());
@@ -104,7 +110,7 @@ class EnrollmentAlabangController extends AbstractController
             $applicant->setEducationType($request->request->get('education_type'));
             $applicant->setGradeLevel($request->request->get('grade_level'));
             $applicant->setTrackStrand($request->request->get('strand'));
-            $applicant->setLrn($lrnInput);
+            $applicant->setLrn($lrnInput !== '' ? $lrnInput : null);
             $applicant->setSchoolYearOfEntry($activeSY->getLabel());
             $applicant->setAdmissionType($request->request->get('admission_type'));
 
@@ -246,6 +252,7 @@ class EnrollmentAlabangController extends AbstractController
                 'campus' => [$applicant->getCampus(), null]
             ]);
             
+            $processedReqSlugs = [];
             foreach ($documentSetups as $docSetup) {
                 $isMatch = true;
                 if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($applicant->getAdmissionType())) $isMatch = false;
@@ -256,6 +263,9 @@ class EnrollmentAlabangController extends AbstractController
                 if (!$isMatch) continue;
 
                 $slug = $docSetup->getSlug();
+                if (in_array($slug, $processedReqSlugs)) continue;
+                $processedReqSlugs[] = $slug;
+                
                 $file = $request->files->get($slug);
                 
                 if ($file instanceof UploadedFile) {
@@ -272,7 +282,8 @@ class EnrollmentAlabangController extends AbstractController
                     $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                     if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
-                    $filename = strtoupper($slug) . '-' . $studentNo . '.' . $file->guessExtension();
+                    $ext = $file->guessExtension() ?: $file->getClientOriginalExtension();
+                    $filename = strtoupper($slug) . '-' . $studentNo . '.' . $ext;
                     $file->move($targetDir, $filename);
                     
                     $req = new ApplicantBedRequirement();
@@ -289,12 +300,16 @@ class EnrollmentAlabangController extends AbstractController
                 }
             }
 
-            $em->persist($applicant);
             $em->flush();
             $em->commit();
 
             return $this->redirectToRoute('app_enrollment_alabang_success', ['studentNumber' => $studentNo]);
 
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+            $em->rollback();
+            error_log('Enrollment DB Constraint Error (Alabang): ' . $e->getMessage());
+            $this->addFlash('error', 'Submission failed: A record with this unique information already exists.');
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
         } catch (\Throwable $e) {
             $em->rollback();
             // Log the error for debugging

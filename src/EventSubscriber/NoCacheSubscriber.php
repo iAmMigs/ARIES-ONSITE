@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -21,7 +23,7 @@ class NoCacheSubscriber implements EventSubscriberInterface
         if (str_starts_with($path, '/admin') || str_starts_with($path, '/diliman-admin') || str_starts_with($path, '/alabang-admin')) {
             $response = $event->getResponse();
             $response->headers->addCacheControlDirective('no-cache', true);
-            $response->headers->addCacheControlDirective('max-age', 0);
+            $response->headers->addCacheControlDirective('max-age', '0');
             $response->headers->addCacheControlDirective('must-revalidate', true);
             $response->headers->addCacheControlDirective('no-store', true);
         }

@@ -109,6 +109,16 @@
         .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
         .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
 
+        /* Fix stacking context for dropdowns in animated cards */
+        #step-card-1 { z-index: 20; position: relative; }
+        #step-card-2 { z-index: 19; position: relative; }
+        #step-card-3 { z-index: 18; position: relative; }
+        #step-card-4 { z-index: 17; position: relative; }
+        #step-card-5 { z-index: 16; position: relative; }
+        #step-card-6 { z-index: 15; position: relative; }
+        #step-card-7 { z-index: 14; position: relative; }
+        #step-card-8 { z-index: 13; position: relative; }
+
         .btn-submit {
             background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark)); color: white;
             padding: 1rem 3rem; border-radius: 50px; font-weight: 700; border: none;
@@ -189,14 +199,22 @@
         #dpaModalOverlay.visible #dpaModalContainer {
             transform: scale(1);
         }
-        .dpa-header {
-            padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6;
-            display: flex; align-items: center; gap: 1rem;
+        .dpa-banner {
+            background-color: var(--feu-green); border-top-left-radius: 16px; border-top-right-radius: 16px;
+            padding: 1.5rem; text-align: center; border-bottom: 4px solid var(--feu-gold); color: white;
         }
-        .dpa-header h2 { font-weight: 800; font-size: 1.5rem; color: var(--feu-green-dark); margin: 0; }
+        .dpa-banner h1 { font-weight: 900; font-size: 1.4rem; letter-spacing: 2px; margin: 0.5rem 0 0; color: white; }
+        .dpa-banner p { font-size: 0.75rem; letter-spacing: 1px; color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-weight: 500; }
+        .dpa-header {
+            padding: 1.5rem 2rem 0; text-align: center;
+        }
+        .dpa-header h2 { font-weight: 800; font-size: 1.25rem; color: #1f2937; margin: 0 0 0.25rem 0; }
+        .dpa-header p { font-size: 0.85rem; font-weight: 600; color: #6b7280; margin: 0; }
         .dpa-scroll-content {
             padding: 2rem; overflow-y: auto; flex: 1;
             font-size: 0.95rem; line-height: 1.6; color: #4b5563;
+            will-change: scroll-position;
+            -webkit-overflow-scrolling: touch;
         }
         /* Custom scrollbar for DPA content */
         .dpa-scroll-content::-webkit-scrollbar { width: 6px; }
@@ -375,7 +393,7 @@
                     <div class="row g-4 mt-2">
                         <div class="col-md-4">
                             <label class="form-label">Date of Birth <span class="required">*</span></label>
-                            <input type="date" name="birthday" class="form-control" required>
+                            <input type="date" name="birthday" class="form-control" max="9999-12-31" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Birth Place <span class="required">*</span></label>
@@ -815,7 +833,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-xs">School Type <span class="required">*</span></label>
-                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input">
+                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input" onchange="toggleSchoolType(this, 'educ_kinder_0')">
                                         <option value="Private">Private</option>
                                         <option value="Public">Public</option>
                                         <option value="International">International</option>
@@ -827,25 +845,24 @@
                                 </div>
                             </div>
                             
-                            <div class="form-check mb-2">
-                                <input type="hidden" name="educ_kinder_is_international[]" class="intl-hidden-input" value="0">
-                                <input class="form-check-input intl-checkbox" type="checkbox" id="educ_kinder_0_intl">
-                                <label class="form-check-label text-xs fw-bold" for="educ_kinder_0_intl">International School</label>
-                            </div>
+                            <input type="hidden" name="educ_kinder_is_international[]" class="intl-hidden-input" value="0">
 
                             <div class="row g-2 mt-2 location-local-group" id="educ_kinder_0_local">
                                 <div class="col-md-4">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region</label>
                                     <select id="educ_kinder_0_region" class="form-select form-select-sm" data-placeholder="Region">
                                         <option value=""></option>
                                     </select>
                                     <input type="hidden" name="educ_kinder_region[]" id="educ_kinder_0_region_hidden">
                                 </div>
                                 <div class="col-md-4 position-relative">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province</label>
                                     <input type="text" id="educ_kinder_0_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
                                     <input type="hidden" id="educ_kinder_0_province" name="educ_kinder_province[]">
                                     <div id="educ_kinder_0_province_suggestions" class="autocomplete-suggestions hidden"></div>
                                 </div>
                                 <div class="col-md-4">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality</label>
                                     <select id="educ_kinder_0_city" name="educ_kinder_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
                                         <option value=""></option>
                                     </select>
@@ -854,6 +871,7 @@
                             
                             <div class="row g-2 location-intl-group" id="educ_kinder_0_intl_group" style="display:none;">
                                 <div class="col-md-6">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
                                     <select name="educ_kinder_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
                                         <option value="">Select Country</option>
                                         {% for country in countries %}
@@ -996,6 +1014,9 @@
                 {% endfor %}
             </div>
 
+            {# --- MISSING DOCUMENTS PREMIUM WAIVER MODAL --- #}
+            {% include 'enrollment-onsite/diliman/premium_waiver_modal.html.twig' %}
+
         </form>
     </div>
 </div>
@@ -1003,50 +1024,140 @@
 {# --- DATA PRIVACY AGREEMENT MODAL --- #}
 <div id="dpaModalOverlay" aria-modal="true" role="dialog">
     <div id="dpaModalContainer">
-        <div class="dpa-header">
-            <i class="ki-filled ki-shield-tick text-3xl text-feu-green"></i>
-            <h2>Data Privacy Policy Consent</h2>
-        </div>
-        <div class="dpa-scroll-content" id="dpaScrollArea">
-            <div class="alert alert-info bg-blue-50 border-blue-200 text-blue-800 mb-4 p-3 rounded flex items-start gap-3">
-                <i class="ki-filled ki-information-2 mt-1"></i>
-                <p class="m-0 text-sm">Under the Data Privacy Act of 2012 (RA 10173), we are required to obtain your informed consent before collecting and processing your personal information for admission purposes.</p>
+        <div class="dpa-banner">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-feu-green-700 shadow-md mb-1">
+                <img src="{{ asset('images/hero/diliman.png') }}" alt="FEU Diliman" class="h-8">
             </div>
-            
-            <h4 class="font-bold text-gray-800 mb-2">Privacy Notice Acknowledgment</h4>
-            <p class="mb-5">
-                I have read and understood all the provisions of the FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools and agree with its full implementation.
-            </p>
-
-            <h4 class="font-bold text-gray-800 mb-2">Data Processing Consent</h4>
-            <p class="mb-5">
-                I hereby give my consent to FEU for the collection and processing of my personal data, relating to my application for admission, in accordance with the FEU Data Privacy Notice and in compliance with Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines, its Implementing Rules and Regulations, other guidelines and issuances by the National Privacy Commission.
-            </p>
-            
-            <p class="mb-2"><strong>The information collected will be used for:</strong></p>
-            <ul class="list-disc pl-5 mb-5">
-                <li>Evaluating your application for admission.</li>
-                <li>Processing enrollment and registration if admitted.</li>
-                <li>Communicating with you regarding your application status.</li>
-                <li>Generating reports required by CHED, DepEd, and other relevant government agencies.</li>
-            </ul>
-
-            <div class="dpa-checkbox-group mt-6">
-                <label for="dpa_consent_check">
-                    <input type="checkbox" id="dpa_consent_check" disabled>
+            <h1>FEU DILIMAN</h1>
+        </div>
+        
+        <div class="dpa-header">
+            <h2>DATA PRIVACY POLICY CONSENT</h2>
+            <p>From Students Applying for Admission to FEU Group of Schools, INC.</p>
+        </div>
+        
+        <div class="dpa-scroll-content" id="dpaScrollArea">
+            <div class="dpa-checkbox-group mt-2">
+                <label for="dpa_consent_check_1" class="hover:border-feu-green-300 transition-colors">
+                    <input type="checkbox" id="dpa_consent_check_1">
                     <div>
-                        <span class="font-bold text-gray-800 block">I confirm my consent</span>
-                        <span class="text-sm text-gray-500">I have read, understood, and agree to the Data Privacy terms outlined above.</span>
+                        <span class="text-sm text-gray-700 leading-relaxed font-medium block">
+                            I have read and understood all the provisions of the <a href="javascript:void(0);" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '1'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'visible';" class="text-blue-600 hover:underline font-bold">FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools</a> and agree with its full implementation.
+                        </span>
+                    </div>
+                </label>
+                
+                <label for="dpa_consent_check_2" class="hover:border-feu-green-300 transition-colors">
+                    <input type="checkbox" id="dpa_consent_check_2">
+                    <div>
+                        <span class="text-sm text-gray-700 leading-relaxed font-medium block">
+                            I hereby give my consent to FEU for the collection and processing of my personal data, relating to my application for admission, in accordance with the <a href="javascript:void(0);" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '1'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'visible';" class="text-blue-600 hover:underline font-bold">FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools</a> and in compliance with Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines, its implementing Rules and Regulations, other guidelines and issuances by the National Privacy Commission.
+                        </span>
                     </div>
                 </label>
             </div>
-            <div style="height: 10px;"></div> {# Extra space for scrolling trigger #}
         </div>
-        <div class="dpa-footer">
-            <div class="dpa-help-text" id="dpaScrollHint"><i class="ki-filled ki-arrow-down"></i> Please scroll to the bottom to agree</div>
-            <button type="button" class="btn-dpa-agree" id="btnDpaAgree" disabled>
-                <span>Accept & Continue</span>
+        
+        <div class="dpa-footer flex-col md:flex-row gap-3 items-center md:justify-between px-6 py-4">
+            <div class="text-xs text-red-500 font-bold max-w-sm text-center md:text-left">
+                Note: Applicants are not allowed to proceed without ticking the boxes and clicking the submit button.
+            </div>
+            <button type="button" class="btn-dpa-agree w-full md:w-auto justify-center" id="btnDpaAgree" disabled>
+                <span>Submit</span>
                 <i class="ki-filled ki-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- DATA PRIVACY DETAILS MODAL --- #}
+<div id="dpaDetailsModalOverlay" aria-modal="true" role="dialog" style="position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s ease;">
+    <div style="background:white;border-radius:16px;width:95%;max-width:800px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+        <div class="dpa-header flex justify-between items-center" style="padding:1.5rem 2rem;border-bottom:1px solid #e5e7eb;">
+            <h2 class="text-lg font-bold text-feu-green-dark m-0">FEU Data Privacy Notice</h2>
+            <button type="button" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '0'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'hidden';" class="text-gray-500 hover:text-red-500 bg-transparent border-none cursor-pointer">
+                <i class="ki-filled ki-cross text-2xl"></i>
+            </button>
+        </div>
+        <div class="dpa-scroll-content text-sm text-gray-700 space-y-4" style="padding:2rem;overflow-y:auto;">
+            <p>Far Eastern University Admissions and Financial Assistance is committed to protecting and upholding the rights of student applicants, including their right to keep personal information private. In compliance with Republic Act 10173, otherwise known as the Data Privacy Act of 2012, and guided by the principles of transparency, legitimate purpose, and proportionality, this policy statement sets out the data-privacy rights of applicants in FEU and describes the information that may be collected from them; the collection methods and timing of collection; the purposes for which the data may be used; the storage, transmission, and method of use of such data; the conditions under which data are shared with third parties; the data retention period; and the rules that govern the students’ participation when they are asked to share their personal information.</p>
+            
+            <h4 class="font-bold text-gray-900">1. Identity of the Process Owner and its Services</h4>
+            <p>The Admissions and Financial Assistance (AFA) manages the university’s admissions processes, including student recruitment, applicant screening, and selection of students applying for admission to various academic programs in the university. The AFA is also responsible for the management of financial assistance which includes university-funded and externally funded scholarship grants.</p>
+            <p>Admissions and Financial Assistance also works closely with the Office of the University Registrar (OUR), Information Technology Services (ITS), different Institutes, and Academic Services to ensure a smooth process and quality student experience of applicants during their admission process.</p>
+
+            <h4 class="font-bold text-gray-900">2. Personal Data that are Collected</h4>
+            <p>The following personal data are collected:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>Personal details such as complete name, birth date, place of birth, sex at birth, birth order, gender identity, civil status, number of siblings, religion, awards received, and identification photos;</li>
+                <li>Parents/guardians’ information such as complete name, occupation, place of work, education credentials;</li>
+                <li>Household information such as household size and gross family income;</li>
+                <li>Contact information such as current and permanent address, email address, telephone number, mobile number;</li>
+                <li>Pre-FEU academic credentials and other relevant circumstances, former schools attended, academic performance, and disciplinary record;</li>
+                <li>Other information for the purpose of designing and implementing proactive student services and programs may be collected when warranted, which will be specified in Consent Forms.</li>
+            </ul>
+
+            <h4 class="font-bold text-gray-900">3. Collection Methods and Timing of Collection</h4>
+            <p>The applicant’s personal data are primarily collected and acquired in many forms. This may be through written records, photographic images, and digital/electronic means. The data are collected when students apply for admission to the university through online registration in its admission system, and when students proceed with their enrollment applications. The collection of data may also happen in survey of the students’ preference of courses.</p>
+
+            <h4 class="font-bold text-gray-900">4. Purpose(s) for which Personal Data will be Collected and Used</h4>
+            <p>For the efficient admission process and management of school records, personal data are collected and used for the following purposes:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>evaluating the admission application of the student to the university;</li>
+                <li>processing acceptance or confirmation of new students in preparation for enrollment;</li>
+                <li>evaluating and processing of scholarship applications, grants, allowances, reports to benefactors, and other forms of financial assistance;</li>
+                <li>generating reports for research purposes such as exploring students’ backgrounds and characteristics, etc.</li>
+                <li>generating reports for intervention programs for better academic and campus experiences such guidance and counseling, language enrichment programs, academic support, etc.</li>
+                <li>communicating admission-related, enrollment-related, and scholarship-related advisories, announcements, and activities.</li>
+            </ul>
+
+            <h4 class="font-bold text-gray-900">5. Storage and Transmission of Personal Information</h4>
+            <p>FEU Admissions and Financial Assistance shall ensure that all collected personal data are stored in secured storage facilities to avoid unauthorized access to this sensitive personal information. Personal data are stored in physical and electronic systems with appropriate organizational, physical, and technical security measures. Through coordination with ITS, AFA shall ensure that only authorized staff shall have access to each student’s personal information only for the purposes cited in Section 4.</p>
+            <p>Storage of personal data in cloud-based platforms is managed by ITS in partnership with third-party providers, subject to applicable laws and regulations and information security measures.</p>
+
+            <h4 class="font-bold text-gray-900">6. Method of Use</h4>
+            <p>The collected data are processed in relation to the purposes and uses stipulated in Section IV. The term “processing” shall be subject to the same Definitions and Implementing Rules and Regulations as are found in the Data Privacy Act, which include collection, recording, organization, storage, updating or modification, retrieval, use, consolidation, erasure, or destruction of data.</p>
+
+            <h4 class="font-bold text-gray-900">7. Third-Party Transfer</h4>
+            <p>In accordance with the Data Privacy Act of 2012, AFA will use and transfer the collected data to provide efficient services to its stakeholders, primarily students. It may share the data with various offices within the university such as Office of the University Registrar, Academic Institutes, Academic Services departments, etc.</p>
+            <p>Sharing of individually identifiable personal data with FEU Schools or other third parties is prohibited unless the data subject gives consent to the Admissions Office that he/she desires to enroll in another FEU campus instead of his/her first preference during online registration or expressly waives this restriction in writing and when the data subject personally applied for a scholarship grant from FEU’s external benefactors.</p>
+            <p>Data sharing and disclosure may happen in the following circumstances:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>awarding of scholarship grants;</li>
+                <li>sharing of data to external benefactors, donors, and organizations for scholarship purposes;</li>
+                <li>sharing of accomplishments for promotional purposes;</li>
+                <li>transfer of personal information to another FEU subsidiary for admission upon consent of the student;</li>
+                <li>use of photos and other information to promote the university.</li>
+            </ul>
+
+            <h4 class="font-bold text-gray-900">8. Retention Period</h4>
+            <p>The personal information of the applicants will be retained for active use for a period of one year following the validity of their admission test results. For applicants who will not proceed with FEU, their personal information will be inactivated for archiving. On the other hand, personal information of those who will proceed with their enrollment will be retained in the databases of the university in perpetuity.</p>
+
+            <h4 class="font-bold text-gray-900">9. Participation of Data Subject</h4>
+            <p>FEU warrants the following rights of the data subjects:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>have access to their personal data;</li>
+                <li>receive notifications if there are changes to this Privacy Policy;</li>
+                <li>have the option to request data erasure and disposal due to unauthorized processing upon the submission of a notarized written letter;</li>
+                <li>be compensated due to suffered damages arising from inaccurate, incomplete, outdated, false, unlawfully obtained, unauthorized release, or unauthorized use of personal data based upon the findings of an investigation conducted by the University or by a duly authorized third party and provided that the process of investigation has been vetted by the concerned parties;</li>
+                <li>have the right to rectify errors or inaccuracies in their personal data upon submission of necessary documents; and</li>
+                <li>have the right to unsubscribe to the university mailing database.</li>
+            </ul>
+            
+            <p class="mt-4">For inquiries regarding the processing of personal information stated in this Privacy Notice as well as any concerns or complaints regarding data privacy, or the exercise of the rights of the students as a Data Subject under DPA, students may contact the Data Protection Officer at:</p>
+            <div class="bg-gray-100 p-4 rounded-lg mt-2 font-medium">
+                <p><strong>The Data Protection Officer</strong><br>
+                Far Eastern University<br>
+                Nicanor Reyes St., Sampaloc, Manila<br>
+                Landline: +632 7777-FEU loc 208<br>
+                Email: <a href="mailto:dataprivacy@feu.edu.ph" class="text-feu-green-dark hover:underline">dataprivacy@feu.edu.ph</a></p>
+                
+                <p class="mt-2">For comments, students may also contact the Admissions and Financial Assistance at <a href="mailto:admissions@feu.edu.ph" class="text-feu-green-dark hover:underline">admissions@feu.edu.ph</a> or call (02) 87777-338 or 8849-4000 loc 273/274.</p>
+            </div>
+        </div>
+        <div style="padding:1.5rem 2rem;border-top:1px solid #e5e7eb;background:#fafafa;border-radius:0 0 16px 16px;text-align:right;">
+            <button type="button" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '0'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'hidden';" class="px-5 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-colors border-none cursor-pointer">
+                Close
             </button>
         </div>
     </div>
@@ -1075,87 +1186,6 @@
     </div>
 </div>
 
-{# --- MISSING DOCUMENTS WARNING MODAL --- #}
-<div id="docWarningModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="docWarningDialog">
-        <div class="p-8 text-center">
-            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-amber-50 mb-6">
-                <i class="ki-filled ki-folder-minus text-5xl text-amber-500"></i>
-            </div>
-            <h3 class="text-2xl font-black text-gray-900 mb-3">Wait, some documents are missing!</h3>
-            <p class="text-base text-gray-500 font-medium px-4">
-                You haven't uploaded all the documents. While these are not strictly required for initial application, providing them now will speed up your evaluation.
-            </p>
-            
-            <div class="mt-8 bg-amber-50 border border-amber-100 rounded-xl p-4 text-left mx-4">
-                <h4 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <i class="ki-filled ki-information-2"></i> Missing Items:
-                </h4>
-                <ul class="space-y-2" id="missingDocsList">
-                    {# Dynamic list of missing docs #}
-                </ul>
-            </div>
-        </div>
-        
-        <div class="p-6 border-t border-gray-100 flex flex-col gap-3 bg-gray-50">
-            <button type="button" onclick="closeDocWarningModal()" class="px-5 py-4 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 w-full flex items-center justify-center gap-2">
-                <i class="ki-filled ki-pencil"></i>
-                Go back and upload
-            </button>
-            <button type="button" onclick="proceedToFinalConfirmation()" class="px-5 py-3 rounded-xl font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all w-full text-sm underline decoration-gray-300 underline-offset-4">
-                Submit without documents
-            </button>
-        </div>
-    </div>
-</div>
-
-{# --- PROMISSORY NOTE MODAL --- #}
-<div id="promissoryModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden transform scale-95 transition-transform duration-300" id="promissoryDialog">
-        <div class="p-8">
-            <div class="flex items-center gap-4 mb-6">
-                <div class="h-12 w-12 rounded-xl bg-feu-green-50 flex items-center justify-center text-feu-green-600">
-                    <i class="ki-filled ki-notepad-edit text-3xl"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-black text-gray-900">Promissory Agreement</h3>
-                    <p class="text-sm text-gray-500 font-medium">Agreement for late document submission</p>
-                </div>
-            </div>
-
-            <div class="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-100">
-                <p class="text-gray-700 leading-relaxed text-sm italic">
-                    "I hereby acknowledge that I have not submitted all the required documents for my application at this time. I promise to provide the missing requirements on or before the date selected below. I understand that failure to comply may affect my admission status."
-                </p>
-            </div>
-
-            <div class="space-y-4">
-                <label class="block">
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">When do you plan to submit these documents?</span>
-                    <div class="relative">
-                        <input type="date" name="documents_agreed_date" id="promissoryDate" 
-                               class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:border-feu-green-500 focus:ring-0 transition-all outline-none font-bold text-gray-700"
-                               min="{{ "now"|date("Y-m-d") }}">
-                        <i class="ki-filled ki-calendar absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    </div>
-                </label>
-                <div id="promissoryError" class="text-red-500 text-xs font-bold hidden">
-                    <i class="ki-filled ki-information-2"></i> Please select a valid future date.
-                </div>
-            </div>
-        </div>
-        
-        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 bg-white">
-            <button type="button" onclick="closePromissoryModal()" class="px-6 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-100 transition-all flex-1">
-                Cancel
-            </button>
-            <button type="button" onclick="validatePromissoryAndContinue()" class="px-6 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-lg shadow-feu-green-700/20 flex-1 flex items-center justify-center gap-2">
-                Agree & Continue
-                <i class="ki-filled ki-arrow-right"></i>
-            </button>
-        </div>
-    </div>
-</div>
 
 <script src="{{ asset('js/validation.js') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
@@ -1184,6 +1214,39 @@
             }, remainingTime); 
         });
     }
+
+    // FEU Diliman specialized missing document warning flow overrides
+    document.addEventListener('DOMContentLoaded', function() {
+        // Override the global showDocWarningModal from enrollment.js to use our new premium waiver modal
+        window.showDocWarningModal = function(missingDocs) {
+            if (typeof window.showPremiumWaiverModal === 'function') {
+                window.showPremiumWaiverModal(missingDocs);
+            }
+        };
+
+        // We no longer need the confirmWaiverSubmission here because it's defined in premium_waiver_modal.html.twig
+        
+        const lrnInput = document.getElementById('lrnInput');
+        if (lrnInput) {
+            lrnInput.addEventListener('blur', function() {
+                const lrn = this.value;
+                if(lrn.length === 12) {
+                    fetch('{{ path("app_enrollment_diliman_check_lrn") }}?lrn=' + encodeURIComponent(lrn))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.exists) {
+                                this.classList.add('is-invalid', 'border-red-400');
+                                this.setCustomValidity('LRN is already taken');
+                                if (window.showToast) window.showToast('The provided LRN is already registered in the system.', 'error');
+                            } else {
+                                this.classList.remove('is-invalid', 'border-red-400');
+                                this.setCustomValidity('');
+                            }
+                        });
+                }
+            });
+        }
+    });
 </script>
 
 {% endblock %}

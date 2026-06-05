@@ -5,7 +5,15 @@
 
 const strandData = {
     'feu_alabang': ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'],
-    'feu_diliman': ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track']
+    'feu_diliman': [
+        'Accountancy, Business Administration, and Management',
+        'Arts and Humanities',
+        'Engineering and Architecture',
+        'IT and Computer Science',
+        'Medicine and Health Sciences',
+        'Tourism and Hospitality',
+        'Mixed Framework'
+    ]
 };
 
 const educationGrades = {
@@ -258,7 +266,12 @@ window.fetchRequiredDocuments = function() {
                         <label class="form-label d-block">
                             ${doc.documentName} 
                         </label>
-                        <input type="file" name="${doc.slug}" class="form-control document-input" data-is-required="true" data-doc-name="${doc.documentName}" ${acceptAttr}>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="file" name="${doc.slug}" class="form-control document-input" data-is-required="true" data-doc-name="${doc.documentName}" ${acceptAttr} onchange="toggleClearFileBtn(this)">
+                            <button type="button" class="btn btn-sm btn-icon btn-light-danger" onclick="clearFileInput(this)" title="Remove file" style="display: none;">
+                                <i class="ki-filled ki-cross"></i>
+                            </button>
+                        </div>
                         <p class="text-xs text-gray-500 mt-2">
                             Max size: 10MB. Accepted formats: ${extDisplay}
                         </p>
@@ -283,10 +296,9 @@ window.updateStrands = function() {
     select.innerHTML = '<option value="">Select Option</option>';
     
     const lowerGrade = grade.toLowerCase();
-    const isDilimanGrade11 = (window.currentCampus === 'feu_diliman' && lowerGrade.includes('11'));
     const isShs = lowerGrade.includes('11') || lowerGrade.includes('12') || lowerGrade.includes('shs');
 
-    if (isShs && !isDilimanGrade11) {
+    if (isShs) {
         strandGroup.style.display = 'block';
         select.setAttribute('required', 'required');
         
@@ -418,11 +430,28 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
             if (window.ARIESValidation) window.ARIESValidation.resetField(countryInput, window.ARIESValidation.getErrorElement(countryInput));
         }
     }
+
+    const guardianCheckbox = document.getElementById(parentPrefix === 'father' ? 'f_is_guardian' : 'm_is_guardian');
+    if (guardianCheckbox) {
+        if (isOfw) {
+            guardianCheckbox.checked = false;
+            guardianCheckbox.disabled = true;
+            window.setGuardian(parentPrefix);
+        } else {
+            guardianCheckbox.disabled = false;
+        }
+    }
 };
 
 window.setGuardian = function(type) {
     const fCheckbox = document.getElementById('f_is_guardian');
     const mCheckbox = document.getElementById('m_is_guardian');
+    
+    const isOfw = document.getElementById(type === 'father' ? 'f_ofw' : 'm_ofw')?.checked;
+    if (isOfw) {
+        if (type === 'father' && fCheckbox) fCheckbox.checked = false;
+        if (type === 'mother' && mCheckbox) mCheckbox.checked = false;
+    }
     
     let isChecked = false;
     
@@ -1308,9 +1337,9 @@ window.toggleSchoolType = function(select, prefix) {
     
     if (isInternational) {
         if (localGroup) localGroup.style.display = 'none';
-        if (intlGroup) intlGroup.style.display = 'flex';
+        if (intlGroup) intlGroup.style.display = '';
     } else {
-        if (localGroup) localGroup.style.display = 'flex';
+        if (localGroup) localGroup.style.display = '';
         if (intlGroup) intlGroup.style.display = 'none';
     }
     
@@ -1373,7 +1402,8 @@ function initLrnValidation() {
         
         if (lrnValue.length > 0) {
             if (window.ARIESValidation.patterns.lrn.test(lrnValue)) {
-                fetch(`/enrollment/api/check-lrn?lrn=${encodeURIComponent(lrnValue)}`)
+                const basePath = window.location.pathname.replace(/\/$/, '');
+                fetch(`${basePath}/api/check-lrn?lrn=${encodeURIComponent(lrnValue)}`)
                     .then(response => response.json())
                     .then(data => {
                         if (data.exists) {
@@ -1738,7 +1768,9 @@ window.ensureInitialRow = function(level) {
 function initDPAModal() {
     const overlay = document.getElementById('dpaModalOverlay');
     const scrollArea = document.getElementById('dpaScrollArea');
-    const checkbox = document.getElementById('dpa_consent_check');
+    const singleCheckbox = document.getElementById('dpa_consent_check');
+    const checkbox1 = document.getElementById('dpa_consent_check_1');
+    const checkbox2 = document.getElementById('dpa_consent_check_2');
     const btnAgree = document.getElementById('btnDpaAgree');
     const hint = document.getElementById('dpaScrollHint');
 
@@ -1754,28 +1786,45 @@ function initDPAModal() {
         document.body.style.overflow = 'hidden';
     }, 100);
 
+    const isDual = (checkbox1 && checkbox2);
+
+    const unlockCheckboxes = () => {
+        if (singleCheckbox) singleCheckbox.disabled = false;
+        if (checkbox1) checkbox1.disabled = false;
+        if (checkbox2) checkbox2.disabled = false;
+        if (hint) hint.style.display = 'none';
+    };
+
     // Initial check in case the content is small enough to not need scrolling
+    // For Diliman (dual checkbox), the content fits on one page so we unlock immediately
     setTimeout(() => {
-        if (scrollArea.scrollHeight <= scrollArea.clientHeight + 20) {
-            checkbox.disabled = false;
-            hint.style.display = 'none';
+        if (isDual || scrollArea.scrollHeight <= scrollArea.clientHeight + 20) {
+            unlockCheckboxes();
         }
     }, 200);
 
     // Handle scroll to unlock
-    scrollArea.addEventListener('scroll', function() {
-        if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
-            checkbox.disabled = false;
-            if (hint) hint.style.display = 'none';
-        }
-    });
-
-    // Handle checkbox to unlock button
-    if (checkbox) {
-        checkbox.addEventListener('change', function() {
-            if (btnAgree) btnAgree.disabled = !this.checked;
+    if (scrollArea && !isDual) {
+        scrollArea.addEventListener('scroll', function() {
+            if (this.scrollTop + this.clientHeight >= this.scrollHeight - 20) {
+                unlockCheckboxes();
+            }
         });
     }
+
+    const validateCheckboxes = () => {
+        if (!btnAgree) return;
+        if (isDual) {
+            btnAgree.disabled = !(checkbox1.checked && checkbox2.checked);
+        } else if (singleCheckbox) {
+            btnAgree.disabled = !singleCheckbox.checked;
+        }
+    };
+
+    // Handle checkbox to unlock button
+    if (singleCheckbox) singleCheckbox.addEventListener('change', validateCheckboxes);
+    if (checkbox1) checkbox1.addEventListener('change', validateCheckboxes);
+    if (checkbox2) checkbox2.addEventListener('change', validateCheckboxes);
 
     // Handle agree button click
     if (btnAgree) {
@@ -1817,3 +1866,25 @@ function initGuardianAddressSync() {
     }
 
 }
+
+// Global functions for file input clearing
+window.toggleClearFileBtn = function(input) {
+    const btn = input.nextElementSibling;
+    if (btn && btn.tagName === 'BUTTON') {
+        if (input.files && input.files.length > 0) {
+            btn.style.display = 'inline-flex';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+};
+
+window.clearFileInput = function(btn) {
+    const input = btn.previousElementSibling;
+    if (input && input.type === 'file') {
+        input.value = '';
+        btn.style.display = 'none';
+        // Trigger change event to update any validation state
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+};
