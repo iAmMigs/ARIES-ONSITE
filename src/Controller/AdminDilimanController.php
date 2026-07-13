@@ -166,7 +166,7 @@ class AdminDilimanController extends AbstractController
         $sources = [
             'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
             'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
-            'Referral: Friends', 'Referral: Family/Relatives',
+            'Friends', 'Family/Relatives',
             'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in', 'Other'
         ];
 
@@ -353,6 +353,50 @@ class AdminDilimanController extends AbstractController
             $registration->setReligion($request->request->get('religion'));
             $registration->setCitizenship($request->request->get('citizenship'));
             $registration->setNationality($request->request->get('nationality'));
+            $registration->setPreferredName($request->request->get('preferred_name'));
+            $registration->setSuffix($request->request->get('suffix'));
+            $registration->setCivilStatus($request->request->get('civil_status'));
+            $registration->setCountryOfBirth($request->request->get('country_of_birth'));
+            $registration->setCountryOfResidence($request->request->get('country_of_residence'));
+            $registration->setLastGradeCompleted($request->request->get('last_grade_completed'));
+
+            $avg = $request->request->get('general_average');
+            $registration->setGeneralAverage($avg !== null && $avg !== '' ? (float)$avg : null);
+
+            if (strtoupper($registration->getCitizenship() ?? '') === 'INTERNATIONAL') {
+                $passport = $registration->getPassport();
+                if (!$passport) {
+                    $passport = new \App\Entity\ApplicantBedPassport();
+                    $passport->setApplicant($registration);
+                    $em->persist($passport);
+                    $registration->setPassport($passport);
+                }
+                $passport->setPassportNumber($request->request->get('passport_number'));
+                $passport->setCountryOfIssue($request->request->get('passport_country_issue'));
+                
+                if ($pdi = $request->request->get('passport_date_issued')) {
+                    $passport->setDateIssued(new \DateTime($pdi));
+                } else {
+                    $passport->setDateIssued(null);
+                }
+                
+                if ($ped = $request->request->get('passport_expiration_date')) {
+                    $passport->setExpirationDate(new \DateTime($ped));
+                } else {
+                    $passport->setExpirationDate(null);
+                }
+                
+                $registration->setVisaType($request->request->get('visa_type'));
+                $registration->setVisaStatus($request->request->get('visa_status'));
+            } else {
+                $registration->setVisaType(null);
+                $registration->setVisaStatus(null);
+                if ($registration->getPassport()) {
+                    $em->remove($registration->getPassport());
+                    $registration->setPassport(null);
+                }
+            }
+
             $gradeLevel = $request->request->get('grade_level');
             $registration->setGradeLevel($gradeLevel);
 
@@ -488,6 +532,7 @@ class AdminDilimanController extends AbstractController
                     $g->setContactNo($data['contact'] ?? '');
                     $g->setDeceased(isset($data['deceased']));
                     $g->setOFW(isset($data['ofw']));
+                    $g->setNationality(strtoupper($data['nationality'] ?? 'FILIPINO'));
 
                     if ($gType === 'GUARDIAN') {
                         $sameAsApplicant = isset($data['same_as_applicant']);
@@ -529,6 +574,7 @@ class AdminDilimanController extends AbstractController
                     $newG->setParentName(strtoupper($fullName));
                     $newG->setOccupation(strtoupper($data['occupation'] ?? ''));
                     $newG->setContactNo($data['contact'] ?? '');
+                    $newG->setNationality(strtoupper($data['nationality'] ?? 'FILIPINO'));
                     $registration->addGuardian($newG);
                     $em->persist($newG);
                 }
@@ -616,6 +662,17 @@ class AdminDilimanController extends AbstractController
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type): void
     {
+        if ($type === 'permanent' && strtoupper($applicant->getCitizenship() ?? '') === 'INTERNATIONAL') {
+            $applicant->setPermanentCountry($request->request->get('perm_country'));
+            $applicant->setPermanentProvince($request->request->get('perm_province_text'));
+            $applicant->setPermanentCity($request->request->get('perm_city_text'));
+            $applicant->setPermanentBarangay($request->request->get('perm_barangay_text'));
+            $applicant->setPermanentRegion(null);
+            $applicant->setPermanentAddress($request->request->get('permanent_address'));
+            $applicant->setPermanentZip($request->request->get('permanent_zip'));
+            return;
+        }
+
         $prefix = ($type === 'current') ? 'addr' : 'perm';
         $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
 
@@ -627,21 +684,32 @@ class AdminDilimanController extends AbstractController
         if ($regionCode) {
             $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regionCode]);
             if ($r) $applicant->{'set'.$fieldPrefix.'Region'}($r->getRegionDesc());
+        } else {
+            $applicant->{'set'.$fieldPrefix.'Region'}(null);
         }
         if ($provCode) {
             $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provCode]);
             if ($p) $applicant->{'set'.$fieldPrefix.'Province'}($p->getProvinceDesc());
+        } else {
+            $applicant->{'set'.$fieldPrefix.'Province'}(null);
         }
         if ($cityCode) {
             $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityCode]);
             if ($c) $applicant->{'set'.$fieldPrefix.'City'}($c->getCityDesc());
+        } else {
+            $applicant->{'set'.$fieldPrefix.'City'}(null);
         }
         if ($brgyName) {
             $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyName);
+        } else {
+            $applicant->{'set'.$fieldPrefix.'Barangay'}(null);
         }
 
         $applicant->{'set'.$fieldPrefix.'Address'}($request->request->get($type . '_address'));
         $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type . '_zip'));
+        if ($type === 'permanent') {
+            $applicant->setPermanentCountry(null);
+        }
     }
 
     #[Route('/registration/{id}/delete', name: 'app_admin_diliman_delete', methods: ['POST'])]

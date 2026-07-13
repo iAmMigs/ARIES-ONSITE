@@ -236,11 +236,14 @@ window.fetchRequiredDocuments = function() {
         return;
     }
 
-    const nationality = document.getElementById('citizenshipSelect')?.value || 'FILIPINO';
+    const nationality = document.getElementById('nationalitySelect')?.value || 'FILIPINO';
+    const visaType = document.getElementById('visaType')?.value || '';
+    const bornInPhilippines = document.getElementById('bornInPhilippinesCheck')?.checked ? 'true' : 'false';
+    const isPreviousSchoolInternational = (typeof window.isPreviousSchoolInternational === 'function' && window.isPreviousSchoolInternational()) ? 'true' : 'false';
 
     container.innerHTML = '<div class="text-center p-5 text-gray-500"><i class="ki-filled ki-loading animate-spin text-3xl mb-2 text-feu-green-600"></i><p>Loading required documents...</p></div>';
 
-    fetch(`/api/documents/required?campus=${encodeURIComponent(campus)}&admissionType=${encodeURIComponent(admType)}&gradeLevel=${encodeURIComponent(gradeLevel)}&nationality=${encodeURIComponent(nationality)}`)
+    fetch(`/api/documents/required?campus=${encodeURIComponent(campus)}&admissionType=${encodeURIComponent(admType)}&gradeLevel=${encodeURIComponent(gradeLevel)}&nationality=${encodeURIComponent(nationality)}&visaType=${encodeURIComponent(visaType)}&bornInPhilippines=${encodeURIComponent(bornInPhilippines)}&isPreviousSchoolInternational=${encodeURIComponent(isPreviousSchoolInternational)}`)
         .then(response => response.json())
         .then(data => {
             container.innerHTML = '';
@@ -323,21 +326,77 @@ window.updateStrands = function() {
     fetchRequiredDocuments();
 };
 
+window.isPreviousSchoolInternational = function() {
+    let intl = false;
+    document.querySelectorAll('.intl-hidden-input').forEach(i => {
+        if (i.value === '1') intl = true;
+    });
+    return intl;
+};
+
 window.togglePermanentAddress = function() {
-    const isChecked = document.getElementById('sameAsCurrent').checked;
+    window.updatePermanentAddressFields();
+};
+
+window.updatePermanentAddressFields = function() {
+    const isChecked = document.getElementById('sameAsCurrent')?.checked;
     const block = document.getElementById('permanentAddressBlock');
-    if(!block) return;
+    if (!block) return;
 
     block.style.display = isChecked ? 'none' : 'block';
-    
-    const inputs = block.querySelectorAll('select, input');
-    inputs.forEach(i => {
-        if (isChecked) {
+
+    const citizenship = document.getElementById('citizenshipInput')?.value || 'LOCAL';
+    const isIntl = (citizenship === 'INTERNATIONAL');
+
+    const phSection = document.getElementById('perm_address_ph_section');
+    const intlSection = document.getElementById('perm_address_intl_section');
+
+    if (phSection) phSection.style.display = (!isChecked && !isIntl) ? 'block' : 'none';
+    if (intlSection) intlSection.style.display = (!isChecked && isIntl) ? 'block' : 'none';
+
+    // Update ph inputs
+    const phInputs = phSection ? phSection.querySelectorAll('select, input') : [];
+    phInputs.forEach(i => {
+        if (isChecked || isIntl) {
+            i.disabled = true;
             i.removeAttribute('required');
-            i.value = ""; 
             if (window.ARIESValidation) window.ARIESValidation.resetField(i, window.ARIESValidation.getErrorElement(i));
         } else {
-            i.setAttribute('required', 'required');
+            i.disabled = false;
+            if (i.id !== 'perm_region_hidden' && i.id !== 'perm_province') {
+                i.setAttribute('required', 'required');
+            }
+        }
+    });
+
+    // Update intl inputs
+    const intlInputs = intlSection ? intlSection.querySelectorAll('select, input') : [];
+    intlInputs.forEach(i => {
+        if (isChecked || !isIntl) {
+            i.disabled = true;
+            i.removeAttribute('required');
+            if (window.ARIESValidation) window.ARIESValidation.resetField(i, window.ARIESValidation.getErrorElement(i));
+        } else {
+            i.disabled = false;
+            if (i.id !== 'permBarangayText' && i.id !== 'permRegionText') {
+                i.setAttribute('required', 'required');
+            }
+        }
+    });
+
+    // Handle common inputs (Street and Zip)
+    const streetInput = document.getElementById('permAddressInput');
+    const zipInput = document.getElementById('perm_zip');
+    [streetInput, zipInput].forEach(i => {
+        if (i) {
+            if (isChecked) {
+                i.disabled = true;
+                i.removeAttribute('required');
+                if (window.ARIESValidation) window.ARIESValidation.resetField(i, window.ARIESValidation.getErrorElement(i));
+            } else {
+                i.disabled = false;
+                i.setAttribute('required', 'required');
+            }
         }
     });
 };
@@ -1052,6 +1111,7 @@ function initConditionalFields() {
                 if (visaStatusInput) visaStatusInput.value = '';
             }
             
+            if (window.updatePermanentAddressFields) window.updatePermanentAddressFields();
             fetchRequiredDocuments();
         });
         citizenshipInput.dispatchEvent(new Event('change'));
@@ -1344,6 +1404,7 @@ window.toggleSchoolType = function(select, prefix) {
     }
     
     window.isFormDirty = true;
+    if (window.fetchRequiredDocuments) window.fetchRequiredDocuments();
 };
 
 /** Initializes UI animations and updates the floating step navigation state based on scroll coordinates. */
@@ -1364,7 +1425,7 @@ function initAnimations() {
         let currentStep = 1;
         const scrollPosition = window.scrollY + (window.innerHeight / 3); 
 
-        for(let i=1; i<=6; i++) {
+        for(let i=1; i<=7; i++) {
             const card = document.getElementById('step-card-' + i);
             if(card && card.offsetTop <= scrollPosition) {
                 currentStep = i;
@@ -1620,9 +1681,14 @@ window.updateEducationHistory = function() {
     });
 
     /** Determines whether to display the placeholder message or the education history fields container based on the selected grade. */
+    const lg = document.getElementById('lastGradeCompleted');
+    const ga = document.getElementById('generalAverage');
+
     if (!grade || grade === 'Kinder' || grade.trim() === '') {
         placeholder.style.display = 'block';
         fieldsContainer.style.display = 'none';
+        if (lg) { lg.disabled = true; lg.removeAttribute('required'); }
+        if (ga) { ga.disabled = true; ga.removeAttribute('required'); }
         if (grade === 'Kinder' || grade.trim() === '') {
             placeholder.textContent = grade === 'Kinder' ? 'No previous education history required for Kinder.' : 'Please select a Grade Level in Step 1 to view required education history.';
         }
@@ -1631,6 +1697,8 @@ window.updateEducationHistory = function() {
 
     placeholder.style.display = 'none';
     fieldsContainer.style.display = 'block';
+    if (lg) { lg.disabled = false; lg.setAttribute('required', 'required'); }
+    if (ga) { ga.disabled = false; ga.setAttribute('required', 'required'); }
 
     /** Utility function to display a specific education section, ensure its initial row exists, and enable its inputs. */
     const requireSection = (lvl) => {

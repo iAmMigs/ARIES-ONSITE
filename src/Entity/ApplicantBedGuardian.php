@@ -98,6 +98,9 @@ class ApplicantBedGuardian
     #[ORM\Column(name: 'is_same_as_applicant', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $isSameAsApplicant = false;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $nationality = null;
+
     // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
@@ -173,4 +176,7 @@ class ApplicantBedGuardian
     // --- Same as Applicant ---
     public function isSameAsApplicant(): bool { return $this->isSameAsApplicant; }
     public function setSameAsApplicant(bool $v): static { $this->isSameAsApplicant = $v; return $this; }
+
+    public function getNationality(): ?string { return $this->nationality; }
+    public function setNationality(?string $nationality): static { $this->nationality = $nationality; return $this; }
 }

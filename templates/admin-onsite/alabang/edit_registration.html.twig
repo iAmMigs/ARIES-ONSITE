@@ -184,10 +184,88 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
-                                    <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" onchange="const pCont = document.getElementById('passport_fields_container'); if(pCont) { pCont.style.display = this.value === 'INTERNATIONAL' ? '' : 'none'; }">
                                         <option value="LOCAL" {{ registration.citizenship|upper == 'LOCAL' ? 'selected' : '' }}>Local</option>
                                         <option value="INTERNATIONAL" {{ registration.citizenship|upper == 'INTERNATIONAL' ? 'selected' : '' }}>International</option>
                                     </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Preferred Name / Alias</label>
+                                    <input type="text" name="preferred_name" value="{{ registration.preferredName }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Suffix</label>
+                                    <input type="text" name="suffix" value="{{ registration.suffix }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Civil Status</label>
+                                    <select name="civil_status" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <option value="">Select Civil Status</option>
+                                        {% for status in ['Single', 'Married', 'Widowed', 'Separated'] %}
+                                            <option value="{{ status }}" {{ registration.civilStatus == status ? 'selected' : '' }}>{{ status }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Country of Birth</label>
+                                    <select name="country_of_birth" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <option value=""></option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.countryName }}" {{ registration.countryOfBirth == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 uppercase font-bold">Country of Residence</label>
+                                    <select name="country_of_residence" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <option value=""></option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.countryName }}" {{ registration.countryOfResidence == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="passport_fields_container" style="{{ registration.citizenship|upper == 'INTERNATIONAL' ? '' : 'display: none;' }}" class="mt-6 pt-4 border-t border-gray-100">
+                                <h4 class="text-sm font-bold text-feu-green-700 uppercase mb-3"><i class="ki-filled ki-profile-circle"></i> Passport &amp; Visa Details</h4>
+                                <div class="grid grid-cols-2 gap-y-4 gap-x-8">
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Number</label>
+                                        <input type="text" name="passport_number" value="{{ registration.passport.passportNumber|default(registration.passportNumber) }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Country of Issue</label>
+                                        <select name="passport_country_issue" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <option value=""></option>
+                                            {% for country in countries %}
+                                                <option value="{{ country.countryName }}" {{ (registration.passport and registration.passport.countryOfIssue == country.countryName) ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Date Issued</label>
+                                        <input type="date" name="passport_date_issued" value="{{ (registration.passport and registration.passport.dateIssued) ? registration.passport.dateIssued|date('Y-m-d') : '' }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Expiration Date</label>
+                                        <input type="date" name="passport_expiration_date" value="{{ (registration.passport and registration.passport.expirationDate) ? registration.passport.expirationDate|date('Y-m-d') : '' }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase font-bold">Visa Type</label>
+                                        <select name="visa_type" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <option value="">Select Visa Type</option>
+                                            <option value="student" {{ registration.visaType == 'student' ? 'selected' : '' }}>Student Visa (9F)</option>
+                                            <option value="special_student" {{ registration.visaType == 'special_student' ? 'selected' : '' }}>Special Study Permit (SSP)</option>
+                                            <option value="tourist" {{ registration.visaType == 'tourist' ? 'selected' : '' }}>Tourist Visa</option>
+                                            <option value="immigrant" {{ registration.visaType == 'immigrant' ? 'selected' : '' }}>Immigrant Visa</option>
+                                            <option value="permanent_resident" {{ registration.visaType == 'permanent_resident' ? 'selected' : '' }}>Permanent Resident</option>
+                                            <option value="other" {{ registration.visaType == 'other' ? 'selected' : '' }}>Other</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-gray-400 uppercase font-bold">Visa Status</label>
+                                        <input type="text" name="visa_status" value="{{ registration.visaStatus }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="e.g. Active, Expired">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -230,24 +308,50 @@
                                 <div class="text-xs text-gray-400 uppercase font-bold mb-2">Permanent Address</div>
                                 <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.permanentAddress }}, {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }}</div>
 
-                                <div class="grid grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                        <label class="text-[10px] text-gray-500">Region</label>
-                                        <select id="perm_region" name="perm_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-selected="{{ registration.permanentRegion }}"><option value=""></option></select>
+                                {% if registration.citizenship|upper == 'INTERNATIONAL' %}
+                                    <div class="grid grid-cols-2 gap-3 mb-3">
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">Country</label>
+                                            <select name="perm_country" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                                <option value=""></option>
+                                                {% for country in countries %}
+                                                    <option value="{{ country.countryName }}" {{ registration.permanentCountry == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">State / Province</label>
+                                            <input type="text" name="perm_province_text" value="{{ registration.permanentProvince }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">City / Town</label>
+                                            <input type="text" name="perm_city_text" value="{{ registration.permanentCity }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">Barangay / Suburb</label>
+                                            <input type="text" name="perm_barangay_text" value="{{ registration.permanentBarangay }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="text-[10px] text-gray-500">Province</label>
-                                        <select id="perm_province" name="perm_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentProvince }}"><option value=""></option></select>
+                                {% else %}
+                                    <div class="grid grid-cols-2 gap-3 mb-3">
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">Region</label>
+                                            <select id="perm_region" name="perm_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-selected="{{ registration.permanentRegion }}"><option value=""></option></select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">Province</label>
+                                            <select id="perm_province" name="perm_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentProvince }}"><option value=""></option></select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">City</label>
+                                            <select id="perm_city" name="perm_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentCity }}"><option value=""></option></select>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500">Barangay</label>
+                                            <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentBarangay }}"><option value=""></option></select>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label class="text-[10px] text-gray-500">City</label>
-                                        <select id="perm_city" name="perm_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentCity }}"><option value=""></option></select>
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] text-gray-500">Barangay</label>
-                                        <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentBarangay }}"><option value=""></option></select>
-                                    </div>
-                                </div>
+                                {% endif %}
                                 <input type="text" name="permanent_address" value="{{ registration.permanentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
                                 <input type="text" name="permanent_zip" id="perm_zip" value="{{ registration.permanentZip }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Zip Code">
                             </div>
@@ -305,7 +409,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
                                             <input type="text" name="guardians[{{ loop.index0 }}][occupation]" value="{{ guardian.occupation }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
@@ -313,6 +417,15 @@
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
                                             <input type="text" name="guardians[{{ loop.index0 }}][contact]" value="{{ guardian.contactNo }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
+                                            <select name="guardians[{{ loop.index0 }}][nationality]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                                <option value="">Select Nationality</option>
+                                                {% for nat in nationalities %}
+                                                    <option value="{{ nat.citizenshipName }}" {{ guardian.nationality|upper == nat.citizenshipName|upper ? 'selected' : '' }}>{{ nat.citizenshipName }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -347,6 +460,19 @@
                             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                                 <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
                             </h3>
+                            <div class="mb-3">
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">Last Grade Completed</label>
+                                <select name="last_grade_completed" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <option value="">Select Grade</option>
+                                    {% for grade in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'] %}
+                                        <option value="{{ grade }}" {{ registration.lastGradeCompleted == grade ? 'selected' : '' }}>{{ grade }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-4 pb-2 border-b border-gray-100">
+                                <label class="text-[10px] text-gray-500 uppercase font-bold">General Average</label>
+                                <input type="number" step="0.01" name="general_average" value="{{ registration.generalAverage }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="e.g. 90.00">
+                            </div>
                             <div class="space-y-4">
                                 {% for school in registration.schools %}
                                 {# Auto-convert old 4-digit entries (e.g. '2024') to '2023-2024' #}
@@ -488,7 +614,7 @@
                                 <div class="flex justify-between text-sm">
                                     <span class="text-gray-500">Source</span>
                                     <span class="font-medium text-gray-800">
-                                        {% set standardSources = ['Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media', 'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster', 'Referral: Friends', 'Referral: Family/Relatives', 'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'] %}
+                                        {% set standardSources = ['Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media', 'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster', 'Friends', 'Family/Relatives', 'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'] %}
                                         {% if registration.marketingSource in standardSources or registration.marketingSource is null %}
                                             {{ registration.marketingSource|default('N/A') }}
                                         {% else %}
@@ -527,7 +653,7 @@
                                         <input type="text" name="guardians[{{ emergencyIndex }}][relationship]" value="{{ emergencyContact ? emergencyContact.relationship : 'GUARDIAN' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
                                         <input type="text" name="guardians[{{ emergencyIndex }}][occupation]" value="{{ emergencyContact ? emergencyContact.occupation : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
@@ -535,6 +661,15 @@
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
                                         <input type="text" name="guardians[{{ emergencyIndex }}][contact]" value="{{ emergencyContact ? emergencyContact.contactNo : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
+                                        <select name="guardians[{{ emergencyIndex }}][nationality]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <option value="">Select Nationality</option>
+                                            {% for nat in nationalities %}
+                                                <option value="{{ nat.citizenshipName }}" {{ (emergencyContact and emergencyContact.nationality|upper == nat.citizenshipName|upper) ? 'selected' : '' }}>{{ nat.citizenshipName }}</option>
+                                            {% endfor %}
+                                        </select>
                                     </div>
                                 </div>
 

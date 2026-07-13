@@ -38,7 +38,7 @@ class EnrollmentAlabangController extends AbstractController
 
         $activeSY = $syRepo->findActiveByCampus($campusCode);
         if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
-            return $this->render('enrollment-onsite/alabang/enrollment_closed.html.twig', [
+            return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
                 'campus' => $campus,
                 'activeSY' => $activeSY,
             ]);
@@ -80,6 +80,7 @@ class EnrollmentAlabangController extends AbstractController
         if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
             error_log("Enrollment Redirect: Enrollment is closed for FALAB (Open: " . ($activeSY ? ($activeSY->isEnrollmentOpen() ? 'YES' : 'NO') : 'SY NOT FOUND') . ")");
             $this->addFlash('error', 'Enrollment is currently closed.');
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
         }
 
         $lrnInput = $request->request->get('lrn');

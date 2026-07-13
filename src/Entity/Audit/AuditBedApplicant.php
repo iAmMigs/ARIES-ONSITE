@@ -73,6 +73,30 @@ class AuditBedApplicant
     #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $documentsAgreedDate = null;
 
+    #[ORM\Column(name: 'preferred_name', length: 100, nullable: true)]
+    private ?string $preferredName = null;
+
+    #[ORM\Column(name: 'suffix', length: 20, nullable: true)]
+    private ?string $suffix = null;
+
+    #[ORM\Column(name: 'country_of_birth', length: 100, nullable: true)]
+    private ?string $countryOfBirth = null;
+
+    #[ORM\Column(name: 'civil_status', length: 50, nullable: true)]
+    private ?string $civilStatus = null;
+
+    #[ORM\Column(name: 'country_of_residence', length: 100, nullable: true)]
+    private ?string $countryOfResidence = null;
+
+    #[ORM\Column(name: 'permanent_country', length: 100, nullable: true)]
+    private ?string $permanentCountry = null;
+
+    #[ORM\Column(name: 'last_grade_completed', length: 50, nullable: true)]
+    private ?string $lastGradeCompleted = null;
+
+    #[ORM\Column(name: 'general_average', type: Types::FLOAT, nullable: true)]
+    private ?float $generalAverage = null;
+
     public function __set($name, $value) {
         if (property_exists($this, $name)) {
             $this->$name = $value;

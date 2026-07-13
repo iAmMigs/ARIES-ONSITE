@@ -263,6 +263,110 @@
         .autocomplete-suggestion b {
             color: var(--feu-green);
         }
+
+        /* Survey Grid Layout */
+        .survey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+            width: 100%;
+        }
+        
+        .survey-option-card {
+            position: relative;
+        }
+        
+        .survey-radio-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .survey-option-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+        
+        .survey-option-label:hover {
+            transform: translateY(-2px);
+            border-color: var(--feu-green);
+            box-shadow: 0 6px 12px rgba(26, 77, 46, 0.06);
+        }
+        
+        .survey-icon-container {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f0fdf4;
+            color: var(--feu-green-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .survey-option-label:hover .survey-icon-container {
+            transform: scale(1.05);
+            background: var(--feu-green);
+            color: #ffffff;
+        }
+        
+        .survey-option-text {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            line-height: 1.2;
+            transition: color 0.3s ease;
+            text-align: left;
+        }
+        
+        .survey-option-label:hover .survey-option-text {
+            color: var(--feu-green-dark);
+        }
+        
+        .survey-radio-input:checked + .survey-option-label {
+            border-color: var(--feu-green);
+            background: #f0fdf4;
+            box-shadow: 0 6px 15px rgba(26, 77, 46, 0.08);
+        }
+        
+        .survey-radio-input:checked + .survey-option-label .survey-icon-container {
+            background: var(--feu-green);
+            color: #ffffff;
+        }
+        
+        .survey-radio-input:checked + .survey-option-label .survey-option-text {
+            color: var(--feu-green-dark);
+        }
+        
+        .survey-check-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            color: var(--feu-green);
+            font-size: 0.9rem;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .survey-radio-input:checked + .survey-option-label .survey-check-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
     </style>
 {% endblock %}
 
@@ -280,7 +384,7 @@
 {# --- STICKY HEADER --- #}
 <header class="aries-sticky-header" id="stickyHeader">
     <div class="container mx-auto px-4 header-content">
-        <a href="javascript:history.back()" class="header-logo-area">
+        <a href="{{ path('app_home_diliman') }}" class="header-logo-area">
             <i class="ki-filled ki-arrow-left fs-2"></i>
             <span class="font-bold text-sm hidden md:block">Back</span>
         </a>
@@ -391,6 +495,22 @@
                     </div>
 
                     <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Preferred Name / Alias</label>
+                            <input type="text" name="preferred_name" class="form-control" placeholder="e.g. Miggy">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Civil Status <span class="required">*</span></label>
+                            <select name="civil_status" class="form-select" required>
+                                <option value="Single" selected>Single</option>
+                                <option value="Married">Married</option>
+                                <option value="Widowed">Widowed</option>
+                                <option value="Separated">Separated</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
                         <div class="col-md-4">
                             <label class="form-label">Date of Birth <span class="required">*</span></label>
                             <input type="date" name="birthday" class="form-control" max="9999-12-31" required>
@@ -404,6 +524,27 @@
                             <select name="gender" class="form-select" required>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Country of Birth <span class="required">*</span></label>
+                            <select name="country_of_birth" class="form-select" data-control="select2" data-placeholder="Select Country of Birth" required>
+                                <option value=""></option>
+                                {% for country in countries %}
+                                    <option value="{{ country.countryName }}" {% if country.countryName == 'Philippines' %}selected{% endif %}>{{ country.countryName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Country of Residence <span class="required">*</span></label>
+                            <select name="country_of_residence" class="form-select" data-control="select2" data-placeholder="Select Country of Residence" required>
+                                <option value=""></option>
+                                {% for country in countries %}
+                                    <option value="{{ country.countryName }}" {% if country.countryName == 'Philippines' %}selected{% endif %}>{{ country.countryName }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                     </div>
@@ -448,14 +589,33 @@
                         <p class="text-primary small mb-3 fw-bold">
                             <i class="fas fa-info-circle me-1"></i> Please ensure your visa and passport details are correct and valid.
                         </p>
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Passport Number <span class="text-danger">*</span></label>
-                                <input type="text" name="passport_number" class="form-control">
+                                <input type="text" name="passport_number" id="passportNumber" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Country of Issue <span class="text-danger">*</span></label>
+                                <select name="passport_country_issue" id="passportCountryIssue" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Date Issued <span class="text-danger">*</span></label>
+                                <input type="date" name="passport_date_issued" id="passportDateIssued" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Expiration Date <span class="text-danger">*</span></label>
+                                <input type="date" name="passport_expiration_date" id="passportExpirationDate" class="form-control">
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Visa Type <span class="text-danger">*</span></label>
-                                <select name="visa_type" id="visaType" class="form-select">
+                                <select name="visa_type" id="visaType" class="form-select" onchange="window.fetchRequiredDocuments ? window.fetchRequiredDocuments() : null">
                                     <option value="">Select Visa Type</option>
                                     <option value="student">Student Visa (9F)</option>
                                     <option value="special_student">Special Study Permit (SSP)</option>
@@ -467,7 +627,15 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Visa Status <span class="text-danger">*</span></label>
-                                <input type="text" name="visa_status" class="form-control" placeholder="e.g., Active, Expired">
+                                <input type="text" name="visa_status" id="visaStatus" class="form-control" placeholder="e.g., Active, Expired">
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" name="born_in_philippines" id="bornInPhilippinesCheck" value="1" onchange="window.fetchRequiredDocuments ? window.fetchRequiredDocuments() : null">
+                                    <label class="form-check-label fw-bold text-gray-700 animate-pulse" for="bornInPhilippinesCheck">Born in the Philippines?</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -539,35 +707,70 @@
                     </div>
 
                     <div id="permanentAddressBlock" style="display:none;">
+                        <!-- Local (PH) Permanent Address Section -->
+                        <div id="perm_address_ph_section">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Region <span class="required">*</span></label>
+                                    <select id="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
+                                        <option value=""></option>
+                                    </select>
+                                    <input type="hidden" name="perm_region" id="perm_region_hidden">
+                                </div>
+                                <div class="col-md-3 position-relative">
+                                    <label class="form-label">Province <span class="required">*</span></label>
+                                    <input type="text" id="perm_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                    <input type="hidden" id="perm_province" name="perm_province">
+                                    <div id="perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">City/Municipality <span class="required">*</span></label>
+                                    <select id="perm_city" name="perm_city" class="form-select" disabled>
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Barangay <span class="required">*</span></label>
+                                    <select id="perm_barangay" name="perm_barangay" class="form-select" disabled>
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- International Permanent Address Section -->
+                        <div id="perm_address_intl_section" style="display: none;">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Country <span class="required">*</span></label>
+                                    <select name="perm_country" id="permCountrySelect" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                        <option value=""></option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">State / Province / Region <span class="required">*</span></label>
+                                    <input type="text" name="perm_province_text" id="permProvinceText" class="form-control" placeholder="State/Province">
+                                    <input type="hidden" name="perm_region_text" id="permRegionText">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">City / Town <span class="required">*</span></label>
+                                    <input type="text" name="perm_city_text" id="permCityText" class="form-control" placeholder="City">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Barangay / District / Suburb</label>
+                                    <input type="text" name="perm_barangay_text" id="permBarangayText" class="form-control" placeholder="Barangay/District">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Common Street and Zip Fields -->
                         <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label">Region <span class="required">*</span></label>
-                                <select id="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
-                                    <option value=""></option>
-                                </select>
-                                <input type="hidden" name="perm_region" id="perm_region_hidden">
-                            </div>
-                            <div class="col-md-3 position-relative">
-                                <label class="form-label">Province <span class="required">*</span></label>
-                                <input type="text" id="perm_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off">
-                                <input type="hidden" id="perm_province" name="perm_province">
-                                <div id="perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">City/Municipality <span class="required">*</span></label>
-                                <select id="perm_city" name="perm_city" class="form-select" disabled>
-                                    <option value=""></option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Barangay <span class="required">*</span></label>
-                                <select id="perm_barangay" name="perm_barangay" class="form-select" disabled>
-                                    <option value=""></option>
-                                </select>
-                            </div>
                             <div class="col-12 mt-3">
                                 <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
-                                <input type="text" name="perm_address" class="form-control">
+                                <input type="text" name="perm_address" id="permAddressInput" class="form-control">
                             </div>
                             <div class="col-md-12 mt-2">
                                 <label class="form-label">Zip Code <span class="required">*</span></label>
@@ -619,9 +822,18 @@
                                     <label class="btn-check-label" for="f_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
                                 </div>
                             </div>
-                            <div class="col-md-4" id="father_occupation_group">
+                            <div class="col-md-3" id="father_occupation_group">
                                 <label class="form-label">Occupation</label>
                                 <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nationality <span class="required">*</span></label>
+                                <select name="father_nationality" id="father_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                    <option value=""></option>
+                                    {% for nat in nationalities %}
+                                        <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-md-4" id="father_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
@@ -677,9 +889,18 @@
                                     <label class="btn-check-label" for="m_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
                                 </div>
                             </div>
-                            <div class="col-md-4" id="mother_occupation_group">
+                            <div class="col-md-3" id="mother_occupation_group">
                                 <label class="form-label">Occupation</label>
                                 <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nationality <span class="required">*</span></label>
+                                <select name="mother_nationality" id="mother_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                    <option value=""></option>
+                                    {% for nat in nationalities %}
+                                        <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-md-4" id="mother_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
@@ -717,9 +938,18 @@
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
                                 <input type="tel" name="guardian_contact" id="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label">Email Address <span class="required">*</span></label>
                                 <input type="email" name="guardian_email" id="guardian_email" class="form-control" placeholder="Email Address" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Nationality <span class="required">*</span></label>
+                                <select name="guardian_nationality" id="guardian_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                    <option value=""></option>
+                                    {% for nat in nationalities %}
+                                        <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
 
@@ -822,6 +1052,31 @@
 
                     <div id="educ_history_fields" style="display:none;">
                         
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Last Grade Completed <span class="required">*</span></label>
+                                <select name="last_grade_completed" id="lastGradeCompleted" class="form-select" required>
+                                    <option value="">Select Grade Level Completed</option>
+                                    <option value="Kinder">Kinder</option>
+                                    <option value="Grade 1">Grade 1</option>
+                                    <option value="Grade 2">Grade 2</option>
+                                    <option value="Grade 3">Grade 3</option>
+                                    <option value="Grade 4">Grade 4</option>
+                                    <option value="Grade 5">Grade 5</option>
+                                    <option value="Grade 6">Grade 6</option>
+                                    <option value="Grade 7">Grade 7</option>
+                                    <option value="Grade 8">Grade 8</option>
+                                    <option value="Grade 9">Grade 9</option>
+                                    <option value="Grade 10">Grade 10</option>
+                                    <option value="Grade 11">Grade 11</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">General Average / GWA <span class="required">*</span></label>
+                                <input type="number" step="0.01" name="general_average" id="generalAverage" class="form-control" placeholder="e.g. 90.00" required>
+                            </div>
+                        </div>
+
                         {# Kinder #}
                         <div id="section_educ_kinder" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
                             <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Kindergarten</h6>
@@ -960,27 +1215,54 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="form-label">How did you learn about {{ selected_campus == 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman' }}?<span class="required">*</span></label>
-                                <div class="row g-3">
-                                    {% set sources = [
-                                        'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
-                                        'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
-                                        'Referral: Friends', 'Referral: Family/Relatives',
-                                        'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'
+                                <div class="survey-grid">
+                                    {% set source_details = [
+                                        {'name': 'Brochures/Flyers', 'icon': 'ki-document'},
+                                        {'name': 'Banner', 'icon': 'ki-flag'},
+                                        {'name': 'Campus Tour', 'icon': 'ki-geolocation'},
+                                        {'name': 'Events', 'icon': 'ki-calendar'},
+                                        {'name': 'Social Media', 'icon': 'ki-share'},
+                                        {'name': 'Google/Website', 'icon': 'ki-compass'},
+                                        {'name': 'Immersion', 'icon': 'ki-user-square'},
+                                        {'name': 'Phone Inquiry', 'icon': 'ki-phone'},
+                                        {'name': 'Poster', 'icon': 'ki-abstract-26'},
+                                        {'name': 'Friends', 'icon': 'ki-users'},
+                                        {'name': 'Family/Relatives', 'icon': 'ki-people'},
+                                        {'name': 'School Visit/Career Talk', 'icon': 'ki-teacher'},
+                                        {'name': 'Visibility: Signage/Billboard', 'icon': 'ki-eye'},
+                                        {'name': 'Walk-in', 'icon': 'ki-exit-right'}
                                     ] %}
-                                    {% for source in sources %}
-                                        <div class="col-md-4">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="marketing_source" id="source_{{ loop.index }}" value="{{ source }}" required>
-                                                <label class="form-check-label" for="source_{{ loop.index }}">{{ source }}</label>
-                                            </div>
+                                    {% for source in source_details %}
+                                        <div class="survey-option-card">
+                                            <input type="radio" name="marketing_source" id="source_{{ loop.index }}" value="{{ source.name }}" required class="survey-radio-input" onchange="toggleOtherSource()">
+                                            <label for="source_{{ loop.index }}" class="survey-option-label">
+                                                <div class="survey-icon-container">
+                                                    <i class="ki-filled {{ source.icon }} fs-3"></i>
+                                                </div>
+                                                <span class="survey-option-text">{{ source.name }}</span>
+                                                <div class="survey-check-indicator">
+                                                    <i class="ki-filled ki-verify"></i>
+                                                </div>
+                                            </label>
                                         </div>
                                     {% endfor %}
-                                    <div class="col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="marketing_source" id="source_other" value="Other" required onchange="toggleOtherSource()">
-                                            <label class="form-check-label" for="source_other">Other:</label>
-                                        </div>
-                                        <input type="text" name="marketing_source_other" id="marketing_source_other" class="form-control form-control-sm mt-2" style="display:none;" placeholder="Please specify">
+                                    <div class="survey-option-card">
+                                        <input type="radio" name="marketing_source" id="source_other" value="Other" required class="survey-radio-input" onchange="toggleOtherSource()">
+                                        <label for="source_other" class="survey-option-label">
+                                            <div class="survey-icon-container">
+                                                <i class="ki-filled ki-plus-circle fs-3"></i>
+                                            </div>
+                                            <span class="survey-option-text">Other / Specify</span>
+                                            <div class="survey-check-indicator">
+                                                <i class="ki-filled ki-verify"></i>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row mt-3" id="other_source_input_container" style="display:none;">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-xs font-bold text-gray-500 uppercase">Please specify how you learned about us:</label>
+                                        <input type="text" name="marketing_source_other" id="marketing_source_other" class="form-control" placeholder="Type answer here...">
                                     </div>
                                 </div>
                             </div>
@@ -1194,6 +1476,8 @@
     function toggleOtherSource() {
         const otherInput = document.getElementById('marketing_source_other');
         const isOther = document.getElementById('source_other').checked;
+        const container = document.getElementById('other_source_input_container');
+        if (container) container.style.display = isOther ? 'block' : 'none';
         otherInput.style.display = isOther ? 'block' : 'none';
         otherInput.required = isOther;
     }

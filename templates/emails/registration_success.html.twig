@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Successful Registration - FEU Diliman</title>
+    <style>
+        body {
+            font-family: 'Inter', Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            color: #333333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e1e4e8;
+        }
+        .header {
+            background-color: #005C3E; /* FEU Green */
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #F1C40F; /* FEU Gold */
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+        .content {
+            padding: 30px 40px;
+            line-height: 1.6;
+        }
+        .content p {
+            margin: 0 0 16px;
+            font-size: 15px;
+        }
+        .highlight-box {
+            background-color: #f8faf9;
+            border-left: 4px solid #005C3E;
+            padding: 20px;
+            margin: 24px 0;
+            border-radius: 4px;
+        }
+        .highlight-item {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .highlight-item:last-child {
+            margin-bottom: 0;
+        }
+        .highlight-label {
+            font-weight: bold;
+            color: #666;
+            text-transform: uppercase;
+            font-size: 11px;
+            display: inline-block;
+            width: 140px;
+        }
+        .highlight-value {
+            font-weight: 600;
+            color: #005C3E;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 30px 0 15px;
+        }
+        .btn {
+            background-color: #005C3E;
+            color: #ffffff !important;
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-block;
+            box-shadow: 0 3px 6px rgba(0, 92, 62, 0.2);
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #00462e;
+        }
+        .link-secondary {
+            color: #005C3E;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            border-top: 1px solid #e1e4e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WELCOME TO FEU DILIMAN</h1>
+        </div>
+        <div class="content">
+            <p>Dear <strong>{{ fullName }}</strong>,</p>
+            <p>Congratulations! We are delighted to inform you that your admissions registration at FEU Diliman has been successfully received.</p>
+            <p>As a new member of our student body, you are now officially welcomed into the <strong>FEU Diliman Tamaraw community</strong>! We are excited to support you as you embark on this next chapter of your academic journey.</p>
+            
+            <div class="highlight-box">
+                <div class="highlight-item">
+                    <span class="highlight-label">Student Name:</span>
+                    <span class="highlight-value">{{ fullName }}</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="highlight-label">Student Number:</span>
+                    <span class="highlight-value">{{ studentNumber }}</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="highlight-label">Grade Level:</span>
+                    <span class="highlight-value">{{ gradeLevel }}</span>
+                </div>
+                <div class="highlight-item">
+                    <span class="highlight-label">School Year:</span>
+                    <span class="highlight-value">{{ schoolYear }}</span>
+                </div>
+            </div>
+
+            <p>To begin setting up your credentials and accessing student services, please click the button below to log in to the student portal / solar account:</p>
+            
+            <div class="btn-container">
+                <a href="{{ studentPortalUrl }}" class="btn" target="_blank">Access Student Portal / Solar Account</a>
+            </div>
+
+            <p style="margin-top: 25px;">Please make sure to read the <a href="{{ activationGuideUrl }}" class="link-secondary" target="_blank">Activation and Navigation Guide</a> (supplied by ITSO) to help you get started with the portal.</p>
+            
+            <p style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">Should you have any questions or require assistance, please feel free to reach out to the Admissions Office.</p>
+            <p>Be Brave, Tamaraws!</p>
+            <p>Best regards,<br><strong>FEU Diliman Admissions Office</strong></p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 FEU Diliman Admissions Office. All rights reserved.</p>
+            <p>This is an automated notification. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

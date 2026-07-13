@@ -18,6 +18,9 @@ class DocumentApiController extends AbstractController
         $studentType = $request->query->get('admissionType'); // "New Student" or "Transferee"
         $gradeLevel = $request->query->get('gradeLevel');     // "Grade 7", etc.
         $nationality = $request->query->get('nationality', 'FILIPINO'); // Default to FILIPINO if not provided
+        $visaType = $request->query->get('visaType');
+        $bornInPhilippines = $request->query->get('bornInPhilippines') === 'true';
+        $isPreviousSchoolInternational = $request->query->get('isPreviousSchoolInternational') === 'true';
 
         if (!$campusParam) {
             return $this->json(['error' => 'Missing campus parameter'], 400);
@@ -59,6 +62,32 @@ class DocumentApiController extends AbstractController
             $docGradeLevels = $doc->getGradeLevels() ?? [];
             if (!empty($docGradeLevels) && !in_array('All', $docGradeLevels) && !in_array($gradeLevel, $docGradeLevels)) {
                 continue;
+            }
+
+            // 4. Custom Conditions for International / Foreign Applicants
+            $slug = $doc->getSlug();
+            if (strtoupper($nationality) !== 'FILIPINO') {
+                if ($slug === 'special_study_permit' && $visaType !== 'special_student') {
+                    continue;
+                }
+                if ($slug === 'acr_icard' && ($visaType === 'special_student' || $visaType === 'tourist' || empty($visaType))) {
+                    continue;
+                }
+                if ($slug === 'ph_birth_certificate' && !$bornInPhilippines) {
+                    continue;
+                }
+                if ($slug === 'english_translations' && !$isPreviousSchoolInternational) {
+                    continue;
+                }
+            } else {
+                // If local (Filipino) applicant, skip these foreign-only specific documents
+                if (in_array($slug, [
+                    'passport_bio', 'valid_visa', 'acr_icard', 'special_study_permit',
+                    'ph_birth_certificate', 'english_translations', 'parent_passport_id',
+                    'proof_of_residency', 'medical_record'
+                ])) {
+                    continue;
+                }
             }
 
             $matchedDocs[] = [

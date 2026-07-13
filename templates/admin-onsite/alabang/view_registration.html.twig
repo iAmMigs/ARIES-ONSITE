@@ -115,7 +115,28 @@
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Religion</div><div class="font-medium text-gray-800">{{ registration.religion }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Nationality</div><div class="font-medium text-gray-800">{{ registration.nationality }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Citizenship</div><div class="font-medium text-gray-800">{{ registration.citizenship }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Preferred Name</div><div class="font-medium text-gray-800">{{ registration.preferredName|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Suffix</div><div class="font-medium text-gray-800">{{ registration.suffix|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Civil Status</div><div class="font-medium text-gray-800">{{ registration.civilStatus|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Birth</div><div class="font-medium text-gray-800">{{ registration.countryOfBirth|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Residence</div><div class="font-medium text-gray-800">{{ registration.countryOfResidence|default('N/A') }}</div></div>
                         </div>
+
+                        {% if registration.citizenship|upper == 'INTERNATIONAL' %}
+                            <div class="mt-6 pt-4 border-t border-gray-100">
+                                <h4 class="text-sm font-bold text-feu-green-700 uppercase mb-3 flex items-center gap-2">
+                                    <i class="ki-filled ki-profile-circle"></i> Passport &amp; Visa Details
+                                </h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Passport Number</div><div class="font-medium text-gray-800">{{ registration.passport.passportNumber|default(registration.passportNumber)|default('N/A') }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Issue</div><div class="font-medium text-gray-800">{{ registration.passport.countryOfIssue|default('N/A') }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Date Issued</div><div class="font-medium text-gray-800">{{ registration.passport.dateIssued ? registration.passport.dateIssued|date('F j, Y') : 'N/A' }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Expiration Date</div><div class="font-medium text-gray-800">{{ registration.passport.expirationDate ? registration.passport.expirationDate|date('F j, Y') : 'N/A' }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Visa Type</div><div class="font-medium text-gray-800">{{ registration.visaType|default('N/A')|title }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Visa Status</div><div class="font-medium text-gray-800">{{ registration.visaStatus|default('N/A') }}</div></div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
@@ -131,10 +152,17 @@
                         </div>
                         <div class="pt-4 border-t border-gray-100">
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Permanent Address</div>
-                            <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
-                            <div class="text-sm text-gray-500">
-                                {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }} {{ registration.permanentZip }}
-                            </div>
+                            {% if registration.citizenship|upper == 'INTERNATIONAL' %}
+                                <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
+                                <div class="text-sm text-gray-500">
+                                    {{ registration.permanentBarangay|default('') }}, {{ registration.permanentCity|default('') }}, {{ registration.permanentProvince|default('') }}, {{ registration.permanentCountry|default('') }} {{ registration.permanentZip }}
+                                </div>
+                            {% else %}
+                                <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
+                                <div class="text-sm text-gray-500">
+                                    {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }} {{ registration.permanentZip }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -162,6 +190,7 @@
                                             </div>
                                         </div>
                                         <div class="font-bold text-gray-800">{{ guardian.parentName|default('')|trim(', ') }}</div>
+                                        <div class="text-xs text-gray-500 font-semibold mt-1">Nationality: {{ guardian.nationality|default('FILIPINO') }}</div>
                                         <div class="text-sm {{ guardian.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
                                             {{ guardian.occupation ?: 'Occupation Not Specified' }}
                                         </div>
@@ -211,6 +240,12 @@
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
                         </h3>
+                        {% if registration.lastGradeCompleted or registration.generalAverage is not null %}
+                            <div class="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
+                                <div><div class="text-gray-400 font-bold uppercase">Last Grade Completed</div><div class="font-bold text-gray-800 mt-0.5">{{ registration.lastGradeCompleted|default('N/A') }}</div></div>
+                                <div><div class="text-gray-400 font-bold uppercase">General Average</div><div class="font-bold text-feu-green-700 mt-0.5">{{ registration.generalAverage is not null ? registration.generalAverage|number_format(2) : 'N/A' }}</div></div>
+                            </div>
+                        {% endif %}
                         <div class="space-y-4">
                             {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High', 'E': 'Elementary', 'K': 'Kindergarten'} %}
                             {% for school in registration.schools %}
@@ -319,7 +354,7 @@
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">Source</span>
                                 <span class="font-medium text-gray-800">
-                                    {% set standardSources = ['Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media', 'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster', 'Referral: Friends', 'Referral: Family/Relatives', 'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'] %}
+                                    {% set standardSources = ['Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media', 'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster', 'Friends', 'Family/Relatives', 'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'] %}
                                     {% if registration.marketingSource in standardSources or registration.marketingSource is null %}
                                         {{ registration.marketingSource|default('N/A') }}
                                     {% else %}

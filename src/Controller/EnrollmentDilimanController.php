@@ -20,6 +20,8 @@ use App\Entity\LookupCountry;
 use App\Entity\SchoolYear;
 use App\Repository\SchoolYearRepository;
 use App\Service\StudentIdGenerator;
+use App\Service\AdmissionsEmailService;
+use App\Entity\ApplicantBedPassport;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -38,7 +40,7 @@ class EnrollmentDilimanController extends AbstractController
 
         $activeSY = $syRepo->findActiveByCampus($campusCode);
         if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
-            return $this->render('enrollment-onsite/diliman/enrollment_closed.html.twig', [
+            return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
                 'campus' => $campus,
                 'activeSY' => $activeSY,
             ]);
@@ -67,7 +69,8 @@ class EnrollmentDilimanController extends AbstractController
         EntityManagerInterface $em,
         StudentIdGenerator $idGenerator,
         SchoolYearRepository $syRepo,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        AdmissionsEmailService $emailService
     ): Response
     {
         // Log the incoming request data for debugging
@@ -135,7 +138,9 @@ class EnrollmentDilimanController extends AbstractController
             }
 
             // --- ALL CLEAR, GENERATE STUDENT NUMBER ---
-            $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
+            $citizenship = $request->request->get('citizenship');
+            $isInternational = strtoupper($citizenship) === 'INTERNATIONAL';
+            $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY, $isInternational);
             $applicant->setStudentNumber($studentNo);
             
             // Persist the applicant immediately so that child entities (with derived identities) can safely map their ManyToOne primary keys.
@@ -158,6 +163,15 @@ class EnrollmentDilimanController extends AbstractController
             $applicant->setFirstName($formatName($request->request->get('first_name')));
             $applicant->setMiddleName($formatName($request->request->get('middle_name')));
             $applicant->setExtensionName($formatName($request->request->get('suffix')));
+            $applicant->setSuffix($formatName($request->request->get('suffix')));
+            $applicant->setPreferredName($formatName($request->request->get('preferred_name')));
+            $applicant->setCivilStatus($request->request->get('civil_status'));
+            $applicant->setCountryOfBirth($request->request->get('country_of_birth'));
+            $applicant->setCountryOfResidence($request->request->get('country_of_residence'));
+            $applicant->setLastGradeCompleted($request->request->get('last_grade_completed'));
+            if ($gAvg = $request->request->get('general_average')) {
+                $applicant->setGeneralAverage((float)$gAvg);
+            }
             
             if ($birthday = $request->request->get('birthday')) {
                 $applicant->setBirthDate(new \DateTime($birthday));
@@ -173,14 +187,27 @@ class EnrollmentDilimanController extends AbstractController
                 $applicant->setReligion($religion);
             }
             
-            $citizenship = $request->request->get('citizenship');
             $applicant->setCitizenship($citizenship);
             $applicant->setNationality($request->request->get('nationality'));
             
-            if (strtoupper($citizenship) === 'INTERNATIONAL') {
+            if ($isInternational) {
                 $applicant->setPassportNumber($request->request->get('passport_number'));
                 $applicant->setVisaType($request->request->get('visa_type'));
                 $applicant->setVisaStatus($request->request->get('visa_status'));
+
+                // Link and persist Passport entity
+                $passport = new ApplicantBedPassport();
+                $passport->setApplicant($applicant);
+                $passport->setPassportNumber($request->request->get('passport_number', ''));
+                $passport->setCountryOfIssue($request->request->get('passport_country_issue', ''));
+                if ($pIssueDate = $request->request->get('passport_date_issued')) {
+                    $passport->setDateIssued(new \DateTime($pIssueDate));
+                }
+                if ($pExpiryDate = $request->request->get('passport_expiration_date')) {
+                    $passport->setExpirationDate(new \DateTime($pExpiryDate));
+                }
+                $applicant->setPassport($passport);
+                $em->persist($passport);
             }
 
             $marketingSource = $request->request->get('marketing_source');
@@ -330,6 +357,14 @@ class EnrollmentDilimanController extends AbstractController
             $em->flush();
             $em->commit();
 
+            if ($isInternational) {
+                try {
+                    $emailService->sendSuccessfulRegistrationEmail($applicant, $activeSY);
+                } catch (\Exception $ex) {
+                    $logger->error('Failed to send admissions registration email for student ' . $studentNo . ': ' . $ex->getMessage());
+                }
+            }
+
             return $this->redirectToRoute('app_enrollment_diliman_success', ['studentNumber' => $studentNo]);
 
         } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
@@ -354,6 +389,18 @@ class EnrollmentDilimanController extends AbstractController
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
     {
+        $isInternational = (strtoupper($applicant->getCitizenship() ?? '') === 'INTERNATIONAL');
+        if ($type === 'permanent' && $isInternational) {
+            $applicant->setPermanentCountry($request->request->get('perm_country'));
+            $applicant->setPermanentRegion(strtoupper($request->request->get('perm_region_text', '') ?: ''));
+            $applicant->setPermanentProvince(strtoupper($request->request->get('perm_province_text', '') ?: ''));
+            $applicant->setPermanentCity(strtoupper($request->request->get('perm_city_text', '') ?: ''));
+            $applicant->setPermanentBarangay(strtoupper($request->request->get('perm_barangay_text', '') ?: ''));
+            $applicant->setPermanentAddress(strtoupper($request->request->get('perm_address', '') ?: ''));
+            $applicant->setPermanentZip($request->request->get('perm_zip'));
+            return;
+        }
+
         $prefix = ($type === 'current') ? 'address' : 'perm';
         $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
 
@@ -441,6 +488,7 @@ class EnrollmentDilimanController extends AbstractController
         $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
         $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
         $guardian->setEmail($request->request->get($slot . '_email'));
+        $guardian->setNationality($request->request->get($slot . '_nationality'));
 
         // --- Address handling ---
         if ($slot === 'guardian') {

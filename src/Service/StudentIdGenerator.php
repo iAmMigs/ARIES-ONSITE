@@ -33,19 +33,38 @@ class StudentIdGenerator
      *
      * @param string     $campus     Raw campus form value ('feu_alabang' or 'feu_diliman')
      * @param SchoolYear $schoolYear The currently active school year for that campus
+     * @param bool       $isInternational Whether the applicant is international/non-Filipino
      *
      * @return string The generated student number
      */
-    public function generateStudentNumber(string $campus, SchoolYear $schoolYear): string
+    public function generateStudentNumber(string $campus, SchoolYear $schoolYear, bool $isInternational = false): string
     {
-        // Build the 5-character prefix: 4-digit year + type code '5'
-        // e.g. SY2526 (yearStart=2025) → prefix "20255"
-        $prefix = $schoolYear->getYearStart() . self::TYPE_CODE;
-
         // Map the form campus value to the entity campus code for querying
         $campusCode = ($campus === 'feu_alabang')
             ? ApplicantBed::CAMPUS_ALABANG
             : ApplicantBed::CAMPUS_DILIMAN;
+
+        if ($isInternational && $campusCode === ApplicantBed::CAMPUS_DILIMAN) {
+            // YYYY-XXXXXX format for Non-Filipino Applicants at FEU Diliman
+            $prefix = $schoolYear->getYearStart() . '-';
+            $latestStudent = $this->applicantBedRepository->findLatestForGeneration($campusCode, $prefix);
+            
+            $nextSeries = 1;
+            if ($latestStudent) {
+                $latestId = $latestStudent->getStudentNumber();
+                if (strlen($latestId) > strlen($prefix)) {
+                    $nextSeries = (int) substr($latestId, strlen($prefix)) + 1;
+                }
+            }
+            
+            $generatedId = $prefix . str_pad((string) $nextSeries, 6, '0', STR_PAD_LEFT);
+            error_log("StudentIdGenerator: Generated international student ID $generatedId for campus $campus");
+            return $generatedId;
+        }
+
+        // Build the 5-character prefix: 4-digit year + type code '5'
+        // e.g. SY2526 (yearStart=2025) → prefix "20255"
+        $prefix = $schoolYear->getYearStart() . self::TYPE_CODE;
 
         // Find the highest existing student number for this campus + SY prefix
         // to determine the next sequential series number

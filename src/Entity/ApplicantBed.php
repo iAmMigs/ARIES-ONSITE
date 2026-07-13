@@ -113,6 +113,33 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
+
+    #[ORM\Column(name: 'preferred_name', length: 100, nullable: true)]
+    private ?string $preferredName = null;
+
+    #[ORM\Column(name: 'suffix', length: 20, nullable: true)]
+    private ?string $suffix = null;
+
+    #[ORM\Column(name: 'country_of_birth', length: 100, nullable: true)]
+    private ?string $countryOfBirth = null;
+
+    #[ORM\Column(name: 'civil_status', length: 50, nullable: true)]
+    private ?string $civilStatus = null;
+
+    #[ORM\Column(name: 'country_of_residence', length: 100, nullable: true)]
+    private ?string $countryOfResidence = null;
+
+    #[ORM\Column(name: 'permanent_country', length: 100, nullable: true)]
+    private ?string $permanentCountry = null;
+
+    #[ORM\Column(name: 'last_grade_completed', length: 50, nullable: true)]
+    private ?string $lastGradeCompleted = null;
+
+    #[ORM\Column(name: 'general_average', type: Types::FLOAT, nullable: true)]
+    private ?float $generalAverage = null;
+
+    #[ORM\OneToOne(mappedBy: 'applicant', targetEntity: ApplicantBedPassport::class, cascade: ['persist', 'remove'])]
+    private ?ApplicantBedPassport $passport = null;
     
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $marketingSource = null;
@@ -307,4 +334,31 @@ class ApplicantBed
 
     public function getMarketingSource(): ?string { return $this->marketingSource; }
     public function setMarketingSource(?string $s): static { $this->marketingSource = $s; return $this; }
+
+    public function getPreferredName(): ?string { return $this->preferredName; }
+    public function setPreferredName(?string $preferredName): static { $this->preferredName = $preferredName; return $this; }
+
+    public function getSuffix(): ?string { return $this->suffix; }
+    public function setSuffix(?string $suffix): static { $this->suffix = $suffix; return $this; }
+
+    public function getCountryOfBirth(): ?string { return $this->countryOfBirth; }
+    public function setCountryOfBirth(?string $countryOfBirth): static { $this->countryOfBirth = $countryOfBirth; return $this; }
+
+    public function getCivilStatus(): ?string { return $this->civilStatus; }
+    public function setCivilStatus(?string $civilStatus): static { $this->civilStatus = $civilStatus; return $this; }
+
+    public function getCountryOfResidence(): ?string { return $this->countryOfResidence; }
+    public function setCountryOfResidence(?string $countryOfResidence): static { $this->countryOfResidence = $countryOfResidence; return $this; }
+
+    public function getPermanentCountry(): ?string { return $this->permanentCountry; }
+    public function setPermanentCountry(?string $permanentCountry): static { $this->permanentCountry = $permanentCountry; return $this; }
+
+    public function getLastGradeCompleted(): ?string { return $this->lastGradeCompleted; }
+    public function setLastGradeCompleted(?string $lastGradeCompleted): static { $this->lastGradeCompleted = $lastGradeCompleted; return $this; }
+
+    public function getGeneralAverage(): ?float { return $this->generalAverage; }
+    public function setGeneralAverage(?float $generalAverage): static { $this->generalAverage = $generalAverage; return $this; }
+
+    public function getPassport(): ?ApplicantBedPassport { return $this->passport; }
+    public function setPassport(?ApplicantBedPassport $passport): static { $this->passport = $passport; return $this; }
 }

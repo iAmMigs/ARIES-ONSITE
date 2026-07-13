@@ -55,4 +55,39 @@ class StudentIdGeneratorTest extends TestCase
         
         $this->assertSame('202550043', $result);
     }
+
+    public function testGenerateStudentNumberForDilimanInternationalNoPrevious(): void
+    {
+        $schoolYear = new SchoolYear();
+        $schoolYear->setYearStart('2026');
+
+        $this->repositoryMock->expects($this->once())
+            ->method('findLatestForGeneration')
+            ->with(ApplicantBed::CAMPUS_DILIMAN, '2026-')
+            ->willReturn(null);
+
+        // International Diliman uses YYYY-XXXXXX -> 2026-000001
+        $result = $this->generator->generateStudentNumber('feu_diliman', $schoolYear, true);
+        
+        $this->assertSame('2026-000001', $result);
+    }
+
+    public function testGenerateStudentNumberForDilimanInternationalWithPrevious(): void
+    {
+        $schoolYear = new SchoolYear();
+        $schoolYear->setYearStart('2026');
+
+        $previousApplicant = new ApplicantBed();
+        $previousApplicant->setStudentNumber('2026-000123');
+
+        $this->repositoryMock->expects($this->once())
+            ->method('findLatestForGeneration')
+            ->with(ApplicantBed::CAMPUS_DILIMAN, '2026-')
+            ->willReturn($previousApplicant);
+
+        // International Diliman incremented -> 2026-000124
+        $result = $this->generator->generateStudentNumber('feu_diliman', $schoolYear, true);
+        
+        $this->assertSame('2026-000124', $result);
+    }
 }
