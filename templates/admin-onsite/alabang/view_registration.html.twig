@@ -147,7 +147,7 @@
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Current Address</div>
                             <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
                             <div class="text-sm text-gray-500">
-                                {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }} {{ registration.currentZip }}
+                                {{ registration.currentBarangay|location_barangay }}, {{ registration.currentCity|location_city }}, {{ registration.currentProvince|location_province }} {{ registration.currentZip }}
                             </div>
                         </div>
                         <div class="pt-4 border-t border-gray-100">
@@ -155,12 +155,12 @@
                             {% if registration.citizenship|upper == 'INTERNATIONAL' %}
                                 <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
                                 <div class="text-sm text-gray-500">
-                                    {{ registration.permanentBarangay|default('') }}, {{ registration.permanentCity|default('') }}, {{ registration.permanentProvince|default('') }}, {{ registration.permanentCountry|default('') }} {{ registration.permanentZip }}
+                                    {{ registration.permanentBarangay|default('')|location_barangay }}, {{ registration.permanentCity|default('')|location_city }}, {{ registration.permanentProvince|default('')|location_province }}, {{ registration.permanentCountry|default('') }} {{ registration.permanentZip }}
                                 </div>
                             {% else %}
                                 <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
                                 <div class="text-sm text-gray-500">
-                                    {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }} {{ registration.permanentZip }}
+                                    {{ registration.permanentBarangay|location_barangay }}, {{ registration.permanentCity|location_city }}, {{ registration.permanentProvince|location_province }} {{ registration.permanentZip }}
                                 </div>
                             {% endif %}
                         </div>
@@ -265,7 +265,7 @@
                                     <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.country }}</div>
                                 {% else %}
                                     {% if school.region or school.province or school.city %}
-                                        <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.city }}, {{ school.province }}, {{ school.region }}</div>
+                                        <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.city|location_city }}, {{ school.province|location_province }}, {{ school.region|location_region }}</div>
                                     {% endif %}
                                 {% endif %}
                                 <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>

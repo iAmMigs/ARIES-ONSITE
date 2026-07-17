@@ -1490,7 +1490,7 @@ function initFormValidation() {
     setTimeout(() => { isInitialLoad = false; }, 500);
 
     function validateSingleField(input) {
-        if (input.disabled || input.type === 'hidden' || input.offsetParent === null) {
+        if (input.disabled || input.type === 'hidden' || (input.offsetParent === null && !input.classList.contains('select2-hidden-accessible'))) {
             window.ARIESValidation.resetField(input, window.ARIESValidation.getErrorElement(input));
             return true;
         }
@@ -1513,6 +1513,13 @@ function initFormValidation() {
             fieldValid = false;
             if (input.name.includes('contact') || input.name.includes('phone')) {
                 errorMessage = 'Please enter a valid phone number with 11 digits (e.g. 09123456789)';
+            }
+        } else if (input.classList.contains('province-autocomplete')) {
+            const hiddenId = input.id.replace('_search', '');
+            const hiddenInput = document.getElementById(hiddenId);
+            if (hiddenInput && window.ARIESValidation.isEmpty(hiddenInput.value)) {
+                fieldValid = false;
+                errorMessage = 'Please select a province from the suggestions.';
             }
         } else if (input.value) {
             if (input.name.includes('contact') || input.name.includes('phone')) {

@@ -193,14 +193,40 @@ class AdminAlabangController extends AbstractController
         }
 
         if ($eduType = $request->query->get('education_type')) {
-            $qb->andWhere('a.educationType = :eduType')
-               ->setParameter('eduType', $eduType);
+            if ($eduType === 'Primary') {
+                $primaryGrades = [
+                    'kinder', 'Kinder', 'grade_1', 'Grade 1', 'grade_2', 'Grade 2',
+                    'grade_3', 'Grade 3', 'grade_4', 'Grade 4', 'grade_5', 'Grade 5',
+                    'grade_6', 'Grade 6'
+                ];
+                $qb->andWhere("a.educationType IN ('Kinder', 'Grade School', 'K-10', 'Primary') OR a.gradeLevel IN (:primaryGrades)")
+                   ->setParameter('primaryGrades', $primaryGrades);
+            } elseif ($eduType === 'Secondary') {
+                $secondaryGrades = [
+                    'grade_7', 'Grade 7', 'grade_8', 'Grade 8', 'grade_9', 'Grade 9',
+                    'grade_10', 'Grade 10', 'grade_11', 'Grade 11', 'grade_12', 'Grade 12'
+                ];
+                $qb->andWhere("a.educationType IN ('Junior High School', 'Senior High School', 'SHS', 'Secondary') OR a.gradeLevel IN (:secondaryGrades)")
+                   ->setParameter('secondaryGrades', $secondaryGrades);
+            } else {
+                $qb->andWhere('a.educationType = :eduType')
+                   ->setParameter('eduType', $eduType);
+            }
         }
 
         $grades = array_filter($request->query->all()['grade_levels'] ?? []);
         if (!empty($grades)) {
+            $mappedGrades = [];
+            foreach ($grades as $g) {
+                $mappedGrades[] = $g;
+                $mappedGrades[] = strtolower($g);
+                $mappedGrades[] = str_replace('_', ' ', $g);
+                $mappedGrades[] = ucwords(str_replace('_', ' ', $g));
+                $mappedGrades[] = str_replace(' ', '_', strtolower($g));
+            }
+            $mappedGrades = array_values(array_unique($mappedGrades));
             $qb->andWhere('a.gradeLevel IN (:grades)')
-               ->setParameter('grades', $grades);
+               ->setParameter('grades', $mappedGrades);
         }
 
         if ($date = $request->query->get('date')) {
@@ -242,14 +268,40 @@ class AdminAlabangController extends AbstractController
         }
 
         if ($eduType = $request->query->get('education_type')) {
-            $qb->andWhere('a.educationType = :eduType')
-               ->setParameter('eduType', $eduType);
+            if ($eduType === 'Primary') {
+                $primaryGrades = [
+                    'kinder', 'Kinder', 'grade_1', 'Grade 1', 'grade_2', 'Grade 2',
+                    'grade_3', 'Grade 3', 'grade_4', 'Grade 4', 'grade_5', 'Grade 5',
+                    'grade_6', 'Grade 6'
+                ];
+                $qb->andWhere("a.educationType IN ('Kinder', 'Grade School', 'K-10', 'Primary') OR a.gradeLevel IN (:primaryGrades)")
+                   ->setParameter('primaryGrades', $primaryGrades);
+            } elseif ($eduType === 'Secondary') {
+                $secondaryGrades = [
+                    'grade_7', 'Grade 7', 'grade_8', 'Grade 8', 'grade_9', 'Grade 9',
+                    'grade_10', 'Grade 10', 'grade_11', 'Grade 11', 'grade_12', 'Grade 12'
+                ];
+                $qb->andWhere("a.educationType IN ('Junior High School', 'Senior High School', 'SHS', 'Secondary') OR a.gradeLevel IN (:secondaryGrades)")
+                   ->setParameter('secondaryGrades', $secondaryGrades);
+            } else {
+                $qb->andWhere('a.educationType = :eduType')
+                   ->setParameter('eduType', $eduType);
+            }
         }
 
         $grades = array_filter($request->query->all()['grade_levels'] ?? []);
         if (!empty($grades)) {
+            $mappedGrades = [];
+            foreach ($grades as $g) {
+                $mappedGrades[] = $g;
+                $mappedGrades[] = strtolower($g);
+                $mappedGrades[] = str_replace('_', ' ', $g);
+                $mappedGrades[] = ucwords(str_replace('_', ' ', $g));
+                $mappedGrades[] = str_replace(' ', '_', strtolower($g));
+            }
+            $mappedGrades = array_values(array_unique($mappedGrades));
             $qb->andWhere('a.gradeLevel IN (:grades)')
-               ->setParameter('grades', $grades);
+               ->setParameter('grades', $mappedGrades);
         }
 
         if ($date = $request->query->get('date')) {

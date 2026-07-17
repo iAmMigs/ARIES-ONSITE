@@ -132,6 +132,19 @@ const ARIESValidation = (function() {
     function setValid(input, errorEl) {
         input.classList.remove('is-invalid');
         input.classList.add('is-valid');
+        
+        // Handle Select2
+        if (input.classList.contains('select2-hidden-accessible')) {
+            const container = input.parentElement ? input.parentElement.querySelector('.select2-container') : null;
+            if (container) {
+                const selection = container.querySelector('.select2-selection');
+                if (selection) {
+                    selection.classList.remove('is-invalid');
+                    selection.classList.add('is-valid');
+                }
+            }
+        }
+        
         if (errorEl) {
             errorEl.classList.remove('show');
             errorEl.style.display = 'none';
@@ -143,6 +156,19 @@ const ARIESValidation = (function() {
     function setInvalid(input, errorEl, message) {
         input.classList.remove('is-valid');
         input.classList.add('is-invalid');
+        
+        // Handle Select2
+        if (input.classList.contains('select2-hidden-accessible')) {
+            const container = input.parentElement ? input.parentElement.querySelector('.select2-container') : null;
+            if (container) {
+                const selection = container.querySelector('.select2-selection');
+                if (selection) {
+                    selection.classList.remove('is-valid');
+                    selection.classList.add('is-invalid');
+                }
+            }
+        }
+        
         if (errorEl) {
             errorEl.classList.add('show');
             errorEl.style.display = 'block';
@@ -155,6 +181,18 @@ const ARIESValidation = (function() {
     
     function resetField(input, errorEl) {
         input.classList.remove('is-valid', 'is-invalid');
+        
+        // Handle Select2
+        if (input.classList.contains('select2-hidden-accessible')) {
+            const container = input.parentElement ? input.parentElement.querySelector('.select2-container') : null;
+            if (container) {
+                const selection = container.querySelector('.select2-selection');
+                if (selection) {
+                    selection.classList.remove('is-valid', 'is-invalid');
+                }
+            }
+        }
+        
         if (errorEl) {
             errorEl.classList.remove('show');
             errorEl.style.display = 'none';
