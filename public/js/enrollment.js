@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initConditionalFields();
     initDynamicFormatting();
     initFormValidation();
+    initSchoolYearSelection();
     
     // Initial fetch of documents if fields are pre-filled
     if (typeof window.fetchRequiredDocuments === 'function') {
@@ -634,6 +635,8 @@ window.showConfirmationModal = function() {
     const email = document.querySelector('[name="email"]')?.value || 'N/A';
     const mobile = document.querySelector('[name="contact_number"]')?.value || 'N/A';
     
+    const selectedSyLabel = document.getElementById('selectedSchoolYearLabel')?.value || 'N/A';
+    
     const promissoryDate = document.getElementById('promissoryDate')?.value;
     const promissoryHtml = promissoryDate ? `
         <div class="summary-item mt-3 bg-amber-50 p-2 rounded border border-amber-100 flex-column align-items-start">
@@ -646,6 +649,7 @@ window.showConfirmationModal = function() {
     summaryContainer.innerHTML = `
         <div class="summary-grid">
             <div class="summary-item"><span class="summary-label">Campus:</span> <span class="summary-val">${campus}</span></div>
+            <div class="summary-item"><span class="summary-label">School Year:</span> <span class="summary-val font-mono">${selectedSyLabel}</span></div>
             <div class="summary-item"><span class="summary-label">Admission Type:</span> <span class="summary-val">${admissionType}</span></div>
             <div class="summary-item"><span class="summary-label">Level:</span> <span class="summary-val">${eduType} - ${gradeLevel}</span></div>
             <div class="summary-item mt-2"><span class="summary-label">Applicant Name:</span> <span class="summary-val text-feu-green-700">${fullName}</span></div>
@@ -1004,6 +1008,44 @@ function initCampusSelection() {
             window.updateGradeLevels();
         }
     }
+}
+
+function initSchoolYearSelection() {
+    const syOptions = document.querySelectorAll('.sy-option');
+    const selectedIdInput = document.getElementById('selectedSchoolYearId');
+    const selectedLabelInput = document.getElementById('selectedSchoolYearLabel');
+    const validationMsg = document.getElementById('sy-validation-msg');
+
+    if (syOptions.length === 1) {
+        const singleOption = syOptions[0];
+        singleOption.classList.add('active');
+        const syId = singleOption.getAttribute('data-sy-id');
+        const syLabel = singleOption.getAttribute('data-sy-label');
+        if (selectedIdInput) selectedIdInput.value = syId;
+        if (selectedLabelInput) selectedLabelInput.value = syLabel;
+        
+        const syCard = document.getElementById('sy-selection-card');
+        if (syCard) {
+            syCard.style.display = 'none';
+        }
+    }
+
+    syOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            syOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+
+            const syId = this.getAttribute('data-sy-id');
+            const syLabel = this.getAttribute('data-sy-label');
+
+            if (selectedIdInput) selectedIdInput.value = syId;
+            if (selectedLabelInput) selectedLabelInput.value = syLabel;
+            if (validationMsg) validationMsg.style.display = 'none';
+            
+            window.isFormDirty = true;
+            window.checkFormValidity();
+        });
+    });
 }
 
 function initStickyHeader() {
@@ -1581,6 +1623,23 @@ function initFormValidation() {
         event.stopPropagation();
         
         let isFormValid = true;
+
+        // School Year validation
+        const selectedSyId = document.getElementById('selectedSchoolYearId')?.value;
+        const syValidationMsg = document.getElementById('sy-validation-msg');
+        if (document.getElementById('sy-selection-card')) {
+            if (!selectedSyId) {
+                isFormValid = false;
+                if (syValidationMsg) {
+                    syValidationMsg.style.display = 'block';
+                }
+                const syCard = document.getElementById('sy-selection-card');
+                if (syCard) syCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                if (syValidationMsg) syValidationMsg.style.display = 'none';
+            }
+        }
+
         const inputs = form.querySelectorAll('input, select, textarea');
         
         inputs.forEach(input => {

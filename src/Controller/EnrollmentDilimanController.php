@@ -38,11 +38,11 @@ class EnrollmentDilimanController extends AbstractController
         $campus = 'feu_diliman';
         $campusCode = SchoolYear::CAMPUS_DILIMAN;
 
-        $activeSY = $syRepo->findActiveByCampus($campusCode);
-        if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
+        $openSYs = $syRepo->findOpenEnrollmentsByCampus($campusCode);
+        if (empty($openSYs)) {
             return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
                 'campus' => $campus,
-                'activeSY' => $activeSY,
+                'activeSY' => null,
             ]);
         }
         
@@ -54,7 +54,8 @@ class EnrollmentDilimanController extends AbstractController
 
         return $this->render('enrollment-onsite/diliman/enroll.html.twig', [
             'selected_campus'        => $campus,
-            'active_sy'              => $activeSY,
+            'open_sys'               => $openSYs,
+            'active_sy'              => $syRepo->findActiveByCampus($campusCode),
             'documents'              => $documents,
             'religions'              => $religions,
             'citizenships'           => $citizenships,
@@ -79,11 +80,16 @@ class EnrollmentDilimanController extends AbstractController
 
         $campus = 'feu_diliman';
         $campusCode = SchoolYear::CAMPUS_DILIMAN;
-        $activeSY = $syRepo->findActiveByCampus($campusCode);
+        
+        $syId = $request->request->get('school_year_id');
+        $selectedSY = null;
+        if ($syId) {
+            $selectedSY = $syRepo->find((int)$syId);
+        }
 
-        if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
-            error_log("Enrollment Redirect: Enrollment is closed for FDILI (Open: " . ($activeSY ? ($activeSY->isEnrollmentOpen() ? 'YES' : 'NO') : 'SY NOT FOUND') . ")");
-            $this->addFlash('error', 'Enrollment is currently closed.');
+        if (!$selectedSY || !$selectedSY->isEnrollmentOpen() || $selectedSY->getCampus() !== $campusCode) {
+            error_log("Enrollment Redirect: Selected School Year is invalid or closed.");
+            $this->addFlash('error', 'The selected school year enrollment is closed.');
             return $this->redirectToRoute('app_enrollment_diliman_apply');
         }
 
@@ -134,13 +140,13 @@ class EnrollmentDilimanController extends AbstractController
                 // If there are missing docs, we assume the user signed the waiver modal if they got here.
                 // We no longer require a tentative date.
                 $applicant->setDocumentsAgreed(true);
-                $applicant->setDocumentsAgreedDate($activeSY->getPromissoryDeadline());
+                $applicant->setDocumentsAgreedDate($selectedSY->getPromissoryDeadline());
             }
 
             // --- ALL CLEAR, GENERATE STUDENT NUMBER ---
             $citizenship = $request->request->get('citizenship');
             $isInternational = strtoupper($citizenship) === 'INTERNATIONAL';
-            $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY, $isInternational);
+            $studentNo = $idGenerator->generateStudentNumber($campus, $selectedSY, $isInternational);
             $applicant->setStudentNumber($studentNo);
             
             // Persist the applicant immediately so that child entities (with derived identities) can safely map their ManyToOne primary keys.
@@ -154,8 +160,9 @@ class EnrollmentDilimanController extends AbstractController
             $applicant->setGradeLevel($request->request->get('grade_level'));
             $applicant->setTrackStrand($request->request->get('strand'));
             $applicant->setLrn($lrnInput !== '' ? $lrnInput : null);
-            $applicant->setSchoolYearOfEntry($activeSY->getLabel());
+            $applicant->setSchoolYearOfEntry($selectedSY->getLabel());
             $applicant->setAdmissionType($request->request->get('admission_type'));
+
 
             $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
 

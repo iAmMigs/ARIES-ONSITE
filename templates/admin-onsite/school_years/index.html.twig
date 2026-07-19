@@ -42,7 +42,7 @@
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div class="flex-grow">
                             <h2 class="text-lg font-bold text-gray-800">{{ campusLabel }} — Active School Year</h2>
-                            <p class="text-sm text-gray-500 mt-1">Only one school year may be active at a time. Enrollment can only be opened for the active year.</p>
+                            <p class="text-sm text-gray-500 mt-1">Only one school year may be active at a time. A maximum of two school years can have enrollment open concurrently.</p>
                             
                             {% if activeSY %}
                             <div class="mt-4 flex flex-wrap gap-4">
@@ -176,14 +176,10 @@
                                         {% endif %}
                                     </td>
                                     <td class="px-6 py-4">
-                                        {% if sy.isActive %}
-                                            {% if sy.enrollmentOpen %}
-                                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Open</span>
-                                            {% else %}
-                                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">Closed</span>
-                                            {% endif %}
+                                        {% if sy.enrollmentOpen %}
+                                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Open</span>
                                         {% else %}
-                                            <span class="text-gray-300 text-xs">—</span>
+                                            <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs font-bold">Closed</span>
                                         {% endif %}
                                     </td>
                                     <td class="px-6 py-4 text-right">
@@ -201,19 +197,17 @@
                                                 </form>
                                             {% endif %}
 
-                                            {# Toggle Enrollment (only for active school year) #}
-                                            {% if sy.isActive %}
-                                                <form action="{{ path('app_admin_school_year_toggle', {campus: campus, id: sy.id}) }}"
-                                                      method="POST"
-                                                      onsubmit="return confirm('{% if sy.enrollmentOpen %}Close enrollment for {{ sy.label }}?{% else %}Open enrollment for {{ sy.label }}? Students will be able to submit applications.{% endif %}');">
-                                                    <button type="submit"
-                                                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm
-                                                            {% if sy.enrollmentOpen %}bg-amber-100 text-amber-700 hover:bg-amber-200{% else %}bg-blue-100 text-blue-700 hover:bg-blue-200{% endif %}">
-                                                        <i class="ki-filled {% if sy.enrollmentOpen %}ki-exit-right{% else %}ki-entrance-left{% endif %} text-xs"></i>
-                                                        {% if sy.enrollmentOpen %}Close Enrollment{% else %}Open Enrollment{% endif %}
-                                                    </button>
-                                                </form>
-                                            {% endif %}
+                                            {# Toggle Enrollment #}
+                                            <form action="{{ path('app_admin_school_year_toggle', {campus: campus, id: sy.id}) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('{% if sy.enrollmentOpen %}Close enrollment for {{ sy.label }}?{% else %}Open enrollment for {{ sy.label }}? Students will be able to submit applications.{% endif %}');">
+                                                <button type="submit"
+                                                        class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm
+                                                        {% if sy.enrollmentOpen %}bg-amber-100 text-amber-700 hover:bg-amber-200{% else %}bg-blue-100 text-blue-700 hover:bg-blue-200{% endif %}">
+                                                    <i class="ki-filled {% if sy.enrollmentOpen %}ki-exit-right{% else %}ki-entrance-left{% endif %} text-xs"></i>
+                                                    {% if sy.enrollmentOpen %}Close Enrollment{% else %}Open Enrollment{% endif %}
+                                                </button>
+                                            </form>
 
                                             {# Delete Button (only for inactive school years) #}
                                             {% if not sy.isActive %}

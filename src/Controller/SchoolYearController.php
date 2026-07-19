@@ -102,7 +102,6 @@ class SchoolYearController extends AbstractController
     /**
      * Activates the specified school year for its campus.
      * All other school years for the same campus are automatically deactivated.
-     * Enrollment is closed by default when switching active school years.
      */
     #[Route('/{campus}/{id}/activate', name: 'app_admin_school_year_activate', methods: ['POST'])]
     public function activate(
@@ -118,23 +117,22 @@ class SchoolYearController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        // Deactivate all school years for this campus (closes enrollment too)
+        // Deactivate all school years for this campus
         $syRepo->deactivateAllForCampus($campusCode);
         $em->flush();
 
         // Re-fetch and activate the target school year
         $em->refresh($sy);
         $sy->setIsActive(true);
-        $sy->setEnrollmentOpen(false);
         $em->flush();
 
-        $this->addFlash('success', $sy->getLabel() . ' is now the active school year. Enrollment is currently closed — open it when ready.');
+        $this->addFlash('success', $sy->getLabel() . ' is now the active school year.');
         return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
     }
 
     /**
-     * Toggles the enrollment window open or closed for the active school year.
-     * Only the active school year's enrollment status may be toggled.
+     * Toggles the enrollment window open or closed.
+     * A maximum of 2 school years can have enrollment open concurrently.
      */
     #[Route('/{campus}/{id}/toggle-enrollment', name: 'app_admin_school_year_toggle', methods: ['POST'])]
     public function toggleEnrollment(
@@ -150,9 +148,12 @@ class SchoolYearController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        if (!$sy->isActive()) {
-            $this->addFlash('error', 'Enrollment can only be toggled for the active school year.');
-            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+        if (!$sy->isEnrollmentOpen()) {
+            $currentlyOpen = $syRepo->findOpenEnrollmentsByCampus($campusCode);
+            if (count($currentlyOpen) >= 2) {
+                $this->addFlash('error', 'A maximum of 2 school years can have enrollment open simultaneously for this campus.');
+                return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+            }
         }
 
         $sy->setEnrollmentOpen(!$sy->isEnrollmentOpen());
@@ -163,6 +164,7 @@ class SchoolYearController extends AbstractController
 
         return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
     }
+
 
     /**
      * Updates the promissory deadline for a school year.

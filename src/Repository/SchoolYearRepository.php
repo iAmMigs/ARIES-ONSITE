@@ -43,6 +43,16 @@ class SchoolYearRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns all school years for a given campus that currently have open enrollment.
+     *
+     * @return SchoolYear[]
+     */
+    public function findOpenEnrollmentsByCampus(string $campus): array
+    {
+        return $this->findBy(['campus' => $campus, 'enrollmentOpen' => true], ['yearStart' => 'ASC']);
+    }
+
+    /**
      * Deactivates all school years for the given campus.
      * Called before activating a new one to enforce the single-active constraint.
      */
@@ -51,7 +61,6 @@ class SchoolYearRepository extends ServiceEntityRepository
         $this->createQueryBuilder('sy')
             ->update()
             ->set('sy.isActive', ':false')
-            ->set('sy.enrollmentOpen', ':false')
             ->where('sy.campus = :campus')
             ->setParameter('false', false)
             ->setParameter('campus', $campus)
@@ -59,3 +68,4 @@ class SchoolYearRepository extends ServiceEntityRepository
             ->execute();
     }
 }
+

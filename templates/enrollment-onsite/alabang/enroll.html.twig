@@ -400,6 +400,32 @@ s{# templates/enrollment-onsite/alabang/enroll.html.twig #}
  
         <form action="{{ path('app_enrollment_alabang_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="feu_alabang">
             
+            {# --- SCHOOL YEAR SELECTION --- #}
+            <div class="card mb-5 animate-section visible" id="sy-selection-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-calendar text-feu-green-600 fs-1"></i>Select School Year</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-sm text-gray-600 mb-4 font-semibold">Please select the academic school year you are enrolling for:</p>
+                    <div class="campus-selector-row">
+                        {% for sy in open_sys %}
+                            <div class="campus-option sy-option" data-sy-id="{{ sy.id }}" data-sy-label="{{ sy.label }}">
+                                <div class="check-icon">
+                                    <i class="ki-filled ki-check fs-4"></i>
+                                </div>
+                                <h4 class="font-bold text-lg text-feu-green-dark mb-1">{{ sy.label }}</h4>
+                                <p class="text-xs font-semibold text-gray-500 font-mono">{{ sy.yearStart }}–{{ sy.yearEnd }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="school_year_id" id="selectedSchoolYearId" required>
+                    <input type="hidden" name="school_year_label" id="selectedSchoolYearLabel" required>
+                    <div class="invalid-feedback text-center d-block mt-2 font-bold" id="sy-validation-msg" style="display: none;">
+                        Please select a school year to proceed.
+                    </div>
+                </div>
+            </div>
+
             {# --- CARD 1: ADMISSION DETAILS --- #}
             <div class="card mb-5 animate-section" id="step-card-1">
                 <div class="card-header">

@@ -36,11 +36,11 @@ class EnrollmentAlabangController extends AbstractController
         $campus = 'feu_alabang';
         $campusCode = SchoolYear::CAMPUS_ALABANG;
 
-        $activeSY = $syRepo->findActiveByCampus($campusCode);
-        if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
+        $openSYs = $syRepo->findOpenEnrollmentsByCampus($campusCode);
+        if (empty($openSYs)) {
             return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
                 'campus' => $campus,
-                'activeSY' => $activeSY,
+                'activeSY' => null,
             ]);
         }
         
@@ -52,7 +52,8 @@ class EnrollmentAlabangController extends AbstractController
 
         return $this->render('enrollment-onsite/alabang/enroll.html.twig', [
             'selected_campus'        => $campus,
-            'active_sy'              => $activeSY,
+            'open_sys'               => $openSYs,
+            'active_sy'              => $syRepo->findActiveByCampus($campusCode),
             'documents'              => $documents,
             'religions'              => $religions,
             'citizenships'           => $citizenships,
@@ -75,11 +76,16 @@ class EnrollmentAlabangController extends AbstractController
 
         $campus = 'feu_alabang';
         $campusCode = SchoolYear::CAMPUS_ALABANG;
-        $activeSY = $syRepo->findActiveByCampus($campusCode);
+        
+        $syId = $request->request->get('school_year_id');
+        $selectedSY = null;
+        if ($syId) {
+            $selectedSY = $syRepo->find((int)$syId);
+        }
 
-        if (!$activeSY || !$activeSY->isEnrollmentOpen()) {
-            error_log("Enrollment Redirect: Enrollment is closed for FALAB (Open: " . ($activeSY ? ($activeSY->isEnrollmentOpen() ? 'YES' : 'NO') : 'SY NOT FOUND') . ")");
-            $this->addFlash('error', 'Enrollment is currently closed.');
+        if (!$selectedSY || !$selectedSY->isEnrollmentOpen() || $selectedSY->getCampus() !== $campusCode) {
+            error_log("Enrollment Redirect: Selected School Year is invalid or closed.");
+            $this->addFlash('error', 'The selected school year enrollment is closed.');
             return $this->redirectToRoute('app_enrollment_alabang_apply');
         }
 
@@ -98,7 +104,7 @@ class EnrollmentAlabangController extends AbstractController
         try {
             $applicant = new ApplicantBed();
             
-            $studentNo = $idGenerator->generateStudentNumber($campus, $activeSY);
+            $studentNo = $idGenerator->generateStudentNumber($campus, $selectedSY);
             $applicant->setStudentNumber($studentNo);
             
             // Persist the applicant immediately so that child entities (with derived identities) can safely map their ManyToOne primary keys.
@@ -112,7 +118,7 @@ class EnrollmentAlabangController extends AbstractController
             $applicant->setGradeLevel($request->request->get('grade_level'));
             $applicant->setTrackStrand($request->request->get('strand'));
             $applicant->setLrn($lrnInput !== '' ? $lrnInput : null);
-            $applicant->setSchoolYearOfEntry($activeSY->getLabel());
+            $applicant->setSchoolYearOfEntry($selectedSY->getLabel());
             $applicant->setAdmissionType($request->request->get('admission_type'));
 
             $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
@@ -158,11 +164,12 @@ class EnrollmentAlabangController extends AbstractController
             if (!empty($agreedDateStr)) {
                 $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
                 $applicant->setDocumentsAgreed(true);
-            } elseif ($promissoryAgreement === '1' && $activeSY->getPromissoryDeadline()) {
+            } elseif ($promissoryAgreement === '1' && $selectedSY->getPromissoryDeadline()) {
                 // If agreement flag is set (Alabang specific) use the school year's deadline
-                $applicant->setDocumentsAgreedDate($activeSY->getPromissoryDeadline());
+                $applicant->setDocumentsAgreedDate($selectedSY->getPromissoryDeadline());
                 $applicant->setDocumentsAgreed(true);
             }
+
 
             $applicant->setMobileNumber($request->request->get('contact_number'));
             $applicant->setPersonalEmail($request->request->get('email'));
