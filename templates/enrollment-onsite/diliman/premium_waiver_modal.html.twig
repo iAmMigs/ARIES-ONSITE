@@ -24,12 +24,15 @@
     <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8 transform scale-95 transition-transform duration-300 relative flex flex-col max-h-[90vh]" id="premiumWaiverDialog">
         
         {# Header #}
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-feu-green-700 rounded-t-2xl text-white shrink-0">
-            <h3 class="text-lg md:text-xl font-black uppercase tracking-wider flex items-center gap-2 m-0">
-                <i class="ki-filled ki-document"></i>
-                Waiver for Incomplete Documents
-            </h3>
-            <button type="button" onclick="closePremiumWaiverModal()" class="text-white/80 hover:text-white transition-colors bg-transparent border-0 p-0 cursor-pointer">
+        {% set campus_icon = (selected_campus is defined and selected_campus == 'feu_alabang') ? 'images/hero/alabang.png' : 'images/hero/diliman.png' %}
+        <div class="p-5 md:p-6 border-b border-white/10 flex justify-between items-center bg-feu-green-700 rounded-t-2xl shrink-0">
+            <div class="flex items-center gap-3">
+                <img src="{{ asset(campus_icon) }}" alt="FEU Campus" class="h-8 md:h-9 w-auto object-contain shrink-0 drop-shadow-sm">
+                <h3 class="text-base md:text-lg font-black uppercase tracking-wider m-0" style="color: #fbbf24 !important;">
+                    Acknowledgement of Pending Document Submission
+                </h3>
+            </div>
+            <button type="button" onclick="closePremiumWaiverModal()" class="hover:opacity-80 transition-opacity bg-transparent border-0 p-0 cursor-pointer flex items-center justify-center" style="color: #fbbf24 !important;" title="Close">
                 <i class="ki-filled ki-cross text-2xl"></i>
             </button>
         </div>
@@ -110,9 +113,6 @@
 </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const btnSubmit = document.getElementById('btnConfirmWaiverSubmit');
-
         // Global functions for modal
         window.showPremiumWaiverModal = function(missingDocs) {
             window.currentMissingDocs = missingDocs;
@@ -155,13 +155,11 @@
         };
 
         window.confirmWaiverSubmission = function() {
-            if (btnSubmit.disabled) return;
+            const btnSubmit = document.getElementById('btnConfirmWaiverSubmit');
+            if (btnSubmit && btnSubmit.disabled) return;
             
             window.closePremiumWaiverModal();
             
-            // Re-trigger the main form submission (the backend logic will now process the inputs since they are in the form)
-            // But wait, the standard submit button shows the Confirm Modal first, or submits directly.
-            // In ARIES, confirmSubmission() submits the form bypassing modals.
             setTimeout(() => {
                 window.confirmSubmission();
             }, 300);
@@ -178,11 +176,13 @@
             } else {
                 card.classList.remove('checked');
             }
-            checkWaiverValidity();
+            window.checkWaiverValidity();
         };
 
-        function checkWaiverValidity() {
+        window.checkWaiverValidity = function() {
+            const btnSubmit = document.getElementById('btnConfirmWaiverSubmit');
             const agreeCheckbox = document.getElementById('cert_agree_all');
+            if (!btnSubmit) return;
 
             if (agreeCheckbox && agreeCheckbox.checked) {
                 btnSubmit.disabled = false;
@@ -191,6 +191,5 @@
                 btnSubmit.disabled = true;
                 btnSubmit.classList.add('cursor-not-allowed', 'opacity-50');
             }
-        }
-    });
-</script>
+        };
+    </script>

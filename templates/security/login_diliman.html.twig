@@ -18,6 +18,38 @@
 
         {# Login Form #}
         <div class="p-8">
+            {% if app.request.query.get('reason') == 'timeout' %}
+                {# Inactivity Timeout Popup Modal #}
+                <div id="inactivityTimeoutModal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" role="dialog" aria-modal="true">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-gray-100 text-center transform transition-all scale-100">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-4 shadow-xs">
+                            <i class="ki-filled ki-time-schedule text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-gray-900 tracking-tight">
+                            Session Timeout
+                        </h3>
+                        <p class="text-sm text-gray-600 mt-3 leading-relaxed font-medium">
+                            You have been logged out due to inactivity, please log in again
+                        </p>
+                        <div class="mt-6">
+                            <button type="button" 
+                                    onclick="document.getElementById('inactivityTimeoutModal').remove();" 
+                                    class="w-full inline-flex items-center justify-center gap-1.5 px-5 py-3 rounded-xl font-bold text-sm text-white bg-feu-green-800 hover:bg-feu-green-900 transition-all shadow-sm">
+                                <i class="ki-filled ki-check text-base"></i> OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3 animate-fade-in">
+                    <i class="ki-filled ki-time-schedule text-amber-600 text-xl mt-0.5"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-amber-900">Session Expired</h4>
+                        <p class="text-xs text-amber-700 mt-0.5">You have been logged out due to inactivity, please log in again.</p>
+                    </div>
+                </div>
+            {% endif %}
+
             {% if error %}
                 <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3 animate-fade-in">
                     <i class="ki-filled ki-information-2 text-red-500 text-xl mt-0.5"></i>
@@ -30,6 +62,7 @@
 
             <form method="post" action="{{ path('app_auth_login_check') }}" class="space-y-5">
                 <input type="hidden" name="_failure_path" value="{{ path('app_auth_login_diliman') }}">
+                <input type="hidden" name="_campus" value="feu_diliman">
                 <div>
                     <label for="username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email Address</label>
                     <div class="relative">

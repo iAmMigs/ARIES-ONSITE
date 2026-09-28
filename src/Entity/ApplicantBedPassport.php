@@ -27,10 +27,10 @@ class ApplicantBedPassport
     #[ORM\Column(name: 'country_of_issue', length: 100)]
     private ?string $countryOfIssue = null;
 
-    #[ORM\Column(name: 'date_issued', type: Types::DATE_MUTABLE)]
+    #[ORM\Column(name: 'date_issued', type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateIssued = null;
 
-    #[ORM\Column(name: 'expiration_date', type: Types::DATE_MUTABLE)]
+    #[ORM\Column(name: 'expiration_date', type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $expirationDate = null;
 
     public function getId(): ?int { return $this->id; }
@@ -45,8 +45,8 @@ class ApplicantBedPassport
     public function setCountryOfIssue(string $countryOfIssue): static { $this->countryOfIssue = $countryOfIssue; return $this; }
 
     public function getDateIssued(): ?\DateTimeInterface { return $this->dateIssued; }
-    public function setDateIssued(\DateTimeInterface $dateIssued): static { $this->dateIssued = $dateIssued; return $this; }
+    public function setDateIssued(?\DateTimeInterface $dateIssued): static { $this->dateIssued = $dateIssued; return $this; }
 
     public function getExpirationDate(): ?\DateTimeInterface { return $this->expirationDate; }
-    public function setExpirationDate(\DateTimeInterface $expirationDate): static { $this->expirationDate = $expirationDate; return $this; }
+    public function setExpirationDate(?\DateTimeInterface $expirationDate): static { $this->expirationDate = $expirationDate; return $this; }
 }

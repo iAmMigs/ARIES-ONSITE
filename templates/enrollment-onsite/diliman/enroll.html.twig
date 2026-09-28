@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
     <link rel="stylesheet" href="{{ asset('css/base.css') }}?v=2">
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
-    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v={{ 'now'|date('U') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admission.css') }}?v=22">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     
@@ -93,16 +93,10 @@
             border: 1px solid #e5e7eb; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #6b7280;
             cursor: pointer; transition: all 0.2s; background: white;
         }
-        .btn-check-custom:checked + .btn-check-label { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
-        .btn-check-custom:disabled + .btn-check-label { opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6; }
+        .btn-check-custom:checked ~ .btn-check-label { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .btn-check-custom:disabled ~ .btn-check-label { opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6; }
 
         .sibling-row { position: relative; padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem; }
-        .btn-remove-sibling {
-            position: absolute; top: -10px; left: -10px; width: 28px; height: 28px; border-radius: 50%;
-            background: #ef4444; color: white; border: none; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s;
-        }
-        .btn-remove-sibling:hover { background: #dc2626; transform: scale(1.1); }
 
         .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
         .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px; }
@@ -294,9 +288,15 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             height: 100%;
+            width: 100%;
             position: relative;
             overflow: hidden;
             box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            user-select: none;
+        }
+
+        .survey-option-label * {
+            pointer-events: none;
         }
         
         .survey-option-label:hover {
@@ -337,18 +337,18 @@
             color: var(--feu-green-dark);
         }
         
-        .survey-radio-input:checked + .survey-option-label {
+        .survey-radio-input:checked ~ .survey-option-label {
             border-color: var(--feu-green);
             background: #f0fdf4;
             box-shadow: 0 6px 15px rgba(26, 77, 46, 0.08);
         }
         
-        .survey-radio-input:checked + .survey-option-label .survey-icon-container {
+        .survey-radio-input:checked ~ .survey-option-label .survey-icon-container {
             background: var(--feu-green);
             color: #ffffff;
         }
         
-        .survey-radio-input:checked + .survey-option-label .survey-option-text {
+        .survey-radio-input:checked ~ .survey-option-label .survey-option-text {
             color: var(--feu-green-dark);
         }
         
@@ -363,7 +363,7 @@
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
-        .survey-radio-input:checked + .survey-option-label .survey-check-indicator {
+        .survey-radio-input:checked ~ .survey-option-label .survey-check-indicator {
             opacity: 1;
             transform: scale(1);
         }
@@ -397,7 +397,6 @@
     <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
    
     <div class="container mx-auto px-4 relative z-10 text-center pt-4 pb-2">
-        <span class="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold tracking-wider mb-3 animate-fade-in-up">Admissions {{ active_sy.yearStart }}-{{ active_sy.yearEnd }}</span>
         <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
         <p class="text-base text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
     </div>
@@ -417,7 +416,7 @@
                     <p class="text-sm text-gray-600 mb-4 font-semibold">Please select the academic school year you are enrolling for:</p>
                     <div class="campus-selector-row">
                         {% for sy in open_sys %}
-                            <div class="campus-option sy-option" data-sy-id="{{ sy.id }}" data-sy-label="{{ sy.label }}">
+                            <div class="campus-option sy-option {{ open_sys|length == 1 ? 'active' : '' }}" data-sy-id="{{ sy.id }}" data-sy-label="{{ sy.label }}">
                                 <div class="check-icon">
                                     <i class="ki-filled ki-check fs-4"></i>
                                 </div>
@@ -426,8 +425,8 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <input type="hidden" name="school_year_id" id="selectedSchoolYearId" required>
-                    <input type="hidden" name="school_year_label" id="selectedSchoolYearLabel" required>
+                    <input type="hidden" name="school_year_id" id="selectedSchoolYearId" value="{{ open_sys|length == 1 ? open_sys[0].id : '' }}" required>
+                    <input type="hidden" name="school_year_label" id="selectedSchoolYearLabel" value="{{ open_sys|length == 1 ? open_sys[0].label : '' }}" required>
                     <div class="invalid-feedback text-center d-block mt-2 font-bold" id="sy-validation-msg" style="display: none;">
                         Please select a school year to proceed.
                     </div>
@@ -523,23 +522,14 @@
                     <div class="row g-4 mt-2">
                         <div class="col-md-6">
                             <label class="form-label">Preferred Name / Alias</label>
-                            <input type="text" name="preferred_name" class="form-control" placeholder="e.g. Miggy">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Civil Status <span class="required">*</span></label>
-                            <select name="civil_status" class="form-select" required>
-                                <option value="Single" selected>Single</option>
-                                <option value="Married">Married</option>
-                                <option value="Widowed">Widowed</option>
-                                <option value="Separated">Separated</option>
-                            </select>
+                            <input type="text" name="preferred_name" class="form-control">
                         </div>
                     </div>
 
                     <div class="row g-4 mt-2">
                         <div class="col-md-4">
                             <label class="form-label">Date of Birth <span class="required">*</span></label>
-                            <input type="date" name="birthday" class="form-control" max="9999-12-31" required>
+                            <input type="date" name="birthday" id="birthdayInput" class="form-control" max="{{ 'now'|date('Y-m-d') }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Birth Place <span class="required">*</span></label>
@@ -675,10 +665,17 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-4 mb-5">
-                        <div class="col-md-4">
-                            <label class="form-label">Mobile Number <span class="required">*</span></label>
-                            <input type="tel" name="contact_number" class="form-control" required placeholder="09xxxxxxxxx" maxlength="11" minlength="11" pattern="\d{11}">
-                        </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Mobile Number <span class="required">*</span></label>
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: '',
+                                    input_name: 'contact_number',
+                                    input_id: 'contactNumberInput',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
+                            </div>
                         <div class="col-md-4">
                             <label class="form-label">Email Address <span class="required">*</span></label>
                             <input type="email" name="email" class="form-control" required>
@@ -767,7 +764,7 @@
                         <!-- International Permanent Address Section -->
                         <div id="perm_address_intl_section" style="display: none;">
                             <div class="row g-3">
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <label class="form-label">Country <span class="required">*</span></label>
                                     <select name="perm_country" id="permCountrySelect" class="form-select" data-control="select2" data-placeholder="Select Country">
                                         <option value=""></option>
@@ -775,19 +772,6 @@
                                             <option value="{{ country.countryName }}">{{ country.countryName }}</option>
                                         {% endfor %}
                                     </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">State / Province / Region <span class="required">*</span></label>
-                                    <input type="text" name="perm_province_text" id="permProvinceText" class="form-control" placeholder="State/Province">
-                                    <input type="hidden" name="perm_region_text" id="permRegionText">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">City / Town <span class="required">*</span></label>
-                                    <input type="text" name="perm_city_text" id="permCityText" class="form-control" placeholder="City">
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Barangay / District / Suburb</label>
-                                    <input type="text" name="perm_barangay_text" id="permBarangayText" class="form-control" placeholder="Barangay/District">
                                 </div>
                             </div>
                         </div>
@@ -863,18 +847,194 @@
                             </div>
                             <div class="col-md-4" id="father_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
-                                <input type="tel" name="father_contact" id="father_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: 'father',
+                                    input_name: 'father_contact',
+                                    input_id: 'father_contact',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
                             </div>
                         </div>
-                        <div class="row g-4 mt-1" id="father_ofw_country_group" style="display: none;">
-                            <div class="col-md-4">
-                                <label class="form-label">Country of Work <span class="required">*</span></label>
-                                <select name="father_ofw_country" id="father_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
-                                    <option value=""></option>
-                                    {% for country in countries %}
-                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
-                                    {% endfor %}
-                                </select>
+                        {# Father Address with Same as Applicant #}
+                        <div class="mt-3 pt-3 border-top" id="father_address_wrapper">
+                            {# Standard Local Address #}
+                            <div id="father_standard_address_section">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="father_same_as_applicant" name="father_same_as_applicant" value="1" onchange="toggleParentAddress('father')" checked>
+                                    <label class="form-check-label text-sm fw-bold" for="father_same_as_applicant">Same address as Applicant</label>
+                                </div>
+                                <div id="father_address_block" style="display:none;">
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address</h6>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Region</label>
+                                            <select id="father_addr_region" name="father_addr_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                            <input type="hidden" name="father_addr_region_hidden" id="father_addr_region_hidden">
+                                        </div>
+                                        <div class="col-md-3 position-relative">
+                                            <label class="form-label text-xs">Province</label>
+                                            <input type="text" id="father_addr_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                            <input type="hidden" id="father_addr_province" name="father_addr_province">
+                                            <div id="father_addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">City/Municipality</label>
+                                            <select id="father_addr_city" name="father_addr_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Barangay</label>
+                                            <select id="father_addr_barangay" name="father_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                            <input type="text" name="father_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        </div>
+                                        <div class="col-md-4 mt-2">
+                                            <label class="form-label text-xs">Zip Code</label>
+                                            <input type="text" name="father_addr_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                        </div>
+                                    </div>
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="father_perm_same" name="father_perm_same" value="1" onchange="toggleParentPermAddress('father')" checked>
+                                        <label class="form-check-label text-xs" for="father_perm_same">Same as Current</label>
+                                    </div>
+                                    <div id="father_perm_block" style="display:none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region</label>
+                                                <select id="father_perm_region" name="father_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="father_perm_region_hidden" id="father_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province</label>
+                                                <input type="text" id="father_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="father_perm_province" name="father_perm_province">
+                                                <div id="father_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality</label>
+                                                <select id="father_perm_city" name="father_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay</label>
+                                                <select id="father_perm_barangay" name="father_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                                <input type="text" name="father_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code</label>
+                                                <input type="text" name="father_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# OFW Address Section #}
+                            <div id="father_ofw_address_section" style="display:none;">
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address (Workplace Abroad)</h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-xs">Country of Work <span class="required">*</span></label>
+                                        <select name="father_ofw_country" id="father_ofw_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                            <option value=""></option>
+                                            {% for country in countries %}
+                                                <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label text-xs">Address / Workplace <span class="required">*</span></label>
+                                        <input type="text" name="father_ofw_address" id="father_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                        <input type="text" name="father_ofw_zip" id="father_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                    </div>
+                                </div>
+
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="father_ofw_perm_same" name="father_ofw_perm_same" value="1" onchange="toggleParentOfwPermSame('father')" checked>
+                                    <label class="form-check-label text-xs" for="father_ofw_perm_same">Same as current address</label>
+                                </div>
+
+                                <div id="father_ofw_perm_diff_block" style="display:none;">
+                                    <div class="mb-3 p-3 bg-white rounded border">
+                                        <label class="form-label text-xs fw-bold d-block mb-2">In Philippines? <span class="required">*</span></label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="father_ofw_perm_in_ph" id="father_ofw_perm_in_ph_yes" value="yes" onchange="toggleParentOfwPermInPh('father')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="father_ofw_perm_in_ph_yes">Yes</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="father_ofw_perm_in_ph" id="father_ofw_perm_in_ph_no" value="no" onchange="toggleParentOfwPermInPh('father')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="father_ofw_perm_in_ph_no">No</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If Yes: Philippine Permanent Address #}
+                                    <div id="father_ofw_perm_ph_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region <span class="required">*</span></label>
+                                                <select id="father_ofw_perm_region" name="father_ofw_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="father_ofw_perm_region_hidden" id="father_ofw_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province <span class="required">*</span></label>
+                                                <input type="text" id="father_ofw_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="father_ofw_perm_province" name="father_ofw_perm_province">
+                                                <div id="father_ofw_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality <span class="required">*</span></label>
+                                                <select id="father_ofw_perm_city" name="father_ofw_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay <span class="required">*</span></label>
+                                                <select id="father_ofw_perm_barangay" name="father_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_street" id="father_ofw_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_zip" id="father_ofw_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If No: International Permanent Address #}
+                                    <div id="father_ofw_perm_intl_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label text-xs">Country <span class="required">*</span></label>
+                                                <select name="father_ofw_perm_country" id="father_ofw_perm_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                                    <option value=""></option>
+                                                    {% for country in countries %}
+                                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label text-xs">Address <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_address" id="father_ofw_perm_address" class="form-control form-control-sm" placeholder="Address">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_intl_zip" id="father_ofw_perm_intl_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -930,18 +1090,194 @@
                             </div>
                             <div class="col-md-4" id="mother_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
-                                <input type="tel" name="mother_contact" id="mother_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: 'mother',
+                                    input_name: 'mother_contact',
+                                    input_id: 'mother_contact',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
                             </div>
                         </div>
-                        <div class="row g-4 mt-1" id="mother_ofw_country_group" style="display: none;">
-                            <div class="col-md-4">
-                                <label class="form-label">Country of Work <span class="required">*</span></label>
-                                <select name="mother_ofw_country" id="mother_ofw_country" class="form-select" data-control="select2" data-placeholder="Select Country">
-                                    <option value=""></option>
-                                    {% for country in countries %}
-                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
-                                    {% endfor %}
-                                </select>
+                        {# Mother Address with Same as Applicant #}
+                        <div class="mt-3 pt-3 border-top" id="mother_address_wrapper">
+                            {# Standard Local Address #}
+                            <div id="mother_standard_address_section">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="mother_same_as_applicant" name="mother_same_as_applicant" value="1" onchange="toggleParentAddress('mother')" checked>
+                                    <label class="form-check-label text-sm fw-bold" for="mother_same_as_applicant">Same address as Applicant</label>
+                                </div>
+                                <div id="mother_address_block" style="display:none;">
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address</h6>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Region</label>
+                                            <select id="mother_addr_region" name="mother_addr_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                            <input type="hidden" name="mother_addr_region_hidden" id="mother_addr_region_hidden">
+                                        </div>
+                                        <div class="col-md-3 position-relative">
+                                            <label class="form-label text-xs">Province</label>
+                                            <input type="text" id="mother_addr_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                            <input type="hidden" id="mother_addr_province" name="mother_addr_province">
+                                            <div id="mother_addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">City/Municipality</label>
+                                            <select id="mother_addr_city" name="mother_addr_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Barangay</label>
+                                            <select id="mother_addr_barangay" name="mother_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                            <input type="text" name="mother_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        </div>
+                                        <div class="col-md-4 mt-2">
+                                            <label class="form-label text-xs">Zip Code</label>
+                                            <input type="text" name="mother_addr_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                        </div>
+                                    </div>
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="mother_perm_same" name="mother_perm_same" value="1" onchange="toggleParentPermAddress('mother')" checked>
+                                        <label class="form-check-label text-xs" for="mother_perm_same">Same as Current</label>
+                                    </div>
+                                    <div id="mother_perm_block" style="display:none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region</label>
+                                                <select id="mother_perm_region" name="mother_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="mother_perm_region_hidden" id="mother_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province</label>
+                                                <input type="text" id="mother_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="mother_perm_province" name="mother_perm_province">
+                                                <div id="mother_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality</label>
+                                                <select id="mother_perm_city" name="mother_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay</label>
+                                                <select id="mother_perm_barangay" name="mother_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                                <input type="text" name="mother_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code</label>
+                                                <input type="text" name="mother_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# OFW Address Section #}
+                            <div id="mother_ofw_address_section" style="display:none;">
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address (Workplace Abroad)</h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-xs">Country of Work <span class="required">*</span></label>
+                                        <select name="mother_ofw_country" id="mother_ofw_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                            <option value=""></option>
+                                            {% for country in countries %}
+                                                <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label text-xs">Address / Workplace <span class="required">*</span></label>
+                                        <input type="text" name="mother_ofw_address" id="mother_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                        <input type="text" name="mother_ofw_zip" id="mother_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                    </div>
+                                </div>
+
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="mother_ofw_perm_same" name="mother_ofw_perm_same" value="1" onchange="toggleParentOfwPermSame('mother')" checked>
+                                    <label class="form-check-label text-xs" for="mother_ofw_perm_same">Same as current address</label>
+                                </div>
+
+                                <div id="mother_ofw_perm_diff_block" style="display:none;">
+                                    <div class="mb-3 p-3 bg-white rounded border">
+                                        <label class="form-label text-xs fw-bold d-block mb-2">In Philippines? <span class="required">*</span></label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="mother_ofw_perm_in_ph" id="mother_ofw_perm_in_ph_yes" value="yes" onchange="toggleParentOfwPermInPh('mother')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="mother_ofw_perm_in_ph_yes">Yes</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="mother_ofw_perm_in_ph" id="mother_ofw_perm_in_ph_no" value="no" onchange="toggleParentOfwPermInPh('mother')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="mother_ofw_perm_in_ph_no">No</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If Yes: Philippine Permanent Address #}
+                                    <div id="mother_ofw_perm_ph_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region <span class="required">*</span></label>
+                                                <select id="mother_ofw_perm_region" name="mother_ofw_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="mother_ofw_perm_region_hidden" id="mother_ofw_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province <span class="required">*</span></label>
+                                                <input type="text" id="mother_ofw_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="mother_ofw_perm_province" name="mother_ofw_perm_province">
+                                                <div id="mother_ofw_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality <span class="required">*</span></label>
+                                                <select id="mother_ofw_perm_city" name="mother_ofw_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay <span class="required">*</span></label>
+                                                <select id="mother_ofw_perm_barangay" name="mother_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_street" id="mother_ofw_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_zip" id="mother_ofw_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If No: International Permanent Address #}
+                                    <div id="mother_ofw_perm_intl_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label text-xs">Country <span class="required">*</span></label>
+                                                <select name="mother_ofw_perm_country" id="mother_ofw_perm_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                                    <option value=""></option>
+                                                    {% for country in countries %}
+                                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label text-xs">Address <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_address" id="mother_ofw_perm_address" class="form-control form-control-sm" placeholder="Address">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_intl_zip" id="mother_ofw_perm_intl_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -962,7 +1298,14 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Contact No. <span class="required">*</span></label>
-                                <input type="tel" name="guardian_contact" id="guardian_contact" class="form-control" placeholder="Contact No." required maxlength="11" minlength="11" pattern="\d{11}">
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: 'guardian',
+                                    input_name: 'guardian_contact',
+                                    input_id: 'guardian_contact',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Email Address <span class="required">*</span></label>
@@ -1098,8 +1441,8 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">General Average / GWA <span class="required">*</span></label>
-                                <input type="number" step="0.01" name="general_average" id="generalAverage" class="form-control" placeholder="e.g. 90.00" required>
+                                <label class="form-label">General Average / GWA (Optional)</label>
+                                <input type="text" name="general_average" id="generalAverage" class="form-control" placeholder="e.g. 90.00 or A/Passed">
                             </div>
                         </div>
 
@@ -1260,7 +1603,7 @@
                                     ] %}
                                     {% for source in source_details %}
                                         <div class="survey-option-card">
-                                            <input type="radio" name="marketing_source" id="source_{{ loop.index }}" value="{{ source.name }}" required class="survey-radio-input" onchange="toggleOtherSource()">
+                                            <input type="checkbox" name="marketing_source[]" id="source_{{ loop.index }}" value="{{ source.name }}" class="survey-radio-input" onchange="toggleOtherSource()">
                                             <label for="source_{{ loop.index }}" class="survey-option-label">
                                                 <div class="survey-icon-container">
                                                     <i class="ki-filled {{ source.icon }} fs-3"></i>
@@ -1273,7 +1616,7 @@
                                         </div>
                                     {% endfor %}
                                     <div class="survey-option-card">
-                                        <input type="radio" name="marketing_source" id="source_other" value="Other" required class="survey-radio-input" onchange="toggleOtherSource()">
+                                        <input type="checkbox" name="marketing_source[]" id="source_other" value="Other" class="survey-radio-input" onchange="toggleOtherSource()">
                                         <label for="source_other" class="survey-option-label">
                                             <div class="survey-icon-container">
                                                 <i class="ki-filled ki-plus-circle fs-3"></i>
@@ -1324,6 +1667,9 @@
 
             {# --- MISSING DOCUMENTS PREMIUM WAIVER MODAL --- #}
             {% include 'enrollment-onsite/diliman/premium_waiver_modal.html.twig' %}
+
+            {# --- DUPLICATE APPLICANT WARNING MODAL --- #}
+            {% include 'enrollment-onsite/_duplicate_warning_modal.html.twig' %}
 
         </form>
     </div>
@@ -1495,7 +1841,7 @@
 </div>
 
 
-<script src="{{ asset('js/validation.js') }}"></script>
+<script src="{{ asset('js/validation.js') }}?v={{ 'now'|date('U') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
 
 <script>
@@ -1526,18 +1872,16 @@
     }
 
     // FEU Diliman specialized missing document warning flow overrides
-    document.addEventListener('DOMContentLoaded', function() {
-        // Override the global showDocWarningModal from enrollment.js to use our new premium waiver modal
-        window.showDocWarningModal = function(missingDocs) {
-            if (typeof window.showPremiumWaiverModal === 'function') {
-                window.showPremiumWaiverModal(missingDocs);
-            }
-        };
+    window.showDocWarningModal = function(missingDocs) {
+        if (typeof window.showPremiumWaiverModal === 'function') {
+            window.showPremiumWaiverModal(missingDocs);
+        }
+    };
 
-        // We no longer need the confirmWaiverSubmission here because it's defined in premium_waiver_modal.html.twig
-        
+    function initDilimanLrnCheck() {
         const lrnInput = document.getElementById('lrnInput');
-        if (lrnInput) {
+        if (lrnInput && !lrnInput.hasAttribute('data-lrn-check-init')) {
+            lrnInput.setAttribute('data-lrn-check-init', '1');
             lrnInput.addEventListener('blur', function() {
                 const lrn = this.value;
                 if(lrn.length === 12) {
@@ -1556,7 +1900,14 @@
                 }
             });
         }
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDilimanLrnCheck);
+    } else {
+        initDilimanLrnCheck();
+    }
+    document.addEventListener('turbo:load', initDilimanLrnCheck);
 </script>
 
 {% endblock %}

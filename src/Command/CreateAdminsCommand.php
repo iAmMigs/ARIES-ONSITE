@@ -63,13 +63,15 @@ class CreateAdminsCommand extends Command
             $user->setFirstName($adminData['first']);
             $user->setLastName($adminData['last']);
             $user->setCampus($adminData['campus']);
+            $user->setTier(AdminUser::TIER_MASTER);
+            $user->setCanManageAdmins(true);
             $user->setRoles(['ROLE_ADMIN']);
             
             $hashedPassword = $this->passwordHasher->hashPassword($user, $adminData['password']);
             $user->setPassword($hashedPassword);
 
             $this->entityManager->persist($user);
-            $io->success(sprintf('Created admin: %s (%s)', $adminData['email'], $user->getFullName()));
+            $io->success(sprintf('Created admin: %s (%s) [Master Admin]', $adminData['email'], $user->getFullName()));
         }
 
         $this->entityManager->flush();

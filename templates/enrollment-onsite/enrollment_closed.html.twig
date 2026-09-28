@@ -35,7 +35,7 @@
         </div>
 
         <div class="pt-4">
-            <a href="{{ path('app_home') }}" class="btn-feu-primary w-full block py-3 rounded-lg font-bold shadow-md hover:shadow-lg transition-all">
+            <a href="{{ path(campus == 'feu_diliman' ? 'app_home_diliman' : 'app_home_alabang') }}" class="btn-feu-primary w-full block py-3 rounded-lg font-bold shadow-md hover:shadow-lg transition-all">
                 Return to Homepage
             </a>
         </div>

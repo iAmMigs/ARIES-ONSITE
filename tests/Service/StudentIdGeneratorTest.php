@@ -24,7 +24,7 @@ class StudentIdGeneratorTest extends TestCase
     public function testGenerateStudentNumberForAlabangNoPrevious(): void
     {
         $schoolYear = new SchoolYear();
-        $schoolYear->setYearStart('2025');
+        $schoolYear->setYearStart(2025);
 
         $this->repositoryMock->expects($this->once())
             ->method('findLatestForGeneration')
@@ -40,7 +40,7 @@ class StudentIdGeneratorTest extends TestCase
     public function testGenerateStudentNumberForDilimanWithPrevious(): void
     {
         $schoolYear = new SchoolYear();
-        $schoolYear->setYearStart('2025');
+        $schoolYear->setYearStart(2025);
 
         $previousApplicant = new ApplicantBed();
         $previousApplicant->setStudentNumber('202550042');
@@ -59,7 +59,7 @@ class StudentIdGeneratorTest extends TestCase
     public function testGenerateStudentNumberForDilimanInternationalNoPrevious(): void
     {
         $schoolYear = new SchoolYear();
-        $schoolYear->setYearStart('2026');
+        $schoolYear->setYearStart(2026);
 
         $this->repositoryMock->expects($this->once())
             ->method('findLatestForGeneration')
@@ -75,7 +75,7 @@ class StudentIdGeneratorTest extends TestCase
     public function testGenerateStudentNumberForDilimanInternationalWithPrevious(): void
     {
         $schoolYear = new SchoolYear();
-        $schoolYear->setYearStart('2026');
+        $schoolYear->setYearStart(2026);
 
         $previousApplicant = new ApplicantBed();
         $previousApplicant->setStudentNumber('2026-000123');

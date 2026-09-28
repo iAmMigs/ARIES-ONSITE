@@ -46,12 +46,13 @@ class DocumentApiController extends AbstractController
             }
 
             // 2. Check Nationality
-            $docNationality = $doc->getNationalityType();
-            if ($docNationality) {
+            $docNationality = strtoupper((string) $doc->getNationalityType());
+            if ($docNationality !== '' && $docNationality !== 'ALL') {
                 $isMatch = false;
-                if ($docNationality === 'FILIPINO' && strtoupper($nationality) === 'FILIPINO') {
+                $isFilipino = (strtoupper($nationality) === 'FILIPINO' || strtoupper($nationality) === 'LOCAL');
+                if (($docNationality === 'FILIPINO' || $docNationality === 'LOCAL') && $isFilipino) {
                     $isMatch = true;
-                } elseif ($docNationality === 'FOREIGN' && strtoupper($nationality) !== 'FILIPINO') {
+                } elseif (($docNationality === 'FOREIGN' || $docNationality === 'INTERNATIONAL') && !$isFilipino) {
                     $isMatch = true;
                 }
                 

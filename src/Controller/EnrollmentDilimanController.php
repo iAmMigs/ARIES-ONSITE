@@ -172,13 +172,11 @@ class EnrollmentDilimanController extends AbstractController
             $applicant->setExtensionName($formatName($request->request->get('suffix')));
             $applicant->setSuffix($formatName($request->request->get('suffix')));
             $applicant->setPreferredName($formatName($request->request->get('preferred_name')));
-            $applicant->setCivilStatus($request->request->get('civil_status'));
             $applicant->setCountryOfBirth($request->request->get('country_of_birth'));
             $applicant->setCountryOfResidence($request->request->get('country_of_residence'));
             $applicant->setLastGradeCompleted($request->request->get('last_grade_completed'));
-            if ($gAvg = $request->request->get('general_average')) {
-                $applicant->setGeneralAverage((float)$gAvg);
-            }
+            $gAvg = $request->request->get('general_average');
+            $applicant->setGeneralAverage($gAvg !== null && trim((string)$gAvg) !== '' ? trim((string)$gAvg) : null);
             
             if ($birthday = $request->request->get('birthday')) {
                 $applicant->setBirthDate(new \DateTime($birthday));
@@ -217,15 +215,29 @@ class EnrollmentDilimanController extends AbstractController
                 $em->persist($passport);
             }
 
-            $marketingSource = $request->request->get('marketing_source');
-            if ($marketingSource === 'Other') {
-                $marketingSource = $request->request->get('marketing_source_other');
+            $rawMarketing = $request->request->all()['marketing_source'] ?? $request->request->get('marketing_source');
+            if (is_array($rawMarketing)) {
+                $sources = [];
+                foreach ($rawMarketing as $src) {
+                    if ($src === 'Other') {
+                        $otherText = trim((string)$request->request->get('marketing_source_other', ''));
+                        $sources[] = $otherText !== '' ? ('Other: ' . $otherText) : 'Other';
+                    } else {
+                        $sources[] = trim((string)$src);
+                    }
+                }
+                $applicant->setMarketingSource(implode(', ', array_filter($sources)));
+            } else {
+                $marketingSource = (string)$rawMarketing;
+                if ($marketingSource === 'Other') {
+                    $marketingSource = (string)$request->request->get('marketing_source_other', '');
+                }
+                $applicant->setMarketingSource($marketingSource !== '' ? $marketingSource : null);
             }
-            $applicant->setMarketingSource($marketingSource);
 
-            // Waiver check already performed earlier.
-
-            $applicant->setMobileNumber($request->request->get('contact_number'));
+            $dialCode = trim((string)$request->request->get('country_dial_code', ''));
+            $contactNumber = trim((string)$request->request->get('contact_number', ''));
+            $applicant->setMobileNumber($dialCode ? ($dialCode . ' ' . $contactNumber) : $contactNumber);
             $applicant->setPersonalEmail($request->request->get('email'));
             $applicant->setLandLineNumber($request->request->get('landline'));
 
@@ -333,18 +345,26 @@ class EnrollmentDilimanController extends AbstractController
                     if ($file->getSize() > 10485760) throw new \Exception('File ' . $docSetup->getDocumentName() . ' exceeds 10MB limit.');
 
                     $allowedTypesString = $docSetup->getAllowedFileTypes();
-                    if (!empty($allowedTypesString)) {
-                        $allowedExtensions = array_map('trim', explode(',', strtolower($allowedTypesString)));
-                        if (!in_array(strtolower($file->getClientOriginalExtension()), $allowedExtensions)) {
-                            throw new \Exception('Invalid format for ' . $docSetup->getDocumentName());
-                        }
+                    $allowedExtensions = !empty($allowedTypesString)
+                        ? array_map('trim', explode(',', strtolower($allowedTypesString)))
+                        : ['pdf', 'jpg', 'jpeg', 'png'];
+
+                    $clientExt = strtolower((string)$file->getClientOriginalExtension());
+                    if (!in_array($clientExt, $allowedExtensions, true)) {
+                        throw new \Exception('Invalid format for ' . $docSetup->getDocumentName());
+                    }
+
+                    $mime = (string)$file->getMimeType();
+                    $isAllowedMime = str_starts_with($mime, 'image/') || $mime === 'application/pdf';
+                    if (!$isAllowedMime) {
+                        throw new \Exception('Invalid file type for ' . $docSetup->getDocumentName());
                     }
 
                     $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
                     if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
-                    $ext = $file->guessExtension() ?: $file->getClientOriginalExtension();
-                    $filename = strtoupper($slug) . '-' . $studentNo . '.' . $ext;
+                    $ext = $file->guessExtension() ?: $clientExt;
+                    $filename = strtoupper($slug) . '-' . $studentNo . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
                     $file->move($targetDir, $filename);
                     
                     $req = new ApplicantBedRequirement();
@@ -366,8 +386,8 @@ class EnrollmentDilimanController extends AbstractController
 
             if ($isInternational) {
                 try {
-                    $emailService->sendSuccessfulRegistrationEmail($applicant, $activeSY);
-                } catch (\Exception $ex) {
+                    $emailService->sendSuccessfulRegistrationEmail($applicant, $selectedSY);
+                } catch (\Throwable $ex) {
                     $logger->error('Failed to send admissions registration email for student ' . $studentNo . ': ' . $ex->getMessage());
                 }
             }
@@ -399,12 +419,12 @@ class EnrollmentDilimanController extends AbstractController
         $isInternational = (strtoupper($applicant->getCitizenship() ?? '') === 'INTERNATIONAL');
         if ($type === 'permanent' && $isInternational) {
             $applicant->setPermanentCountry($request->request->get('perm_country'));
-            $applicant->setPermanentRegion(strtoupper($request->request->get('perm_region_text', '') ?: ''));
-            $applicant->setPermanentProvince(strtoupper($request->request->get('perm_province_text', '') ?: ''));
-            $applicant->setPermanentCity(strtoupper($request->request->get('perm_city_text', '') ?: ''));
-            $applicant->setPermanentBarangay(strtoupper($request->request->get('perm_barangay_text', '') ?: ''));
-            $applicant->setPermanentAddress(strtoupper($request->request->get('perm_address', '') ?: ''));
-            $applicant->setPermanentZip($request->request->get('perm_zip'));
+            $applicant->setPermanentAddress(strtoupper((string)($request->request->get('perm_address', '') ?: '')));
+            $applicant->setPermanentZip((string)$request->request->get('perm_zip', ''));
+            $applicant->setPermanentRegion(null);
+            $applicant->setPermanentProvince(null);
+            $applicant->setPermanentCity(null);
+            $applicant->setPermanentBarangay(null);
             return;
         }
 
@@ -435,8 +455,8 @@ class EnrollmentDilimanController extends AbstractController
             $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyId); 
         }
 
-        $applicant->{'set'.$fieldPrefix.'Address'}(strtoupper($request->request->get($type === 'current' ? 'address' : 'perm_address')));
-        $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type === 'current' ? 'address_zip' : 'perm_zip'));
+        $applicant->{'set'.$fieldPrefix.'Address'}(strtoupper((string)($request->request->get($type === 'current' ? 'address' : 'perm_address') ?? '')));
+        $applicant->{'set'.$fieldPrefix.'Zip'}((string)($request->request->get($type === 'current' ? 'address_zip' : 'perm_zip') ?? ''));
     }
 
     private function handleGuardian(ApplicantBed $applicant, Request $request, string $slot, EntityManagerInterface $em)
@@ -490,62 +510,20 @@ class EnrollmentDilimanController extends AbstractController
         $guardian->setParentName($fullname);
         $guardian->setRelationship($relationship);
         $guardian->setOccupation($occupation);
-        $guardian->setContactNo($request->request->get($slot . '_contact', ''));
+        $dialCode = trim((string)$request->request->get($slot . '_country_dial_code', ''));
+        $contactNo = trim((string)$request->request->get($slot . '_contact', ''));
+        $guardian->setContactNo($dialCode ? ($dialCode . ' ' . $contactNo) : $contactNo);
         $guardian->setDeceased($request->request->get($slot . '_deceased') ? true : false);
         $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
         $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
         $guardian->setEmail($request->request->get($slot . '_email'));
         $guardian->setNationality($request->request->get($slot . '_nationality'));
 
-        // --- Address handling ---
-        if ($slot === 'guardian') {
-            // Guardian slot: check "Same as Applicant" flag
-            $sameAsApplicant = $request->request->get('guardian_same_as_applicant') ? true : false;
-            $guardian->setSameAsApplicant($sameAsApplicant);
+        // --- Address handling for father, mother, or guardian ---
+        $sameAsApplicant = (bool)$request->request->get($slot . '_same_as_applicant');
+        $guardian->setSameAsApplicant($sameAsApplicant);
 
-            if ($sameAsApplicant) {
-                // Copy applicant's addresses to guardian
-                $guardian->setCurrentRegion($applicant->getCurrentRegion());
-                $guardian->setCurrentProvince($applicant->getCurrentProvince());
-                $guardian->setCurrentCity($applicant->getCurrentCity());
-                $guardian->setCurrentBarangay($applicant->getCurrentBarangay());
-                $guardian->setCurrentAddress($applicant->getCurrentAddress());
-                $guardian->setCurrentZip($applicant->getCurrentZip());
-                $guardian->setPermanentRegion($applicant->getPermanentRegion());
-                $guardian->setPermanentProvince($applicant->getPermanentProvince());
-                $guardian->setPermanentCity($applicant->getPermanentCity());
-                $guardian->setPermanentBarangay($applicant->getPermanentBarangay());
-                $guardian->setPermanentAddress($applicant->getPermanentAddress());
-                $guardian->setPermanentZip($applicant->getPermanentZip());
-            } else {
-                // Guardian's own current address
-                $guardian->setCurrentRegion(strtoupper($request->request->get('guardian_addr_region', '') ?: ''));
-                $guardian->setCurrentProvince(strtoupper($request->request->get('guardian_addr_province', '') ?: ''));
-                $guardian->setCurrentCity(strtoupper($request->request->get('guardian_addr_city', '') ?: ''));
-                $guardian->setCurrentBarangay($request->request->get('guardian_addr_barangay', ''));
-                $guardian->setCurrentAddress(strtoupper($request->request->get('guardian_addr_street', '') ?: ''));
-                $guardian->setCurrentZip($request->request->get('guardian_addr_zip', ''));
-
-                // Guardian's permanent address
-                $permSame = $request->request->get('guardian_perm_same');
-                if ($permSame) {
-                    $guardian->setPermanentRegion($guardian->getCurrentRegion());
-                    $guardian->setPermanentProvince($guardian->getCurrentProvince());
-                    $guardian->setPermanentCity($guardian->getCurrentCity());
-                    $guardian->setPermanentBarangay($guardian->getCurrentBarangay());
-                    $guardian->setPermanentAddress($guardian->getCurrentAddress());
-                    $guardian->setPermanentZip($guardian->getCurrentZip());
-                } else {
-                    $guardian->setPermanentRegion(strtoupper($request->request->get('guardian_perm_region', '') ?: ''));
-                    $guardian->setPermanentProvince(strtoupper($request->request->get('guardian_perm_province', '') ?: ''));
-                    $guardian->setPermanentCity(strtoupper($request->request->get('guardian_perm_city', '') ?: ''));
-                    $guardian->setPermanentBarangay($request->request->get('guardian_perm_barangay', ''));
-                    $guardian->setPermanentAddress(strtoupper($request->request->get('guardian_perm_street', '') ?: ''));
-                    $guardian->setPermanentZip($request->request->get('guardian_perm_zip', ''));
-                }
-            }
-        } else {
-            // Father/Mother: personal/contact only (no address collection)
+        if ($guardian->isDeceased()) {
             $guardian->setSameAsApplicant(false);
             $guardian->setCurrentRegion(null);
             $guardian->setCurrentProvince(null);
@@ -559,6 +537,86 @@ class EnrollmentDilimanController extends AbstractController
             $guardian->setPermanentBarangay(null);
             $guardian->setPermanentAddress(null);
             $guardian->setPermanentZip(null);
+            $guardian->setPermanentCountry(null);
+        } elseif ($guardian->isOFW()) {
+            $guardian->setSameAsApplicant(false);
+            $ofwCountry = $request->request->get($slot . '_ofw_country');
+            $guardian->setOfwCountry($ofwCountry);
+            $guardian->setCurrentRegion(null);
+            $guardian->setCurrentProvince(null);
+            $guardian->setCurrentCity(null);
+            $guardian->setCurrentBarangay(null);
+            $guardian->setCurrentAddress(strtoupper((string)($request->request->get($slot . '_ofw_address') ?: '')));
+            $guardian->setCurrentZip((string)($request->request->get($slot . '_ofw_zip') ?: ''));
+
+            $ofwPermSame = (bool)$request->request->get($slot . '_ofw_perm_same');
+            if ($ofwPermSame) {
+                $guardian->setPermanentCountry($ofwCountry);
+                $guardian->setPermanentAddress($guardian->getCurrentAddress());
+                $guardian->setPermanentZip($guardian->getCurrentZip());
+                $guardian->setPermanentRegion(null);
+                $guardian->setPermanentProvince(null);
+                $guardian->setPermanentCity(null);
+                $guardian->setPermanentBarangay(null);
+            } else {
+                $permInPh = $request->request->get($slot . '_ofw_perm_in_ph');
+                if ($permInPh === 'yes') {
+                    $guardian->setPermanentCountry(null);
+                    $guardian->setPermanentRegion(strtoupper((string)($request->request->get($slot . '_ofw_perm_region') ?: '')));
+                    $guardian->setPermanentProvince(strtoupper((string)($request->request->get($slot . '_ofw_perm_province') ?: '')));
+                    $guardian->setPermanentCity(strtoupper((string)($request->request->get($slot . '_ofw_perm_city') ?: '')));
+                    $guardian->setPermanentBarangay((string)$request->request->get($slot . '_ofw_perm_barangay', ''));
+                    $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_ofw_perm_street') ?: '')));
+                    $guardian->setPermanentZip((string)$request->request->get($slot . '_ofw_perm_zip', ''));
+                } else {
+                    $guardian->setPermanentCountry($request->request->get($slot . '_ofw_perm_country'));
+                    $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_ofw_perm_address') ?: '')));
+                    $guardian->setPermanentZip((string)($request->request->get($slot . '_ofw_perm_intl_zip') ?: $request->request->get($slot . '_ofw_perm_zip') ?: ''));
+                    $guardian->setPermanentRegion(null);
+                    $guardian->setPermanentProvince(null);
+                    $guardian->setPermanentCity(null);
+                    $guardian->setPermanentBarangay(null);
+                }
+            }
+        } elseif ($sameAsApplicant) {
+            $guardian->setCurrentRegion($applicant->getCurrentRegion());
+            $guardian->setCurrentProvince($applicant->getCurrentProvince());
+            $guardian->setCurrentCity($applicant->getCurrentCity());
+            $guardian->setCurrentBarangay($applicant->getCurrentBarangay());
+            $guardian->setCurrentAddress($applicant->getCurrentAddress());
+            $guardian->setCurrentZip($applicant->getCurrentZip());
+            $guardian->setPermanentRegion($applicant->getPermanentRegion());
+            $guardian->setPermanentProvince($applicant->getPermanentProvince());
+            $guardian->setPermanentCity($applicant->getPermanentCity());
+            $guardian->setPermanentBarangay($applicant->getPermanentBarangay());
+            $guardian->setPermanentAddress($applicant->getPermanentAddress());
+            $guardian->setPermanentZip($applicant->getPermanentZip());
+            $guardian->setPermanentCountry($applicant->getPermanentCountry());
+        } else {
+            $guardian->setPermanentCountry(null);
+            $guardian->setCurrentRegion(strtoupper((string)($request->request->get($slot . '_addr_region') ?: '')));
+            $guardian->setCurrentProvince(strtoupper((string)($request->request->get($slot . '_addr_province') ?: '')));
+            $guardian->setCurrentCity(strtoupper((string)($request->request->get($slot . '_addr_city') ?: '')));
+            $guardian->setCurrentBarangay((string)$request->request->get($slot . '_addr_barangay', ''));
+            $guardian->setCurrentAddress(strtoupper((string)($request->request->get($slot . '_addr_street') ?: '')));
+            $guardian->setCurrentZip((string)$request->request->get($slot . '_addr_zip', ''));
+
+            $permSame = $request->request->get($slot . '_perm_same');
+            if ($permSame) {
+                $guardian->setPermanentRegion($guardian->getCurrentRegion());
+                $guardian->setPermanentProvince($guardian->getCurrentProvince());
+                $guardian->setPermanentCity($guardian->getCurrentCity());
+                $guardian->setPermanentBarangay($guardian->getCurrentBarangay());
+                $guardian->setPermanentAddress($guardian->getCurrentAddress());
+                $guardian->setPermanentZip($guardian->getCurrentZip());
+            } else {
+                $guardian->setPermanentRegion(strtoupper((string)($request->request->get($slot . '_perm_region') ?: '')));
+                $guardian->setPermanentProvince(strtoupper((string)($request->request->get($slot . '_perm_province') ?: '')));
+                $guardian->setPermanentCity(strtoupper((string)($request->request->get($slot . '_perm_city') ?: '')));
+                $guardian->setPermanentBarangay((string)$request->request->get($slot . '_perm_barangay', ''));
+                $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_perm_street') ?: '')));
+                $guardian->setPermanentZip((string)$request->request->get($slot . '_perm_zip', ''));
+            }
         }
 
         $em->persist($guardian);
@@ -584,6 +642,59 @@ class EnrollmentDilimanController extends AbstractController
         if (!$lrn) return $this->json(['exists' => false]);
         $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrn]);
         return $this->json(['exists' => $existing !== null]);
+    }
+
+    #[Route('/api/check-duplicate-applicant', name: 'app_enrollment_diliman_check_duplicate', methods: ['POST'])]
+    public function checkDuplicate(Request $request, EntityManagerInterface $em): Response
+    {
+        $payload = json_decode($request->getContent(), true) ?: $request->request->all();
+        $firstName = trim((string)($payload['first_name'] ?? ''));
+        $lastName = trim((string)($payload['last_name'] ?? ''));
+        $middleName = trim((string)($payload['middle_name'] ?? ''));
+        $birthDateStr = trim((string)($payload['birth_date'] ?? ''));
+
+        if (!$firstName || !$lastName || !$birthDateStr) {
+            return $this->json(['exists' => false]);
+        }
+
+        try {
+            $birthDate = new \DateTime($birthDateStr);
+        } catch (\Exception $e) {
+            return $this->json(['exists' => false]);
+        }
+
+        $qb = $em->getRepository(ApplicantBed::class)->createQueryBuilder('a')
+            ->where('a.campus = :campus')
+            ->andWhere('LOWER(TRIM(a.firstName)) = :firstName')
+            ->andWhere('LOWER(TRIM(a.lastName)) = :lastName')
+            ->andWhere('a.birthDate = :birthDate')
+            ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
+            ->setParameter('firstName', strtolower($firstName))
+            ->setParameter('lastName', strtolower($lastName))
+            ->setParameter('birthDate', $birthDate);
+
+        if ($middleName !== '') {
+            $qb->andWhere('LOWER(TRIM(a.middleName)) = :middleName')
+               ->setParameter('middleName', strtolower($middleName));
+        } else {
+            $qb->andWhere('(a.middleName IS NULL OR TRIM(a.middleName) = \'\')');
+        }
+
+        $existing = $qb->setMaxResults(1)->getQuery()->getOneOrNullResult();
+
+        if ($existing) {
+            return $this->json([
+                'exists' => true,
+                'applicant' => [
+                    'studentNumber' => $existing->getStudentNumber(),
+                    'fullName' => trim($existing->getFirstName() . ' ' . ($existing->getMiddleName() ? $existing->getMiddleName() . ' ' : '') . $existing->getLastName()),
+                    'birthDate' => $existing->getBirthDate() ? $existing->getBirthDate()->format('F j, Y') : '',
+                    'createdAt' => $existing->getCreatedAt() ? $existing->getCreatedAt()->format('M d, Y') : '',
+                ]
+            ]);
+        }
+
+        return $this->json(['exists' => false]);
     }
 
 

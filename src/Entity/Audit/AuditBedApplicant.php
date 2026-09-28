@@ -94,8 +94,8 @@ class AuditBedApplicant
     #[ORM\Column(name: 'last_grade_completed', length: 50, nullable: true)]
     private ?string $lastGradeCompleted = null;
 
-    #[ORM\Column(name: 'general_average', type: Types::FLOAT, nullable: true)]
-    private ?float $generalAverage = null;
+    #[ORM\Column(name: 'general_average', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $generalAverage = null;
 
     public function __set($name, $value) {
         if (property_exists($this, $name)) {

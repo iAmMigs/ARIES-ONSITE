@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\AdminUser;
 use App\Entity\ApplicantBed;
 use App\Entity\SchoolYear;
 use App\Repository\SchoolYearRepository;
@@ -12,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * Manages school year configuration for both the Alabang and Diliman campuses.
@@ -37,6 +39,8 @@ class SchoolYearController extends AbstractController
         SchoolYearRepository $syRepo,
         EntityManagerInterface $em
     ): Response {
+        $this->assertCampusAccess($campus);
+
         // Resolve the campus form slug to the entity campus code
         $campusCode = $this->resolveCampusCode($campus);
         if (!$campusCode) {
@@ -44,6 +48,11 @@ class SchoolYearController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('sy_create', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Invalid security token.');
+                return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+            }
+
             $yearStart = (int) $request->request->get('year_start');
             $yearEnd   = $yearStart + 1;
             $promissoryDeadlineStr = $request->request->get('promissory_deadline');
@@ -107,9 +116,17 @@ class SchoolYearController extends AbstractController
     public function activate(
         string $campus,
         int $id,
+        Request $request,
         SchoolYearRepository $syRepo,
         EntityManagerInterface $em
     ): Response {
+        $this->assertCampusAccess($campus);
+
+        if (!$this->isCsrfTokenValid('sy_activate_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+        }
+
         $campusCode = $this->resolveCampusCode($campus);
         $sy = $syRepo->find($id);
 
@@ -131,6 +148,41 @@ class SchoolYearController extends AbstractController
     }
 
     /**
+     * Deactivates the currently active school year for its campus.
+     * Also closes the enrollment window if it was open, since an inactive
+     * school year should never have enrollment open.
+     */
+    #[Route('/{campus}/{id}/deactivate', name: 'app_admin_school_year_deactivate', methods: ['POST'])]
+    public function deactivate(
+        string $campus,
+        int $id,
+        Request $request,
+        SchoolYearRepository $syRepo,
+        EntityManagerInterface $em
+    ): Response {
+        $this->assertCampusAccess($campus);
+
+        if (!$this->isCsrfTokenValid('sy_deactivate_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+        }
+
+        $campusCode = $this->resolveCampusCode($campus);
+        $sy = $syRepo->find($id);
+
+        if (!$sy || $sy->getCampus() !== $campusCode) {
+            throw $this->createNotFoundException();
+        }
+
+        $sy->setIsActive(false);
+        $sy->setEnrollmentOpen(false);
+        $em->flush();
+
+        $this->addFlash('success', $sy->getLabel() . ' has been deactivated. No school year is currently active.');
+        return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+    }
+
+    /**
      * Toggles the enrollment window open or closed.
      * A maximum of 2 school years can have enrollment open concurrently.
      */
@@ -138,9 +190,17 @@ class SchoolYearController extends AbstractController
     public function toggleEnrollment(
         string $campus,
         int $id,
+        Request $request,
         SchoolYearRepository $syRepo,
         EntityManagerInterface $em
     ): Response {
+        $this->assertCampusAccess($campus);
+
+        if (!$this->isCsrfTokenValid('sy_toggle_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+        }
+
         $campusCode = $this->resolveCampusCode($campus);
         $sy = $syRepo->find($id);
 
@@ -177,6 +237,13 @@ class SchoolYearController extends AbstractController
         SchoolYearRepository $syRepo,
         EntityManagerInterface $em
     ): Response {
+        $this->assertCampusAccess($campus);
+
+        if (!$this->isCsrfTokenValid('sy_deadline_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+        }
+
         $campusCode = $this->resolveCampusCode($campus);
         $sy = $syRepo->find($id);
 
@@ -243,9 +310,17 @@ class SchoolYearController extends AbstractController
     public function delete(
         string $campus,
         int $id,
+        Request $request,
         SchoolYearRepository $syRepo,
         EntityManagerInterface $em
     ): Response {
+        $this->assertCampusAccess($campus);
+
+        if (!$this->isCsrfTokenValid('sy_delete_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $campus]);
+        }
+
         $campusCode = $this->resolveCampusCode($campus);
         $sy = $syRepo->find($id);
 
@@ -290,5 +365,26 @@ class SchoolYearController extends AbstractController
             'diliman' => SchoolYear::CAMPUS_DILIMAN,
             default   => null,
         };
+    }
+
+    /**
+     * Ensures the current admin is authenticated and belongs to the campus being managed.
+     */
+    private function assertCampusAccess(string $campus): void
+    {
+        $user = $this->getUser();
+        if (!$user instanceof AdminUser) {
+            throw new AccessDeniedException('You must be logged in as an administrator.');
+        }
+
+        $expectedCampus = match ($campus) {
+            'alabang' => 'feu_alabang',
+            'diliman' => 'feu_diliman',
+            default   => null,
+        };
+
+        if ($expectedCampus === null || $user->getCampus() !== $expectedCampus) {
+            throw new AccessDeniedException('You are not authorized to manage school years for this campus.');
+        }
     }
 }

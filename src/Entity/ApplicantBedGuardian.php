@@ -94,6 +94,9 @@ class ApplicantBedGuardian
     #[ORM\Column(name: 'permanent_zip', type: Types::STRING, length: 10, nullable: true)]
     private ?string $permanentZip = null;
 
+    #[ORM\Column(name: 'permanent_country', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $permanentCountry = null;
+
     // --- Same as Applicant Flag (Guardian slot only) ---
     #[ORM\Column(name: 'is_same_as_applicant', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $isSameAsApplicant = false;
@@ -172,6 +175,8 @@ class ApplicantBedGuardian
     public function setPermanentAddress(?string $v): static { $this->permanentAddress = $v; return $this; }
     public function getPermanentZip(): ?string { return $this->permanentZip; }
     public function setPermanentZip(?string $v): static { $this->permanentZip = $v; return $this; }
+    public function getPermanentCountry(): ?string { return $this->permanentCountry; }
+    public function setPermanentCountry(?string $v): static { $this->permanentCountry = $v; return $this; }
 
     // --- Same as Applicant ---
     public function isSameAsApplicant(): bool { return $this->isSameAsApplicant; }

@@ -11,11 +11,6 @@ class AuditBedPassport
 {
     use AuditFieldsTrait;
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
     #[ORM\Column(name: 'original_passport_id', type: Types::INTEGER, nullable: true)]
     private ?int $originalId = null;
 

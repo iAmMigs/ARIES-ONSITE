@@ -71,20 +71,20 @@
                                 </div>
 
                                 <select name="admission_type" class="bg-purple-50 text-purple-700 text-sm font-semibold border border-purple-100 rounded-lg px-2 py-1">
-                                    <option value="Freshman" {{ registration.admissionType == 'Freshman' ? 'selected' }}>Freshman</option>
-                                    <option value="Transferee" {{ registration.admissionType == 'Transferee' ? 'selected' }}>Transferee</option>
+                                    <option value="New Student" {{ (registration.admissionType == 'New Student' or registration.admissionType == 'Freshman') ? 'selected' : '' }}>New Student</option>
+                                    <option value="Transferee" {{ registration.admissionType == 'Transferee' ? 'selected' : '' }}>Transferee</option>
                                 </select>
                                                             
                                 <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1" onchange="if(window.updateGradeDependents) window.updateGradeDependents()">
                                     {% for level in ['kinder', 'grade_1', 'grade_2', 'grade_3', 'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9', 'grade_10', 'grade_11', 'grade_12'] %}
-                                        <option value="{{ level }}" {{ (registration.gradeLevel|lower|replace({' ': '_'}) == level|lower) ? 'selected' }}>{{ level|replace({'_': ' '})|title }}</option>
+                                        <option value="{{ level }}" {{ (registration.gradeLevel|lower|replace({' ': '_'}) == level|lower or (level == 'kinder' and registration.gradeLevel|lower in ['kinder', 'kindergarten'])) ? 'selected' : '' }}>{{ level|replace({'_': ' '})|title }}</option>
                                     {% endfor %}
                                 </select>
 
                                 <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
-                                    <option value="">Select Framework</option>
-                                    {% for framework in ['Accountancy, Business Administration, and Management', 'Arts and Humanities', 'Engineering and Architecture', 'IT and Computer Science', 'Medicine and Health Sciences', 'Tourism and Hospitality', 'Mixed Framework'] %}
-                                        <option value="{{ framework }}" {{ (registration.trackStrand|upper == framework|upper) ? 'selected' }}>{{ framework }}</option>
+                                    <option value="">Select Framework / Strand</option>
+                                    {% for framework in ['Accountancy, Business Administration, and Management', 'Arts and Humanities', 'Engineering and Architecture', 'IT and Computer Science', 'Medicine and Health Sciences', 'Tourism and Hospitality', 'Mixed Framework', 'STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'] %}
+                                        <option value="{{ framework }}" {{ (registration.trackStrand|upper == framework|upper) ? 'selected' : '' }}>{{ framework }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -125,6 +125,22 @@
                                 <div id="pendingBox" style="{{ registration.examinationScore is not null ? 'display: none;' : '' }}" class="text-sm font-bold text-orange-500">
                                     Pending Examination
                                 </div>
+
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <div class="text-xs font-bold text-gray-400 uppercase mb-2">Payment Status</div>
+                                    
+                                    <label class="flex items-center justify-center gap-2 cursor-pointer mb-2">
+                                        <input type="checkbox" name="payment_paid" id="shsPaymentPaidCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'checked' : '' }}>
+                                        <span class="text-sm font-bold text-gray-700">Paid</span>
+                                    </label>
+
+                                    <div id="shsPaymentPaidBox" class="text-sm font-bold text-green-600" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? '' : 'display: none;' }}">
+                                        Paid
+                                    </div>
+                                    <div id="shsPaymentPendingBox" class="text-sm font-bold text-orange-500" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'display: none;' : '' }}">
+                                        For Payment
+                                    </div>
+                                </div>
                             </div>
 
                             {# Payment Status - For K-10 #}
@@ -157,8 +173,8 @@
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Gender</label>
                                     <select name="gender" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value="Male" {{ registration.gender == 'Male' ? 'selected' : '' }}>Male</option>
-                                        <option value="Female" {{ registration.gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                        <option value="Male" {{ (registration.gender == 'Male' or registration.gender == 'M') ? 'selected' : '' }}>Male</option>
+                                        <option value="Female" {{ (registration.gender == 'Female' or registration.gender == 'F') ? 'selected' : '' }}>Female</option>
                                     </select>
                                 </div>
                                 <div>
@@ -185,8 +201,8 @@
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
                                     <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" onchange="const pCont = document.getElementById('passport_fields_container'); if(pCont) { pCont.style.display = this.value === 'INTERNATIONAL' ? '' : 'none'; }">
-                                        <option value="LOCAL" {{ registration.citizenship|upper == 'LOCAL' ? 'selected' : '' }}>Local</option>
-                                        <option value="INTERNATIONAL" {{ registration.citizenship|upper == 'INTERNATIONAL' ? 'selected' : '' }}>International</option>
+                                        <option value="LOCAL" {{ registration.citizenship|upper in ['LOCAL', 'FILIPINO'] ? 'selected' : '' }}>Local / Filipino</option>
+                                        <option value="INTERNATIONAL" {{ registration.citizenship|upper in ['INTERNATIONAL', 'NON-FILIPINO', 'FOREIGN'] ? 'selected' : '' }}>International</option>
                                     </select>
                                 </div>
                                 <div>
@@ -202,7 +218,7 @@
                                     <select name="civil_status" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                         <option value="">Select Civil Status</option>
                                         {% for status in ['Single', 'Married', 'Widowed', 'Separated'] %}
-                                            <option value="{{ status }}" {{ registration.civilStatus == status ? 'selected' : '' }}>{{ status }}</option>
+                                            <option value="{{ status }}" {{ registration.civilStatus|upper == status|upper ? 'selected' : '' }}>{{ status }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -211,7 +227,7 @@
                                     <select name="country_of_birth" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                         <option value=""></option>
                                         {% for country in countries %}
-                                            <option value="{{ country.countryName }}" {{ registration.countryOfBirth == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                            <option value="{{ country.countryName }}" {{ registration.countryOfBirth|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -220,7 +236,7 @@
                                     <select name="country_of_residence" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                         <option value=""></option>
                                         {% for country in countries %}
-                                            <option value="{{ country.countryName }}" {{ registration.countryOfResidence == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                            <option value="{{ country.countryName }}" {{ registration.countryOfResidence|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -238,7 +254,7 @@
                                         <select name="passport_country_issue" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                             <option value=""></option>
                                             {% for country in countries %}
-                                                <option value="{{ country.countryName }}" {{ (registration.passport and registration.passport.countryOfIssue == country.countryName) ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                                <option value="{{ country.countryName }}" {{ (registration.passport and registration.passport.countryOfIssue|upper == country.countryName|upper) ? 'selected' : '' }}>{{ country.countryName }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -254,11 +270,11 @@
                                         <label class="text-xs text-gray-400 uppercase font-bold">Visa Type</label>
                                         <select name="visa_type" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                             <option value="">Select Visa Type</option>
-                                            <option value="student" {{ registration.visaType == 'student' ? 'selected' : '' }}>Student Visa (9F)</option>
-                                            <option value="special_student" {{ registration.visaType == 'special_student' ? 'selected' : '' }}>Special Study Permit (SSP)</option>
-                                            <option value="tourist" {{ registration.visaType == 'tourist' ? 'selected' : '' }}>Tourist Visa</option>
-                                            <option value="immigrant" {{ registration.visaType == 'immigrant' ? 'selected' : '' }}>Immigrant Visa</option>
-                                            <option value="permanent_resident" {{ registration.visaType == 'permanent_resident' ? 'selected' : '' }}>Permanent Resident</option>
+                                            <option value="student" {{ (registration.visaType == 'student' or '9f' in registration.visaType|lower) ? 'selected' : '' }}>Student Visa (9F)</option>
+                                            <option value="special_student" {{ (registration.visaType == 'special_student' or 'ssp' in registration.visaType|lower or 'special study' in registration.visaType|lower) ? 'selected' : '' }}>Special Study Permit (SSP)</option>
+                                            <option value="tourist" {{ (registration.visaType == 'tourist' or 'tourist' in registration.visaType|lower) ? 'selected' : '' }}>Tourist Visa</option>
+                                            <option value="immigrant" {{ (registration.visaType == 'immigrant' or 'immigrant' in registration.visaType|lower) ? 'selected' : '' }}>Immigrant Visa</option>
+                                            <option value="permanent_resident" {{ (registration.visaType == 'permanent_resident' or 'permanent resident' in registration.visaType|lower) ? 'selected' : '' }}>Permanent Resident</option>
                                             <option value="other" {{ registration.visaType == 'other' ? 'selected' : '' }}>Other</option>
                                         </select>
                                     </div>
@@ -315,7 +331,7 @@
                                             <select name="perm_country" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                                 <option value=""></option>
                                                 {% for country in countries %}
-                                                    <option value="{{ country.countryName }}" {{ registration.permanentCountry == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                                    <option value="{{ country.countryName }}" {{ registration.permanentCountry|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -374,11 +390,11 @@
                                             <div class="text-xs text-feu-gold-600 font-bold uppercase">{{ guardian.relationship }}</div>
                                             <div class="flex gap-2">
                                                 <label class="inline-flex items-center text-[10px]">
-                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" value="1" {{ guardian.deceased ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-3 h-3 mr-1">
+                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" id="parent_deceased_{{ loop.index0 }}" value="1" {{ guardian.deceased ? 'checked' : '' }} onchange="toggleAdminParentStatus({{ loop.index0 }}, 'deceased')" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-3 h-3 mr-1">
                                                     Deceased
                                                 </label>
                                                 <label class="inline-flex items-center text-[10px]">
-                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][ofw]" value="1" {{ guardian.OFW ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][ofw]" id="parent_ofw_{{ loop.index0 }}" value="1" {{ guardian.OFW ? 'checked' : '' }} onchange="toggleAdminParentStatus({{ loop.index0 }}, 'ofw')" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
                                                     OFW
                                                 </label>
                                             </div>
@@ -428,6 +444,137 @@
                                                 </select>
                                             </div>
                                         </div>
+
+                                        {# Parent Address Block #}
+                                        <div class="mt-4 pt-4 border-t border-gray-100" id="parent_addr_section_{{ loop.index0 }}" style="{{ guardian.deceased ? 'display:none;' : '' }}">
+                                            <input type="hidden" name="guardians[{{ loop.index0 }}][same_as_applicant_submitted]" value="1">
+                                            
+                                            {# Standard Address (when not OFW) #}
+                                            <div id="parent_standard_addr_{{ loop.index0 }}" style="{{ guardian.OFW ? 'display:none;' : '' }}">
+                                                <div class="flex items-center mb-3">
+                                                    <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-2" type="checkbox" id="parent_same_{{ loop.index0 }}" name="guardians[{{ loop.index0 }}][same_as_applicant]" value="1" onchange="toggleParentEditAddress({{ loop.index0 }})" {{ guardian.sameAsApplicant ? 'checked' : '' }}>
+                                                    <label class="text-xs font-bold text-gray-700 cursor-pointer" for="parent_same_{{ loop.index0 }}">Same address as Applicant</label>
+                                                </div>
+                                                <div id="parent_addr_block_{{ loop.index0 }}" style="{{ guardian.sameAsApplicant ? 'display:none;' : '' }}">
+                                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                                        <div>
+                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Region</label>
+                                                            <select id="parent_{{ loop.index0 }}_region" name="guardians[{{ loop.index0 }}][addr_region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentRegion }}"><option value="">Region</option></select>
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Province</label>
+                                                            <select id="parent_{{ loop.index0 }}_province" name="guardians[{{ loop.index0 }}][addr_province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentProvince }}"><option value="">Province</option></select>
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">City/Municipality</label>
+                                                            <select id="parent_{{ loop.index0 }}_city" name="guardians[{{ loop.index0 }}][addr_city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentCity }}"><option value="">City</option></select>
+                                                        </div>
+                                                        <div>
+                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Barangay</label>
+                                                            <select id="parent_{{ loop.index0 }}_barangay" name="guardians[{{ loop.index0 }}][addr_barangay]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentBarangay }}"><option value="">Barangay</option></select>
+                                                        </div>
+                                                    </div>
+                                                    <input type="text" name="guardians[{{ loop.index0 }}][addr_street]" value="{{ not guardian.OFW ? guardian.currentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs mb-2 shadow-sm px-3 py-2" placeholder="Street Address">
+                                                    <input type="text" name="guardians[{{ loop.index0 }}][addr_zip]" id="parent_{{ loop.index0 }}_zip" value="{{ not guardian.OFW ? guardian.currentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Zip Code">
+                                                </div>
+                                            </div>
+
+                                            {# OFW Address Block #}
+                                            <div id="parent_ofw_addr_{{ loop.index0 }}" style="{{ not guardian.OFW ? 'display:none;' : '' }}">
+                                                <div class="mb-3">
+                                                    <div class="text-xs font-bold text-blue-600 uppercase mb-2 flex items-center gap-1">
+                                                        <i class="ki-filled ki-briefcase text-xs"></i> Workplace Address Abroad
+                                                    </div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                                                        <div>
+                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Country of Work</label>
+                                                            <select name="guardians[{{ loop.index0 }}][ofw_country]" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-2 py-2">
+                                                                <option value="">Select Country</option>
+                                                                {% for c in countries %}
+                                                                    {% if c.countryName|upper != 'PHILIPPINES' %}
+                                                                        <option value="{{ c.countryName }}" {{ guardian.ofwCountry|upper == c.countryName|upper ? 'selected' : '' }}>{{ c.countryName }}</option>
+                                                                    {% endif %}
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                        <div class="md:col-span-2">
+                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Workplace / Residence Address</label>
+                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_address]" value="{{ guardian.OFW ? guardian.currentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Workplace Address">
+                                                        </div>
+                                                    </div>
+                                                    <div class="w-full md:w-1/3">
+                                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Postal Code</label>
+                                                        <input type="text" name="guardians[{{ loop.index0 }}][ofw_zip]" value="{{ guardian.OFW ? guardian.currentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Postal Code">
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                                    <div class="text-xs font-bold text-gray-700 uppercase mb-2 flex items-center gap-1">
+                                                        <i class="ki-filled ki-home text-xs text-feu-green-600"></i> Permanent Address
+                                                    </div>
+                                                    {% set isOfwPermSame = (guardian.OFW and guardian.permanentCountry == guardian.ofwCountry and guardian.permanentAddress == guardian.currentAddress) or (guardian.OFW and not guardian.permanentCity and not guardian.permanentCountry and not guardian.permanentAddress) %}
+                                                    <div class="flex items-center mb-2">
+                                                        <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-2" type="checkbox" id="parent_ofw_perm_same_{{ loop.index0 }}" name="guardians[{{ loop.index0 }}][ofw_perm_same]" value="1" onchange="toggleAdminOfwPermSame({{ loop.index0 }})" {{ isOfwPermSame ? 'checked' : '' }}>
+                                                        <label class="text-xs font-medium text-gray-700 cursor-pointer" for="parent_ofw_perm_same_{{ loop.index0 }}">Same as current workplace address</label>
+                                                    </div>
+                                                    <div id="parent_ofw_perm_diff_{{ loop.index0 }}" style="{{ isOfwPermSame ? 'display:none;' : '' }}">
+                                                        {% set isPermInPh = (guardian.permanentCity or guardian.permanentRegion or guardian.permanentProvince or not guardian.permanentCountry) %}
+                                                        <div class="mb-2">
+                                                            <span class="text-xs font-bold text-gray-600 mr-3">In Philippines?</span>
+                                                            <label class="inline-flex items-center text-xs mr-3">
+                                                                <input type="radio" name="guardians[{{ loop.index0 }}][ofw_perm_in_ph]" value="yes" onchange="toggleAdminOfwPermInPh({{ loop.index0 }}, 'yes')" {{ isPermInPh ? 'checked' : '' }} class="mr-1"> Yes
+                                                            </label>
+                                                            <label class="inline-flex items-center text-xs">
+                                                                <input type="radio" name="guardians[{{ loop.index0 }}][ofw_perm_in_ph]" value="no" onchange="toggleAdminOfwPermInPh({{ loop.index0 }}, 'no')" {{ not isPermInPh ? 'checked' : '' }} class="mr-1"> No
+                                                            </label>
+                                                        </div>
+                                                        <div id="parent_ofw_perm_ph_{{ loop.index0 }}" style="{{ not isPermInPh ? 'display:none;' : '' }}">
+                                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                                                                <div>
+                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Region</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_region" name="guardians[{{ loop.index0 }}][ofw_perm_region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentRegion }}"><option value="">Region</option></select>
+                                                                </div>
+                                                                <div>
+                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Province</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_province" name="guardians[{{ loop.index0 }}][ofw_perm_province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentProvince }}"><option value="">Province</option></select>
+                                                                </div>
+                                                                <div>
+                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">City/Municipality</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_city" name="guardians[{{ loop.index0 }}][ofw_perm_city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentCity }}"><option value="">City</option></select>
+                                                                </div>
+                                                                <div>
+                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Barangay</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_barangay" name="guardians[{{ loop.index0 }}][ofw_perm_barangay]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentBarangay }}"><option value="">Barangay</option></select>
+                                                                </div>
+                                                            </div>
+                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_street]" value="{{ isPermInPh ? guardian.permanentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs mb-2 shadow-sm px-3 py-2" placeholder="Street Address">
+                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_zip]" value="{{ isPermInPh ? guardian.permanentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Zip Code">
+                                                        </div>
+                                                        <div id="parent_ofw_perm_intl_{{ loop.index0 }}" style="{{ isPermInPh ? 'display:none;' : '' }}">
+                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                                                                <div>
+                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Country</label>
+                                                                    <select name="guardians[{{ loop.index0 }}][ofw_perm_country]" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-2 py-2">
+                                                                        <option value="">Select Country</option>
+                                                                        {% for c in countries %}
+                                                                            <option value="{{ c.countryName }}" {{ guardian.permanentCountry|upper == c.countryName|upper ? 'selected' : '' }}>{{ c.countryName }}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+                                                                <div>
+                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Address</label>
+                                                                    <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_address]" value="{{ not isPermInPh ? guardian.permanentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Address">
+                                                                </div>
+                                                            </div>
+                                                            <div class="w-full md:w-1/3">
+                                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Postal Code</label>
+                                                                <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_intl_zip]" value="{{ not isPermInPh ? guardian.permanentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Postal Code">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     {% endif %}
                                 {% endfor %}
@@ -466,14 +613,14 @@
                                 <label class="text-[10px] text-gray-500 uppercase font-bold">Last Grade Completed</label>
                                 <select name="last_grade_completed" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                     <option value="">Select Grade</option>
-                                    {% for grade in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11'] %}
-                                        <option value="{{ grade }}" {{ registration.lastGradeCompleted == grade ? 'selected' : '' }}>{{ grade }}</option>
+                                    {% for grade in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] %}
+                                        <option value="{{ grade }}" {{ (registration.lastGradeCompleted|upper == grade|upper or (grade == 'Kinder' and registration.lastGradeCompleted|upper in ['KINDER', 'KINDERGARTEN'])) ? 'selected' : '' }}>{{ grade }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="mb-4 pb-2 border-b border-gray-100">
                                 <label class="text-[10px] text-gray-500 uppercase font-bold">General Average</label>
-                                <input type="number" step="0.01" name="general_average" value="{{ registration.generalAverage }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="e.g. 90.00">
+                                <input type="text" name="general_average" value="{{ registration.generalAverage }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="e.g. 90.00 or A">
                             </div>
                             <div class="space-y-4">
                                 {% if registration.schools|length > 0 %}
@@ -486,9 +633,9 @@
                                     <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.schoolYear }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
                                     <select name="schools[{{ loop.index0 }}][type]" onchange="syncAdminSchoolType({{ loop.index0 }})" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5 mb-1">
                                         <option value="">School Type</option>
-                                        <option value="Public" {{ school.schoolType == 'Public' ? 'selected' }}>Public</option>
-                                        <option value="Private" {{ school.schoolType == 'Private' ? 'selected' }}>Private</option>
-                                        <option value="International" {{ school.schoolType == 'International' ? 'selected' }}>International</option>
+                                        <option value="Public" {{ school.schoolType|upper == 'PUBLIC' ? 'selected' : '' }}>Public</option>
+                                        <option value="Private" {{ school.schoolType|upper == 'PRIVATE' ? 'selected' : '' }}>Private</option>
+                                        <option value="International" {{ school.schoolType|upper == 'INTERNATIONAL' ? 'selected' : '' }}>International</option>
                                     </select>
                                     
                                     <div class="mt-2 mb-1 flex items-center">
@@ -504,7 +651,7 @@
                                         <select name="schools[{{ loop.index0 }}][country]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                             <option value="">Select Country</option>
                                             {% for country in countries %}
-                                                <option value="{{ country.countryName }}" {{ school.country == country.countryName ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                                <option value="{{ country.countryName }}" {{ school.country|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
@@ -523,6 +670,34 @@
                                 <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
                             </h3>
                             <div class="space-y-4">
+                                {# 2x2 ID Picture Row #}
+                                <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center border border-gray-200 bg-white">
+                                                {% if registration.photoSlug %}
+                                                    <img src="{{ asset(registration.photoSlug) }}" class="w-full h-full object-cover" alt="2x2 Photo">
+                                                {% else %}
+                                                    <i class="ki-filled ki-picture text-gray-400"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-bold text-gray-800">2x2 ID Picture of the Applicant</div>
+                                                {% if registration.photoSlug %}
+                                                    <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                                        <i class="ki-filled ki-eye"></i> View Current Photo
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-xs text-red-500 font-bold">Missing / Not Complied (Promissory)</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-gray-400">
+                                        {% if registration.photoSlug %}Submitted / Complied{% else %}Pending (To be emailed){% endif %}
+                                    </div>
+                                </div>
+
                                 {% set hasActiveDocs = false %}
                                 {% for req in registration.requirements %}
                                     {% set isRelevant = false %}
@@ -576,9 +751,18 @@
                                                 <input type="file" name="{{ docSetup.slug }}" accept=".pdf" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                             </div>
                                         {% endfor %}
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
+                                            <input type="file" name="profile_picture" accept=".jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                        </div>
                                     </div>
                                 {% else %}
-                                    <p class="text-xs text-gray-400 italic">No document configurations set up by Admin.</p>
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
+                                            <input type="file" name="profile_picture" accept=".jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                        </div>
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
@@ -597,16 +781,21 @@
                                     <span class="text-gray-500">School Year</span>
                                     <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
                                 </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Source</span>
-                                    <span class="font-medium text-gray-800">
-                                        {% set standardSources = ['Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media', 'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster', 'Friends', 'Family/Relatives', 'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in'] %}
-                                        {% if registration.marketingSource in standardSources or registration.marketingSource is null %}
-                                            {{ registration.marketingSource|default('N/A') }}
+                                <div class="flex justify-between items-start text-sm">
+                                    <span class="text-gray-500 pt-0.5">Source</span>
+                                    <div class="text-right">
+                                        {% if registration.marketingSource %}
+                                            <div class="flex flex-wrap justify-end gap-1">
+                                                {% for src in registration.marketingSource|split(', ') %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                        {{ src }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
                                         {% else %}
-                                            Other: {{ registration.marketingSource }}
+                                            <span class="font-medium text-gray-400">N/A</span>
                                         {% endif %}
-                                    </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -764,6 +953,67 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function findOptionMatch(selectEl, searchVal) {
+        if (!selectEl || !searchVal) return null;
+        const clean = searchVal.toString().trim().toUpperCase();
+        if (!clean) return null;
+
+        const opts = Array.from(selectEl.options).filter(o => o.value !== '');
+        if (opts.length === 0) return null;
+
+        let m = opts.find(o => o.value.toString().trim().toUpperCase() === clean);
+        if (m) return m;
+
+        m = opts.find(o => o.textContent.toString().trim().toUpperCase() === clean);
+        if (m) return m;
+
+        const cleanAlpha = clean.replace(/[^A-Z0-9]/g, '');
+        if (cleanAlpha) {
+            m = opts.find(o => o.textContent.toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '') === cleanAlpha);
+            if (m) return m;
+        }
+
+        const cleanCity = clean.replace(/^CITY OF\s+/i, '').replace(/\s+CITY$/i, '').trim();
+        if (cleanCity && cleanCity.length >= 3) {
+            m = opts.find(o => {
+                const optCity = o.textContent.toUpperCase().replace(/^CITY OF\s+/i, '').replace(/\s+CITY$/i, '').trim();
+                return optCity === cleanCity;
+            });
+            if (m) return m;
+        }
+
+        if (clean === 'NCR' || clean.includes('NCR')) {
+            m = opts.find(o => o.textContent.toUpperCase().includes('NATIONAL CAPITAL REGION') || o.textContent.toUpperCase().includes('NCR'));
+            if (m) return m;
+        }
+        if (clean.includes('CALABARZON') || clean === 'REGION IV-A' || clean === 'REGION 4A' || clean === 'IV-A') {
+            m = opts.find(o => o.textContent.toUpperCase().includes('REGION IV-A') || o.textContent.toUpperCase().includes('CALABARZON'));
+            if (m) return m;
+        }
+        if (clean.includes('MIMAROPA') || clean === 'REGION IV-B' || clean === 'REGION 4B' || clean === 'IV-B') {
+            m = opts.find(o => o.textContent.toUpperCase().includes('REGION IV-B') || o.textContent.toUpperCase().includes('MIMAROPA'));
+            if (m) return m;
+        }
+        if (clean.includes('CAR') || clean === 'CORDILLERA') {
+            m = opts.find(o => o.textContent.toUpperCase().includes('CORDILLERA') || o.textContent.toUpperCase().includes('CAR'));
+            if (m) return m;
+        }
+        if (clean.includes('BARMM') || clean.includes('ARMM')) {
+            m = opts.find(o => o.textContent.toUpperCase().includes('MUSLIM MINDANAO') || o.textContent.toUpperCase().includes('ARMM') || o.textContent.toUpperCase().includes('BARMM'));
+            if (m) return m;
+        }
+
+        if (clean.length >= 3) {
+            m = opts.find(o => {
+                const text = o.textContent.toString().trim().toUpperCase();
+                return text.includes(clean) || clean.includes(text);
+            });
+            if (m) return m;
+        }
+
+        return null;
+    }
+
     async function setupAddressLookup(prefix) {
         const regions = document.getElementById(prefix + '_region');
         const provinces = document.getElementById(prefix + '_province');
@@ -778,9 +1028,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const selB = barangays ? (barangays.getAttribute('data-selected') || '') : '';
 
         const loadRegions = async () => {
-            const res = await fetch('/api/address/regions');
-            const data = await res.json();
-            data.forEach(r => { regions.innerHTML += `<option value="${r.code}">${r.name}</option>`; });
+            try {
+                const res = await fetch('/api/address/regions');
+                const data = await res.json();
+                regions.innerHTML = '<option value="">Select Region</option>';
+                data.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.code;
+                    opt.textContent = r.name;
+                    regions.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Failed to load regions', e);
+            }
         };
         
         const loadProvinces = async (rCode) => {
@@ -788,10 +1048,19 @@ document.addEventListener('DOMContentLoaded', function() {
             provinces.innerHTML = '<option value="">Select Province</option>';
             provinces.disabled = true;
             if(!rCode) return;
-            const res = await fetch(`/api/address/provinces/${rCode}`);
-            const data = await res.json();
-            data.forEach(p => { provinces.innerHTML += `<option value="${p.code}">${p.name}</option>`; });
-            provinces.disabled = false;
+            try {
+                const res = await fetch(`/api/address/provinces/${encodeURIComponent(rCode)}`);
+                const data = await res.json();
+                data.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.code;
+                    opt.textContent = p.name;
+                    provinces.appendChild(opt);
+                });
+                provinces.disabled = false;
+            } catch (e) {
+                console.error('Failed to load provinces', e);
+            }
         };
 
         const loadCities = async (pCode) => {
@@ -799,10 +1068,19 @@ document.addEventListener('DOMContentLoaded', function() {
             cities.innerHTML = '<option value="">Select City</option>';
             cities.disabled = true;
             if(!pCode) return;
-            const res = await fetch(`/api/address/cities/${pCode}`);
-            const data = await res.json();
-            data.forEach(c => { cities.innerHTML += `<option value="${c.code}">${c.name}</option>`; });
-            cities.disabled = false;
+            try {
+                const res = await fetch(`/api/address/cities/${encodeURIComponent(pCode)}`);
+                const data = await res.json();
+                data.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = c.name;
+                    cities.appendChild(opt);
+                });
+                cities.disabled = false;
+            } catch (e) {
+                console.error('Failed to load cities', e);
+            }
         };
 
         const loadBarangays = async (cCode) => {
@@ -810,10 +1088,20 @@ document.addEventListener('DOMContentLoaded', function() {
             barangays.innerHTML = '<option value="">Select Barangay</option>';
             barangays.disabled = true;
             if(!cCode) return;
-            const res = await fetch(`/api/address/barangays/${cCode}`);
-            const data = await res.json();
-            data.forEach(b => { barangays.innerHTML += `<option value="${b.name}">${b.name}</option>`; });
-            barangays.disabled = false;
+            try {
+                const res = await fetch(`/api/address/barangays/${encodeURIComponent(cCode)}`);
+                const data = await res.json();
+                data.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.name;
+                    opt.textContent = b.name;
+                    if (b.zip) opt.setAttribute('data-zip', b.zip);
+                    barangays.appendChild(opt);
+                });
+                barangays.disabled = false;
+            } catch (e) {
+                console.error('Failed to load barangays', e);
+            }
         };
 
         regions.addEventListener('change', async function() {
@@ -835,19 +1123,75 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        if(barangays) {
+            barangays.addEventListener('change', function() {
+                const selectedOpt = this.options[this.selectedIndex];
+                const zip = selectedOpt ? selectedOpt.getAttribute('data-zip') : null;
+                const zipInput = document.getElementById(prefix + '_zip');
+                if (zip && zipInput && !zipInput.value) {
+                    zipInput.value = zip;
+                }
+            });
+        }
+
         // Initial Load Pre-selection
         await loadRegions();
+        let activeRCode = null;
         if(selR) {
-            regions.value = selR;
-            await loadProvinces(selR);
-            if(selP && provinces) {
-                provinces.value = selP;
-                await loadCities(selP);
-                if(selC && cities) {
-                    cities.value = selC;
-                    await loadBarangays(selC);
-                    if(selB && barangays) {
-                        barangays.value = selB;
+            const matchedR = findOptionMatch(regions, selR);
+            if(matchedR) {
+                regions.value = matchedR.value;
+                activeRCode = matchedR.value;
+            } else {
+                const fallbackOpt = new Option(selR, selR, true, true);
+                regions.add(fallbackOpt);
+                activeRCode = selR;
+            }
+        }
+
+        if(activeRCode && provinces) {
+            await loadProvinces(activeRCode);
+            let activePCode = null;
+            if(selP) {
+                const matchedP = findOptionMatch(provinces, selP);
+                if(matchedP) {
+                    provinces.value = matchedP.value;
+                    activePCode = matchedP.value;
+                } else {
+                    const fallbackOpt = new Option(selP, selP, true, true);
+                    provinces.add(fallbackOpt);
+                    activePCode = selP;
+                }
+            } else if (provinces.options.length === 2) {
+                provinces.selectedIndex = 1;
+                activePCode = provinces.value;
+            }
+
+            if(activePCode && cities) {
+                await loadCities(activePCode);
+                let activeCCode = null;
+                if(selC) {
+                    const matchedC = findOptionMatch(cities, selC);
+                    if(matchedC) {
+                        cities.value = matchedC.value;
+                        activeCCode = matchedC.value;
+                    } else {
+                        const fallbackOpt = new Option(selC, selC, true, true);
+                        cities.add(fallbackOpt);
+                        activeCCode = selC;
+                    }
+                }
+
+                if(activeCCode && barangays) {
+                    await loadBarangays(activeCCode);
+                    if(selB) {
+                        const matchedB = findOptionMatch(barangays, selB);
+                        if(matchedB) {
+                            barangays.value = matchedB.value;
+                        } else {
+                            const fallbackOpt = new Option(selB, selB, true, true);
+                            barangays.add(fallbackOpt);
+                        }
                     }
                 }
             }
@@ -869,6 +1213,79 @@ document.addEventListener('DOMContentLoaded', function() {
         if (cb && block) {
             block.style.display = cb.checked ? 'none' : '';
         }
+    };
+
+    document.querySelectorAll('[id^="parent_same_"]').forEach((cb) => {
+        const idx = cb.id.replace('parent_same_', '');
+        setupAddressLookup(`parent_${idx}`);
+        setupAddressLookup(`parent_ofw_${idx}`);
+    });
+
+    window.toggleParentEditAddress = function(idx) {
+        const cb = document.getElementById(`parent_same_${idx}`);
+        const block = document.getElementById(`parent_addr_block_${idx}`);
+        if (cb && block) {
+            block.style.display = cb.checked ? 'none' : '';
+        }
+    };
+
+    window.toggleAdminParentStatus = function(idx, clickedType) {
+        const deceasedEl = document.getElementById(`parent_deceased_${idx}`);
+        const ofwEl = document.getElementById(`parent_ofw_${idx}`);
+        if (!deceasedEl || !ofwEl) return;
+
+        if (clickedType === 'deceased' && deceasedEl.checked) {
+            ofwEl.checked = false;
+        } else if (clickedType === 'ofw' && ofwEl.checked) {
+            deceasedEl.checked = false;
+        }
+
+        const isDeceased = deceasedEl.checked;
+        const isOfw = ofwEl.checked;
+
+        const addrSection = document.getElementById(`parent_addr_section_${idx}`);
+        const stdAddrBlock = document.getElementById(`parent_standard_addr_${idx}`);
+        const ofwAddrBlock = document.getElementById(`parent_ofw_addr_${idx}`);
+        const sameCheck = document.getElementById(`parent_same_${idx}`);
+
+        if (addrSection) {
+            addrSection.style.display = isDeceased ? 'none' : '';
+        }
+
+        if (isOfw) {
+            if (stdAddrBlock) stdAddrBlock.style.display = 'none';
+            if (ofwAddrBlock) ofwAddrBlock.style.display = '';
+            if (sameCheck) {
+                sameCheck.checked = false;
+            }
+        } else {
+            if (ofwAddrBlock) ofwAddrBlock.style.display = 'none';
+            if (stdAddrBlock && !isDeceased) stdAddrBlock.style.display = '';
+        }
+    };
+
+    window.toggleAdminOfwPermSame = function(idx) {
+        const cb = document.getElementById(`parent_ofw_perm_same_${idx}`);
+        const diffBlock = document.getElementById(`parent_ofw_perm_diff_${idx}`);
+        if (cb && diffBlock) {
+            diffBlock.style.display = cb.checked ? 'none' : '';
+        }
+    };
+
+    window.toggleAdminOfwPermInPh = function(idx, val) {
+        const phBlock = document.getElementById(`parent_ofw_perm_ph_${idx}`);
+        const intlBlock = document.getElementById(`parent_ofw_perm_intl_${idx}`);
+        if (val === 'yes') {
+            if (phBlock) phBlock.style.display = '';
+            if (intlBlock) intlBlock.style.display = 'none';
+        } else {
+            if (phBlock) phBlock.style.display = 'none';
+            if (intlBlock) intlBlock.style.display = '';
+        }
+    };
+
+    window.toggleParentDeceased = function(idx, isChecked) {
+        window.toggleAdminParentStatus(idx, 'deceased');
     };
 
     window.toggleAdminSchoolLocation = function(index) {
@@ -926,6 +1343,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (shsSection && k10Section) {
             shsSection.style.display = isSHS ? '' : 'none';
             k10Section.style.display = isSHS ? 'none' : '';
+            const k10Payment = document.getElementById('paymentPaidCheck');
+            const shsPayment = document.getElementById('shsPaymentPaidCheck');
+            if (k10Payment) k10Payment.disabled = isSHS;
+            if (shsPayment) shsPayment.disabled = !isSHS;
         }
     };
 
@@ -949,6 +1370,22 @@ document.addEventListener('DOMContentLoaded', function() {
     if (examCheck) {
         examCheck.addEventListener('change', window.updateExamUI);
         window.updateExamUI();
+    }
+
+    // SHS Payment Checkbox Toggle
+    const shsPaymentPaidCheck = document.getElementById('shsPaymentPaidCheck');
+    const shsPaymentPaidBox = document.getElementById('shsPaymentPaidBox');
+    const shsPaymentPendingBox = document.getElementById('shsPaymentPendingBox');
+
+    window.updateShsPaymentUI = function() {
+        if (!shsPaymentPaidCheck) return;
+        if (shsPaymentPaidBox) shsPaymentPaidBox.style.display = shsPaymentPaidCheck.checked ? '' : 'none';
+        if (shsPaymentPendingBox) shsPaymentPendingBox.style.display = shsPaymentPaidCheck.checked ? 'none' : '';
+    };
+
+    if (shsPaymentPaidCheck) {
+        shsPaymentPaidCheck.addEventListener('change', window.updateShsPaymentUI);
+        window.updateShsPaymentUI();
     }
 
     // Payment Checkbox Toggle

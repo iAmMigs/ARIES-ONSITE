@@ -59,6 +59,7 @@ class ApplicantBedRequirement
     public function setRequirement(string $Requirement): static { $this->Requirement = $Requirement; return $this; }
     public function getStoredFileName(): ?string { return $this->StoredFileName; }
     public function setStoredFileName(?string $StoredFileName): static { $this->StoredFileName = $StoredFileName; return $this; }
+    public function getFilePath(): ?string { return $this->StoredFileName; }
     
     public function getDocumentFile(): ?File { return $this->documentFile; }
     public function setDocumentFile(?File $documentFile): static { $this->documentFile = $documentFile; return $this; }

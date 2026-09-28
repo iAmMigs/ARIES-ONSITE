@@ -1,0 +1,43 @@
+{# templates/enrollment-onsite/_phone_input.html.twig #}
+{# Reusable Country Dial Code Phone Input Component #}
+{% set dial_name = prefix ? (prefix ~ '_country_dial_code') : 'country_dial_code' %}
+{% set dial_id = prefix ? (prefix ~ 'CountryDialCode') : 'countryDialCode' %}
+{% set picker_id = prefix ? (prefix ~ 'CountryPickerBtn') : 'countryPickerBtn' %}
+{% set flag_id = prefix ? (prefix ~ 'SelectedCountryFlag') : 'selectedCountryFlag' %}
+{% set dial_text_id = prefix ? (prefix ~ 'SelectedCountryDial') : 'selectedCountryDial' %}
+{% set menu_id = prefix ? (prefix ~ 'CountryDropdownMenu') : 'countryDropdownMenu' %}
+{% set search_id = prefix ? (prefix ~ 'CountrySearchInput') : 'countrySearchInput' %}
+{% set list_id = prefix ? (prefix ~ 'CountryList') : 'countryList' %}
+
+<div class="phone-input-group position-relative" data-phone-group="{{ prefix|default('applicant') }}">
+    <button type="button" class="country-picker-btn" id="{{ picker_id }}" aria-expanded="false" aria-haspopup="listbox" title="Select Country Code">
+        <span class="country-flag-icon" id="{{ flag_id }}">🇵🇭</span>
+        <span class="country-dial-text" id="{{ dial_text_id }}">+63</span>
+        <i class="ki-filled ki-down fs-8 text-muted ms-1"></i>
+    </button>
+    <input type="hidden" name="{{ dial_name }}" id="{{ dial_id }}" value="+63">
+    <input type="tel" name="{{ input_name }}" id="{{ input_id }}" class="form-control phone-input-field" {% if required|default(false) %}required{% endif %} placeholder="{{ placeholder|default('9xxxxxxxxx') }}" maxlength="11">
+    
+    <div class="country-dropdown-menu shadow" id="{{ menu_id }}" style="display: none;">
+        <div class="country-search-box-wrapper">
+            <i class="ki-filled ki-magnifier country-search-icon"></i>
+            <input type="text" class="country-search-input" id="{{ search_id }}" placeholder="Search for country" autocomplete="off">
+        </div>
+        <ul class="country-list" id="{{ list_id }}" role="listbox">
+            {% for country in countries %}
+                {% if country.phonecode and country.phonecode > 0 %}
+                <li class="country-item {% if country.iso == 'PH' %}active{% endif %}" 
+                    data-code="+{{ country.phonecode }}" 
+                    data-iso="{{ country.iso }}" 
+                    data-flag="{{ country.flagEmoji }}"
+                    data-name="{{ country.nicename|default(country.countryName) }}"
+                    role="option">
+                    <span class="country-item-flag">{{ country.flagEmoji }}</span>
+                    <span class="country-item-name">{{ country.nicename|default(country.countryName) }}</span>
+                    <span class="country-item-code">(+{{ country.phonecode }})</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</div>

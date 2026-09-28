@@ -135,8 +135,8 @@ class ApplicantBed
     #[ORM\Column(name: 'last_grade_completed', length: 50, nullable: true)]
     private ?string $lastGradeCompleted = null;
 
-    #[ORM\Column(name: 'general_average', type: Types::FLOAT, nullable: true)]
-    private ?float $generalAverage = null;
+    #[ORM\Column(name: 'general_average', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $generalAverage = null;
 
     #[ORM\OneToOne(mappedBy: 'applicant', targetEntity: ApplicantBedPassport::class, cascade: ['persist', 'remove'])]
     private ?ApplicantBedPassport $passport = null;
@@ -356,8 +356,8 @@ class ApplicantBed
     public function getLastGradeCompleted(): ?string { return $this->lastGradeCompleted; }
     public function setLastGradeCompleted(?string $lastGradeCompleted): static { $this->lastGradeCompleted = $lastGradeCompleted; return $this; }
 
-    public function getGeneralAverage(): ?float { return $this->generalAverage; }
-    public function setGeneralAverage(?float $generalAverage): static { $this->generalAverage = $generalAverage; return $this; }
+    public function getGeneralAverage(): ?string { return $this->generalAverage; }
+    public function setGeneralAverage(?string $generalAverage): static { $this->generalAverage = $generalAverage; return $this; }
 
     public function getPassport(): ?ApplicantBedPassport { return $this->passport; }
     public function setPassport(?ApplicantBedPassport $passport): static { $this->passport = $passport; return $this; }

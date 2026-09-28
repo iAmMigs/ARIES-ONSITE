@@ -1,0 +1,636 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Access Management – {{ campusName }}{% endblock %}
+
+{% block body %}
+<div class="flex h-screen overflow-hidden bg-gray-50">
+
+    {# Campus-Specific Sidebar #}
+    {% if campus == 'alabang' %}
+        {% include 'admin-onsite/alabang/_sidebar.html.twig' with {'active_menu': 'admin_access'} %}
+    {% else %}
+        {% include 'admin-onsite/diliman/_sidebar.html.twig' with {'active_menu': 'admin_access'} %}
+    {% endif %}
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {# Campus-Specific Header #}
+        {% if campus == 'alabang' %}
+            {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'Admin Access Management'} %}
+        {% else %}
+            {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Admin Access Management'} %}
+        {% endif %}
+
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+
+                {# Flash Notifications #}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="flex items-start gap-3 p-4 rounded-xl border shadow-sm
+                            {% if type == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800
+                            {% elseif type == 'error' %}bg-rose-50 border-rose-200 text-rose-800
+                            {% else %}bg-blue-50 border-blue-200 text-blue-800{% endif %}">
+                            <i class="ki-filled {% if type == 'success' %}ki-check-circle text-emerald-600{% else %}ki-information-2 text-rose-600{% endif %} text-xl mt-0.5"></i>
+                            <p class="text-sm font-medium leading-relaxed">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {# Header & KPI Overview #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200/80">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider
+                                    {{ campusCode == 'feu_alabang' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-900 border border-emerald-300' }}">
+                                    {{ campusName }}
+                                </span>
+                                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Admin Access Control</h1>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">Manage portal accounts, assign hierarchy tiers, and control access permissions.</p>
+                        </div>
+
+                        {% if canCreateSenior or canCreateStaff %}
+                        <button type="button" onclick="openCreateModal()" 
+                                class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all">
+                            <i class="ki-filled ki-plus text-lg"></i>
+                            <span>Add Administrator</span>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    {# KPI Cards #}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6">
+                        <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block">Total Admins</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-gray-900">{{ metrics.total }}</span>
+                                <i class="ki-filled ki-people text-2xl text-feu-green-700"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-100">
+                            <span class="text-xs font-bold text-amber-700 uppercase tracking-wider block">Master Admin</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-amber-900">{{ metrics.master }}</span>
+                                <i class="ki-filled ki-shield-tick text-2xl text-amber-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
+                            <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Senior Admins</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-emerald-900">{{ metrics.senior }}</span>
+                                <i class="ki-filled ki-security-user text-2xl text-emerald-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Staff Admins</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-slate-800">{{ metrics.staff }}</span>
+                                <i class="ki-filled ki-user text-2xl text-slate-500"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Administrators Table #}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-800 text-base">Authorized Administrators ({{ admins|length }})</h3>
+                        <span class="text-xs text-gray-500">Campus: <strong class="text-gray-700">{{ campusName }}</strong></span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                    <th class="py-3.5 px-6">Administrator</th>
+                                    <th class="py-3.5 px-6">Role Tier</th>
+                                    <th class="py-3.5 px-6">Module Access</th>
+                                    <th class="py-3.5 px-6">Status</th>
+                                    <th class="py-3.5 px-6 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm">
+                                {% for admin in admins %}
+                                <tr class="hover:bg-gray-50/70 transition-colors {{ admin.empNum == currentUser.empNum ? 'bg-feu-green-50/30' : '' }}">
+                                    
+                                    {# Identity Column #}
+                                    <td class="py-4 px-6">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs uppercase
+                                                {% if admin.isMasterAdmin %}bg-amber-100 text-amber-900 border-2 border-amber-300
+                                                {% elseif admin.isSeniorAdmin %}bg-emerald-100 text-emerald-900 border-2 border-emerald-300
+                                                {% else %}bg-slate-100 text-slate-700 border border-slate-200{% endif %}">
+                                                {{ admin.firstName|slice(0, 1) }}{{ admin.lastName|slice(0, 1) }}
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-gray-900 flex items-center gap-2">
+                                                    <span>{{ admin.fullName }}</span>
+                                                    {% if admin.empNum == currentUser.empNum %}
+                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-feu-green-100 text-feu-green-800">YOU</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="text-xs text-gray-500 font-mono">{{ admin.email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    {# Role Tier #}
+                                    <td class="py-4 px-6">
+                                        {% if admin.isMasterAdmin %}
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-sm">
+                                                <i class="ki-filled ki-shield-tick text-amber-600"></i> Master Admin
+                                            </span>
+                                        {% elseif admin.isSeniorAdmin %}
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                                <i class="ki-filled ki-security-user text-emerald-600"></i> Senior Admin
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                                <i class="ki-filled ki-user text-slate-500"></i> Staff Admin
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    {# Module Access Permission #}
+                                    <td class="py-4 px-6">
+                                        {% if admin.isMasterAdmin %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-700">
+                                                <i class="ki-filled ki-check text-emerald-600"></i> Granted (Master)
+                                            </span>
+                                        {% elseif currentUser.isMasterAdmin %}
+                                            <form action="{{ path('app_admin_access_toggle_permission', {campus: campus, id: admin.empNum}) }}" method="POST" class="inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_access_toggle_perm_' ~ admin.empNum) }}">
+                                                <button type="submit" 
+                                                        title="Click to {{ admin.canManageAdmins ? 'Revoke' : 'Grant' }} access to this module"
+                                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold transition-all cursor-pointer
+                                                        {{ admin.canManageAdmins ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">
+                                                    <i class="ki-filled {{ admin.canManageAdmins ? 'ki-check-circle text-emerald-600' : 'ki-cross-circle text-gray-400' }}"></i>
+                                                    {{ admin.canManageAdmins ? 'Granted' : 'Denied' }}
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold
+                                                {{ admin.canManageAdmins ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
+                                                <i class="ki-filled {{ admin.canManageAdmins ? 'ki-check-circle text-emerald-600' : 'ki-cross-circle text-gray-400' }}"></i>
+                                                {{ admin.canManageAdmins ? 'Granted' : 'Denied' }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    {# Status Column #}
+                                    <td class="py-4 px-6">
+                                        {% if admin.isActive %}
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600">
+                                                <span class="w-2 h-2 rounded-full bg-rose-400"></span> Inactive
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    {# Actions Column #}
+                                    <td class="py-4 px-6 text-right">
+                                        <div class="inline-flex items-center gap-2">
+                                            {# Transfer Master Role (Master only, on active non-master) #}
+                                            {% if currentUser.isMasterAdmin and not admin.isMasterAdmin and admin.isActive %}
+                                            <button type="button" 
+                                                    onclick="openTransferModal('{{ admin.empNum }}', '{{ admin.fullName|e('js') }}', '{{ admin.email|e('js') }}')"
+                                                    title="Transfer Master Admin role to this administrator"
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition-colors">
+                                                <i class="ki-filled ki-shield-tick text-amber-600"></i> Transfer Role
+                                            </button>
+                                            {% endif %}
+
+                                            {# Toggle Active/Inactive Status (Master on non-master, or Senior on Staff) #}
+                                            {% if (currentUser.isMasterAdmin or (currentUser.isSeniorAdmin and admin.isStaffAdmin)) and not admin.isMasterAdmin and admin.empNum != currentUser.empNum %}
+                                            <form action="{{ path('app_admin_access_toggle_status', {campus: campus, id: admin.empNum}) }}" method="POST" class="inline">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_access_status_' ~ admin.empNum) }}">
+                                                <button type="submit" 
+                                                        title="{{ admin.isActive ? 'Deactivate Account' : 'Activate Account' }}"
+                                                        class="p-1.5 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors">
+                                                    <i class="ki-filled {{ admin.isActive ? 'ki-toggle-on text-emerald-600' : 'ki-toggle-off text-gray-400' }} text-xl"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+
+                                            {# Delete Admin #}
+                                            {% if currentUser.canDeleteAdmin(admin) %}
+                                            <button type="button" 
+                                                    onclick="openDeleteModal('{{ admin.empNum }}', '{{ admin.fullName|e('js') }}', '{{ admin.email|e('js') }}', '{{ admin.tierLabel|e('js') }}')"
+                                                    title="Permanently Delete Administrator"
+                                                    class="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors">
+                                                <i class="ki-filled ki-trash text-lg"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="py-12 text-center text-gray-400 font-medium">
+                                        No administrators found for {{ campusName }}.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+{# =========================================================================
+   MODAL 1: ADD ADMINISTRATOR
+   ========================================================================= #}
+<div id="createAdminModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-gray-100 space-y-6 animate-scale-in">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <div>
+                <h3 class="text-lg font-black text-gray-900">Add New Administrator</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Campus: <strong class="text-gray-700">{{ campusName }}</strong></p>
+            </div>
+            <button type="button" onclick="closeCreateModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                <i class="ki-filled ki-cross text-xl"></i>
+            </button>
+        </div>
+
+        <form action="{{ path('app_admin_access_create', {campus: campus}) }}" method="POST" class="space-y-4">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_access_create') }}">
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Employee Number <span class="text-rose-500">*</span></label>
+                <input type="text" name="emp_num" inputmode="numeric" pattern="[0-9]+" required placeholder="e.g. 202110444"
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                <span class="text-[11px] text-gray-400 mt-1 block">Positive numbers only (e.g. 202110444).</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">First Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="first_name" required placeholder="e.g. Juan"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Last Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="last_name" required placeholder="e.g. Dela Cruz"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email Address <span class="text-rose-500">*</span></label>
+                <input type="email" name="email" required placeholder="e.g. jdelacruz@{{ campus == 'alabang' ? 'feualabang.edu.ph' : 'feudiliman.edu.ph' }}"
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                <span class="text-[11px] text-gray-400 mt-1 block">Used as the administrator's portal login credential.</span>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Initial Password <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                    <input type="password" name="password" id="newAdminPassword" required minlength="8" placeholder="Minimum 8 characters"
+                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                    <button type="button" onclick="togglePasswordVisibility('newAdminPassword', this)" 
+                            class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                        <i class="ki-filled ki-eye text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Role Tier <span class="text-rose-500">*</span></label>
+                <select name="tier" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                    {% if canCreateSenior %}
+                        <option value="senior_admin">Senior Admin (Tier 2)</option>
+                    {% endif %}
+                    {% if canCreateStaff %}
+                        <option value="staff_admin" selected>Staff Admin (Tier 3)</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            {% if currentUser.isMasterAdmin %}
+            <div class="pt-2">
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" name="can_manage_admins" value="1" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600">
+                    <span class="text-xs font-semibold text-gray-700">Grant Admin Access Module Permission</span>
+                </label>
+                <span class="text-[11px] text-gray-400 ml-6 block">Allows this administrator to view this module and manage staff.</span>
+            </div>
+            {% endif %}
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeCreateModal()" 
+                        class="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-xs hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-5 py-2.5 rounded-xl bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold text-xs shadow-md transition-all">
+                    Create Administrator
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# =========================================================================
+   MODAL 2: TRANSFER MASTER ROLE (DUAL-CONFIRMATION)
+   ========================================================================= #}
+<div id="transferMasterModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-amber-200 space-y-6 animate-scale-in">
+        
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
+                <i class="ki-filled ki-shield-tick text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-gray-900">Transfer Master Admin Role</h3>
+                <p class="text-xs text-gray-500 mt-0.5">High-security role delegation for <strong class="text-gray-700">{{ campusName }}</strong></p>
+            </div>
+        </div>
+
+        {# Warning Callout #}
+        <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed space-y-2">
+            <p class="font-bold flex items-center gap-1.5 text-amber-950">
+                <i class="ki-filled ki-warning-2 text-base text-amber-600"></i> IRREVERSIBLE PRIVILEGE TRANSFER
+            </p>
+            <p>
+                You are about to transfer the <strong>Master Admin</strong> role to <span id="transferTargetName" class="font-black text-amber-950"></span> (<span id="transferTargetEmail" class="font-mono"></span>).
+            </p>
+            <p>
+                Upon completion, your account will automatically step down to <strong>Senior Admin</strong>. Only the new Master Admin will be able to transfer it back.
+            </p>
+        </div>
+
+        <form id="transferMasterForm" method="POST" class="space-y-4">
+            <input type="hidden" name="_token" id="transferCsrfToken" value="">
+
+            {# 1. Master Password Verification #}
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Your Master Admin Password <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <input type="password" name="password" id="transferPassword" required placeholder="Enter your current password"
+                           oninput="checkTransferValidity()"
+                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20">
+                    <button type="button" onclick="togglePasswordVisibility('transferPassword', this)" 
+                            class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                        <i class="ki-filled ki-eye text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            {# 2. Text Confirmation Verification #}
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Type <span class="text-rose-600 font-mono select-all">CONFIRM TRANSFER</span> to proceed <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="confirm_text" id="transferConfirmText" required placeholder='Type "CONFIRM TRANSFER" (case-sensitive)'
+                       autocomplete="off" oninput="checkTransferValidity()"
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:border-amber-600 focus:ring-2 focus:ring-amber-600/20">
+                <span id="transferMatchHint" class="text-[11px] text-gray-400 mt-1 block">Exact match required (all uppercase).</span>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeTransferModal()" 
+                        class="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-xs hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" id="btnSubmitTransfer" disabled
+                        class="px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs shadow-md opacity-40 cursor-not-allowed transition-all">
+                    Confirm & Transfer Master Role
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# =========================================================================
+   MODAL 3: DELETE ADMINISTRATOR (DUAL-CONFIRMATION)
+   ========================================================================= #}
+<div id="deleteAdminModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-rose-200 space-y-6 animate-scale-in">
+        
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+                <i class="ki-filled ki-trash text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-gray-900">Delete Administrator Account</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Permanent account revocation for <strong class="text-gray-700">{{ campusName }}</strong></p>
+            </div>
+        </div>
+
+        {# Danger Callout #}
+        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs leading-relaxed space-y-2">
+            <p class="font-bold flex items-center gap-1.5 text-rose-950">
+                <i class="ki-filled ki-warning-2 text-base text-rose-600"></i> PERMANENT DELETION
+            </p>
+            <p>
+                You are about to permanently delete <span id="deleteTargetName" class="font-black text-rose-950"></span> (<span id="deleteTargetEmail" class="font-mono"></span>), role: <span id="deleteTargetTier" class="font-bold"></span>.
+            </p>
+            <p>
+                This administrator will immediately lose all login access and system privileges. This operation cannot be undone.
+            </p>
+        </div>
+
+        <form id="deleteAdminForm" method="POST" class="space-y-4">
+            <input type="hidden" name="_token" id="deleteCsrfToken" value="">
+
+            {# 1. Admin Password Verification #}
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Your Password <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                    <input type="password" name="password" id="deletePassword" required placeholder="Enter your password"
+                           oninput="checkDeleteValidity()"
+                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:border-rose-600 focus:ring-2 focus:ring-rose-600/20">
+                    <button type="button" onclick="togglePasswordVisibility('deletePassword', this)" 
+                            class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                        <i class="ki-filled ki-eye text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            {# 2. Text Confirmation Verification #}
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Type <span class="text-rose-600 font-mono select-all">CONFIRM DELETE</span> to proceed <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="confirm_text" id="deleteConfirmText" required placeholder='Type "CONFIRM DELETE" (case-sensitive)'
+                       autocomplete="off" oninput="checkDeleteValidity()"
+                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm font-mono focus:border-rose-600 focus:ring-2 focus:ring-rose-600/20">
+                <span id="deleteMatchHint" class="text-[11px] text-gray-400 mt-1 block">Exact match required (all uppercase).</span>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeDeleteModal()" 
+                        class="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-xs hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" id="btnSubmitDelete" disabled
+                        class="px-5 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-md opacity-40 cursor-not-allowed transition-all">
+                    Permanently Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // CSRF Token maps generated dynamically for transfer and delete routes
+    const transferCsrfTokens = {
+        {% for admin in admins %}
+            "{{ admin.empNum }}": "{{ csrf_token('admin_access_transfer_' ~ admin.empNum) }}",
+        {% endfor %}
+    };
+
+    const deleteCsrfTokens = {
+        {% for admin in admins %}
+            "{{ admin.empNum }}": "{{ csrf_token('admin_access_delete_' ~ admin.empNum) }}",
+        {% endfor %}
+    };
+
+    const transferBaseUrl = "{{ path('app_admin_access_transfer_master', {campus: campus, id: 0}) }}".replace('/0', '');
+    const deleteBaseUrl = "{{ path('app_admin_access_delete', {campus: campus, id: 0}) }}".replace('/0', '');
+
+    // Modal Controls
+    function openCreateModal() {
+        document.getElementById('createAdminModal').classList.remove('hidden');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createAdminModal').classList.add('hidden');
+    }
+
+    function openTransferModal(empNum, name, email) {
+        document.getElementById('transferTargetName').textContent = name;
+        document.getElementById('transferTargetEmail').textContent = email;
+        document.getElementById('transferCsrfToken').value = transferCsrfTokens[empNum] || '';
+        document.getElementById('transferMasterForm').action = transferBaseUrl + '/' + empNum;
+        
+        document.getElementById('transferPassword').value = '';
+        document.getElementById('transferConfirmText').value = '';
+        checkTransferValidity();
+
+        document.getElementById('transferMasterModal').classList.remove('hidden');
+    }
+
+    function closeTransferModal() {
+        document.getElementById('transferMasterModal').classList.add('hidden');
+    }
+
+    function openDeleteModal(empNum, name, email, tier) {
+        document.getElementById('deleteTargetName').textContent = name;
+        document.getElementById('deleteTargetEmail').textContent = email;
+        document.getElementById('deleteTargetTier').textContent = tier;
+        document.getElementById('deleteCsrfToken').value = deleteCsrfTokens[empNum] || '';
+        document.getElementById('deleteAdminForm').action = deleteBaseUrl + '/' + empNum;
+
+        document.getElementById('deletePassword').value = '';
+        document.getElementById('deleteConfirmText').value = '';
+        checkDeleteValidity();
+
+        document.getElementById('deleteAdminModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteAdminModal').classList.add('hidden');
+    }
+
+    // Double-Confirmation Validation Listeners
+    function checkTransferValidity() {
+        const password = document.getElementById('transferPassword').value.trim();
+        const confirmText = document.getElementById('transferConfirmText').value;
+        const btn = document.getElementById('btnSubmitTransfer');
+        const hint = document.getElementById('transferMatchHint');
+
+        const isExactMatch = (confirmText === 'CONFIRM TRANSFER');
+        const isValid = isExactMatch && password.length > 0;
+
+        if (confirmText.length > 0 && !isExactMatch) {
+            hint.textContent = 'Mismatch! Please type exactly "CONFIRM TRANSFER"';
+            hint.className = 'text-[11px] text-rose-500 font-semibold mt-1 block';
+        } else if (isExactMatch) {
+            hint.textContent = 'Phrase matched correctly.';
+            hint.className = 'text-[11px] text-emerald-600 font-semibold mt-1 block';
+        } else {
+            hint.textContent = 'Exact match required (all uppercase).';
+            hint.className = 'text-[11px] text-gray-400 mt-1 block';
+        }
+
+        if (isValid) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-40', 'cursor-not-allowed');
+            btn.classList.add('hover:bg-amber-700', 'cursor-pointer');
+        } else {
+            btn.disabled = true;
+            btn.classList.add('opacity-40', 'cursor-not-allowed');
+            btn.classList.remove('hover:bg-amber-700', 'cursor-pointer');
+        }
+    }
+
+    function checkDeleteValidity() {
+        const password = document.getElementById('deletePassword').value.trim();
+        const confirmText = document.getElementById('deleteConfirmText').value;
+        const btn = document.getElementById('btnSubmitDelete');
+        const hint = document.getElementById('deleteMatchHint');
+
+        const isExactMatch = (confirmText === 'CONFIRM DELETE');
+        const isValid = isExactMatch && password.length > 0;
+
+        if (confirmText.length > 0 && !isExactMatch) {
+            hint.textContent = 'Mismatch! Please type exactly "CONFIRM DELETE"';
+            hint.className = 'text-[11px] text-rose-500 font-semibold mt-1 block';
+        } else if (isExactMatch) {
+            hint.textContent = 'Phrase matched correctly.';
+            hint.className = 'text-[11px] text-emerald-600 font-semibold mt-1 block';
+        } else {
+            hint.textContent = 'Exact match required (all uppercase).';
+            hint.className = 'text-[11px] text-gray-400 mt-1 block';
+        }
+
+        if (isValid) {
+            btn.disabled = false;
+            btn.classList.remove('opacity-40', 'cursor-not-allowed');
+            btn.classList.add('hover:bg-rose-700', 'cursor-pointer');
+        } else {
+            btn.disabled = true;
+            btn.classList.add('opacity-40', 'cursor-not-allowed');
+            btn.classList.remove('hover:bg-rose-700', 'cursor-pointer');
+        }
+    }
+
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'ki-filled ki-eye-slash text-lg';
+        } else {
+            input.type = 'password';
+            icon.className = 'ki-filled ki-eye text-lg';
+        }
+    }
+
+    // Close modals on Esc key
+    window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeCreateModal();
+            closeTransferModal();
+            closeDeleteModal();
+        }
+    });
+</script>
+{% endblock %}

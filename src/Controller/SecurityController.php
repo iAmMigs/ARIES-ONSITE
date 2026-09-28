@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
+use Symfony\Bundle\SecurityBundle\Security;
+
 class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_auth_login')]
@@ -22,10 +24,14 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/admin/diliman/login', name: 'app_auth_login_diliman')]
-    public function loginDiliman(AuthenticationUtils $authenticationUtils): Response
+    public function loginDiliman(AuthenticationUtils $authenticationUtils, Security $security): Response
     {
-        if ($this->getUser()) {
-            return $this->redirectToRoute('app_admin_dispatch');
+        $user = $this->getUser();
+        if ($user instanceof AdminUser) {
+            if ($user->getCampus() === 'feu_diliman') {
+                return $this->redirectToRoute('app_admin_diliman_dashboard');
+            }
+            $security->logout(false);
         }
 
         return $this->render('security/login_diliman.html.twig', [
@@ -35,10 +41,14 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/admin/alabang/login', name: 'app_auth_login_alabang')]
-    public function loginAlabang(AuthenticationUtils $authenticationUtils): Response
+    public function loginAlabang(AuthenticationUtils $authenticationUtils, Security $security): Response
     {
-        if ($this->getUser()) {
-            return $this->redirectToRoute('app_admin_dispatch');
+        $user = $this->getUser();
+        if ($user instanceof AdminUser) {
+            if ($user->getCampus() === 'feu_alabang') {
+                return $this->redirectToRoute('app_admin_alabang_dashboard');
+            }
+            $security->logout(false);
         }
 
         return $this->render('security/login_alabang.html.twig', [

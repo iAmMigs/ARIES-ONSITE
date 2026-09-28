@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Document Submission Waiver | ARIES Diliman{% endblock %}
+{% block title %}Acknowledgement of Pending Document Submission | ARIES Diliman{% endblock %}
 
 {% block stylesheets %}
     <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
@@ -192,7 +192,7 @@
                 <i class="ki-filled ki-warning text-3xl"></i>
             </div>
             <div class="flex-grow">
-                <h2 class="text-lg font-black text-amber-900 mb-1">Incomplete Document Submission Waiver Required</h2>
+                <h2 class="text-lg font-black text-amber-900 mb-1">Acknowledgement of Pending Document Submission Required</h2>
                 <p class="text-sm text-amber-800 leading-relaxed">
                     You have chosen to submit your application without uploading the complete set of required documents. 
                     To complete your registration, please review the dynamic waiver terms below and electronically sign the agreement to submit the missing documents on or before <strong class="bg-amber-200 text-amber-900 px-1 rounded">{{ active_sy.promissoryDeadline ? active_sy.promissoryDeadline|date('F j, Y') : 'the specified deadline' }}</strong>.

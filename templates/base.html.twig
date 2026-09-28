@@ -38,6 +38,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     
     <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -564,8 +565,16 @@
                     
                     field.addEventListener('input', function() {
                         this.classList.remove('border-red-400', 'is-invalid');
-                        var errorMsg = this.parentElement.querySelector('.error-message');
-                        if (errorMsg) errorMsg.remove();
+                        var anchor = this.closest('.phone-input-group') || this.closest('.input-wrapper') || this.closest('.input-group') || this.closest('.relative') || this;
+                        if (anchor.nextElementSibling && anchor.nextElementSibling.classList.contains('error-message')) {
+                            anchor.nextElementSibling.remove();
+                        } else {
+                            var parent = anchor.parentElement || this.parentElement;
+                            if (parent) {
+                                var errorMsg = parent.querySelector('.error-message');
+                                if (errorMsg) errorMsg.remove();
+                            }
+                        }
                     });
                 });
             }
@@ -612,13 +621,21 @@
             }
             
             function showFieldError(field, message) {
-                var existing = field.parentElement.querySelector('.error-message');
-                if (existing) existing.remove();
+                var anchor = field.closest('.phone-input-group') || field.closest('.input-wrapper') || field.closest('.input-group') || field.closest('.relative') || field;
+                if (anchor.nextElementSibling && anchor.nextElementSibling.classList.contains('error-message')) {
+                    anchor.nextElementSibling.remove();
+                } else {
+                    var parent = anchor.parentElement || field.parentElement;
+                    if (parent) {
+                        var existing = parent.querySelector('.error-message');
+                        if (existing) existing.remove();
+                    }
+                }
                 
                 var errorEl = document.createElement('span');
-                errorEl.className = 'error-message text-xs text-red-500 mt-1 block';
+                errorEl.className = 'error-message text-xs text-red-500 mt-1 block w-full';
                 errorEl.textContent = message;
-                field.parentElement.appendChild(errorEl);
+                anchor.insertAdjacentElement('afterend', errorEl);
             }
             
             document.addEventListener('DOMContentLoaded', function() {
