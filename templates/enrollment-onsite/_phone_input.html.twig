@@ -1,6 +1,6 @@
 {# templates/enrollment-onsite/_phone_input.html.twig #}
 {# Reusable Country Dial Code Phone Input Component #}
-{% set dial_name = prefix ? (prefix ~ '_country_dial_code') : 'country_dial_code' %}
+{% set dial_name = dial_name|default(prefix ? (prefix ~ '_country_dial_code') : 'country_dial_code') %}
 {% set dial_id = prefix ? (prefix ~ 'CountryDialCode') : 'countryDialCode' %}
 {% set picker_id = prefix ? (prefix ~ 'CountryPickerBtn') : 'countryPickerBtn' %}
 {% set flag_id = prefix ? (prefix ~ 'SelectedCountryFlag') : 'selectedCountryFlag' %}
@@ -9,14 +9,35 @@
 {% set search_id = prefix ? (prefix ~ 'CountrySearchInput') : 'countrySearchInput' %}
 {% set list_id = prefix ? (prefix ~ 'CountryList') : 'countryList' %}
 
+{% set raw_val = value|default('')|trim %}
+{% set current_dial = '+63' %}
+{% set current_flag = '🇵🇭' %}
+{% set clean_number = raw_val %}
+
+{% if raw_val starts with '+' %}
+    {% set matched = false %}
+    {% for country in countries %}
+        {% if not matched and country.phonecode and country.phonecode > 0 and raw_val starts with ('+' ~ country.phonecode) %}
+            {% set current_dial = '+' ~ country.phonecode %}
+            {% set current_flag = country.flagEmoji %}
+            {% set clean_number = raw_val|slice(current_dial|length)|trim %}
+            {% set matched = true %}
+        {% endif %}
+    {% endfor %}
+{% elseif raw_val starts with '09' %}
+    {% set current_dial = '+63' %}
+    {% set current_flag = '🇵🇭' %}
+    {% set clean_number = raw_val|slice(1) %}
+{% endif %}
+
 <div class="phone-input-group position-relative" data-phone-group="{{ prefix|default('applicant') }}">
     <button type="button" class="country-picker-btn" id="{{ picker_id }}" aria-expanded="false" aria-haspopup="listbox" title="Select Country Code">
-        <span class="country-flag-icon" id="{{ flag_id }}">🇵🇭</span>
-        <span class="country-dial-text" id="{{ dial_text_id }}">+63</span>
+        <span class="country-flag-icon" id="{{ flag_id }}">{{ current_flag }}</span>
+        <span class="country-dial-text" id="{{ dial_text_id }}">{{ current_dial }}</span>
         <i class="ki-filled ki-down fs-8 text-muted ms-1"></i>
     </button>
-    <input type="hidden" name="{{ dial_name }}" id="{{ dial_id }}" value="+63">
-    <input type="tel" name="{{ input_name }}" id="{{ input_id }}" class="form-control phone-input-field" {% if required|default(false) %}required{% endif %} placeholder="{{ placeholder|default('9xxxxxxxxx') }}" maxlength="11">
+    <input type="hidden" name="{{ dial_name }}" id="{{ dial_id }}" value="{{ current_dial }}">
+    <input type="tel" name="{{ input_name }}" id="{{ input_id }}" class="form-control phone-input-field {{ input_class|default('') }}" {% if required|default(false) %}required{% endif %} placeholder="{{ placeholder|default('9xxxxxxxxx') }}" value="{{ clean_number }}" maxlength="15">
     
     <div class="country-dropdown-menu shadow" id="{{ menu_id }}" style="display: none;">
         <div class="country-search-box-wrapper">
@@ -26,7 +47,7 @@
         <ul class="country-list" id="{{ list_id }}" role="listbox">
             {% for country in countries %}
                 {% if country.phonecode and country.phonecode > 0 %}
-                <li class="country-item {% if country.iso == 'PH' %}active{% endif %}" 
+                <li class="country-item {% if (('+' ~ country.phonecode) == current_dial and (current_dial != '+63' or country.iso == 'PH')) %}active{% endif %}" 
                     data-code="+{{ country.phonecode }}" 
                     data-iso="{{ country.iso }}" 
                     data-flag="{{ country.flagEmoji }}"
@@ -41,3 +62,4 @@
         </ul>
     </div>
 </div>
+

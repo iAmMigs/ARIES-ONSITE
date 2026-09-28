@@ -689,7 +689,19 @@ class AdminAlabangController extends AbstractController
             $registration->setMiddleName($request->request->get('middle_name'));
             $registration->setAdmissionType($request->request->get('admission_type'));
             $registration->setPersonalEmail($request->request->get('email'));
-            $registration->setMobileNumber($request->request->get('mobile'));
+            
+            $mobileDial = trim((string)$request->request->get('mobile_country_dial_code', ''));
+            $mobileNum = trim((string)$request->request->get('mobile', ''));
+            if ($mobileNum !== '') {
+                if ($mobileDial !== '' && !str_starts_with($mobileNum, '+')) {
+                    $cleanMobile = ltrim($mobileNum, '0');
+                    $registration->setMobileNumber($cleanMobile !== '' ? ($mobileDial . ' ' . $cleanMobile) : $mobileNum);
+                } else {
+                    $registration->setMobileNumber($mobileNum);
+                }
+            } else {
+                $registration->setMobileNumber('');
+            }
             $registration->setGender($request->request->get('gender'));
             $registration->setBirthPlace($request->request->get('birth_place'));
             $registration->setReligion($request->request->get('religion'));
@@ -881,7 +893,18 @@ class AdminAlabangController extends AbstractController
                     }
 
                     $g->setOccupation(strtoupper($data['occupation'] ?? ''));
-                    $g->setContactNo($data['contact'] ?? '');
+                    $dialCode = trim((string)($data['country_dial_code'] ?? ''));
+                    $contactNum = trim((string)($data['contact'] ?? ''));
+                    if ($contactNum !== '') {
+                        if ($dialCode !== '' && !str_starts_with($contactNum, '+')) {
+                            $cleanContact = ltrim($contactNum, '0');
+                            $g->setContactNo($cleanContact !== '' ? ($dialCode . ' ' . $cleanContact) : $contactNum);
+                        } else {
+                            $g->setContactNo($contactNum);
+                        }
+                    } else {
+                        $g->setContactNo('');
+                    }
                     $g->setDeceased(isset($data['deceased']));
                     $g->setOFW(isset($data['ofw']));
                     $g->setNationality(strtoupper($data['nationality'] ?? 'FILIPINO'));
@@ -990,7 +1013,18 @@ class AdminAlabangController extends AbstractController
                     $newG->setRelationship(strtoupper(trim($data['relationship'] ?? 'GUARDIAN')));
                     $newG->setParentName(strtoupper($fullName));
                     $newG->setOccupation(strtoupper($data['occupation'] ?? ''));
-                    $newG->setContactNo($data['contact'] ?? '');
+                    $newDialCode = trim((string)($data['country_dial_code'] ?? ''));
+                    $newContact = trim((string)($data['contact'] ?? ''));
+                    if ($newContact !== '') {
+                        if ($newDialCode !== '' && !str_starts_with($newContact, '+')) {
+                            $cleanNewContact = ltrim($newContact, '0');
+                            $newG->setContactNo($cleanNewContact !== '' ? ($newDialCode . ' ' . $cleanNewContact) : $newContact);
+                        } else {
+                            $newG->setContactNo($newContact);
+                        }
+                    } else {
+                        $newG->setContactNo('');
+                    }
                     $registration->addGuardian($newG);
                     $em->persist($newG);
                 }

@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v={{ 'now'|date('U') }}">
 {% endblock %}
 
 {% block body %}
@@ -96,7 +97,18 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-phone"></i> Mobile</label>
-                                    <input type="text" name="mobile" value="{{ registration.mobileNumber }}" class="w-full text-sm text-gray-600 border border-gray-400 rounded-lg px-3 py-2.5 mt-1 shadow-sm focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
+                                    <div class="mt-1">
+                                        {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                            prefix: 'applicant_mobile',
+                                            dial_name: 'mobile_country_dial_code',
+                                            input_name: 'mobile',
+                                            input_id: 'applicantMobileInput',
+                                            input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                            value: registration.mobileNumber,
+                                            placeholder: '9xxxxxxxxx',
+                                            countries: countries
+                                        } %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -432,7 +444,18 @@
                                             </div>
                                             <div>
                                                 <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
-                                                <input type="text" name="guardians[{{ loop.index0 }}][contact]" value="{{ guardian.contactNo }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                                <div class="mt-1">
+                                                    {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                                        prefix: 'guardian_' ~ loop.index0,
+                                                        dial_name: 'guardians[' ~ loop.index0 ~ '][country_dial_code]',
+                                                        input_name: 'guardians[' ~ loop.index0 ~ '][contact]',
+                                                        input_id: 'guardian_contact_' ~ loop.index0,
+                                                        input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                                        value: guardian.contactNo,
+                                                        placeholder: '9xxxxxxxxx',
+                                                        countries: countries
+                                                    } %}
+                                                </div>
                                             </div>
                                             <div>
                                                 <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
@@ -835,7 +858,18 @@
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
-                                        <input type="text" name="guardians[{{ emergencyIndex }}][contact]" value="{{ emergencyContact ? emergencyContact.contactNo : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                        <div class="mt-1">
+                                            {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                                prefix: 'emergency_contact_' ~ emergencyIndex,
+                                                dial_name: 'guardians[' ~ emergencyIndex ~ '][country_dial_code]',
+                                                input_name: 'guardians[' ~ emergencyIndex ~ '][contact]',
+                                                input_id: 'emergency_contact_' ~ emergencyIndex,
+                                                input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                                value: emergencyContact ? emergencyContact.contactNo : '',
+                                                placeholder: '9xxxxxxxxx',
+                                                countries: countries
+                                            } %}
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
@@ -1438,4 +1472,5 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+<script src="{{ asset('js/phone-picker.js') }}?v={{ 'now'|date('U') }}"></script>
 {% endblock %}
