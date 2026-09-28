@@ -123,8 +123,6 @@ class ApplicantBed
     #[ORM\Column(name: 'country_of_birth', length: 100, nullable: true)]
     private ?string $countryOfBirth = null;
 
-    #[ORM\Column(name: 'civil_status', length: 50, nullable: true)]
-    private ?string $civilStatus = null;
 
     #[ORM\Column(name: 'country_of_residence', length: 100, nullable: true)]
     private ?string $countryOfResidence = null;
@@ -344,8 +342,6 @@ class ApplicantBed
     public function getCountryOfBirth(): ?string { return $this->countryOfBirth; }
     public function setCountryOfBirth(?string $countryOfBirth): static { $this->countryOfBirth = $countryOfBirth; return $this; }
 
-    public function getCivilStatus(): ?string { return $this->civilStatus; }
-    public function setCivilStatus(?string $civilStatus): static { $this->civilStatus = $civilStatus; return $this; }
 
     public function getCountryOfResidence(): ?string { return $this->countryOfResidence; }
     public function setCountryOfResidence(?string $countryOfResidence): static { $this->countryOfResidence = $countryOfResidence; return $this; }

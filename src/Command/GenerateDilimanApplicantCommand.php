@@ -97,7 +97,6 @@ class GenerateDilimanApplicantCommand extends Command
         $applicant->setBirthDate(new \DateTime('-' . random_int(15, 17) . ' years'));
         $applicant->setBirthPlace('Quezon City');
         $applicant->setGender($gender);
-        $applicant->setCivilStatus('Single');
         $applicant->setReligion('Roman Catholic');
         $applicant->setCitizenship('LOCAL');
         $applicant->setNationality('Filipino');

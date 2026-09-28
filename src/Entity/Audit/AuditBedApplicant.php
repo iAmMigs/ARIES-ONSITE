@@ -82,8 +82,6 @@ class AuditBedApplicant
     #[ORM\Column(name: 'country_of_birth', length: 100, nullable: true)]
     private ?string $countryOfBirth = null;
 
-    #[ORM\Column(name: 'civil_status', length: 50, nullable: true)]
-    private ?string $civilStatus = null;
 
     #[ORM\Column(name: 'country_of_residence', length: 100, nullable: true)]
     private ?string $countryOfResidence = null;

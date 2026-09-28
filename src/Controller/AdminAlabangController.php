@@ -361,7 +361,6 @@ class AdminAlabangController extends AbstractController
                 'Age',
                 'Birthplace',
                 'Country of Birth',
-                'Civil Status',
                 'Religion',
                 'Nationality',
                 'Citizenship',
@@ -490,7 +489,6 @@ class AdminAlabangController extends AbstractController
                     $age,
                     $applicant->getBirthPlace() ?? '',
                     $applicant->getCountryOfBirth() ?? '',
-                    $applicant->getCivilStatus() ?? '',
                     $applicant->getReligion() ?? '',
                     $applicant->getNationality() ?? '',
                     $applicant->getCitizenship() ?? '',
@@ -709,10 +707,11 @@ class AdminAlabangController extends AbstractController
             $registration->setNationality($request->request->get('nationality'));
             $registration->setPreferredName($request->request->get('preferred_name'));
             $registration->setSuffix($request->request->get('suffix'));
-            $registration->setCivilStatus($request->request->get('civil_status'));
             $registration->setCountryOfBirth($request->request->get('country_of_birth'));
             $registration->setCountryOfResidence($request->request->get('country_of_residence'));
             $registration->setLastGradeCompleted($request->request->get('last_grade_completed'));
+
+            $this->hydrateApplicantAddress($registration, $request, $em);
 
             $avg = $request->request->get('general_average');
             $registration->setGeneralAverage($avg !== null && trim((string)$avg) !== '' ? trim((string)$avg) : null);
@@ -1119,6 +1118,84 @@ class AdminAlabangController extends AbstractController
         ]);
     }
 
+    private function hydrateApplicantAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em): void
+    {
+        $curStreet = $request->request->get('current_address');
+        if ($curStreet !== null && trim((string)$curStreet) !== '') {
+            $applicant->setCurrentAddress(strtoupper(trim((string)$curStreet)));
+        }
+        $curZip = $request->request->get('current_zip');
+        if ($curZip !== null && trim((string)$curZip) !== '') {
+            $applicant->setCurrentZip(trim((string)$curZip));
+        }
+
+        $curReg = $request->request->get('addr_region');
+        $curProv = $request->request->get('addr_province');
+        $curCity = $request->request->get('addr_city');
+        $curBrgy = $request->request->get('addr_barangay');
+
+        if ($curReg) {
+            $r = is_numeric($curReg) ? $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => (int)$curReg]) : $em->getRepository(LookupRegion::class)->findOneBy(['regionDesc' => $curReg]);
+            if ($r) $applicant->setCurrentRegion($r->getRegionDesc());
+        }
+        if ($curProv) {
+            $p = is_numeric($curProv) ? $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => (int)$curProv]) : $em->getRepository(LookupProvince::class)->findOneBy(['provinceDesc' => $curProv]);
+            if ($p) $applicant->setCurrentProvince($p->getProvinceDesc());
+        }
+        if ($curCity) {
+            $c = is_numeric($curCity) ? $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => (int)$curCity]) : $em->getRepository(LookupCity::class)->findOneBy(['cityDesc' => $curCity]);
+            if ($c) $applicant->setCurrentCity($c->getCityDesc());
+        }
+        if ($curBrgy) {
+            $applicant->setCurrentBarangay($curBrgy);
+        }
+
+        $permStreet = $request->request->get('permanent_address');
+        if ($permStreet !== null && trim((string)$permStreet) !== '') {
+            $applicant->setPermanentAddress(strtoupper(trim((string)$permStreet)));
+        }
+        $permZip = $request->request->get('permanent_zip');
+        if ($permZip !== null && trim((string)$permZip) !== '') {
+            $applicant->setPermanentZip(trim((string)$permZip));
+        }
+
+        if (strtoupper($applicant->getCitizenship() ?? '') === 'INTERNATIONAL') {
+            if ($pCountry = $request->request->get('perm_country')) {
+                $applicant->setPermanentCountry($pCountry);
+            }
+            if ($pProv = $request->request->get('perm_province_text')) {
+                $applicant->setPermanentProvince($pProv);
+            }
+            if ($pCity = $request->request->get('perm_city_text')) {
+                $applicant->setPermanentCity($pCity);
+            }
+            if ($pBrgy = $request->request->get('perm_barangay_text')) {
+                $applicant->setPermanentBarangay($pBrgy);
+            }
+        } else {
+            $pReg = $request->request->get('perm_region');
+            $pProv = $request->request->get('perm_province');
+            $pCity = $request->request->get('perm_city');
+            $pBrgy = $request->request->get('perm_barangay');
+
+            if ($pReg) {
+                $r = is_numeric($pReg) ? $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => (int)$pReg]) : $em->getRepository(LookupRegion::class)->findOneBy(['regionDesc' => $pReg]);
+                if ($r) $applicant->setPermanentRegion($r->getRegionDesc());
+            }
+            if ($pProv) {
+                $p = is_numeric($pProv) ? $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => (int)$pProv]) : $em->getRepository(LookupProvince::class)->findOneBy(['provinceDesc' => $pProv]);
+                if ($p) $applicant->setPermanentProvince($p->getProvinceDesc());
+            }
+            if ($pCity) {
+                $c = is_numeric($pCity) ? $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => (int)$pCity]) : $em->getRepository(LookupCity::class)->findOneBy(['cityDesc' => $pCity]);
+                if ($c) $applicant->setPermanentCity($c->getCityDesc());
+            }
+            if ($pBrgy) {
+                $applicant->setPermanentBarangay($pBrgy);
+            }
+        }
+    }
+
     private function hydrateGuardianAddress(\App\Entity\ApplicantBedGuardian $g, array $data, EntityManagerInterface $em): void
     {
         $regionCode = $data['addr_region'] ?? null;
@@ -1130,26 +1207,30 @@ class AdminAlabangController extends AbstractController
             $r = is_numeric($regionCode)
                 ? $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => (int)$regionCode])
                 : $em->getRepository(LookupRegion::class)->findOneBy(['regionDesc' => $regionCode]);
-            $g->setCurrentRegion($r ? $r->getRegionDesc() : $regionCode);
+            if ($r) $g->setCurrentRegion($r->getRegionDesc());
         }
         if ($provCode) {
             $p = is_numeric($provCode)
                 ? $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => (int)$provCode])
                 : $em->getRepository(LookupProvince::class)->findOneBy(['provinceDesc' => $provCode]);
-            $g->setCurrentProvince($p ? $p->getProvinceDesc() : $provCode);
+            if ($p) $g->setCurrentProvince($p->getProvinceDesc());
         }
         if ($cityCode) {
             $c = is_numeric($cityCode)
                 ? $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => (int)$cityCode])
                 : $em->getRepository(LookupCity::class)->findOneBy(['cityDesc' => $cityCode]);
-            $g->setCurrentCity($c ? $c->getCityDesc() : $cityCode);
+            if ($c) $g->setCurrentCity($c->getCityDesc());
         }
         if ($brgyName) {
             $g->setCurrentBarangay($brgyName);
         }
 
-        $g->setCurrentAddress(strtoupper($data['addr_street'] ?? ''));
-        $g->setCurrentZip($data['addr_zip'] ?? '');
+        if (isset($data['addr_street']) && trim((string)$data['addr_street']) !== '') {
+            $g->setCurrentAddress(strtoupper(trim((string)$data['addr_street'])));
+        }
+        if (isset($data['addr_zip']) && trim((string)$data['addr_zip']) !== '') {
+            $g->setCurrentZip(trim((string)$data['addr_zip']));
+        }
     }
 
     private function hydrateGuardianPermanentAddress(\App\Entity\ApplicantBedGuardian $g, array $data, EntityManagerInterface $em): void
@@ -1357,17 +1438,23 @@ class AdminAlabangController extends AbstractController
         foreach ($allSetups as $setup) {
             /* Check if applicant meets grade level requirement */
             $grades = $setup->getGradeLevels();
-            if ($grades && !empty($grades) && !in_array($gradeLevel, $grades)) {
-                continue;
+            if ($grades && !empty($grades)) {
+                $normalizedGrades = array_map(fn($g) => strtolower(str_replace([' ', '_', '-'], '', (string)$g)), $grades);
+                $normalizedApplicantGrade = strtolower(str_replace([' ', '_', '-'], '', (string)$gradeLevel));
+                if (!in_array('all', $normalizedGrades, true) && !in_array($normalizedApplicantGrade, $normalizedGrades, true)) {
+                    continue;
+                }
             }
 
             /* Check if applicant meets student admission type requirement */
             $sReq = $setup->getStudentType(); // 'All', 'New', 'Transferee', 'Old'
             if ($sReq && strtoupper($sReq) !== 'ALL') {
-                if (strtoupper($sReq) === 'NEW' && strtoupper($admissionType) !== 'FRESHMAN') {
+                $sReqNorm = strtoupper(trim(str_replace([' ', '_', '-'], '', (string)$sReq)));
+                $admNorm = strtoupper(trim(str_replace([' ', '_', '-'], '', (string)$admissionType)));
+                if (($sReqNorm === 'NEW' || $sReqNorm === 'NEWSTUDENT') && $admNorm !== 'FRESHMAN' && $admNorm !== 'NEW' && $admNorm !== 'NEWSTUDENT') {
                     continue;
                 }
-                if (strtoupper($sReq) === 'TRANSFEREE' && strtoupper($admissionType) !== 'TRANSFEREE') {
+                if ($sReqNorm === 'TRANSFEREE' && $admNorm !== 'TRANSFEREE') {
                     continue;
                 }
             }

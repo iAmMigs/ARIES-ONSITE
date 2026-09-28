@@ -225,15 +225,7 @@
                                     <label class="text-xs text-gray-400 uppercase font-bold">Suffix</label>
                                     <input type="text" name="suffix" value="{{ registration.suffix }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Civil Status</label>
-                                    <select name="civil_status" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value="">Select Civil Status</option>
-                                        {% for status in ['Single', 'Married', 'Widowed', 'Separated'] %}
-                                            <option value="{{ status }}" {{ registration.civilStatus|upper == status|upper ? 'selected' : '' }}>{{ status }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Country of Birth</label>
                                     <select name="country_of_birth" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
@@ -307,7 +299,7 @@
                             {# Current #}
                             <div class="mb-6">
                                 <div class="text-xs text-gray-400 uppercase font-bold mb-2">Current Address</div>
-                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.currentAddress }}, {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }}</div>
+                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ [registration.currentAddress, registration.currentBarangay, registration.currentCity, registration.currentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') }}</div>
                                 
                                 <div class="grid grid-cols-2 gap-3 mb-3">
                                     <div>
@@ -334,7 +326,7 @@
                             {# Permanent #}
                             <div class="pt-4 border-t border-gray-100">
                                 <div class="text-xs text-gray-400 uppercase font-bold mb-2">Permanent Address</div>
-                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.permanentAddress }}, {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }}</div>
+                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ [registration.permanentAddress, registration.permanentBarangay, registration.permanentCity, registration.permanentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') }}</div>
 
                                 {% if registration.citizenship|upper == 'INTERNATIONAL' %}
                                     <div class="grid grid-cols-2 gap-3 mb-3">
@@ -803,10 +795,10 @@
                             </div>
                         </div>
 
-                        {# System Info #}
+                        {# General Information #}
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-setting-2 text-feu-green-600"></i> System Info
+                                <i class="ki-filled ki-information-2 text-feu-green-600"></i> General Information
                             </h3>
                             <div class="space-y-3">
                                 <div class="flex justify-between text-sm">
