@@ -808,16 +808,28 @@ class AdminAlabangController extends AbstractController
             }
 
             $profileFile = $request->files->get('profile_picture');
-            if ($profileFile) {
-                if ($profileFile->getSize() > 5242880) {
+            $sidebarProfileFile = $request->files->get('profile_picture_sidebar');
+            $chosenProfile = ($profileFile && $profileFile->isValid()) 
+                ? $profileFile 
+                : (($sidebarProfileFile && $sidebarProfileFile->isValid()) ? $sidebarProfileFile : null);
+
+            if ($chosenProfile) {
+                if ($chosenProfile->getSize() > 5242880) {
                     $this->addFlash('error', 'The profile picture exceeds the 5MB limit.');
                     return $this->redirectToRoute('app_admin_alabang_registration_edit', ['id' => $id]);
                 }
-                $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $profileFile->guessExtension();
+                $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
+                if (!is_dir($targetDir)) {
+                    @mkdir($targetDir, 0777, true);
+                }
+                $ext = $chosenProfile->guessExtension() ?: 'png';
+                $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $ext;
                 try {
-                    $profileFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics', $filename);
+                    $chosenProfile->move($targetDir, $filename);
                     $registration->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
-                } catch (\Exception $e) { }
+                } catch (\Exception $e) {
+                    $this->addFlash('error', 'Failed to upload photo: ' . $e->getMessage());
+                }
             }
 
             $examTaken = $request->request->get('exam_taken') === '1';
