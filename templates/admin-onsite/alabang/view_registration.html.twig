@@ -18,9 +18,16 @@
                     </a>
                     <span class="text-gray-500 text-sm font-medium">Back to List</span>
                 </div>
-                <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.studentNumber}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
-                    <i class="ki-filled ki-pencil mr-2"></i> Edit Details
-                </a>
+                <div class="flex items-center gap-3">
+                    <a href="{{ path('app_admin_alabang_registration_pdf', {'id': registration.studentNumber}) }}" 
+                       class="inline-flex items-center gap-2 bg-white border border-gray-300 text-gray-700 hover:text-feu-green-800 hover:bg-gray-50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-xs"
+                       title="Export and Download Official PDF Record">
+                        <i class="ki-filled ki-file-down text-base text-feu-green-700"></i> Export PDF
+                    </a>
+                    <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.studentNumber}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
+                        <i class="ki-filled ki-pencil mr-2"></i> Edit Details
+                    </a>
+                </div>
              </div>
 
             <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
@@ -66,6 +73,7 @@
                         </div>
                     </div>
 
+                    {% if registration.educationType == 'SHS' %}
                     <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
                         <div class="text-xs font-bold text-gray-400 uppercase mb-2">
                              {% if registration.examinationScore is not null %}
@@ -77,11 +85,38 @@
                         <div class="text-lg font-bold text-feu-green-700">
                             {% if registration.examinationScore is not null %}
                                 <span class="text-2xl">{{ registration.examinationScore }}</span>
+                                {% if registration.examinationDate %}
+                                    <div class="text-[10px] text-gray-400 uppercase font-bold mt-2 pt-2 border-t border-gray-200">
+                                        Taken: {{ registration.examinationDate|date('M d, Y') }}
+                                    </div>
+                                {% endif %}
                             {% else %}
-                                {{ registration.admissionStatus }}
+                                {{ registration.admissionStatus == 'Pending' or registration.admissionStatus == 'P' ? 'Pending Exam' : registration.admissionStatus }}
+                            {% endif %}
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <div class="text-xs font-bold text-gray-400 uppercase mb-1">Payment Status</div>
+                            <div class="text-base font-bold">
+                                {% if registration.examinationScore is not null or registration.admissionStatus in ['Paid', 'Enrolled', 'Completed', 'C'] %}
+                                    <span class="text-green-600">Paid</span>
+                                {% else %}
+                                    <span class="text-orange-500">For Payment</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                     </div>
+                    {% else %}
+                    <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
+                        <div class="text-xs font-bold text-gray-400 uppercase mb-2">Payment Status</div>
+                        <div class="text-lg font-bold text-feu-green-700">
+                            {% if registration.admissionStatus == 'Paid' %}
+                                <span class="text-green-600">Paid</span>
+                            {% else %}
+                                <span class="text-orange-500">For Payment</span>
                             {% endif %}
                         </div>
                      </div>
+                    {% endif %}
                 </div>
 
                 {# --- 2. DETAILS GRID --- #}
@@ -95,8 +130,30 @@
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Birthday</div><div class="font-medium text-gray-800">{{ registration.birthDate|date('F j, Y') }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Birth Place</div><div class="font-medium text-gray-800">{{ registration.birthPlace }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Religion</div><div class="font-medium text-gray-800">{{ registration.religion }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Nationality</div><div class="font-medium text-gray-800">{{ registration.nationality }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Citizenship</div><div class="font-medium text-gray-800">{{ registration.citizenship }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Preferred Name</div><div class="font-medium text-gray-800">{{ registration.preferredName|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Suffix</div><div class="font-medium text-gray-800">{{ registration.suffix|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Civil Status</div><div class="font-medium text-gray-800">{{ registration.civilStatus|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Birth</div><div class="font-medium text-gray-800">{{ registration.countryOfBirth|default('N/A') }}</div></div>
+                            <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Residence</div><div class="font-medium text-gray-800">{{ registration.countryOfResidence|default('N/A') }}</div></div>
                         </div>
+
+                        {% if registration.citizenship|upper == 'INTERNATIONAL' %}
+                            <div class="mt-6 pt-4 border-t border-gray-100">
+                                <h4 class="text-sm font-bold text-feu-green-700 uppercase mb-3 flex items-center gap-2">
+                                    <i class="ki-filled ki-profile-circle"></i> Passport &amp; Visa Details
+                                </h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Passport Number</div><div class="font-medium text-gray-800">{{ registration.passport.passportNumber|default(registration.passportNumber)|default('N/A') }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Issue</div><div class="font-medium text-gray-800">{{ registration.passport.countryOfIssue|default('N/A') }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Date Issued</div><div class="font-medium text-gray-800">{{ registration.passport.dateIssued ? registration.passport.dateIssued|date('F j, Y') : 'N/A' }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Expiration Date</div><div class="font-medium text-gray-800">{{ registration.passport.expirationDate ? registration.passport.expirationDate|date('F j, Y') : 'N/A' }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Visa Type</div><div class="font-medium text-gray-800">{{ registration.visaType|default('N/A')|title }}</div></div>
+                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Visa Status</div><div class="font-medium text-gray-800">{{ registration.visaStatus|default('N/A') }}</div></div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
 
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
@@ -107,15 +164,22 @@
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Current Address</div>
                             <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
                             <div class="text-sm text-gray-500">
-                                {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }} {{ registration.currentZip }}
+                                {{ registration.currentBarangay|location_barangay }}, {{ registration.currentCity|location_city }}, {{ registration.currentProvince|location_province }} {{ registration.currentZip }}
                             </div>
                         </div>
                         <div class="pt-4 border-t border-gray-100">
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Permanent Address</div>
-                            <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
-                            <div class="text-sm text-gray-500">
-                                {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }} {{ registration.permanentZip }}
-                            </div>
+                            {% if registration.citizenship|upper == 'INTERNATIONAL' %}
+                                <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
+                                <div class="text-sm text-gray-500">
+                                    {{ registration.permanentBarangay|default('')|location_barangay }}, {{ registration.permanentCity|default('')|location_city }}, {{ registration.permanentProvince|default('')|location_province }}, {{ registration.permanentCountry|default('') }} {{ registration.permanentZip }}
+                                </div>
+                            {% else %}
+                                <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
+                                <div class="text-sm text-gray-500">
+                                    {{ registration.permanentBarangay|location_barangay }}, {{ registration.permanentCity|location_city }}, {{ registration.permanentProvince|location_province }} {{ registration.permanentZip }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -143,10 +207,50 @@
                                             </div>
                                         </div>
                                         <div class="font-bold text-gray-800">{{ guardian.parentName|default('')|trim(', ') }}</div>
+                                        <div class="text-xs text-gray-500 font-semibold mt-1">Nationality: {{ guardian.nationality|default('FILIPINO') }}</div>
                                         <div class="text-sm {{ guardian.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
                                             {{ guardian.occupation ?: 'Occupation Not Specified' }}
                                         </div>
                                         <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ guardian.contactNo ?: 'No Contact Provided' }}</div>
+                                        {% if not guardian.deceased %}
+                                            {% if guardian.OFW %}
+                                                <div class="mt-2 pt-2 border-t border-gray-200 text-xs space-y-1.5">
+                                                    <div>
+                                                        <span class="font-bold text-gray-700 flex items-center gap-1">
+                                                            <i class="ki-filled ki-briefcase text-xs text-blue-500"></i> Workplace Address:
+                                                        </span>
+                                                        <span class="text-gray-600 block pl-4">
+                                                            {{ guardian.currentAddress }}{% if guardian.ofwCountry %}, {{ guardian.ofwCountry }}{% endif %}{% if guardian.currentZip %} ({{ guardian.currentZip }}){% endif %}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="font-bold text-gray-700 flex items-center gap-1">
+                                                            <i class="ki-filled ki-home text-xs text-feu-green-600"></i> Permanent Address:
+                                                        </span>
+                                                        <span class="text-gray-600 block pl-4">
+                                                            {% if guardian.permanentCountry %}
+                                                                {{ guardian.permanentAddress }}{% if guardian.permanentCountry %}, {{ guardian.permanentCountry }}{% endif %}{% if guardian.permanentZip %} ({{ guardian.permanentZip }}){% endif %}
+                                                            {% elseif guardian.permanentCity or guardian.permanentProvince %}
+                                                                {{ guardian.permanentAddress }}{% if guardian.permanentBarangay %}, {{ guardian.permanentBarangay|location_barangay }}{% endif %}{% if guardian.permanentCity %}, {{ guardian.permanentCity|location_city }}{% endif %}{% if guardian.permanentProvince %}, {{ guardian.permanentProvince|location_province }}{% endif %}{% if guardian.permanentZip %} {{ guardian.permanentZip }}{% endif %}
+                                                            {% elseif guardian.permanentAddress %}
+                                                                {{ guardian.permanentAddress }}{% if guardian.permanentZip %} ({{ guardian.permanentZip }}){% endif %}
+                                                            {% else %}
+                                                                <span class="italic text-gray-400">Same as workplace address</span>
+                                                            {% endif %}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            {% elseif guardian.sameAsApplicant %}
+                                                <div class="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
+                                                    <i class="ki-filled ki-geolocation text-xs"></i> Same address as applicant
+                                                </div>
+                                            {% elseif guardian.currentAddress or guardian.currentCity %}
+                                                <div class="text-xs text-gray-600 mt-1.5 flex items-start gap-1">
+                                                    <i class="ki-filled ki-geolocation text-xs mt-0.5 text-gray-400"></i>
+                                                    <span>{{ guardian.currentAddress }}{% if guardian.currentBarangay %}, {{ guardian.currentBarangay|location_barangay }}{% endif %}{% if guardian.currentCity %}, {{ guardian.currentCity|location_city }}{% endif %}{% if guardian.currentProvince %}, {{ guardian.currentProvince|location_province }}{% endif %}{% if guardian.currentZip %} {{ guardian.currentZip }}{% endif %}</span>
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
                                     </div>
                                 {% endif %}
                             {% endfor %}
@@ -192,8 +296,14 @@
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                             <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
                         </h3>
+                        {% if registration.lastGradeCompleted or registration.generalAverage is not null %}
+                            <div class="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
+                                <div><div class="text-gray-400 font-bold uppercase">Last Grade Completed</div><div class="font-bold text-gray-800 mt-0.5">{{ registration.lastGradeCompleted|default('N/A') }}</div></div>
+                                <div><div class="text-gray-400 font-bold uppercase">General Average</div><div class="font-bold text-feu-green-700 mt-0.5">{% if registration.generalAverage is not null and registration.generalAverage != '' %}{% if registration.generalAverage matches '/^[0-9]+(\\.[0-9]+)?$/' %}{{ registration.generalAverage|number_format(2) }}{% else %}{{ registration.generalAverage }}{% endif %}{% else %}N/A{% endif %}</div></div>
+                            </div>
+                        {% endif %}
                         <div class="space-y-4">
-                            {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High'} %}
+                            {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High', 'E': 'Elementary', 'K': 'Kindergarten'} %}
                             {% for school in registration.schools %}
                             {# Auto-convert old 4-digit entries (e.g. '2024') to '2023-2024' #}
                             {% set sYear = school.schoolYear %}
@@ -206,6 +316,14 @@
                                 </div>
                                 <div class="text-sm font-bold text-gray-800">{{ school.school }}</div>
                                 <div class="text-xs text-gray-500 mt-1">School Year: {{ sYear }}</div>
+                                {% if school.schoolType %}<div class="text-xs text-gray-400 mt-0.5">{{ school.schoolType }}</div>{% endif %}
+                                {% if school.isInternational %}
+                                    <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.country }}</div>
+                                {% else %}
+                                    {% if school.region or school.province or school.city %}
+                                        <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.city|location_city }}, {{ school.province|location_province }}, {{ school.region|location_region }}</div>
+                                    {% endif %}
+                                {% endif %}
                                 <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                             </div>
                             {% else %}
@@ -216,14 +334,60 @@
 
                     {# Documents #}
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
-                        </h3>
+                        <div class="mb-4 pb-3 border-b border-gray-100">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0 shadow-xs">
+                                    <i class="ki-filled ki-folder-added text-base"></i>
+                                </div>
+                                <h3 class="text-base font-bold text-gray-900">Submitted Files</h3>
+                            </div>
+                            {% if registration.documentsAgreedDate %}
+                                <div class="mt-3 px-3.5 py-2 rounded-xl bg-amber-50/90 border border-amber-200 flex items-center justify-between gap-2 shadow-xs">
+                                    <div class="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
+                                        <i class="ki-filled ki-calendar text-amber-600 text-sm"></i>
+                                        <span>Promissory Deadline</span>
+                                    </div>
+                                    <span class="text-xs font-extrabold text-amber-950 bg-white/80 px-2.5 py-0.5 rounded-lg border border-amber-200/60 shadow-xs whitespace-nowrap">
+                                        {{ registration.documentsAgreedDate|date('F j, Y') }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
                         <div class="space-y-3">
-                            {% set hasActiveDocs = false %}
-                            {% for req in registration.requirements %}
-                                {% if not req.isDeleted %}
-                                    {% set hasActiveDocs = true %}
+                            {# 2x2 ID Picture Compliance #}
+                            {% if registration.photoSlug %}
+                                <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                    <div class="flex-shrink-0">
+                                        <img src="{{ asset(registration.photoSlug) }}" class="w-8 h-8 rounded-lg object-cover border border-gray-200" alt="2x2 Photo">
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <div class="text-sm font-bold text-gray-800 truncate">2x2 ID Picture of the Applicant</div>
+                                        <div class="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Complied / Submitted
+                                        </div>
+                                    </div>
+                                </a>
+                            {% else %}
+                                <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
+                                        <i class="ki-filled ki-picture text-base"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <div class="text-sm font-bold text-red-800 truncate">2x2 ID Picture of the Applicant</div>
+                                        <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Complied (Promissory)</div>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {% for setup in documentSetups %}
+                                {% set req = null %}
+                                {% for r in registration.requirements %}
+                                    {% if r.Slug|lower == setup.slug|lower and not r.isDeleted %}
+                                        {% set req = r %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if req %}
                                     <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
                                         <div class="flex-shrink-0">
                                             <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
@@ -239,11 +403,21 @@
                                             </div>
                                         </div>
                                     </a>
+                                {% else %}
+                                    <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                        <div class="flex-shrink-0">
+                                            <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
+                                            <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
+                                        </div>
+                                    </div>
                                 {% endif %}
                             {% endfor %}
                             
-                            {% if not hasActiveDocs %}
-                                <div class="text-center py-6 text-gray-400 text-sm italic">No documents found.</div>
+                            {% if documentSetups|length == 0 %}
+                                <div class="text-center py-6 text-gray-400 text-sm italic">No document requirements for this student type.</div>
                             {% endif %}
                         </div>
                     </div>
@@ -261,6 +435,22 @@
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-500">School Year</span>
                                 <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
+                            </div>
+                            <div class="flex justify-between items-start text-sm">
+                                <span class="text-gray-500 pt-0.5">Source</span>
+                                <div class="text-right">
+                                    {% if registration.marketingSource %}
+                                        <div class="flex flex-wrap justify-end gap-1">
+                                            {% for src in registration.marketingSource|split(', ') %}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                    {{ src }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="font-medium text-gray-400">N/A</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -285,12 +475,23 @@
                                     <div class="text-xs text-orange-600 font-bold uppercase">
                                         {{ emergencyContact.relationship }}
                                     </div>
+                                    {% if emergencyContact.sameAsApplicant is defined and emergencyContact.sameAsApplicant %}
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Same as Applicant
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <div class="font-bold text-gray-800">{{ emergencyContact.parentName|default('')|trim(', ') }}</div>
                                 <div class="text-sm {{ emergencyContact.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
                                     {{ emergencyContact.occupation ?: 'Occupation Not Specified' }}
                                 </div>
                                 <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ emergencyContact.contactNo ?: 'No Contact Provided' }}</div>
+                                {% if emergencyContact.currentAddress or emergencyContact.currentCity %}
+                                    <div class="text-sm text-gray-500 mt-2 pt-2 border-t border-orange-100">
+                                        <i class="ki-filled ki-map text-xs mr-1"></i>
+                                        {{ emergencyContact.currentAddress }}{% if emergencyContact.currentBarangay %}, {{ emergencyContact.currentBarangay }}{% endif %}{% if emergencyContact.currentCity %}, {{ emergencyContact.currentCity }}{% endif %}{% if emergencyContact.currentProvince %}, {{ emergencyContact.currentProvince }}{% endif %} {{ emergencyContact.currentZip }}
+                                    </div>
+                                {% endif %}
                             </div>
                         {% else %}
                             <div class="p-4 rounded-xl border bg-gray-50 border-gray-100 text-center">

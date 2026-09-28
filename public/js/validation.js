@@ -10,7 +10,7 @@ const ARIESValidation = (function() {
     const patterns = {
         name: /^[a-zA-ZÀ-ÿñÑ\s\-']{2,50}$/,
         email: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/,
-        phone: /^(09|\+639)\d{9}$/,
+        phone: /^(09\d{9}|9\d{9}|\+?\d{7,15})$/,
         landline: /^(\(0\d{1,2}\)\s?)?\d{3,4}[-\s]?\d{4}$/,
         postalCode: /^\d{4}$/,
         date: /^\d{4}-\d{2}-\d{2}$/,
@@ -29,7 +29,7 @@ const ARIESValidation = (function() {
         required: 'This field is required',
         name: { required: 'Name is required', invalid: 'Please enter a valid name (2-50 characters, letters only)' },
         email: { required: 'Email address is required', invalid: 'Please enter a valid email address' },
-        phone: { required: 'Contact number is required', invalid: 'Please enter a valid 11-digit mobile number (e.g. 09123456789)' },
+        phone: { required: 'Contact number is required', invalid: 'Please enter a valid mobile number' },
         landline: { invalid: 'Please enter a valid landline number' },
         postalCode: { invalid: 'Please enter a valid 4-digit postal code' },
         date: { required: 'Date is required', invalid: 'Please enter a valid date', future: 'Date cannot be in the future', past: 'Date cannot be in the past', tooOld: 'Please enter a valid birth year', tooYoung: 'You must be at least 15 years old' },
@@ -89,7 +89,9 @@ const ARIESValidation = (function() {
     // ===== DOM Helpers =====
     function getErrorElement(input) {
         if (input.type === 'radio') {
-            const groupContainer = input.closest('.campus-selector-row') || input.closest('.form-group');
+            const groupContainer = input.closest('.campus-selector-row') || input.closest('.form-group') || input.closest('.card-body') || input.parentElement;
+            if (!groupContainer) return null;
+
             let err = groupContainer.querySelector('.group-error-message');
             if (!err) {
                 err = document.createElement('div');
@@ -100,28 +102,48 @@ const ARIESValidation = (function() {
             return err;
         }
 
-        const id = input.id || input.name;
-        let errorEl = id ? document.getElementById(id + '-error') : null;
+        const rawId = input.id || input.name;
+        if (!rawId) return null;
+
+        // Clean ID for safe DOM id attribute (strip brackets and trailing underscores)
+        const cleanId = rawId.replace(/[\[\]]/g, '_').replace(/_+$/, '');
+        let errorEl = document.getElementById(cleanId + '-error');
         
-        if (!errorEl && input.parentElement) {
-            errorEl = input.parentElement.querySelector('.error-message');
+        const anchor = input.closest('.phone-input-group')
+            || input.closest('.input-group') 
+            || input.closest('.input-wrapper') 
+            || input.closest('.relative') 
+            || input.closest('.survey-option-card')
+            || input.closest('.status-checkbox-group')
+            || (input.classList.contains('select2-hidden-accessible') && input.parentElement ? input.parentElement.querySelector('.select2-container') : null)
+            || input;
+
+        if (!errorEl && anchor && anchor.parentElement) {
+            try {
+                if (window.CSS && typeof CSS.escape === 'function') {
+                    errorEl = anchor.parentElement.querySelector('#' + CSS.escape(cleanId + '-error'));
+                } else {
+                    errorEl = anchor.parentElement.querySelector(`[id="${cleanId}-error"]`);
+                }
+            } catch(e) {
+                errorEl = null;
+            }
+            if (!errorEl && anchor.nextElementSibling && anchor.nextElementSibling.classList.contains('error-message')) {
+                errorEl = anchor.nextElementSibling;
+            }
         }
         
-        if (!errorEl && input.parentElement) {
+        if (!errorEl && anchor && anchor.parentElement) {
             errorEl = document.createElement('div');
-            if (id) errorEl.id = id + '-error';
-            errorEl.className = 'error-message text-danger mt-1 text-xs fw-bold';
+            errorEl.id = cleanId + '-error';
+            errorEl.className = 'error-message text-danger mt-1 text-xs fw-bold w-100';
             errorEl.style.fontSize = '0.85em';
             errorEl.style.display = 'none';
             
             const span = document.createElement('span');
             errorEl.appendChild(span);
             
-            if (input.nextElementSibling && input.nextElementSibling.classList.contains('text-gray-500')) {
-                input.parentElement.insertBefore(errorEl, input.nextElementSibling.nextSibling);
-            } else {
-                input.parentElement.appendChild(errorEl);
-            }
+            anchor.insertAdjacentElement('afterend', errorEl);
         }
         
         return errorEl;
@@ -130,6 +152,19 @@ const ARIESValidation = (function() {
     function setValid(input, errorEl) {
         input.classList.remove('is-invalid');
         input.classList.add('is-valid');
+        
+        // Handle Select2
+        if (input.classList.contains('select2-hidden-accessible')) {
+            const container = input.parentElement ? input.parentElement.querySelector('.select2-container') : null;
+            if (container) {
+                const selection = container.querySelector('.select2-selection');
+                if (selection) {
+                    selection.classList.remove('is-invalid');
+                    selection.classList.add('is-valid');
+                }
+            }
+        }
+        
         if (errorEl) {
             errorEl.classList.remove('show');
             errorEl.style.display = 'none';
@@ -141,6 +176,19 @@ const ARIESValidation = (function() {
     function setInvalid(input, errorEl, message) {
         input.classList.remove('is-valid');
         input.classList.add('is-invalid');
+        
+        // Handle Select2
+        if (input.classList.contains('select2-hidden-accessible')) {
+            const container = input.parentElement ? input.parentElement.querySelector('.select2-container') : null;
+            if (container) {
+                const selection = container.querySelector('.select2-selection');
+                if (selection) {
+                    selection.classList.remove('is-valid');
+                    selection.classList.add('is-invalid');
+                }
+            }
+        }
+        
         if (errorEl) {
             errorEl.classList.add('show');
             errorEl.style.display = 'block';
@@ -153,6 +201,18 @@ const ARIESValidation = (function() {
     
     function resetField(input, errorEl) {
         input.classList.remove('is-valid', 'is-invalid');
+        
+        // Handle Select2
+        if (input.classList.contains('select2-hidden-accessible')) {
+            const container = input.parentElement ? input.parentElement.querySelector('.select2-container') : null;
+            if (container) {
+                const selection = container.querySelector('.select2-selection');
+                if (selection) {
+                    selection.classList.remove('is-valid', 'is-invalid');
+                }
+            }
+        }
+        
         if (errorEl) {
             errorEl.classList.remove('show');
             errorEl.style.display = 'none';

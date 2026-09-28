@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Entity\AdminUser;
@@ -8,23 +10,57 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
+use Symfony\Bundle\SecurityBundle\Security;
+
 class SecurityController extends AbstractController
 {
     #[Route('/login', name: 'app_auth_login')]
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function loginChoice(): Response
     {
-        // If already logged in, let the dispatcher handle it
         if ($this->getUser()) {
             return $this->redirectToRoute('app_admin_dispatch');
         }
+        return $this->render('security/login_choice.html.twig');
+    }
 
-        $error = $authenticationUtils->getLastAuthenticationError();
-        $lastUsername = $authenticationUtils->getLastUsername();
+    #[Route('/admin/diliman/login', name: 'app_auth_login_diliman')]
+    public function loginDiliman(AuthenticationUtils $authenticationUtils, Security $security): Response
+    {
+        $user = $this->getUser();
+        if ($user instanceof AdminUser) {
+            if ($user->getCampus() === 'feu_diliman') {
+                return $this->redirectToRoute('app_admin_diliman_dashboard');
+            }
+            $security->logout(false);
+        }
 
-        return $this->render('security/login.html.twig', [
-            'last_username' => $lastUsername,
-            'error' => $error,
+        return $this->render('security/login_diliman.html.twig', [
+            'last_username' => $authenticationUtils->getLastUsername(),
+            'error' => $authenticationUtils->getLastAuthenticationError(),
         ]);
+    }
+
+    #[Route('/admin/alabang/login', name: 'app_auth_login_alabang')]
+    public function loginAlabang(AuthenticationUtils $authenticationUtils, Security $security): Response
+    {
+        $user = $this->getUser();
+        if ($user instanceof AdminUser) {
+            if ($user->getCampus() === 'feu_alabang') {
+                return $this->redirectToRoute('app_admin_alabang_dashboard');
+            }
+            $security->logout(false);
+        }
+
+        return $this->render('security/login_alabang.html.twig', [
+            'last_username' => $authenticationUtils->getLastUsername(),
+            'error' => $authenticationUtils->getLastAuthenticationError(),
+        ]);
+    }
+
+    #[Route('/login/check', name: 'app_auth_login_check')]
+    public function loginCheck(): void
+    {
+        throw new \LogicException('This method can be blank - it will be intercepted by the login key on your firewall.');
     }
 
     #[Route('/logout', name: 'app_logout')]
@@ -44,16 +80,14 @@ class SecurityController extends AbstractController
     {
         $user = $this->getUser();
 
-        // 1. Safety Check: If not an AdminUser, kick them out
         if (!$user instanceof AdminUser) {
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('app_auth_login_diliman');
         }
 
-        // 2. Strict Campus Redirection
         return match ($user->getCampus()) {
             'feu_alabang' => $this->redirectToRoute('app_admin_alabang_dashboard'),
             'feu_diliman' => $this->redirectToRoute('app_admin_diliman_dashboard'),
-            default       => $this->redirectToRoute('app_home'),
+            default       => $this->redirectToRoute('app_auth_login_diliman'),
         };
     }
 }

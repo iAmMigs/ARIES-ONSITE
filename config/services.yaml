@@ -20,4 +20,9 @@ services:
         resource: '../src/'
 
     # add more service definitions when explicit configuration is needed
+    App\Service\AdmissionsEmailService:
+        arguments:
+            $studentPortalUrl: '%env(STUDENT_PORTAL_URL)%'
+            $activationGuideUrl: '%env(ACTIVATION_GUIDE_URL)%'
+            $emailSender: '%env(ADMISSIONS_EMAIL_SENDER)%'
     # please note that last definitions always *replace* previous ones

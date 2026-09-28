@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Document Setup - Alabang Admin{% endblock %}
+{% block title %}Document Setup – FEU Alabang Admin{% endblock %}
 
 {% block body %}
 <div class="flex h-screen overflow-hidden bg-gray-50">
@@ -11,84 +11,646 @@
         
         {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'Document Requirements Setup'} %}
 
-        <div class="flex-1 overflow-y-auto p-8">
-            <div class="max-w-7xl mx-auto">
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
          
-                <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-200">
-                    <div class="mb-8 border-b border-gray-100 pb-4">
-                        <h3 class="text-lg font-bold text-gray-800">Manage Document Types</h3>
-                        <p class="text-sm text-gray-500 mt-1">Add or remove the documents required for enrollment. These instantly update the public forms.</p>
+                {# --- HEADER CONTEXT CARD --- #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200/80">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                                    FEU Alabang
+                                </span>
+                                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Document Requirements Setup</h1>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">Configure admission requirements, manage allowed file formats, and restrict documents by applicant type.</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200/80 text-xs font-medium text-gray-600">
+                                <i class="ki-filled ki-folder text-feu-green-700 text-base"></i>
+                                <span>Active Types: <strong class="text-gray-900 font-bold">{{ documents|length }}</strong></span>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <form action="{{ path('app_admin_alabang_documents') }}" method="POST" class="flex flex-col sm:flex-row gap-4 mb-10 bg-gray-50 p-6 rounded-xl border border-gray-200">
-                        <div class="flex-grow">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Document Name</label>
-                            <input type="text" name="name" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. Health Certificate" required>
+                {# --- ADD NEW REQUIREMENT COLLAPSIBLE CARD --- #}
+                <div class="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden" id="addDocContainer">
+                    <button type="button" 
+                            onclick="document.getElementById('addDocFormContainer').classList.toggle('hidden'); document.getElementById('addDocIcon').classList.toggle('rotate-180');" 
+                            class="w-full px-6 py-4.5 text-left flex justify-between items-center bg-gray-50/60 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center gap-2.5">
+                            <i class="ki-filled ki-plus-circle text-feu-green-700 text-xl"></i>
+                            <h4 class="text-sm font-bold text-gray-800 m-0">Add New Document Requirement</h4>
                         </div>
-                        
-                        <div class="w-full sm:w-64">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Allowed Types</label>
-                            <input type="text" name="allowed_file_types" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-feu-green-500 outline-none" placeholder="e.g. pdf, jpg, png">
+                        <i id="addDocIcon" class="ki-filled ki-down text-gray-400 transform transition-transform duration-300"></i>
+                    </button>
+
+                    <form id="addDocFormContainer" action="{{ path('app_admin_alabang_documents') }}" method="POST" class="hidden p-6 md:p-8 border-t border-gray-100 space-y-6">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Document Name -->
+                            <div class="col-span-1 lg:col-span-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Document Name <span class="text-red-500">*</span></label>
+                                <input type="text" name="name" 
+                                       class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-all shadow-xs" 
+                                       placeholder="e.g. Form 138 (Report Card)" required>
+                            </div>
+
+                            <!-- Allowed Types -->
+                            <div class="col-span-1">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Allowed File Types</label>
+                                <div class="flex flex-wrap gap-3 bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-2">
+                                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                                        <input type="checkbox" name="allowed_file_types[]" value="pdf" class="rounded text-feu-green-700 focus:ring-feu-green-600 w-4 h-4"> PDF
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                                        <input type="checkbox" name="allowed_file_types[]" value="jpg" class="rounded text-feu-green-700 focus:ring-feu-green-600 w-4 h-4"> JPG
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                                        <input type="checkbox" name="allowed_file_types[]" value="png" class="rounded text-feu-green-700 focus:ring-feu-green-600 w-4 h-4"> PNG
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                                        <input type="checkbox" name="allowed_file_types[]" value="docx" class="rounded text-feu-green-700 focus:ring-feu-green-600 w-4 h-4"> DOCX
+                                    </label>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1.5 ml-1">Leave all unchecked to accept any file format.</p>
+                            </div>
+
+                            <!-- Target Audience: Student Type -->
+                            <div class="col-span-1">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Student Type</label>
+                                <select name="student_type" id="add_student_type" class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-all shadow-xs">
+                                    <option value="">All Types (New & Transferee)</option>
+                                    <option value="New Student">New Student Only</option>
+                                    <option value="Transferee">Transferee Only</option>
+                                </select>
+                            </div>
+
+                            <!-- Target Audience: Nationality -->
+                            <div class="col-span-1 lg:col-span-2">
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Nationality</label>
+                                <select name="nationality_type" class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-all shadow-xs">
+                                    <option value="">All Nationalities (Local & International)</option>
+                                    <option value="LOCAL">Local Citizens Only</option>
+                                    <option value="INTERNATIONAL">International Citizens Only</option>
+                                </select>
+                            </div>
+
+                            <!-- Applicable Grade Levels -->
+                            <div class="col-span-1 md:col-span-2 lg:col-span-3">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Applicable Grade Levels</label>
+                                        <span id="add_new_student_grade_badge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                                            <i class="ki-filled ki-information-2 mr-1"></i> Available options for New Students: Kinder, Grade 1, Grade 7, Grade 11
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <label class="flex items-center gap-1.5 text-xs font-bold text-feu-green-800 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md transition-colors border border-emerald-200" id="add_grade_all_label">
+                                            <input type="checkbox" id="add_grade_all" class="rounded text-feu-green-700 focus:ring-feu-green-600 w-3.5 h-3.5">
+                                            <span>ALL</span>
+                                        </label>
+                                        <button type="button" id="add_grade_clear_btn" onclick="clearAddGradeLevels()" class="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors">Clear</button>
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50/80 border border-gray-200 rounded-2xl p-4">
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-y-3 gap-x-4">
+                                        {% for lvl in ['Grade 11', 'Grade 12'] %}
+                                            <label class="flex items-center gap-2.5 text-sm cursor-pointer hover:bg-gray-100 p-2 rounded-xl transition-colors">
+                                                <input type="checkbox" name="grade_levels[]" value="{{ lvl }}" class="add-grade-checkbox rounded text-feu-green-700 focus:ring-feu-green-600 w-4 h-4 shadow-xs"> 
+                                                <span class="text-gray-700 font-medium">{{ lvl }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="w-full sm:w-48">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block">Requirement</label>
-                            <select name="is_required" class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm">
-                                <option value="1">Strictly Required</option>
-                                <option value="0">Optional</option>
-                            </select>
-                        </div>
-                        
-                        <div class="w-full sm:w-auto flex items-end">
-                            <button type="submit" class="w-full sm:w-auto bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-6 py-2.5 rounded-lg transition-colors shadow-md">
-                                Add Document
+                        <div class="flex justify-end pt-4 border-t border-gray-100">
+                            <button type="submit" class="bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                                <i class="ki-filled ki-check-circle text-base"></i>
+                                Save Requirement
                             </button>
                         </div>
                     </form>
+                </div>
+
+                {# --- FILTER TOOLBAR CARD --- #}
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200/80">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex flex-wrap items-center gap-3 flex-1">
+                            <div class="relative min-w-[220px] flex-1 flex items-center">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i class="ki-filled ki-magnifier text-gray-400 text-sm"></i>
+                                </div>
+                                <input type="text" id="docFilterSearch" placeholder="Search document name or slug..." 
+                                       class="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-xl text-xs font-medium focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none shadow-xs">
+                            </div>
+                            <select id="docFilterStudentType" class="bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium text-gray-700 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none shadow-xs">
+                                <option value="">All Student Types</option>
+                                <option value="New Student">New Student Only</option>
+                                <option value="Transferee">Transferee Only</option>
+                                <option value="All Types">All Types Only</option>
+                            </select>
+                            <select id="docFilterNationality" class="bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium text-gray-700 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none shadow-xs">
+                                <option value="">All Nationalities</option>
+                                <option value="LOCAL">Local Only</option>
+                                <option value="INTERNATIONAL">International Only</option>
+                            </select>
+                            <select id="docFilterGrade" class="bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-medium text-gray-700 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none shadow-xs">
+                                <option value="">All Grade Levels</option>
+                                {% for lvl in ['Grade 11', 'Grade 12'] %}
+                                    <option value="{{ lvl }}">{{ lvl }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-between lg:justify-end gap-3 pt-2 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+                            <span id="docFilterCount" class="text-xs font-bold text-gray-500">
+                                Showing {{ documents|length }} {{ documents|length == 1 ? 'requirement' : 'requirements' }}
+                            </span>
+                            <button type="button" id="docFilterReset" onclick="resetDocFilters()" 
+                                    class="text-xs font-bold text-gray-700 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 px-3.5 py-1.5 rounded-xl transition-all shadow-xs">
+                                <i class="ki-filled ki-arrows-circle mr-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {# --- TABLE CONTAINER --- #}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-800 text-base">Configured Requirements ({{ documents|length }})</h3>
+                        <span class="text-xs text-gray-500">Campus: <strong class="text-gray-700">FEU Alabang</strong></span>
+                    </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-gray-400 uppercase bg-gray-50 rounded-t-xl">
-                                <tr>
-                                    <th class="px-6 py-4 rounded-tl-xl">Document Name</th>
-                                    <th class="px-6 py-4">Internal Slug</th>
-                                    <th class="px-6 py-4">Allowed Types</th>
-                                    <th class="px-6 py-4">Status</th>
-                                    <th class="px-6 py-4 text-right rounded-tr-xl">Actions</th>
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                    <th class="py-3.5 px-6">Document Name</th>
+                                    <th class="py-3.5 px-6">Internal Slug</th>
+                                    <th class="py-3.5 px-6">Allowed Types</th>
+                                    <th class="py-3.5 px-6">Applies To</th>
+                                    <th class="py-3.5 px-6 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-gray-100 text-sm">
                                 {% for doc in documents %}
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-6 py-4 font-bold text-gray-800">{{ doc.documentName }}</td>
-                                    <td class="px-6 py-4 text-gray-500 font-mono text-xs">{{ doc.slug }}</td>
-                                    <td class="px-6 py-4 font-mono text-xs text-blue-600">{{ doc.allowedFileTypes ? doc.allowedFileTypes : '<span class="text-gray-400 italic">All formats</span>'|raw }}</td>
-                                    <td class="px-6 py-4">
-                                        {% if doc.isRequired %}
-                                            <span class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold">Required</span>
-                                        {% else %}
-                                            <span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold">Optional</span>
-                                        {% endif %}
+                                {% set nat_normalized = 'ALL' %}
+                                {% if doc.nationalityType %}
+                                    {% if doc.nationalityType|upper in ['INTERNATIONAL', 'FOREIGN'] %}
+                                        {% set nat_normalized = 'INTERNATIONAL' %}
+                                    {% elseif doc.nationalityType|upper in ['LOCAL', 'FILIPINO'] %}
+                                        {% set nat_normalized = 'LOCAL' %}
+                                    {% else %}
+                                        {% set nat_normalized = doc.nationalityType|upper %}
+                                    {% endif %}
+                                {% endif %}
+                                <tr class="doc-row hover:bg-gray-50/70 transition-colors"
+                                    data-name="{{ doc.documentName|lower }}"
+                                    data-slug="{{ doc.slug|lower }}"
+                                    data-student-type="{{ doc.studentType|default('All Types')|lower }}"
+                                    data-nationality="{{ nat_normalized }}"
+                                    data-raw-nationality="{{ doc.nationalityType|default('')|upper }}"
+                                    data-grades="{{ (doc.gradeLevels ? doc.gradeLevels|join(',') : 'All')|lower }}">
+                                    
+                                    <td class="py-4 px-6 font-bold text-gray-900 tracking-tight">{{ doc.documentName }}</td>
+                                    
+                                    <td class="py-4 px-6 text-gray-500 font-mono text-xs">
+                                        <span class="bg-gray-50 px-2 py-0.5 rounded border border-gray-200/80">{{ doc.slug }}</span>
                                     </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <form action="{{ path('app_admin_alabang_documents_delete', {id: doc.id}) }}" method="POST" onsubmit="return confirm('Delete this requirement forever?');">
-                                            <button type="submit" class="text-gray-400 hover:text-red-600 transition-colors p-2">
-                                                <i class="ki-filled ki-trash text-lg"></i>
+                                    
+                                    <td class="py-4 px-6 font-mono text-xs text-blue-600">
+                                        {{ doc.allowedFileTypes ? doc.allowedFileTypes : '<span class="text-gray-400 italic">All formats</span>'|raw }}
+                                    </td>
+                                    
+                                    <td class="py-4 px-6">
+                                        <div class="flex flex-col gap-1.5 items-start">
+                                            {% if doc.studentType %}
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 w-fit">
+                                                    <i class="ki-filled ki-profile-circle"></i> {{ doc.studentType }}
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200 w-fit">
+                                                    <i class="ki-filled ki-profile-circle"></i> All Types
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if doc.nationalityType %}
+                                                {% set is_intl = doc.nationalityType|upper in ['INTERNATIONAL', 'FOREIGN'] %}
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold {{ is_intl ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-amber-50 text-amber-700 border-amber-200' }} border w-fit">
+                                                    <i class="ki-filled {{ is_intl ? 'ki-globe' : 'ki-flag' }}"></i> {{ is_intl ? 'International' : 'Local' }}
+                                                </span>
+                                            {% endif %}
+                                            
+                                            {% if doc.gradeLevels and doc.gradeLevels|length < 13 %}
+                                                <div class="flex flex-wrap gap-1 mt-0.5">
+                                                    {% for lvl in doc.gradeLevels %}
+                                                        <span class="inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">{{ lvl|replace({'Grade ': 'G'}) }}</span>
+                                                    {% endfor %}
+                                                </div>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200 w-fit mt-0.5">
+                                                    <i class="ki-filled ki-book-square"></i> All Grades
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="py-4 px-6 text-right">
+                                        <div class="inline-flex items-center justify-end gap-1.5">
+                                            <button type="button" 
+                                                    onclick='openEditModal({{ doc.id|json_encode|raw }}, {{ doc.documentName|json_encode|raw }}, {{ doc.allowedFileTypes|default("")|json_encode|raw }}, {{ doc.studentType|default("")|json_encode|raw }}, {{ doc.nationalityType|default("")|json_encode|raw }}, {{ doc.gradeLevels|default([])|json_encode|raw }})'
+                                                    class="p-2 rounded-lg text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+                                                    title="Edit Configuration">
+                                                <i class="ki-filled ki-pencil text-lg"></i>
                                             </button>
-                                        </form>
+
+                                            <form action="{{ path('app_admin_alabang_documents_delete', {id: doc.id}) }}" method="POST" onsubmit="return confirm('Delete this requirement forever?');" class="inline m-0">
+                                                <button type="submit" 
+                                                        class="p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                                                        title="Delete Requirement">
+                                                    <i class="ki-filled ki-trash text-lg"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="5" class="px-6 py-10 text-center text-gray-400 italic">No document setups configured yet.</td>
+                                    <td colspan="5" class="py-12 text-center text-gray-400 font-medium">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <i class="ki-filled ki-folder text-3xl text-gray-300"></i>
+                                            <span>No document setups configured yet.</span>
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% endfor %}
+                                <tr id="docFilterNoResults" style="display: none;">
+                                    <td colspan="5" class="py-12 text-center text-gray-400 font-medium">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <i class="ki-filled ki-magnifier text-3xl text-gray-300"></i>
+                                            <span>No requirements match your active filter criteria.</span>
+                                            <button type="button" onclick="resetDocFilters()" class="text-feu-green-800 font-bold underline text-xs mt-1">Reset Filters</button>
+                                        </div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
             </div>
         </div>
     </main>
 </div>
+
+{# --- EDIT MODAL --- #}
+<div id="editDocModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-gray-100">
+        <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div>
+                <h3 class="text-lg font-black text-gray-900">Edit Document Configuration</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Modify requirement settings and applicable criteria.</p>
+            </div>
+            <button onclick="closeEditModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+                <i class="ki-filled ki-cross text-lg"></i>
+            </button>
+        </div>
+        <form id="editDocForm" method="POST" class="p-6 space-y-5">
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Document Name <span class="text-red-500">*</span></label>
+                <input type="text" name="name" id="edit_name" 
+                       class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-all shadow-xs" required>
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Allowed Types</label>
+                <div class="flex flex-wrap gap-3 bg-gray-50/80 border border-gray-200 rounded-xl px-4 py-2.5">
+                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                        <input type="checkbox" name="allowed_file_types[]" value="pdf" class="edit-type-checkbox rounded text-feu-green-700 focus:ring-feu-green-600"> PDF
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                        <input type="checkbox" name="allowed_file_types[]" value="jpg" class="edit-type-checkbox rounded text-feu-green-700 focus:ring-feu-green-600"> JPG
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                        <input type="checkbox" name="allowed_file_types[]" value="png" class="edit-type-checkbox rounded text-feu-green-700 focus:ring-feu-green-600"> PNG
+                    </label>
+                    <label class="flex items-center gap-2 text-sm cursor-pointer hover:text-feu-green-800 transition-colors">
+                        <input type="checkbox" name="allowed_file_types[]" value="docx" class="edit-type-checkbox rounded text-feu-green-700 focus:ring-feu-green-600"> DOCX
+                    </label>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Student Type</label>
+                    <select name="student_type" id="edit_student_type" 
+                            class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none shadow-xs">
+                        <option value="">All Types</option>
+                        <option value="New Student">New Student Only</option>
+                        <option value="Transferee">Transferee Only</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Nationality</label>
+                    <select name="nationality_type" id="edit_nationality_type" 
+                            class="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none shadow-xs">
+                        <option value="">All Nationalities</option>
+                        <option value="LOCAL">Local Only</option>
+                        <option value="INTERNATIONAL">International Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Applicable Grade Levels</label>
+                        <span id="edit_new_student_grade_badge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+                            <i class="ki-filled ki-information-2 mr-1"></i> Available options for New Students: Kinder, Grade 1, Grade 7, Grade 11
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-feu-green-800 cursor-pointer bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md transition-colors border border-emerald-200" id="edit_grade_all_label">
+                            <input type="checkbox" id="edit_grade_all" class="rounded text-feu-green-700 focus:ring-feu-green-600 w-3.5 h-3.5">
+                            <span>ALL</span>
+                        </label>
+                        <button type="button" id="edit_grade_clear_btn" onclick="clearEditGradeLevels()" class="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors">Clear</button>
+                    </div>
+                </div>
+                <div class="bg-gray-50/80 border border-gray-200 rounded-xl p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {% for lvl in ['Grade 11', 'Grade 12'] %}
+                            <label class="flex items-center gap-2 text-xs cursor-pointer hover:bg-gray-100 p-1.5 rounded-lg transition-colors">
+                                <input type="checkbox" name="grade_levels[]" value="{{ lvl }}" class="edit-grade-checkbox rounded text-feu-green-700 focus:ring-feu-green-600 w-3.5 h-3.5 shadow-xs"> 
+                                <span class="text-gray-700 font-medium whitespace-nowrap">{{ lvl }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex gap-3 justify-end pt-4 border-t border-gray-100">
+                <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 rounded-xl font-bold text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="submit" class="bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-sm">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// --- NEW STUDENT ENTRY GRADE CONSTRAINTS ---
+const NEW_STUDENT_VALID_GRADES = ['Kinder', 'Grade 1', 'Grade 7', 'Grade 11'];
+
+function applyStudentTypeGradeFilter(studentTypeSelect, checkboxes, allCheckbox, clearBtn, badgeEl, autoCheckDefaults = false) {
+    if (!studentTypeSelect) return;
+    const isNewStudent = studentTypeSelect.value === 'New Student';
+    
+    if (badgeEl) {
+        badgeEl.classList.toggle('hidden', !isNewStudent);
+    }
+
+    checkboxes.forEach(cb => {
+        const parentLabel = cb.closest('label');
+        if (isNewStudent) {
+            const isValidForNew = NEW_STUDENT_VALID_GRADES.includes(cb.value);
+            if (isValidForNew) {
+                cb.disabled = false;
+                if (autoCheckDefaults) {
+                    cb.checked = true;
+                }
+                if (parentLabel) {
+                    parentLabel.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                }
+            } else {
+                cb.checked = false;
+                cb.disabled = true;
+                if (parentLabel) {
+                    parentLabel.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                }
+            }
+        } else {
+            cb.disabled = false;
+            if (parentLabel) {
+                parentLabel.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            }
+        }
+    });
+
+    syncActiveGradeAllState(checkboxes, allCheckbox);
+}
+
+function syncActiveGradeAllState(checkboxes, allCheckbox) {
+    if (!allCheckbox || checkboxes.length === 0) return;
+    const activeCheckboxes = Array.from(checkboxes).filter(cb => !cb.disabled);
+    if (activeCheckboxes.length === 0) {
+        allCheckbox.checked = false;
+        return;
+    }
+    allCheckbox.checked = activeCheckboxes.every(cb => cb.checked);
+}
+
+// --- GRADE LEVEL ALL TOGGLE LOGIC ---
+const addStudentType = document.getElementById('add_student_type');
+const addGradeAll = document.getElementById('add_grade_all');
+const addGradeCheckboxes = document.querySelectorAll('.add-grade-checkbox');
+const addGradeClearBtn = document.getElementById('add_grade_clear_btn');
+const addGradeBadge = document.getElementById('add_new_student_grade_badge');
+
+if (addStudentType) {
+    addStudentType.addEventListener('change', () => {
+        applyStudentTypeGradeFilter(addStudentType, addGradeCheckboxes, addGradeAll, addGradeClearBtn, addGradeBadge, true);
+    });
+}
+
+if (addGradeAll) {
+    addGradeAll.addEventListener('change', (e) => {
+        const activeCheckboxes = Array.from(addGradeCheckboxes).filter(cb => !cb.disabled);
+        activeCheckboxes.forEach(cb => { cb.checked = e.target.checked; });
+    });
+}
+
+addGradeCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => syncActiveGradeAllState(addGradeCheckboxes, addGradeAll));
+});
+
+function clearAddGradeLevels() {
+    const activeCheckboxes = Array.from(addGradeCheckboxes).filter(cb => !cb.disabled);
+    activeCheckboxes.forEach(cb => { cb.checked = false; });
+    if (addGradeAll) addGradeAll.checked = false;
+}
+
+const editStudentType = document.getElementById('edit_student_type');
+const editGradeAll = document.getElementById('edit_grade_all');
+const editGradeCheckboxes = document.querySelectorAll('.edit-grade-checkbox');
+const editGradeClearBtn = document.getElementById('edit_grade_clear_btn');
+const editGradeBadge = document.getElementById('edit_new_student_grade_badge');
+
+if (editStudentType) {
+    editStudentType.addEventListener('change', () => {
+        applyStudentTypeGradeFilter(editStudentType, editGradeCheckboxes, editGradeAll, editGradeClearBtn, editGradeBadge, true);
+    });
+}
+
+if (editGradeAll) {
+    editGradeAll.addEventListener('change', (e) => {
+        const activeCheckboxes = Array.from(editGradeCheckboxes).filter(cb => !cb.disabled);
+        activeCheckboxes.forEach(cb => { cb.checked = e.target.checked; });
+    });
+}
+
+editGradeCheckboxes.forEach(cb => {
+    cb.addEventListener('change', () => syncActiveGradeAllState(editGradeCheckboxes, editGradeAll));
+});
+
+function clearEditGradeLevels() {
+    const activeCheckboxes = Array.from(editGradeCheckboxes).filter(cb => !cb.disabled);
+    activeCheckboxes.forEach(cb => { cb.checked = false; });
+    if (editGradeAll) editGradeAll.checked = false;
+}
+
+// --- MODAL CONTROLS ---
+function openEditModal(id, name, types, studentType, nationalityType, gradeLevels) {
+    const modal = document.getElementById('editDocModal');
+    const form = document.getElementById('editDocForm');
+    
+    // Set form action dynamically
+    form.action = `/alabang-admin/document-setup/${id}/update`;
+    
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_student_type').value = studentType || '';
+    
+    let normNat = nationalityType || '';
+    if (normNat === 'FOREIGN') normNat = 'INTERNATIONAL';
+    if (normNat === 'FILIPINO') normNat = 'LOCAL';
+    document.getElementById('edit_nationality_type').value = normNat;
+
+    let gradesArr = Array.isArray(gradeLevels) ? gradeLevels : [];
+    const isAllGrades = !gradeLevels || gradesArr.length === 0 || gradesArr.length === editGradeCheckboxes.length;
+    
+    document.querySelectorAll('.edit-grade-checkbox').forEach(cb => {
+        cb.checked = isAllGrades ? true : gradesArr.includes(cb.value);
+    });
+
+    // Apply filter according to student type without overriding existing saved checks if already New Student
+    applyStudentTypeGradeFilter(editStudentType, editGradeCheckboxes, editGradeAll, editGradeClearBtn, editGradeBadge, false);
+
+    // Handle allowed types checkboxes
+    const allowedArr = types ? types.split(',').map(t => t.trim().toLowerCase()) : [];
+    document.querySelectorAll('.edit-type-checkbox').forEach(cb => {
+        cb.checked = allowedArr.includes(cb.value.toLowerCase());
+    });
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editDocModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+// Close on escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeEditModal();
+});
+
+// --- DOCUMENT LIST FILTERING LOGIC ---
+function filterDocList() {
+    const search = (document.getElementById('docFilterSearch')?.value || '').trim().toLowerCase();
+    const studentType = (document.getElementById('docFilterStudentType')?.value || '').toLowerCase();
+    const nationality = (document.getElementById('docFilterNationality')?.value || '').toUpperCase();
+    const grade = (document.getElementById('docFilterGrade')?.value || '').toLowerCase();
+
+    const rows = document.querySelectorAll('.doc-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const rowName = row.dataset.name || '';
+        const rowSlug = row.dataset.slug || '';
+        const rowStudentType = row.dataset.studentType || '';
+        const rowNationality = (row.dataset.nationality || '').toUpperCase();
+        const rawNationality = (row.dataset.rawNationality || '').toUpperCase();
+        const rowGrades = row.dataset.grades || '';
+
+        // Search match (name or slug)
+        const matchesSearch = !search || rowName.includes(search) || rowSlug.includes(search);
+
+        // Student type match
+        let matchesStudentType = true;
+        if (studentType) {
+            if (studentType === 'all types') {
+                matchesStudentType = rowStudentType === 'all types' || rowStudentType === 'both' || !rowStudentType;
+            } else if (studentType === 'new student') {
+                matchesStudentType = rowStudentType.includes('new') || rowStudentType === 'both' || rowStudentType === 'all types' || !rowStudentType;
+            } else if (studentType === 'transferee') {
+                matchesStudentType = rowStudentType.includes('transferee') || rowStudentType === 'both' || rowStudentType === 'all types' || !rowStudentType;
+            } else {
+                matchesStudentType = rowStudentType.includes(studentType) || rowStudentType === 'both' || rowStudentType === 'all types' || !rowStudentType;
+            }
+        }
+
+        // Nationality match: handles 'INTERNATIONAL' (matching INTERNATIONAL and FOREIGN), and 'LOCAL' (matching LOCAL and FILIPINO)
+        let matchesNationality = true;
+        if (nationality) {
+            if (nationality === 'INTERNATIONAL') {
+                matchesNationality = rowNationality === 'INTERNATIONAL' || rawNationality === 'FOREIGN' || rawNationality === 'INTERNATIONAL';
+            } else if (nationality === 'LOCAL') {
+                matchesNationality = rowNationality === 'LOCAL' || rawNationality === 'FILIPINO' || rawNationality === 'LOCAL';
+            } else if (nationality === 'ALL') {
+                matchesNationality = rowNationality === 'ALL' || !rowNationality || rawNationality === '';
+            } else {
+                matchesNationality = rowNationality === nationality || rawNationality === nationality;
+            }
+        }
+
+        // Grade match
+        let matchesGrade = true;
+        if (grade) {
+            matchesGrade = rowGrades.includes(grade) || rowGrades === 'all' || !rowGrades;
+        }
+
+        if (matchesSearch && matchesStudentType && matchesNationality && matchesGrade) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    const countEl = document.getElementById('docFilterCount');
+    if (countEl) {
+        countEl.textContent = `Showing ${visibleCount} of ${rows.length} requirements`;
+    }
+
+    const noResultsRow = document.getElementById('docFilterNoResults');
+    if (noResultsRow) {
+        noResultsRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+    }
+}
+
+function resetDocFilters() {
+    if (document.getElementById('docFilterSearch')) document.getElementById('docFilterSearch').value = '';
+    if (document.getElementById('docFilterStudentType')) document.getElementById('docFilterStudentType').value = '';
+    if (document.getElementById('docFilterNationality')) document.getElementById('docFilterNationality').value = '';
+    if (document.getElementById('docFilterGrade')) document.getElementById('docFilterGrade').value = '';
+    filterDocList();
+}
+
+['docFilterSearch', 'docFilterStudentType', 'docFilterNationality', 'docFilterGrade'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener('input', filterDocList);
+        el.addEventListener('change', filterDocList);
+    }
+});
+</script>
 {% endblock %}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ApplicantBedGuardianRepository;
@@ -54,6 +56,54 @@ class ApplicantBedGuardian
     #[ORM\Column(name: 'Address', type: Types::TEXT, nullable: true)]
     private ?string $address = null;
 
+    // --- Guardian Current Address ---
+    #[ORM\Column(name: 'current_region', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $currentRegion = null;
+
+    #[ORM\Column(name: 'current_province', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $currentProvince = null;
+
+    #[ORM\Column(name: 'current_city', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $currentCity = null;
+
+    #[ORM\Column(name: 'current_barangay', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $currentBarangay = null;
+
+    #[ORM\Column(name: 'current_address', type: Types::TEXT, nullable: true)]
+    private ?string $currentAddress = null;
+
+    #[ORM\Column(name: 'current_zip', type: Types::STRING, length: 10, nullable: true)]
+    private ?string $currentZip = null;
+
+    // --- Guardian Permanent Address ---
+    #[ORM\Column(name: 'permanent_region', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $permanentRegion = null;
+
+    #[ORM\Column(name: 'permanent_province', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $permanentProvince = null;
+
+    #[ORM\Column(name: 'permanent_city', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $permanentCity = null;
+
+    #[ORM\Column(name: 'permanent_barangay', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $permanentBarangay = null;
+
+    #[ORM\Column(name: 'permanent_address', type: Types::TEXT, nullable: true)]
+    private ?string $permanentAddress = null;
+
+    #[ORM\Column(name: 'permanent_zip', type: Types::STRING, length: 10, nullable: true)]
+    private ?string $permanentZip = null;
+
+    #[ORM\Column(name: 'permanent_country', type: Types::STRING, length: 100, nullable: true)]
+    private ?string $permanentCountry = null;
+
+    // --- Same as Applicant Flag (Guardian slot only) ---
+    #[ORM\Column(name: 'is_same_as_applicant', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isSameAsApplicant = false;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $nationality = null;
+
     // --- GETTERS & SETTERS ---
 
     public function getId(): ?int { return $this->id; }
@@ -97,4 +147,41 @@ class ApplicantBedGuardian
 
     public function getAddress(): ?string { return $this->address; }
     public function setAddress(?string $address): static { $this->address = $address; return $this; }
+
+    // --- Current Address ---
+    public function getCurrentRegion(): ?string { return $this->currentRegion; }
+    public function setCurrentRegion(?string $v): static { $this->currentRegion = $v; return $this; }
+    public function getCurrentProvince(): ?string { return $this->currentProvince; }
+    public function setCurrentProvince(?string $v): static { $this->currentProvince = $v; return $this; }
+    public function getCurrentCity(): ?string { return $this->currentCity; }
+    public function setCurrentCity(?string $v): static { $this->currentCity = $v; return $this; }
+    public function getCurrentBarangay(): ?string { return $this->currentBarangay; }
+    public function setCurrentBarangay(?string $v): static { $this->currentBarangay = $v; return $this; }
+    public function getCurrentAddress(): ?string { return $this->currentAddress; }
+    public function setCurrentAddress(?string $v): static { $this->currentAddress = $v; return $this; }
+    public function getCurrentZip(): ?string { return $this->currentZip; }
+    public function setCurrentZip(?string $v): static { $this->currentZip = $v; return $this; }
+
+    // --- Permanent Address ---
+    public function getPermanentRegion(): ?string { return $this->permanentRegion; }
+    public function setPermanentRegion(?string $v): static { $this->permanentRegion = $v; return $this; }
+    public function getPermanentProvince(): ?string { return $this->permanentProvince; }
+    public function setPermanentProvince(?string $v): static { $this->permanentProvince = $v; return $this; }
+    public function getPermanentCity(): ?string { return $this->permanentCity; }
+    public function setPermanentCity(?string $v): static { $this->permanentCity = $v; return $this; }
+    public function getPermanentBarangay(): ?string { return $this->permanentBarangay; }
+    public function setPermanentBarangay(?string $v): static { $this->permanentBarangay = $v; return $this; }
+    public function getPermanentAddress(): ?string { return $this->permanentAddress; }
+    public function setPermanentAddress(?string $v): static { $this->permanentAddress = $v; return $this; }
+    public function getPermanentZip(): ?string { return $this->permanentZip; }
+    public function setPermanentZip(?string $v): static { $this->permanentZip = $v; return $this; }
+    public function getPermanentCountry(): ?string { return $this->permanentCountry; }
+    public function setPermanentCountry(?string $v): static { $this->permanentCountry = $v; return $this; }
+
+    // --- Same as Applicant ---
+    public function isSameAsApplicant(): bool { return $this->isSameAsApplicant; }
+    public function setSameAsApplicant(bool $v): static { $this->isSameAsApplicant = $v; return $this; }
+
+    public function getNationality(): ?string { return $this->nationality; }
+    public function setNationality(?string $nationality): static { $this->nationality = $nationality; return $this; }
 }

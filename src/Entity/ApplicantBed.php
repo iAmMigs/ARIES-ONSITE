@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ApplicantBedRepository;
@@ -15,6 +17,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'bed_applicants')]
 #[ORM\Index(name: 'idx_last_name', columns: ['last_name'])]
 #[ORM\Index(name: 'idx_first_name', columns: ['first_name'])]
+#[ORM\Index(name: 'idx_campus', columns: ['campus'])]
+#[ORM\Index(name: 'idx_admission_status', columns: ['admission_status'])]
+#[ORM\Index(name: 'idx_school_year', columns: ['school_year_of_entry'])]
+#[ORM\Index(name: 'idx_grade_level', columns: ['grade_level'])]
+#[ORM\Index(name: 'idx_admission_type', columns: ['admission_type'])]
+#[ORM\Index(name: 'idx_created_at', columns: ['created_at'])]
 #[UniqueEntity(fields: ['studentNumber'], message: 'This Student Number already exists.')]
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBed
@@ -66,6 +74,9 @@ class ApplicantBed
     #[ORM\Column(type: Types::FLOAT, nullable: true)]
     private ?float $examinationScore = null;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $examinationDate = null;
+
     #[ORM\Column(length: 100)] private ?string $lastName = null;
     #[ORM\Column(length: 100)] private ?string $firstName = null;
     #[ORM\Column(length: 100, nullable: true)] private ?string $middleName = null;
@@ -76,10 +87,12 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
 
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
+    #[ORM\Column(length: 100, nullable: true)] private ?string $nationality = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
+    #[ORM\Column(length: 100, nullable: true)] private ?string $indigenousGroup = null;
+
 
     #[ORM\Column(length: 50)] private ?string $mobileNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $landLineNumber = null;
@@ -100,6 +113,42 @@ class ApplicantBed
     #[ORM\Column(length: 50, nullable: true)] private ?string $permanentZip = null;
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
+
+    #[ORM\Column(name: 'preferred_name', length: 100, nullable: true)]
+    private ?string $preferredName = null;
+
+    #[ORM\Column(name: 'suffix', length: 20, nullable: true)]
+    private ?string $suffix = null;
+
+    #[ORM\Column(name: 'country_of_birth', length: 100, nullable: true)]
+    private ?string $countryOfBirth = null;
+
+    #[ORM\Column(name: 'civil_status', length: 50, nullable: true)]
+    private ?string $civilStatus = null;
+
+    #[ORM\Column(name: 'country_of_residence', length: 100, nullable: true)]
+    private ?string $countryOfResidence = null;
+
+    #[ORM\Column(name: 'permanent_country', length: 100, nullable: true)]
+    private ?string $permanentCountry = null;
+
+    #[ORM\Column(name: 'last_grade_completed', length: 50, nullable: true)]
+    private ?string $lastGradeCompleted = null;
+
+    #[ORM\Column(name: 'general_average', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $generalAverage = null;
+
+    #[ORM\OneToOne(mappedBy: 'applicant', targetEntity: ApplicantBedPassport::class, cascade: ['persist', 'remove'])]
+    private ?ApplicantBedPassport $passport = null;
+    
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $marketingSource = null;
+
+    #[ORM\Column(name: 'is_documents_agreed', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isDocumentsAgreed = false;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $documentsAgreedDate = null;
 
     /**
      * Virtual property for handling the photo upload securely before persisting.
@@ -188,6 +237,9 @@ class ApplicantBed
     public function getExaminationScore(): ?float { return $this->examinationScore; }
     public function setExaminationScore(?float $score): static { $this->examinationScore = $score; return $this; }
 
+    public function getExaminationDate(): ?\DateTimeInterface { return $this->examinationDate; }
+    public function setExaminationDate(?\DateTimeInterface $d): static { $this->examinationDate = $d; return $this; }
+
     public function getLastName(): ?string { return $this->lastName; }
     public function setLastName(string $n): static { $this->lastName = $n; return $this; }
     public function getFirstName(): ?string { return $this->firstName; }
@@ -208,6 +260,12 @@ class ApplicantBed
     public function setReligion(?string $r): static { $this->religion = $r; return $this; }
     public function getCitizenship(): ?string { return $this->citizenship; }
     public function setCitizenship(?string $c): static { $this->citizenship = $c; return $this; }
+    
+    public function getNationality(): ?string { return $this->nationality; }
+    public function setNationality(?string $n): static { $this->nationality = $n; return $this; }
+    
+
+
     public function getPassportNumber(): ?string { return $this->passportNumber; }
     public function setPassportNumber(?string $p): static { $this->passportNumber = $p; return $this; }
     public function getVisaType(): ?string { return $this->visaType; }
@@ -215,8 +273,7 @@ class ApplicantBed
     public function getVisaStatus(): ?string { return $this->visaStatus; }
     public function setVisaStatus(?string $v): static { $this->visaStatus = $v; return $this; }
 
-    public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
-    public function setIndigenousGroup(?string $i): static { $this->indigenousGroup = $i; return $this; }
+
 
     public function getMobileNumber(): ?string { return $this->mobileNumber; }
     public function setMobileNumber(string $n): static { $this->mobileNumber = $n; return $this; }
@@ -265,4 +322,43 @@ class ApplicantBed
 
     public function getSchoolType(): ?string { return $this->schoolType; }
     public function setSchoolType(?string $t): static { $this->schoolType = $t; return $this; }
+
+    public function getDocumentsAgreedDate(): ?\DateTimeInterface { return $this->documentsAgreedDate; }
+    public function setDocumentsAgreedDate(?\DateTimeInterface $d): static { $this->documentsAgreedDate = $d; return $this; }
+
+    public function isDocumentsAgreed(): bool { return $this->isDocumentsAgreed; }
+    public function setDocumentsAgreed(bool $agreed): static { $this->isDocumentsAgreed = $agreed; return $this; }
+
+    public function getIndigenousGroup(): ?string { return $this->indigenousGroup; }
+    public function setIndigenousGroup(?string $v): static { $this->indigenousGroup = $v; return $this; }
+
+    public function getMarketingSource(): ?string { return $this->marketingSource; }
+    public function setMarketingSource(?string $s): static { $this->marketingSource = $s; return $this; }
+
+    public function getPreferredName(): ?string { return $this->preferredName; }
+    public function setPreferredName(?string $preferredName): static { $this->preferredName = $preferredName; return $this; }
+
+    public function getSuffix(): ?string { return $this->suffix; }
+    public function setSuffix(?string $suffix): static { $this->suffix = $suffix; return $this; }
+
+    public function getCountryOfBirth(): ?string { return $this->countryOfBirth; }
+    public function setCountryOfBirth(?string $countryOfBirth): static { $this->countryOfBirth = $countryOfBirth; return $this; }
+
+    public function getCivilStatus(): ?string { return $this->civilStatus; }
+    public function setCivilStatus(?string $civilStatus): static { $this->civilStatus = $civilStatus; return $this; }
+
+    public function getCountryOfResidence(): ?string { return $this->countryOfResidence; }
+    public function setCountryOfResidence(?string $countryOfResidence): static { $this->countryOfResidence = $countryOfResidence; return $this; }
+
+    public function getPermanentCountry(): ?string { return $this->permanentCountry; }
+    public function setPermanentCountry(?string $permanentCountry): static { $this->permanentCountry = $permanentCountry; return $this; }
+
+    public function getLastGradeCompleted(): ?string { return $this->lastGradeCompleted; }
+    public function setLastGradeCompleted(?string $lastGradeCompleted): static { $this->lastGradeCompleted = $lastGradeCompleted; return $this; }
+
+    public function getGeneralAverage(): ?string { return $this->generalAverage; }
+    public function setGeneralAverage(?string $generalAverage): static { $this->generalAverage = $generalAverage; return $this; }
+
+    public function getPassport(): ?ApplicantBedPassport { return $this->passport; }
+    public function setPassport(?ApplicantBedPassport $passport): static { $this->passport = $passport; return $this; }
 }

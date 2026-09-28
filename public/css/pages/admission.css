@@ -1293,6 +1293,14 @@
     box-shadow: none;
 }
 
+.select2-container--default .select2-selection--single.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.select2-container--default .select2-selection--single.is-valid {
+    border-color: #198754 !important;
+}
+
 .select2-container--default .select2-selection--single:hover {
     border-color: var(--admission-border-focus);
     box-shadow: none;

@@ -1,106 +1,179 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Diliman Registrations{% endblock %}
+{% block title %}Diliman Registrations – ARIES{% endblock %}
 
 {% block body %}
 <div class="flex h-screen overflow-hidden bg-gray-50">
     {% include 'admin-onsite/diliman/_sidebar.html.twig' with {'active_menu': 'registrations'} %}
 
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Registrations'} %}
+        {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Registrations Management'} %}
 
-        <div class="flex-1 overflow-y-auto p-8">
-            <div class="max-w-7xl mx-auto">
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
                 
+                {# --- HEADER CONTEXT CARD --- #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200/80">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                    FEU Diliman
+                                </span>
+                                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Student Registrations</h1>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">Search, filter, and review student application files and enrollment documents.</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200/80 text-xs font-medium text-gray-600">
+                                <i class="ki-filled ki-people text-feu-green-700 text-base"></i>
+                                <span>Total Records: <strong class="text-gray-900 font-bold">{{ totalItems }}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {# --- FILTER CARD --- #}
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-200 mb-6">
-                    <form method="GET" action="{{ path('app_admin_diliman_registrations') }}" class="flex flex-col md:flex-row gap-4 items-end" id="filterForm">
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200/80">
+                    <form method="GET" action="{{ path('app_admin_diliman_registrations') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end" id="filterForm">
                         
                         {# 1. Search Keyword #}
-                        <div class="w-full md:w-1/4">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Search</label>
-                            {# FIX: Proper absolute centering for the icon inside the input #}
+                        <div class="lg:col-span-3">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Search Keyword</label>
                             <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="ki-filled ki-magnifier text-gray-400"></i>
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <i class="ki-filled ki-magnifier text-gray-400 text-base"></i>
                                 </div>
-                                <input type="text" name="search" value="{{ filters.search|default('') }}" class="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm outline-none focus:border-feu-green-500 transition-colors" placeholder="Name or Student No.">
+                                <input type="text" name="search" value="{{ filters.search|default('') }}" 
+                                       class="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
+                                       placeholder="Search name or student no...">
                             </div>
                         </div>
 
                         {# 2. Education Level #}
-                        <div class="w-full md:w-1/6">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Education</label>
-                            <select name="education_type" id="eduSelect" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-feu-green-500 bg-white" onchange="toggleGradeOptions()">
+                        <div class="lg:col-span-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Education</label>
+                            <select name="education_type" id="eduSelect" 
+                                     class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
+                                     onchange="toggleGradeOptions()">
                                 <option value="">All Levels</option>
                                 <option value="Primary" {{ filters.education_type|default('') == 'Primary' ? 'selected' : '' }}>Primary (K-6)</option>
                                 <option value="Secondary" {{ filters.education_type|default('') == 'Secondary' ? 'selected' : '' }}>Secondary (7-12)</option>
                             </select>
                         </div>
 
-                        {# 3. Grade Level (Custom Checkbox Dropdown) #}
-                        <div class="w-full md:w-1/4 relative group">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Grade Level</label>
-                            <button type="button" class="w-full text-left border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white flex justify-between items-center" onclick="document.getElementById('gradeDropdown').classList.toggle('hidden')">
-                                <span class="text-gray-600">Select Grades...</span>
+                        {# 3. Grade Level Dropdown #}
+                        <div class="lg:col-span-3 relative group">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Grade Level</label>
+                            <button type="button" 
+                                    class="w-full text-left bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm flex justify-between items-center outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
+                                    onclick="document.getElementById('gradeDropdown').classList.toggle('hidden')">
+                                <span class="text-gray-700 truncate">
+                                    {% if filters.grade_levels is defined and filters.grade_levels|length > 0 %}
+                                        {{ filters.grade_levels|length }} grade(s) selected
+                                    {% else %}
+                                        Select Grades...
+                                    {% endif %}
+                                </span>
                                 <i class="ki-filled ki-down text-xs text-gray-400"></i>
                             </button>
-                            <div id="gradeDropdown" class="hidden absolute top-full left-0 w-full bg-white border border-gray-200 rounded-lg shadow-xl mt-1 z-50 p-3 max-h-60 overflow-y-auto">
-                                <div class="space-y-2">
+                            <div id="gradeDropdown" class="hidden absolute top-full left-0 w-full bg-white border border-gray-200 rounded-2xl shadow-xl mt-1.5 z-50 p-4 max-h-64 overflow-y-auto">
+                                <div class="space-y-3">
                                     {# Primary Options #}
                                     <div class="grade-group-primary">
-                                        <div class="text-[10px] font-bold text-feu-green-600 uppercase bg-green-50 p-1 rounded mb-1">Primary</div>
-                                        <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"><input type="checkbox" name="grade_levels[]" value="kinder" {{ 'kinder' in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500"> <span class="text-sm">Kinder</span></label>
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Primary</div>
+                                        <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
+                                            <input type="checkbox" name="grade_levels[]" value="kinder" {{ 'kinder' in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
+                                            <span>Kinder</span>
+                                        </label>
                                         {% for i in 1..6 %}
-                                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"><input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500"> <span class="text-sm">Grade {{ i }}</span></label>
+                                            <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
+                                                <input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
+                                                <span>Grade {{ i }}</span>
+                                            </label>
                                         {% endfor %}
                                     </div>
                                     {# Secondary Options #}
-                                    <div class="grade-group-secondary border-t pt-2 mt-2">
-                                        <div class="text-[10px] font-bold text-feu-green-600 uppercase bg-green-50 p-1 rounded mb-1">Secondary</div>
+                                    <div class="grade-group-secondary border-t border-gray-100 pt-3">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Secondary</div>
                                         {% for i in 7..12 %}
-                                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded"><input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500"> <span class="text-sm">Grade {{ i }}</span></label>
+                                            <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
+                                                <input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
+                                                <span>Grade {{ i }}</span>
+                                            </label>
                                         {% endfor %}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {# 4. Date #}
-                        <div class="w-full md:w-1/6">
-                            <label class="text-xs font-bold text-gray-500 uppercase mb-1 block">Date Applied</label>
-                            <input type="date" name="date" value="{{ filters.date|default('') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-feu-green-500">
+                        {# 4. Promissory Compliance #}
+                        <div class="lg:col-span-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Promissory</label>
+                            <select name="promissory" 
+                                    class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs">
+                                <option value="">All</option>
+                                <option value="complied" {{ filters.promissory|default('') == 'complied' ? 'selected' : '' }}>Complied</option>
+                                <option value="not_complied" {{ filters.promissory|default('') == 'not_complied' ? 'selected' : '' }}>Not Complied</option>
+                            </select>
                         </div>
 
-                        {# Actions #}
-                        <div class="flex gap-2 w-full md:w-auto">
-                            <button type="submit" class="bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2">
-                                <i class="ki-filled ki-filter"></i> Filter
-                            </button>
-                            <a href="{{ path('app_admin_diliman_registrations') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold px-4 py-2 rounded-lg text-sm transition-colors" title="Reset">
-                                <i class="ki-filled ki-cross"></i>
-                            </a>
+                        {# 5. Date Applied #}
+                        <div class="lg:col-span-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Date Applied</label>
+                            <input type="date" name="date" value="{{ filters.date|default('') }}" 
+                                   class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs">
+                        </div>
+
+                        {# Actions Toolbar #}
+                        <div class="lg:col-span-12 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                            <div class="flex items-center gap-2">
+                                <button type="submit" class="inline-flex items-center gap-2 bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm">
+                                    <i class="ki-filled ki-filter text-base"></i> Filter
+                                </button>
+                                <a href="{{ path('app_admin_diliman_registrations') }}" 
+                                   class="inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-4 py-2.5 rounded-xl text-sm transition-all" 
+                                   title="Reset Filters">
+                                    <i class="ki-filled ki-arrows-circle text-base"></i> Reset
+                                </a>
+                            </div>
+
+                            <div>
+                                <button type="button" 
+                                        onclick="exportRegistrationsCsv('{{ path('app_admin_diliman_registrations_export') }}', 'diliman_applicants_export.csv')" 
+                                        class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-sm transition-all shadow-sm cursor-pointer" 
+                                        title="Export Filtered Results to CSV">
+                                    <i class="ki-filled ki-file-down text-base"></i> Export CSV
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
 
-                {# --- TABLE --- #}
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                {# --- TABLE CONTAINER --- #}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-800 text-base">Applicant Records ({{ totalItems }})</h3>
+                        <span class="text-xs text-gray-500">
+                            Showing page <strong class="text-gray-800">{{ currentPage }}</strong> of {{ totalPages|default(1) }}
+                        </span>
+                    </div>
+
                     <div class="overflow-x-auto">
-                        <table class="table w-full text-left">
+                        <table class="w-full text-left border-collapse">
                             <thead>
-                                {# FIX: text-left to align table headers properly with the rows #}
-                                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-bold border-b border-gray-200 text-left">
-                                    <th class="px-6 py-4 whitespace-nowrap">2x2 Picture</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Student ID</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Name</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Education</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Status</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Date Applied</th>
-                                    <th class="px-6 py-4 text-center whitespace-nowrap">Actions</th>
+                                <tr class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                    <th class="py-3.5 px-6">Picture</th>
+                                    <th class="py-3.5 px-6">Student ID</th>
+                                    <th class="py-3.5 px-6">Applicant Name</th>
+                                    <th class="py-3.5 px-6">Education / Strand</th>
+                                    <th class="py-3.5 px-6">Admission Status</th>
+                                    <th class="py-3.5 px-6">Date Applied</th>
+                                    <th class="py-3.5 px-6 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-gray-100 text-sm">
                                 {% include 'admin-onsite/diliman/_table_rows.html.twig' %}
                             </tbody>
                         </table>
@@ -109,20 +182,27 @@
 
                 {# --- PAGINATION --- #}
                 {% if totalPages > 1 %}
-                <div class="mt-6 flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
                     <span class="text-sm text-gray-500">
-                        Showing page <span class="font-bold">{{ currentPage }}</span> of <span class="font-bold">{{ totalPages }}</span> ({{ totalItems }} total records)
+                        Showing page <strong class="text-gray-900">{{ currentPage }}</strong> of <strong class="text-gray-900">{{ totalPages }}</strong> ({{ totalItems }} total records)
                     </span>
-                    <div class="flex gap-2">
+                    <div class="flex items-center gap-2">
                         {% if currentPage > 1 %}
-                            <a href="{{ path(app.request.attributes.get('_route'), filters|merge({'page': currentPage - 1})) }}" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 font-medium shadow-sm transition">Previous</a>
+                            <a href="{{ path(app.request.attributes.get('_route'), filters|merge({'page': currentPage - 1})) }}" 
+                               class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 font-bold shadow-xs transition-all">
+                                Previous
+                            </a>
                         {% endif %}
                         {% if currentPage < totalPages %}
-                            <a href="{{ path(app.request.attributes.get('_route'), filters|merge({'page': currentPage + 1})) }}" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 font-medium shadow-sm transition">Next</a>
+                            <a href="{{ path(app.request.attributes.get('_route'), filters|merge({'page': currentPage + 1})) }}" 
+                               class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 font-bold shadow-xs transition-all">
+                                Next
+                            </a>
                         {% endif %}
                     </div>
                 </div>
                 {% endif %}
+
             </div>
         </div>
     </main>
@@ -142,7 +222,6 @@
         const eduType = document.getElementById('eduSelect').value;
         const primaryGroup = document.querySelector('.grade-group-primary');
         const secondaryGroup = document.querySelector('.grade-group-secondary');
-        const checkboxes = document.querySelectorAll('#gradeDropdown input[type="checkbox"]');
 
         // 1. Reset Display
         if (primaryGroup) primaryGroup.style.display = 'block';
@@ -154,6 +233,30 @@
         } else if (eduType === 'Secondary') {
             if (primaryGroup) primaryGroup.style.display = 'none';
         }
+    }
+
+    // Export filtered registrations to CSV natively bypassing Turbo and Chrome filename stripping
+    function exportRegistrationsCsv(exportUrl, filename) {
+        const form = document.getElementById('filterForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [key, value] of formData.entries()) {
+            if (value !== '') {
+                params.append(key, value);
+            }
+        }
+        const fullUrl = exportUrl + (params.toString() ? '?' + params.toString() : '');
+
+        const a = document.createElement('a');
+        const targetFilename = filename || 'diliman_applicants_export.csv';
+        a.href = fullUrl;
+        a.setAttribute('download', targetFilename);
+        a.download = targetFilename;
+        a.setAttribute('data-turbo', 'false');
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { document.body.removeChild(a); }, 1000);
     }
 
     // Run on load to set initial state

@@ -1,0 +1,86 @@
+{# templates/enrollment-onsite/_duplicate_warning_modal.html.twig #}
+{# Duplicate Applicant Warning Modal ("Is this you?") #}
+
+<div id="duplicateApplicantModal" class="fixed inset-0 z-[100002] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0" role="dialog" aria-modal="true" aria-labelledby="dupModalTitle">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="duplicateApplicantDialog">
+        
+        {# Main Prompt View #}
+        <div id="duplicatePromptView" class="p-6 sm:p-8">
+            <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-4 shadow-xs">
+                <i class="ki-filled ki-question-2 text-3xl"></i>
+            </div>
+
+            <h3 id="dupModalTitle" class="text-xl font-black text-gray-900 text-center tracking-tight">
+                Is this you?
+            </h3>
+            
+            <p class="text-xs text-gray-500 text-center mt-2 leading-relaxed">
+                We found an existing application on record matching your full name and birthdate.
+            </p>
+
+            {# Existing Applicant Details Card #}
+            <div class="my-5 bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-2.5 text-left text-sm">
+                <div class="flex items-center justify-between pb-2 border-b border-gray-200/80">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Existing Applicant</span>
+                    <span id="dupStudentNumberBadge" class="font-mono text-xs font-bold text-feu-green-800 bg-feu-green-50 px-2.5 py-0.5 rounded-md border border-feu-green-200"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <span class="text-gray-400 block font-semibold mb-0.5">Full Name</span>
+                        <span id="dupApplicantName" class="font-bold text-gray-800 text-sm"></span>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 block font-semibold mb-0.5">Date of Birth</span>
+                        <span id="dupApplicantDob" class="font-bold text-gray-800 text-sm"></span>
+                    </div>
+                </div>
+                <div class="text-[11px] text-gray-500 pt-1 border-t border-gray-200/50">
+                    Application Date: <span id="dupApplicantApplied" class="font-medium text-gray-700"></span>
+                </div>
+            </div>
+
+            <p class="text-xs text-gray-600 text-center mb-6 leading-relaxed">
+                If this is your existing application, please use your existing student number. If you are a different person who shares the same name and birthdate, you may proceed.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button type="button" 
+                        onclick="handleDuplicateIsMe()" 
+                        class="px-4 py-3 rounded-xl font-bold text-sm text-feu-green-800 bg-feu-green-50 hover:bg-feu-green-100 border border-feu-green-200 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="ki-filled ki-check text-base"></i> Yes, this is me
+                </button>
+                <button type="button" 
+                        onclick="handleDuplicateNotMe()" 
+                        class="px-4 py-3 rounded-xl font-bold text-sm text-white bg-feu-green-700 hover:bg-feu-green-800 transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer">
+                    No, continue <i class="ki-filled ki-arrow-right text-base"></i>
+                </button>
+            </div>
+        </div>
+
+        {# Halt / Existing Record View (Shown when user clicks "Yes, this is me") #}
+        <div id="duplicateHaltView" class="p-6 sm:p-8 text-center hidden">
+            <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto mb-4 shadow-xs">
+                <i class="ki-filled ki-check-circle text-3xl"></i>
+            </div>
+
+            <h3 class="text-xl font-black text-gray-900 tracking-tight">
+                Application Found
+            </h3>
+            
+            <p class="text-xs text-gray-500 mt-2 leading-relaxed">
+                You already have an existing application in our system. Please keep your student number for inquiries and enrollment tracking.
+            </p>
+
+            <div class="my-6 p-4 rounded-2xl bg-feu-green-50/60 border border-feu-green-200 text-center">
+                <span class="text-[10px] uppercase font-bold tracking-wider text-feu-green-800 block mb-1">Your Student Number</span>
+                <span id="dupHaltStudentNumber" class="text-3xl font-black font-mono text-feu-green-900 tracking-tight"></span>
+            </div>
+
+            <a href="{% if selected_campus is defined and selected_campus == 'feu_alabang' %}{{ path('app_home_alabang') }}{% else %}{{ path('app_home_diliman') }}{% endif %}" 
+               class="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white bg-feu-green-800 hover:bg-feu-green-900 transition-all shadow-sm">
+                <i class="ki-filled ki-home text-base"></i> Back to Homepage
+            </a>
+        </div>
+
+    </div>
+</div>

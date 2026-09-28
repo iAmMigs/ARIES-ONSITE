@@ -1,0 +1,1913 @@
+{# templates/enrollment-onsite/enroll.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Application{% endblock %}
+
+{% block stylesheets %}
+    <link href="{{ asset('metronic/vendors/keenicons/styles.bundle.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('css/variables.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/base.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}?v=2">
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v={{ 'now'|date('U') }}">
+    <link rel="stylesheet" href="{{ asset('css/pages/admission.css') }}?v=22">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <style>
+        :root {
+            --feu-green-dark: #143d24;
+            --feu-green: #1a4d2e;
+            --feu-gold: #d4af37;
+        }
+
+        .aries-sticky-header {
+            position: fixed;
+            top: 0; left: 0; right: 0; z-index: 999;
+            padding: 0.75rem 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+        }
+        .aries-sticky-header.scrolled {
+            padding: 0.5rem 0;
+            background: var(--feu-green-dark);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .header-content {
+            display: flex;
+            align-items: center; justify-content: center; position: relative;
+        }
+        .header-logo-area {
+            position: absolute;
+            left: 0; display: flex; align-items: center; gap: 8px;
+            color: white; text-decoration: none; cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .header-logo-area:hover {
+            color: var(--feu-gold) !important;
+        }
+        
+        .header-title {
+            font-weight: 900;
+            font-size: 1.5rem; color: white; letter-spacing: 2px;
+            opacity: 0; transform: translateY(-10px); transition: all 0.3s;
+        }
+        .aries-sticky-header.scrolled .header-title {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .page-banner { padding-top: 6rem !important; }
+
+        .text-feu-gold { color: var(--feu-gold) !important; }
+        
+        .campus-selector-row { display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+        .campus-option {
+            background: white; border: 2px solid #e5e7eb; border-radius: 16px; padding: 1.5rem; width: 280px;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;
+        }
+        .campus-option:hover { transform: translateY(-5px); border-color: var(--feu-green); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+        .campus-option.active { border-color: var(--feu-green-dark); background: #f0fdf4; ring: 4px solid rgba(26,77,46,0.1); }
+        .campus-option.campus-closed {
+            opacity: 0.55;
+            cursor: not-allowed;
+            border-color: #e5e7eb;
+            background: #f9fafb;
+        }
+        .campus-option.campus-closed:hover { transform: none; border-color: #e5e7eb; box-shadow: none; }
+        .campus-closed-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            margin-top: 6px; padding: 2px 8px; border-radius: 9999px;
+            background: #fef3c7; color: #92400e; font-size: 0.7rem; font-weight: 700;
+        }
+        .campus-option .check-icon {
+            position: absolute;
+            top: 1rem; right: 1rem; width: 24px; height: 24px; background: var(--feu-green-dark);
+            color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transform: scale(0); transition: all 0.3s ease;
+        }
+        .campus-option.active .check-icon { opacity: 1; transform: scale(1); }
+        
+        .status-checkbox-group { display: flex; gap: 10px; }
+        .btn-check-custom { position: absolute; clip: rect(0,0,0,0); pointer-events: none; }
+        .btn-check-label {
+            display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb; border-radius: 50px; font-size: 0.85rem; font-weight: 600; color: #6b7280;
+            cursor: pointer; transition: all 0.2s; background: white;
+        }
+        .btn-check-custom:checked ~ .btn-check-label { background-color: #fef3c7; color: #92400e; border-color: #f59e0b; }
+        .btn-check-custom:disabled ~ .btn-check-label { opacity: 0.5; cursor: not-allowed; background-color: #f3f4f6; }
+
+        .sibling-row { position: relative; padding: 1.5rem; background: #f9fafb; border-radius: 8px; border: 1px dashed #d1d5db; margin-bottom: 1rem; }
+
+        .card { border: none; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.03); margin-bottom: 2rem; }
+        .card-header { padding: 1.5rem 2rem; border-bottom: 1px solid #f3f4f6; background: white; border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: var(--feu-green-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .card-body { padding: 2rem; background: white; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+
+        /* Fix stacking context for dropdowns in animated cards */
+        #step-card-1 { z-index: 20; position: relative; }
+        #step-card-2 { z-index: 19; position: relative; }
+        #step-card-3 { z-index: 18; position: relative; }
+        #step-card-4 { z-index: 17; position: relative; }
+        #step-card-5 { z-index: 16; position: relative; }
+        #step-card-6 { z-index: 15; position: relative; }
+        #step-card-7 { z-index: 14; position: relative; }
+        #step-card-8 { z-index: 13; position: relative; }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark)); color: white;
+            padding: 1rem 3rem; border-radius: 50px; font-weight: 700; border: none;
+            box-shadow: 0 10px 20px rgba(26,77,46,0.2); transition: all 0.3s ease; width: 100%;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(26,77,46,0.3); }
+        .btn-submit:disabled { background: #9ca3af; transform: none; box-shadow: none; cursor: not-allowed; }
+
+        .form-label { font-weight: 600; color: #374151; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .form-control, .form-select { border-radius: 8px; border: 1px solid #d1d5db; padding: 0.75rem 1rem; }
+        .required { color: #dc2626; margin-left: 2px; }
+        
+        .animate-section { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .animate-section.visible { opacity: 1; transform: translateY(0); }
+
+        .is-invalid {
+            border-color: #dc2626 !important; padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc2626'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc2626' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right calc(0.375em + 0.1875rem) center; background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        .is-valid { border-color: #16a34a !important; background-image: none !important; }
+
+        .summary-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+        .summary-item { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.4rem; border-bottom: 1px dashed #e5e7eb;}
+        .summary-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .summary-label { color: #6b7280; font-weight: 600; font-size: 0.85rem; }
+        .summary-val { color: #111827; font-weight: 700; font-size: 0.9rem; text-align: right; max-width: 60%; word-wrap: break-word;}
+
+        /** Styling declarations for the floating scroll spy component */
+        body::-webkit-scrollbar { width: 0px; }
+        body { scrollbar-width: none; }
+        
+        .step-nav-container {
+            position: fixed; right: 25px; top: 50%; transform: translateY(-50%); z-index: 1000;
+            display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
+        }
+
+        .step-nav-item {
+            display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.3s ease; position: relative;
+        }
+
+        .step-bar {
+            width: 4px; height: 35px; background: #cbd5e1; border-radius: 4px; transition: all 0.3s ease;
+        }
+
+        .step-label {
+            font-size: 0.7rem; font-weight: 800; color: #475569; background: white;
+            padding: 4px 12px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            opacity: 0; transform: translateX(10px); transition: all 0.3s ease; border: 1px solid #e2e8f0; white-space: nowrap;
+            display: flex; align-items: center; justify-content: center; min-width: 25px; height: 25px;
+        }
+
+        .step-text { display: none; }
+        .step-number { display: inline; }
+
+        .step-nav-item:hover .step-text, .step-nav-item.active .step-text { display: inline; }
+        .step-nav-item:hover .step-number, .step-nav-item.active .step-number { display: none; }
+        .step-nav-item:hover .step-label, .step-nav-item.active .step-label { opacity: 1; transform: translateX(0); }
+        .step-nav-item.active .step-bar { background: var(--feu-green); width: 8px; }
+        .step-nav-item.active .step-label { background: var(--feu-green); color: white; }
+
+        /* DPA Modal Specific Styling */
+        #dpaModalOverlay {
+            position: fixed; inset: 0; z-index: 100000;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        #dpaModalOverlay.visible {
+            opacity: 1; visibility: visible;
+        }
+        #dpaModalContainer {
+            background: white; border-radius: 16px; width: 90%; max-width: 700px;
+            max-height: 90vh; display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #dpaModalOverlay.visible #dpaModalContainer {
+            transform: scale(1);
+        }
+        .dpa-banner {
+            background-color: var(--feu-green); border-top-left-radius: 16px; border-top-right-radius: 16px;
+            padding: 1.5rem; text-align: center; border-bottom: 4px solid var(--feu-gold); color: white;
+        }
+        .dpa-banner h1 { font-weight: 900; font-size: 1.4rem; letter-spacing: 2px; margin: 0.5rem 0 0; color: white; }
+        .dpa-banner p { font-size: 0.75rem; letter-spacing: 1px; color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-weight: 500; }
+        .dpa-header {
+            padding: 1.5rem 2rem 0; text-align: center;
+        }
+        .dpa-header h2 { font-weight: 800; font-size: 1.25rem; color: #1f2937; margin: 0 0 0.25rem 0; }
+        .dpa-header p { font-size: 0.85rem; font-weight: 600; color: #6b7280; margin: 0; }
+        .dpa-scroll-content {
+            padding: 2rem; overflow-y: auto; flex: 1;
+            font-size: 0.95rem; line-height: 1.6; color: #4b5563;
+            will-change: scroll-position;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Custom scrollbar for DPA content */
+        .dpa-scroll-content::-webkit-scrollbar { width: 6px; }
+        .dpa-scroll-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .dpa-scroll-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dpa-scroll-content::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dpa-footer {
+            padding: 1.5rem 2rem; border-top: 1px solid #f3f4f6;
+            display: flex; justify-content: flex-end; align-items: center; gap: 1rem; background: #fafafa; border-radius: 0 0 16px 16px;
+        }
+        .btn-dpa-agree {
+            background: linear-gradient(135deg, var(--feu-green), var(--feu-green-dark));
+            color: white; padding: 0.75rem 2rem; border-radius: 50px; font-weight: 700; border: none;
+            transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-dpa-agree:hover:not(:disabled) { box-shadow: 0 8px 15px rgba(26,77,46,0.3); transform: translateY(-2px); }
+        .btn-dpa-agree:disabled { background: #9ca3af; cursor: not-allowed; opacity: 0.7; }
+        .dpa-help-text { font-size: 0.8rem; color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .dpa-checkbox-group label {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: white; margin-bottom: 1rem;
+        }
+        .dpa-checkbox-group input { margin-top: 4px; transform: scale(1.2); }
+
+        .autocomplete-suggestions {
+            position: absolute;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .autocomplete-suggestion {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .autocomplete-suggestion:hover {
+            background-color: #f3f4f6;
+            color: var(--feu-green-dark);
+        }
+        .autocomplete-suggestion b {
+            color: var(--feu-green);
+        }
+
+        /* Survey Grid Layout */
+        .survey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0.75rem;
+            width: 100%;
+        }
+        
+        .survey-option-card {
+            position: relative;
+        }
+        
+        .survey-radio-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .survey-option-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+            user-select: none;
+        }
+
+        .survey-option-label * {
+            pointer-events: none;
+        }
+        
+        .survey-option-label:hover {
+            transform: translateY(-2px);
+            border-color: var(--feu-green);
+            box-shadow: 0 6px 12px rgba(26, 77, 46, 0.06);
+        }
+        
+        .survey-icon-container {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f0fdf4;
+            color: var(--feu-green-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .survey-option-label:hover .survey-icon-container {
+            transform: scale(1.05);
+            background: var(--feu-green);
+            color: #ffffff;
+        }
+        
+        .survey-option-text {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            line-height: 1.2;
+            transition: color 0.3s ease;
+            text-align: left;
+        }
+        
+        .survey-option-label:hover .survey-option-text {
+            color: var(--feu-green-dark);
+        }
+        
+        .survey-radio-input:checked ~ .survey-option-label {
+            border-color: var(--feu-green);
+            background: #f0fdf4;
+            box-shadow: 0 6px 15px rgba(26, 77, 46, 0.08);
+        }
+        
+        .survey-radio-input:checked ~ .survey-option-label .survey-icon-container {
+            background: var(--feu-green);
+            color: #ffffff;
+        }
+        
+        .survey-radio-input:checked ~ .survey-option-label .survey-option-text {
+            color: var(--feu-green-dark);
+        }
+        
+        .survey-check-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            color: var(--feu-green);
+            font-size: 0.9rem;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        .survey-radio-input:checked ~ .survey-option-label .survey-check-indicator {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+
+{# --- PAGE LOADER OVERLAY --- #}
+<div id="enrollmentLoader" class="fixed inset-0 flex flex-col items-center justify-center bg-gray-50 z-[99999] transition-all duration-500">
+    <div class="relative w-20 h-20 mb-4">
+        <img src="/images/loader.gif" class="w-full h-full object-contain" alt="Loading...">
+    </div>
+    <h2 class="mt-5 text-xl font-black tracking-widest text-feu-green-700">ARIES</h2>
+    <p class="text-sm font-medium text-gray-500 mt-1 animate-pulse">Setting up your application...</p>
+</div>
+
+{# --- STICKY HEADER --- #}
+<header class="aries-sticky-header" id="stickyHeader">
+    <div class="container mx-auto px-4 header-content">
+        <a href="{{ path('app_home_diliman') }}" class="header-logo-area">
+            <i class="ki-filled ki-arrow-left fs-2"></i>
+            <span class="font-bold text-sm hidden md:block">Back</span>
+        </a>
+        <div class="header-title">ARIES</div>
+    </div>
+</header>
+
+{# --- BANNER --- #}
+<section class="page-banner bg-gradient-to-r from-feu-green-900 to-feu-green-800 text-white py-12 relative overflow-hidden">
+    <div class="absolute inset-0 bg-cover bg-center opacity-30" style="background-image: url('{{ asset('images/hero/pic1.jpg') }}');"></div>
+   
+    <div class="container mx-auto px-4 relative z-10 text-center pt-4 pb-2">
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight animate-fade-in-up text-feu-gold" style="animation-delay: 0.1s">Application Form</h1>
+        <p class="text-base text-white/80 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s">Begin your journey with Far Eastern University.</p>
+    </div>
+</section>
+
+<div class="main-content py-12 bg-gray-50">
+    <div class="container mx-auto px-4 max-w-5xl">
+ 
+        <form action="{{ path('app_enrollment_diliman_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="feu_diliman">
+            
+            {# --- SCHOOL YEAR SELECTION --- #}
+            <div class="card mb-5 animate-section visible" id="sy-selection-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-calendar text-feu-green-600 fs-1"></i>Select School Year</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-sm text-gray-600 mb-4 font-semibold">Please select the academic school year you are enrolling for:</p>
+                    <div class="campus-selector-row">
+                        {% for sy in open_sys %}
+                            <div class="campus-option sy-option {{ open_sys|length == 1 ? 'active' : '' }}" data-sy-id="{{ sy.id }}" data-sy-label="{{ sy.label }}">
+                                <div class="check-icon">
+                                    <i class="ki-filled ki-check fs-4"></i>
+                                </div>
+                                <h4 class="font-bold text-lg text-feu-green-dark mb-1">{{ sy.label }}</h4>
+                                <p class="text-xs font-semibold text-gray-500 font-mono">{{ sy.yearStart }}–{{ sy.yearEnd }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="school_year_id" id="selectedSchoolYearId" value="{{ open_sys|length == 1 ? open_sys[0].id : '' }}" required>
+                    <input type="hidden" name="school_year_label" id="selectedSchoolYearLabel" value="{{ open_sys|length == 1 ? open_sys[0].label : '' }}" required>
+                    <div class="invalid-feedback text-center d-block mt-2 font-bold" id="sy-validation-msg" style="display: none;">
+                        Please select a school year to proceed.
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 1: ADMISSION DETAILS --- #}
+            <div class="card mb-5 animate-section" id="step-card-1">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-bank text-feu-green-600 fs-1"></i>STEP 1 : Admission Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Admission Type<span class="required">*</span></label>
+                                <select name="admission_type" id="admissionType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="New Student">New Student</option>
+                                    <option value="Transferee">Transferee</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Education Type<span class="required">*</span></label>
+                                <select name="education_type" id="educationType" class="form-select" required onchange="updateGradeLevels()">
+                                    <option value="">Select Type</option>
+                                    <option value="Kinder">Kinder</option>
+                                    <option value="Grade School">Grade School</option>
+                                    <option value="Junior High School">Junior High School</option>
+                                    <option value="Senior High School">Senior High School</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Grade Level <span class="required">*</span></label>
+                                <select name="grade_level" id="gradeLevel" class="form-select" required onchange="updateStrands()">
+                                    <option value="">Select Education Type First</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4" id="strandGroup" style="display:none;">
+                            <div class="form-group">
+                                <label class="form-label">Framework <span class="required">*</span></label>
+                                <select name="strand" id="strand" class="form-select">
+                                    <option value="">Select Option</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">LRN (Learner Reference No.) <span class="required" id="lrnRequiredSpan">*</span></label>
+                                <input type="text" name="lrn" id="lrnInput" class="form-control" placeholder="12-digit LRN" maxlength="12" minlength="12" pattern="\d{12}" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 2: PERSONAL INFORMATION --- #}
+            <div class="card mb-5 animate-section" id="step-card-2">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-user text-feu-green-600 fs-1"></i>STEP 2 : Personal Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <label class="form-label">Last Name <span class="required">*</span></label>
+                            <input type="text" name="last_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">First Name <span class="required">*</span></label>
+                            <input type="text" name="first_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middle_name" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Suffix</label>
+                            <input type="text" name="suffix" class="form-control" placeholder="e.g. Jr.">
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Preferred Name / Alias</label>
+                            <input type="text" name="preferred_name" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Date of Birth <span class="required">*</span></label>
+                            <input type="date" name="birthday" id="birthdayInput" class="form-control" max="{{ 'now'|date('Y-m-d') }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Birth Place <span class="required">*</span></label>
+                            <input type="text" name="birth_place" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Gender <span class="required">*</span></label>
+                            <select name="gender" class="form-select" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Country of Birth <span class="required">*</span></label>
+                            <select name="country_of_birth" class="form-select" data-control="select2" data-placeholder="Select Country of Birth" required>
+                                <option value=""></option>
+                                {% for country in countries %}
+                                    <option value="{{ country.countryName }}" {% if country.countryName == 'Philippines' %}selected{% endif %}>{{ country.countryName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Country of Residence <span class="required">*</span></label>
+                            <select name="country_of_residence" class="form-select" data-control="select2" data-placeholder="Select Country of Residence" required>
+                                <option value=""></option>
+                                {% for country in countries %}
+                                    <option value="{{ country.countryName }}" {% if country.countryName == 'Philippines' %}selected{% endif %}>{{ country.countryName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Religion</label>
+                            <select name="religion" id="religionSelect" class="form-select" data-control="select2" data-placeholder="Select Religion">
+                                <option value=""></option>
+                                {% for rel in religions %}
+                                    {% if rel.religionName|upper != 'OTHER' %}
+                                        <option value="{{ rel.religionName }}">{{ rel.religionName }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                                <option value="OTHER">Other (Please specify)</option>
+                            </select>
+                            
+                            <div id="other_religion_container" style="display: none;" class="mt-2">
+                                <input type="text" name="other_religion" id="otherReligionInput" class="form-control" placeholder="Enter your religion">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label">Nationality <span class="required">*</span></label>
+                            <select name="nationality" id="nationalitySelect" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                <option value=""></option>
+                                {% for nat in nationalities %}
+                                    <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Citizenship <span class="required">*</span></label>
+                            <input type="text" name="citizenship" id="citizenshipInput" class="form-control bg-gray-100" required readonly value="LOCAL">
+                        </div>
+                    </div>
+                    
+
+
+                    <div id="foreign_fields_container" style="display: none;" class="mt-4 p-3 bg-light rounded border">
+                        <p class="text-primary small mb-3 fw-bold">
+                            <i class="fas fa-info-circle me-1"></i> Please ensure your visa and passport details are correct and valid.
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Number <span class="text-danger">*</span></label>
+                                <input type="text" name="passport_number" id="passportNumber" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Country of Issue <span class="text-danger">*</span></label>
+                                <select name="passport_country_issue" id="passportCountryIssue" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                    <option value=""></option>
+                                    {% for country in countries %}
+                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Date Issued <span class="text-danger">*</span></label>
+                                <input type="date" name="passport_date_issued" id="passportDateIssued" class="form-control">
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Passport Expiration Date <span class="text-danger">*</span></label>
+                                <input type="date" name="passport_expiration_date" id="passportExpirationDate" class="form-control">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Visa Type <span class="text-danger">*</span></label>
+                                <select name="visa_type" id="visaType" class="form-select" onchange="window.fetchRequiredDocuments ? window.fetchRequiredDocuments() : null">
+                                    <option value="">Select Visa Type</option>
+                                    <option value="student">Student Visa (9F)</option>
+                                    <option value="special_student">Special Study Permit (SSP)</option>
+                                    <option value="tourist">Tourist Visa</option>
+                                    <option value="immigrant">Immigrant Visa</option>
+                                    <option value="permanent_resident">Permanent Resident</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Visa Status <span class="text-danger">*</span></label>
+                                <input type="text" name="visa_status" id="visaStatus" class="form-control" placeholder="e.g., Active, Expired">
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" name="born_in_philippines" id="bornInPhilippinesCheck" value="1" onchange="window.fetchRequiredDocuments ? window.fetchRequiredDocuments() : null">
+                                    <label class="form-check-label fw-bold text-gray-700 animate-pulse" for="bornInPhilippinesCheck">Born in the Philippines?</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 3: CONTACT & ADDRESS --- #}
+            <div class="card mb-5 animate-section" id="step-card-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-map text-feu-green-600 fs-1"></i>STEP 3 : Contact & Address</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4 mb-5">
+                            <div class="col-md-4">
+                                <label class="form-label">Mobile Number <span class="required">*</span></label>
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: '',
+                                    input_name: 'contact_number',
+                                    input_id: 'contactNumberInput',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
+                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Email Address <span class="required">*</span></label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Landline</label>
+                            <input type="tel" name="landline" class="form-control">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-gray-600 mb-3 border-bottom pb-2">Current Address</h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Region <span class="required">*</span></label>
+                            <select id="addr_region" class="form-select" required data-control="select2" data-placeholder="Select Region">
+                                <option value=""></option>
+                            </select>
+                            <input type="hidden" name="region" id="addr_region_hidden">
+                        </div>
+                        <div class="col-md-3 position-relative">
+                            <label class="form-label">Province <span class="required">*</span></label>
+                            <input type="text" id="addr_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off" required>
+                            <input type="hidden" id="addr_province" name="address_province">
+                            <div id="addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">City/Municipality <span class="required">*</span></label>
+                            <select id="addr_city" name="address_city" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Barangay <span class="required">*</span></label>
+                            <select id="addr_barangay" name="address_barangay" class="form-select" required disabled>
+                                <option value=""></option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                            <input type="text" name="address" class="form-control" required>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <label class="form-label">Zip Code <span class="required">*</span></label>
+                            <input type="text" name="address_zip" id="addr_zip" class="form-control" required placeholder="Enter Zip Code">
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold text-gray-600 mt-5 mb-3 border-bottom pb-2">Permanent Address</h5>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sameAsCurrent" name="sameAsCurrent" onchange="togglePermanentAddress()" checked>
+                        <label class="form-check-label text-sm" for="sameAsCurrent">Same as Current Address</label>
+                    </div>
+
+                    <div id="permanentAddressBlock" style="display:none;">
+                        <!-- Local (PH) Permanent Address Section -->
+                        <div id="perm_address_ph_section">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Region <span class="required">*</span></label>
+                                    <select id="perm_region" class="form-select" data-control="select2" data-placeholder="Select Region">
+                                        <option value=""></option>
+                                    </select>
+                                    <input type="hidden" name="perm_region" id="perm_region_hidden">
+                                </div>
+                                <div class="col-md-3 position-relative">
+                                    <label class="form-label">Province <span class="required">*</span></label>
+                                    <input type="text" id="perm_province_search" class="form-control province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                    <input type="hidden" id="perm_province" name="perm_province">
+                                    <div id="perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">City/Municipality <span class="required">*</span></label>
+                                    <select id="perm_city" name="perm_city" class="form-select" disabled>
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Barangay <span class="required">*</span></label>
+                                    <select id="perm_barangay" name="perm_barangay" class="form-select" disabled>
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- International Permanent Address Section -->
+                        <div id="perm_address_intl_section" style="display: none;">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Country <span class="required">*</span></label>
+                                    <select name="perm_country" id="permCountrySelect" class="form-select" data-control="select2" data-placeholder="Select Country">
+                                        <option value=""></option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Common Street and Zip Fields -->
+                        <div class="row g-3">
+                            <div class="col-12 mt-3">
+                                <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                                <input type="text" name="perm_address" id="permAddressInput" class="form-control">
+                            </div>
+                            <div class="col-md-12 mt-2">
+                                <label class="form-label">Zip Code <span class="required">*</span></label>
+                                <input type="text" name="perm_zip" id="perm_zip" class="form-control" placeholder="Enter Zip Code">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 4: FAMILY BACKGROUND --- #}
+            <div class="card mb-5 animate-section" id="step-card-4">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-people text-feu-green-600 fs-1"></i>STEP 4 : Family Background</h3>
+                </div>
+                <div class="card-body">
+                    
+                    {# Father #}
+                    <div class="bg-gray-50 p-5 rounded mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0">Father's Information</h6>
+                            <div class="form-check">
+                                <input class="form-check-input guardian-checkbox" type="checkbox" id="f_is_guardian" name="father_is_guardian" value="1" onchange="setGuardian('father')">
+                                <label class="form-check-label text-sm fw-bold cursor-pointer" for="f_is_guardian">Set as Guardian</label>
+                            </div>
+                        </div>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="father_lastname" id="father_lastname" class="form-control" placeholder="Last Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="father_firstname" id="father_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="father_middlename" id="father_middlename" class="form-control" placeholder="Middle Name">
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label d-block">Status</label>
+                                <div class="status-checkbox-group">
+                                    <input type="checkbox" class="btn-check-custom" id="f_deceased" name="father_deceased" value="1" onchange="toggleParentStatus('f_deceased', 'f_ofw', 'father')">
+                                    <label class="btn-check-label" for="f_deceased"><i class="ki-filled ki-cross-circle"></i> Deceased</label>
+
+                                    <input type="checkbox" class="btn-check-custom" id="f_ofw" name="father_ofw" value="1" onchange="toggleParentStatus('f_ofw', 'f_deceased', 'father')">
+                                    <label class="btn-check-label" for="f_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3" id="father_occupation_group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nationality <span class="required">*</span></label>
+                                <select name="father_nationality" id="father_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                    <option value=""></option>
+                                    {% for nat in nationalities %}
+                                        <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="father_contact_group">
+                                <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: 'father',
+                                    input_name: 'father_contact',
+                                    input_id: 'father_contact',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
+                            </div>
+                        </div>
+                        {# Father Address with Same as Applicant #}
+                        <div class="mt-3 pt-3 border-top" id="father_address_wrapper">
+                            {# Standard Local Address #}
+                            <div id="father_standard_address_section">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="father_same_as_applicant" name="father_same_as_applicant" value="1" onchange="toggleParentAddress('father')" checked>
+                                    <label class="form-check-label text-sm fw-bold" for="father_same_as_applicant">Same address as Applicant</label>
+                                </div>
+                                <div id="father_address_block" style="display:none;">
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address</h6>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Region</label>
+                                            <select id="father_addr_region" name="father_addr_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                            <input type="hidden" name="father_addr_region_hidden" id="father_addr_region_hidden">
+                                        </div>
+                                        <div class="col-md-3 position-relative">
+                                            <label class="form-label text-xs">Province</label>
+                                            <input type="text" id="father_addr_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                            <input type="hidden" id="father_addr_province" name="father_addr_province">
+                                            <div id="father_addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">City/Municipality</label>
+                                            <select id="father_addr_city" name="father_addr_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Barangay</label>
+                                            <select id="father_addr_barangay" name="father_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                            <input type="text" name="father_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        </div>
+                                        <div class="col-md-4 mt-2">
+                                            <label class="form-label text-xs">Zip Code</label>
+                                            <input type="text" name="father_addr_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                        </div>
+                                    </div>
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="father_perm_same" name="father_perm_same" value="1" onchange="toggleParentPermAddress('father')" checked>
+                                        <label class="form-check-label text-xs" for="father_perm_same">Same as Current</label>
+                                    </div>
+                                    <div id="father_perm_block" style="display:none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region</label>
+                                                <select id="father_perm_region" name="father_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="father_perm_region_hidden" id="father_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province</label>
+                                                <input type="text" id="father_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="father_perm_province" name="father_perm_province">
+                                                <div id="father_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality</label>
+                                                <select id="father_perm_city" name="father_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay</label>
+                                                <select id="father_perm_barangay" name="father_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                                <input type="text" name="father_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code</label>
+                                                <input type="text" name="father_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# OFW Address Section #}
+                            <div id="father_ofw_address_section" style="display:none;">
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address (Workplace Abroad)</h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-xs">Country of Work <span class="required">*</span></label>
+                                        <select name="father_ofw_country" id="father_ofw_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                            <option value=""></option>
+                                            {% for country in countries %}
+                                                <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label text-xs">Address / Workplace <span class="required">*</span></label>
+                                        <input type="text" name="father_ofw_address" id="father_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                        <input type="text" name="father_ofw_zip" id="father_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                    </div>
+                                </div>
+
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="father_ofw_perm_same" name="father_ofw_perm_same" value="1" onchange="toggleParentOfwPermSame('father')" checked>
+                                    <label class="form-check-label text-xs" for="father_ofw_perm_same">Same as current address</label>
+                                </div>
+
+                                <div id="father_ofw_perm_diff_block" style="display:none;">
+                                    <div class="mb-3 p-3 bg-white rounded border">
+                                        <label class="form-label text-xs fw-bold d-block mb-2">In Philippines? <span class="required">*</span></label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="father_ofw_perm_in_ph" id="father_ofw_perm_in_ph_yes" value="yes" onchange="toggleParentOfwPermInPh('father')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="father_ofw_perm_in_ph_yes">Yes</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="father_ofw_perm_in_ph" id="father_ofw_perm_in_ph_no" value="no" onchange="toggleParentOfwPermInPh('father')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="father_ofw_perm_in_ph_no">No</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If Yes: Philippine Permanent Address #}
+                                    <div id="father_ofw_perm_ph_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region <span class="required">*</span></label>
+                                                <select id="father_ofw_perm_region" name="father_ofw_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="father_ofw_perm_region_hidden" id="father_ofw_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province <span class="required">*</span></label>
+                                                <input type="text" id="father_ofw_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="father_ofw_perm_province" name="father_ofw_perm_province">
+                                                <div id="father_ofw_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality <span class="required">*</span></label>
+                                                <select id="father_ofw_perm_city" name="father_ofw_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay <span class="required">*</span></label>
+                                                <select id="father_ofw_perm_barangay" name="father_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_street" id="father_ofw_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_zip" id="father_ofw_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If No: International Permanent Address #}
+                                    <div id="father_ofw_perm_intl_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label text-xs">Country <span class="required">*</span></label>
+                                                <select name="father_ofw_perm_country" id="father_ofw_perm_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                                    <option value=""></option>
+                                                    {% for country in countries %}
+                                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label text-xs">Address <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_address" id="father_ofw_perm_address" class="form-control form-control-sm" placeholder="Address">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_intl_zip" id="father_ofw_perm_intl_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    {# Mother #}
+                    <div class="bg-gray-50 p-5 rounded mb-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+                            <h6 class="fw-bold text-dark mb-0">Mother's Information</h6>
+                            <div class="form-check">
+                                <input class="form-check-input guardian-checkbox" type="checkbox" id="m_is_guardian" name="mother_is_guardian" value="1" onchange="setGuardian('mother')">
+                                <label class="form-check-label text-sm fw-bold cursor-pointer" for="m_is_guardian">Set as Guardian</label>
+                            </div>
+                        </div>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Maiden Name <span class="required">*</span></label>
+                                <input type="text" name="mother_lastname" id="mother_lastname" class="form-control" placeholder="Maiden Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="mother_firstname" id="mother_firstname" class="form-control" placeholder="First Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Middle Name</label>
+                                <input type="text" name="mother_middlename" id="mother_middlename" class="form-control" placeholder="Middle Name">
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <label class="form-label d-block">Status</label>
+                                <div class="status-checkbox-group">
+                                    <input type="checkbox" class="btn-check-custom" id="m_deceased" name="mother_deceased" value="1" onchange="toggleParentStatus('m_deceased', 'm_ofw', 'mother')">
+                                    <label class="btn-check-label" for="m_deceased"><i class="ki-filled ki-cross-circle"></i> Deceased</label>
+
+                                    <input type="checkbox" class="btn-check-custom" id="m_ofw" name="mother_ofw" value="1" onchange="toggleParentStatus('m_ofw', 'm_deceased', 'mother')">
+                                    <label class="btn-check-label" for="m_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
+                                </div>
+                            </div>
+                            <div class="col-md-3" id="mother_occupation_group">
+                                <label class="form-label">Occupation</label>
+                                <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Nationality <span class="required">*</span></label>
+                                <select name="mother_nationality" id="mother_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                    <option value=""></option>
+                                    {% for nat in nationalities %}
+                                        <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="mother_contact_group">
+                                <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: 'mother',
+                                    input_name: 'mother_contact',
+                                    input_id: 'mother_contact',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
+                            </div>
+                        </div>
+                        {# Mother Address with Same as Applicant #}
+                        <div class="mt-3 pt-3 border-top" id="mother_address_wrapper">
+                            {# Standard Local Address #}
+                            <div id="mother_standard_address_section">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="mother_same_as_applicant" name="mother_same_as_applicant" value="1" onchange="toggleParentAddress('mother')" checked>
+                                    <label class="form-check-label text-sm fw-bold" for="mother_same_as_applicant">Same address as Applicant</label>
+                                </div>
+                                <div id="mother_address_block" style="display:none;">
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address</h6>
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Region</label>
+                                            <select id="mother_addr_region" name="mother_addr_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                            <input type="hidden" name="mother_addr_region_hidden" id="mother_addr_region_hidden">
+                                        </div>
+                                        <div class="col-md-3 position-relative">
+                                            <label class="form-label text-xs">Province</label>
+                                            <input type="text" id="mother_addr_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                            <input type="hidden" id="mother_addr_province" name="mother_addr_province">
+                                            <div id="mother_addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">City/Municipality</label>
+                                            <select id="mother_addr_city" name="mother_addr_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Barangay</label>
+                                            <select id="mother_addr_barangay" name="mother_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                            <input type="text" name="mother_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        </div>
+                                        <div class="col-md-4 mt-2">
+                                            <label class="form-label text-xs">Zip Code</label>
+                                            <input type="text" name="mother_addr_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                        </div>
+                                    </div>
+                                    <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="mother_perm_same" name="mother_perm_same" value="1" onchange="toggleParentPermAddress('mother')" checked>
+                                        <label class="form-check-label text-xs" for="mother_perm_same">Same as Current</label>
+                                    </div>
+                                    <div id="mother_perm_block" style="display:none;">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region</label>
+                                                <select id="mother_perm_region" name="mother_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="mother_perm_region_hidden" id="mother_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province</label>
+                                                <input type="text" id="mother_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="mother_perm_province" name="mother_perm_province">
+                                                <div id="mother_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality</label>
+                                                <select id="mother_perm_city" name="mother_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay</label>
+                                                <select id="mother_perm_barangay" name="mother_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                                <input type="text" name="mother_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code</label>
+                                                <input type="text" name="mother_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# OFW Address Section #}
+                            <div id="mother_ofw_address_section" style="display:none;">
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address (Workplace Abroad)</h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-xs">Country of Work <span class="required">*</span></label>
+                                        <select name="mother_ofw_country" id="mother_ofw_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                            <option value=""></option>
+                                            {% for country in countries %}
+                                                <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label text-xs">Address / Workplace <span class="required">*</span></label>
+                                        <input type="text" name="mother_ofw_address" id="mother_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                        <input type="text" name="mother_ofw_zip" id="mother_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                    </div>
+                                </div>
+
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="mother_ofw_perm_same" name="mother_ofw_perm_same" value="1" onchange="toggleParentOfwPermSame('mother')" checked>
+                                    <label class="form-check-label text-xs" for="mother_ofw_perm_same">Same as current address</label>
+                                </div>
+
+                                <div id="mother_ofw_perm_diff_block" style="display:none;">
+                                    <div class="mb-3 p-3 bg-white rounded border">
+                                        <label class="form-label text-xs fw-bold d-block mb-2">In Philippines? <span class="required">*</span></label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="mother_ofw_perm_in_ph" id="mother_ofw_perm_in_ph_yes" value="yes" onchange="toggleParentOfwPermInPh('mother')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="mother_ofw_perm_in_ph_yes">Yes</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="mother_ofw_perm_in_ph" id="mother_ofw_perm_in_ph_no" value="no" onchange="toggleParentOfwPermInPh('mother')">
+                                                <label class="form-check-label text-xs fw-bold cursor-pointer" for="mother_ofw_perm_in_ph_no">No</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If Yes: Philippine Permanent Address #}
+                                    <div id="mother_ofw_perm_ph_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Region <span class="required">*</span></label>
+                                                <select id="mother_ofw_perm_region" name="mother_ofw_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                                <input type="hidden" name="mother_ofw_perm_region_hidden" id="mother_ofw_perm_region_hidden">
+                                            </div>
+                                            <div class="col-md-3 position-relative">
+                                                <label class="form-label text-xs">Province <span class="required">*</span></label>
+                                                <input type="text" id="mother_ofw_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                                <input type="hidden" id="mother_ofw_perm_province" name="mother_ofw_perm_province">
+                                                <div id="mother_ofw_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">City/Municipality <span class="required">*</span></label>
+                                                <select id="mother_ofw_perm_city" name="mother_ofw_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Barangay <span class="required">*</span></label>
+                                                <select id="mother_ofw_perm_barangay" name="mother_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label class="form-label text-xs">House No. / Street / Bldg <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_street" id="mother_ofw_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            </div>
+                                            <div class="col-md-4 mt-2">
+                                                <label class="form-label text-xs">Zip Code <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_zip" id="mother_ofw_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {# If No: International Permanent Address #}
+                                    <div id="mother_ofw_perm_intl_block" style="display:none;">
+                                        <div class="row g-3 mb-2">
+                                            <div class="col-md-4">
+                                                <label class="form-label text-xs">Country <span class="required">*</span></label>
+                                                <select name="mother_ofw_perm_country" id="mother_ofw_perm_country" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Country">
+                                                    <option value=""></option>
+                                                    {% for country in countries %}
+                                                        <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="form-label text-xs">Address <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_address" id="mother_ofw_perm_address" class="form-control form-control-sm" placeholder="Address">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label text-xs">Postal Code <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_intl_zip" id="mother_ofw_perm_intl_zip" class="form-control form-control-sm" placeholder="Postal Code">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    {# Guardian #}
+                    <div class="bg-blue-50 p-5 rounded">
+                        <h6 class="fw-bold text-dark mb-4">Guardian / Emergency Contact</h6>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Full Name <span class="required">*</span></label>
+                                <input type="text" name="guardian_name" id="guardian_name" class="form-control" placeholder="Full Name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Relationship <span class="required">*</span></label>
+                                <input type="text" name="guardian_relation" id="guardian_relation" class="form-control" placeholder="Relationship" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Contact No. <span class="required">*</span></label>
+                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                    prefix: 'guardian',
+                                    input_name: 'guardian_contact',
+                                    input_id: 'guardian_contact',
+                                    required: true,
+                                    placeholder: '9xxxxxxxxx',
+                                    countries: countries
+                                } %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Email Address <span class="required">*</span></label>
+                                <input type="email" name="guardian_email" id="guardian_email" class="form-control" placeholder="Email Address" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Nationality <span class="required">*</span></label>
+                                <select name="guardian_nationality" id="guardian_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
+                                    <option value=""></option>
+                                    {% for nat in nationalities %}
+                                        <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        {# Guardian Address with Same as Applicant #}
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="guardian_same_as_applicant" name="guardian_same_as_applicant" value="1" onchange="toggleGuardianAddress()" checked>
+                                <label class="form-check-label text-sm fw-bold" for="guardian_same_as_applicant">Same address as Applicant</label>
+                            </div>
+                            <div id="guardian_address_block" style="display:none;">
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Current Address</h6>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Region</label>
+                                        <select id="guardian_addr_region" name="guardian_addr_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                        <input type="hidden" name="guardian_addr_region_hidden" id="guardian_addr_region_hidden">
+                                    </div>
+                                    <div class="col-md-3 position-relative">
+                                        <label class="form-label text-xs">Province</label>
+                                        <input type="text" id="guardian_addr_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                        <input type="hidden" id="guardian_addr_province" name="guardian_addr_province">
+                                        <div id="guardian_addr_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">City/Municipality</label>
+                                        <select id="guardian_addr_city" name="guardian_addr_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-xs">Barangay</label>
+                                        <select id="guardian_addr_barangay" name="guardian_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                    </div>
+                                    <div class="col-12 mt-2">
+                                        <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                        <input type="text" name="guardian_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                    </div>
+                                    <div class="col-md-4 mt-2">
+                                        <label class="form-label text-xs">Zip Code</label>
+                                        <input type="text" name="guardian_addr_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                    </div>
+                                </div>
+                                <h6 class="text-sm fw-bold text-gray-500 mb-2">Permanent Address</h6>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="guardian_perm_same" name="guardian_perm_same" value="1" onchange="toggleParentPermAddress('guardian')" checked>
+                                    <label class="form-check-label text-xs" for="guardian_perm_same">Same as Current</label>
+                                </div>
+                                <div id="guardian_perm_block" style="display:none;">
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Region</label>
+                                            <select id="guardian_perm_region" name="guardian_perm_region" class="form-select form-select-sm" data-control="select2" data-placeholder="Select Region"><option value=""></option></select>
+                                            <input type="hidden" name="guardian_perm_region_hidden" id="guardian_perm_region_hidden">
+                                        </div>
+                                        <div class="col-md-3 position-relative">
+                                            <label class="form-label text-xs">Province</label>
+                                            <input type="text" id="guardian_perm_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Type Province..." autocomplete="off">
+                                            <input type="hidden" id="guardian_perm_province" name="guardian_perm_province">
+                                            <div id="guardian_perm_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">City/Municipality</label>
+                                            <select id="guardian_perm_city" name="guardian_perm_city" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label text-xs">Barangay</label>
+                                            <select id="guardian_perm_barangay" name="guardian_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
+                                        </div>
+                                        <div class="col-12 mt-2">
+                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
+                                            <input type="text" name="guardian_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        </div>
+                                        <div class="col-md-4 mt-2">
+                                            <label class="form-label text-xs">Zip Code</label>
+                                            <input type="text" name="guardian_perm_zip" class="form-control form-control-sm" placeholder="Zip Code">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 5: EDUCATION --- #}
+            <div class="card mb-5 animate-section" id="step-card-5">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-teacher text-feu-green-600 fs-1"></i>STEP 5 : Education History</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <div id="educ_history_placeholder" class="text-center text-muted fw-bold">
+                        Please select a Grade Level in Step 1 to view required education history.
+                    </div>
+
+                    <template id="country_options_template">
+                        <option value="">Select Country</option>
+                        {% for country in countries %}
+                            <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                        {% endfor %}
+                    </template>
+
+                    <div id="educ_history_fields" style="display:none;">
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Last Grade Completed <span class="required">*</span></label>
+                                <select name="last_grade_completed" id="lastGradeCompleted" class="form-select" required>
+                                    <option value="">Select Grade Level Completed</option>
+                                    <option value="Kinder">Kinder</option>
+                                    <option value="Grade 1">Grade 1</option>
+                                    <option value="Grade 2">Grade 2</option>
+                                    <option value="Grade 3">Grade 3</option>
+                                    <option value="Grade 4">Grade 4</option>
+                                    <option value="Grade 5">Grade 5</option>
+                                    <option value="Grade 6">Grade 6</option>
+                                    <option value="Grade 7">Grade 7</option>
+                                    <option value="Grade 8">Grade 8</option>
+                                    <option value="Grade 9">Grade 9</option>
+                                    <option value="Grade 10">Grade 10</option>
+                                    <option value="Grade 11">Grade 11</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">General Average / GWA (Optional)</label>
+                                <input type="text" name="general_average" id="generalAverage" class="form-control" placeholder="e.g. 90.00 or A/Passed">
+                            </div>
+                        </div>
+
+                        {# Kinder #}
+                        <div id="section_educ_kinder" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Kindergarten</h6>
+                            <div class="row g-3 align-items-center mb-3">
+                                <div class="col-md-5">
+                                    <label class="form-label text-xs">School Name <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_school[]" class="form-control form-control-sm educ-input" placeholder="School Name">
+                                    <input type="hidden" name="educ_kinder_level[]" value="Kinder">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-xs">School Type <span class="required">*</span></label>
+                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input" onchange="toggleSchoolType(this, 'educ_kinder_0')">
+                                        <option value="Private">Private</option>
+                                        <option value="Public">Public</option>
+                                        <option value="International">International</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-xs">School Year <span class="required">*</span></label>
+                                    <input type="text" name="educ_kinder_year[]" class="form-control form-control-sm educ-input" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" name="educ_kinder_is_international[]" class="intl-hidden-input" value="0">
+
+                            <div class="row g-2 mt-2 location-local-group" id="educ_kinder_0_local">
+                                <div class="col-md-4">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region</label>
+                                    <select id="educ_kinder_0_region" class="form-select form-select-sm" data-placeholder="Region">
+                                        <option value=""></option>
+                                    </select>
+                                    <input type="hidden" name="educ_kinder_region[]" id="educ_kinder_0_region_hidden">
+                                </div>
+                                <div class="col-md-4 position-relative">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province</label>
+                                    <input type="text" id="educ_kinder_0_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
+                                    <input type="hidden" id="educ_kinder_0_province" name="educ_kinder_province[]">
+                                    <div id="educ_kinder_0_province_suggestions" class="autocomplete-suggestions hidden"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality</label>
+                                    <select id="educ_kinder_0_city" name="educ_kinder_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
+                                        <option value=""></option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-2 location-intl-group" id="educ_kinder_0_intl_group" style="display:none;">
+                                <div class="col-md-6">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
+                                    <select name="educ_kinder_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
+                                        <option value="">Select Country</option>
+                                        {% for country in countries %}
+                                            <option value="{{ country.countryName }}">{{ country.countryName }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Elementary #}
+                        <div id="section_educ_elem" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Elementary (Grade School)</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('elem')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_elem"></div>
+                        </div>
+
+                        {# Junior High School #}
+                        <div id="section_educ_jhs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                                <h6 class="fw-bold mb-0 text-feu-green-700">Junior High School</h6>
+                                <button type="button" class="btn btn-sm btn-light-primary btn-add-school" onclick="addSchoolRow('jhs')">
+                                    <i class="ki-filled ki-plus"></i> Add School
+                                </button>
+                            </div>
+                            <div id="container_educ_jhs"></div>
+                        </div>
+
+                        {# Senior High School #}
+                        <div id="section_educ_shs" class="educ-section mb-4 p-4 bg-light rounded border border-gray-200" style="display:none;">
+                            <h6 class="fw-bold mb-3 text-feu-green-700 border-bottom pb-2">Senior High School</h6>
+                            <div id="container_educ_shs"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {# --- CARD 6: SIBLINGS (Optional) --- #}
+            <div class="card mb-5 animate-section">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-profile-user text-feu-green-600 fs-1"></i> Siblings (Enrolled in FEU)</h3>
+                </div>
+                <div class="card-body">
+                    <div id="siblings_container">
+                        {# Dynamic Rows #}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light-primary mt-3" onclick="addSibling()">
+                        <i class="ki-filled ki-plus"></i> Add Sibling
+                    </button>
+                </div>
+            </div>
+
+            {# --- CARD 7: REQUIREMENTS --- #}
+            <div class="card mb-5 animate-section" id="step-card-6">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-folder-added text-feu-green-600 fs-1"></i>STEP 6 : Submission of Documents</h3>
+                </div>
+                <div class="card-body">
+                    <div id="dynamic-documents-container">
+                        <div class="text-center p-5 text-gray-500">
+                            <i class="ki-filled ki-loading animate-spin text-3xl mb-2 text-feu-green-600"></i>
+                            <p>Loading required documents...</p>
+                        </div>
+                    </div>
+                        
+                    <div id="no-docs-message" class="alert alert-warning text-center" style="display: none;">
+                            <i class="ki-filled ki-warning text-warning fs-1 mb-2"></i>
+                            <p class="mb-0">No documents are currently required for this campus.</p>
+                        </div>
+
+                </div>
+            </div>
+
+            {# --- CARD 8: SURVEY --- #}
+            <div class="card mb-5 animate-section" id="step-card-7">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ki-filled ki-questionnaire text-feu-green-600 fs-1"></i>STEP 7 : Survey</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">How did you learn about {{ selected_campus == 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman' }}?<span class="required">*</span></label>
+                                <div class="survey-grid">
+                                    {% set source_details = [
+                                        {'name': 'Brochures/Flyers', 'icon': 'ki-document'},
+                                        {'name': 'Banner', 'icon': 'ki-flag'},
+                                        {'name': 'Campus Tour', 'icon': 'ki-geolocation'},
+                                        {'name': 'Events', 'icon': 'ki-calendar'},
+                                        {'name': 'Social Media', 'icon': 'ki-share'},
+                                        {'name': 'Google/Website', 'icon': 'ki-compass'},
+                                        {'name': 'Immersion', 'icon': 'ki-user-square'},
+                                        {'name': 'Phone Inquiry', 'icon': 'ki-phone'},
+                                        {'name': 'Poster', 'icon': 'ki-abstract-26'},
+                                        {'name': 'Friends', 'icon': 'ki-users'},
+                                        {'name': 'Family/Relatives', 'icon': 'ki-people'},
+                                        {'name': 'School Visit/Career Talk', 'icon': 'ki-teacher'},
+                                        {'name': 'Visibility: Signage/Billboard', 'icon': 'ki-eye'},
+                                        {'name': 'Walk-in', 'icon': 'ki-exit-right'}
+                                    ] %}
+                                    {% for source in source_details %}
+                                        <div class="survey-option-card">
+                                            <input type="checkbox" name="marketing_source[]" id="source_{{ loop.index }}" value="{{ source.name }}" class="survey-radio-input" onchange="toggleOtherSource()">
+                                            <label for="source_{{ loop.index }}" class="survey-option-label">
+                                                <div class="survey-icon-container">
+                                                    <i class="ki-filled {{ source.icon }} fs-3"></i>
+                                                </div>
+                                                <span class="survey-option-text">{{ source.name }}</span>
+                                                <div class="survey-check-indicator">
+                                                    <i class="ki-filled ki-verify"></i>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                    <div class="survey-option-card">
+                                        <input type="checkbox" name="marketing_source[]" id="source_other" value="Other" class="survey-radio-input" onchange="toggleOtherSource()">
+                                        <label for="source_other" class="survey-option-label">
+                                            <div class="survey-icon-container">
+                                                <i class="ki-filled ki-plus-circle fs-3"></i>
+                                            </div>
+                                            <span class="survey-option-text">Other / Specify</span>
+                                            <div class="survey-check-indicator">
+                                                <i class="ki-filled ki-verify"></i>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="row mt-3" id="other_source_input_container" style="display:none;">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-xs font-bold text-gray-500 uppercase">Please specify how you learned about us:</label>
+                                        <input type="text" name="marketing_source_other" id="marketing_source_other" class="form-control" placeholder="Type answer here...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- SUBMIT BUTTON --- #}
+            <div class="text-center pt-5 pb-10">
+                <button type="submit" id="submitBtn" class="btn-submit">Submit Application</button>
+                <div id="submitWarning" class="text-danger fw-bold fs-7 mt-3" style="display: none;">
+                    <i class="ki-filled ki-information-2 text-danger"></i> There are missing or incorrect fields. Please check the highlighted boxes.
+                </div>
+            </div>
+
+            {# Floating Step Navigation (Replaces right-side scrollbar) #}
+            <div class="step-nav-container" id="stepNav">
+                {% set steps = [
+                    'Admission Info', 'Personal Info', 'Contact & Address', 
+                    'Family Background', 'Education History', 'Document Submission', 'Survey'
+                ] %}
+                {% for label in steps %}
+                    <div class="step-nav-item {% if loop.first %}active{% endif %}" data-step="{{ loop.index }}" onclick="window.scrollToStep({{ loop.index }})">
+                        <span class="step-label">
+                            <span class="step-text">STEP {{ loop.index }}: {{ label }}</span>
+                            <span class="step-number">{{ loop.index }}</span>
+                        </span>
+                        <div class="step-bar"></div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# --- MISSING DOCUMENTS PREMIUM WAIVER MODAL --- #}
+            {% include 'enrollment-onsite/diliman/premium_waiver_modal.html.twig' %}
+
+            {# --- DUPLICATE APPLICANT WARNING MODAL --- #}
+            {% include 'enrollment-onsite/_duplicate_warning_modal.html.twig' %}
+
+        </form>
+    </div>
+</div>
+
+{# --- DATA PRIVACY AGREEMENT MODAL --- #}
+<div id="dpaModalOverlay" aria-modal="true" role="dialog">
+    <div id="dpaModalContainer">
+        <div class="dpa-banner">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white text-feu-green-700 shadow-md mb-1">
+                <img src="{{ asset('images/hero/diliman.png') }}" alt="FEU Diliman" class="h-8">
+            </div>
+            <h1>FEU DILIMAN</h1>
+        </div>
+        
+        <div class="dpa-header">
+            <h2>DATA PRIVACY POLICY CONSENT</h2>
+            <p>From Students Applying for Admission to FEU Group of Schools, INC.</p>
+        </div>
+        
+        <div class="dpa-scroll-content" id="dpaScrollArea">
+            <div class="dpa-checkbox-group mt-2">
+                <label for="dpa_consent_check_1" class="hover:border-feu-green-300 transition-colors">
+                    <input type="checkbox" id="dpa_consent_check_1">
+                    <div>
+                        <span class="text-sm text-gray-700 leading-relaxed font-medium block">
+                            I have read and understood all the provisions of the <a href="javascript:void(0);" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '1'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'visible';" class="text-blue-600 hover:underline font-bold">FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools</a> and agree with its full implementation.
+                        </span>
+                    </div>
+                </label>
+                
+                <label for="dpa_consent_check_2" class="hover:border-feu-green-300 transition-colors">
+                    <input type="checkbox" id="dpa_consent_check_2">
+                    <div>
+                        <span class="text-sm text-gray-700 leading-relaxed font-medium block">
+                            I hereby give my consent to FEU for the collection and processing of my personal data, relating to my application for admission, in accordance with the <a href="javascript:void(0);" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '1'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'visible';" class="text-blue-600 hover:underline font-bold">FEU Data Privacy Notice for Students Applying for Admission to FEU Group of Schools</a> and in compliance with Republic Act 10173 or the Data Privacy Act of 2012 of the Republic of the Philippines, its implementing Rules and Regulations, other guidelines and issuances by the National Privacy Commission.
+                        </span>
+                    </div>
+                </label>
+            </div>
+        </div>
+        
+        <div class="dpa-footer flex-col md:flex-row gap-3 items-center md:justify-between px-6 py-4">
+            <div class="text-xs text-red-500 font-bold max-w-sm text-center md:text-left">
+                Note: Applicants are not allowed to proceed without ticking the boxes and clicking the submit button.
+            </div>
+            <button type="button" class="btn-dpa-agree w-full md:w-auto justify-center" id="btnDpaAgree" disabled>
+                <span>Submit</span>
+                <i class="ki-filled ki-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- DATA PRIVACY DETAILS MODAL --- #}
+<div id="dpaDetailsModalOverlay" aria-modal="true" role="dialog" style="position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all 0.3s ease;">
+    <div style="background:white;border-radius:16px;width:95%;max-width:800px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+        <div class="dpa-header flex justify-between items-center" style="padding:1.5rem 2rem;border-bottom:1px solid #e5e7eb;">
+            <h2 class="text-lg font-bold text-feu-green-dark m-0">FEU Data Privacy Notice</h2>
+            <button type="button" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '0'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'hidden';" class="text-gray-500 hover:text-red-500 bg-transparent border-none cursor-pointer">
+                <i class="ki-filled ki-cross text-2xl"></i>
+            </button>
+        </div>
+        <div class="dpa-scroll-content text-sm text-gray-700 space-y-4" style="padding:2rem;overflow-y:auto;">
+            <p>Far Eastern University Admissions and Financial Assistance is committed to protecting and upholding the rights of student applicants, including their right to keep personal information private. In compliance with Republic Act 10173, otherwise known as the Data Privacy Act of 2012, and guided by the principles of transparency, legitimate purpose, and proportionality, this policy statement sets out the data-privacy rights of applicants in FEU and describes the information that may be collected from them; the collection methods and timing of collection; the purposes for which the data may be used; the storage, transmission, and method of use of such data; the conditions under which data are shared with third parties; the data retention period; and the rules that govern the students’ participation when they are asked to share their personal information.</p>
+            
+            <h4 class="font-bold text-gray-900">1. Identity of the Process Owner and its Services</h4>
+            <p>The Admissions and Financial Assistance (AFA) manages the university’s admissions processes, including student recruitment, applicant screening, and selection of students applying for admission to various academic programs in the university. The AFA is also responsible for the management of financial assistance which includes university-funded and externally funded scholarship grants.</p>
+            <p>Admissions and Financial Assistance also works closely with the Office of the University Registrar (OUR), Information Technology Services (ITS), different Institutes, and Academic Services to ensure a smooth process and quality student experience of applicants during their admission process.</p>
+
+            <h4 class="font-bold text-gray-900">2. Personal Data that are Collected</h4>
+            <p>The following personal data are collected:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>Personal details such as complete name, birth date, place of birth, sex at birth, birth order, gender identity, civil status, number of siblings, religion, awards received, and identification photos;</li>
+                <li>Parents/guardians’ information such as complete name, occupation, place of work, education credentials;</li>
+                <li>Household information such as household size and gross family income;</li>
+                <li>Contact information such as current and permanent address, email address, telephone number, mobile number;</li>
+                <li>Pre-FEU academic credentials and other relevant circumstances, former schools attended, academic performance, and disciplinary record;</li>
+                <li>Other information for the purpose of designing and implementing proactive student services and programs may be collected when warranted, which will be specified in Consent Forms.</li>
+            </ul>
+
+            <h4 class="font-bold text-gray-900">3. Collection Methods and Timing of Collection</h4>
+            <p>The applicant’s personal data are primarily collected and acquired in many forms. This may be through written records, photographic images, and digital/electronic means. The data are collected when students apply for admission to the university through online registration in its admission system, and when students proceed with their enrollment applications. The collection of data may also happen in survey of the students’ preference of courses.</p>
+
+            <h4 class="font-bold text-gray-900">4. Purpose(s) for which Personal Data will be Collected and Used</h4>
+            <p>For the efficient admission process and management of school records, personal data are collected and used for the following purposes:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>evaluating the admission application of the student to the university;</li>
+                <li>processing acceptance or confirmation of new students in preparation for enrollment;</li>
+                <li>evaluating and processing of scholarship applications, grants, allowances, reports to benefactors, and other forms of financial assistance;</li>
+                <li>generating reports for research purposes such as exploring students’ backgrounds and characteristics, etc.</li>
+                <li>generating reports for intervention programs for better academic and campus experiences such guidance and counseling, language enrichment programs, academic support, etc.</li>
+                <li>communicating admission-related, enrollment-related, and scholarship-related advisories, announcements, and activities.</li>
+            </ul>
+
+            <h4 class="font-bold text-gray-900">5. Storage and Transmission of Personal Information</h4>
+            <p>FEU Admissions and Financial Assistance shall ensure that all collected personal data are stored in secured storage facilities to avoid unauthorized access to this sensitive personal information. Personal data are stored in physical and electronic systems with appropriate organizational, physical, and technical security measures. Through coordination with ITS, AFA shall ensure that only authorized staff shall have access to each student’s personal information only for the purposes cited in Section 4.</p>
+            <p>Storage of personal data in cloud-based platforms is managed by ITS in partnership with third-party providers, subject to applicable laws and regulations and information security measures.</p>
+
+            <h4 class="font-bold text-gray-900">6. Method of Use</h4>
+            <p>The collected data are processed in relation to the purposes and uses stipulated in Section IV. The term “processing” shall be subject to the same Definitions and Implementing Rules and Regulations as are found in the Data Privacy Act, which include collection, recording, organization, storage, updating or modification, retrieval, use, consolidation, erasure, or destruction of data.</p>
+
+            <h4 class="font-bold text-gray-900">7. Third-Party Transfer</h4>
+            <p>In accordance with the Data Privacy Act of 2012, AFA will use and transfer the collected data to provide efficient services to its stakeholders, primarily students. It may share the data with various offices within the university such as Office of the University Registrar, Academic Institutes, Academic Services departments, etc.</p>
+            <p>Sharing of individually identifiable personal data with FEU Schools or other third parties is prohibited unless the data subject gives consent to the Admissions Office that he/she desires to enroll in another FEU campus instead of his/her first preference during online registration or expressly waives this restriction in writing and when the data subject personally applied for a scholarship grant from FEU’s external benefactors.</p>
+            <p>Data sharing and disclosure may happen in the following circumstances:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>awarding of scholarship grants;</li>
+                <li>sharing of data to external benefactors, donors, and organizations for scholarship purposes;</li>
+                <li>sharing of accomplishments for promotional purposes;</li>
+                <li>transfer of personal information to another FEU subsidiary for admission upon consent of the student;</li>
+                <li>use of photos and other information to promote the university.</li>
+            </ul>
+
+            <h4 class="font-bold text-gray-900">8. Retention Period</h4>
+            <p>The personal information of the applicants will be retained for active use for a period of one year following the validity of their admission test results. For applicants who will not proceed with FEU, their personal information will be inactivated for archiving. On the other hand, personal information of those who will proceed with their enrollment will be retained in the databases of the university in perpetuity.</p>
+
+            <h4 class="font-bold text-gray-900">9. Participation of Data Subject</h4>
+            <p>FEU warrants the following rights of the data subjects:</p>
+            <ul class="list-decimal pl-5 space-y-1">
+                <li>have access to their personal data;</li>
+                <li>receive notifications if there are changes to this Privacy Policy;</li>
+                <li>have the option to request data erasure and disposal due to unauthorized processing upon the submission of a notarized written letter;</li>
+                <li>be compensated due to suffered damages arising from inaccurate, incomplete, outdated, false, unlawfully obtained, unauthorized release, or unauthorized use of personal data based upon the findings of an investigation conducted by the University or by a duly authorized third party and provided that the process of investigation has been vetted by the concerned parties;</li>
+                <li>have the right to rectify errors or inaccuracies in their personal data upon submission of necessary documents; and</li>
+                <li>have the right to unsubscribe to the university mailing database.</li>
+            </ul>
+            
+            <p class="mt-4">For inquiries regarding the processing of personal information stated in this Privacy Notice as well as any concerns or complaints regarding data privacy, or the exercise of the rights of the students as a Data Subject under DPA, students may contact the Data Protection Officer at:</p>
+            <div class="bg-gray-100 p-4 rounded-lg mt-2 font-medium">
+                <p><strong>The Data Protection Officer</strong><br>
+                Far Eastern University<br>
+                Nicanor Reyes St., Sampaloc, Manila<br>
+                Landline: +632 7777-FEU loc 208<br>
+                Email: <a href="mailto:dataprivacy@feu.edu.ph" class="text-feu-green-dark hover:underline">dataprivacy@feu.edu.ph</a></p>
+                
+                <p class="mt-2">For comments, students may also contact the Admissions and Financial Assistance at <a href="mailto:admissions@feu.edu.ph" class="text-feu-green-dark hover:underline">admissions@feu.edu.ph</a> or call (02) 87777-338 or 8849-4000 loc 273/274.</p>
+            </div>
+        </div>
+        <div style="padding:1.5rem 2rem;border-top:1px solid #e5e7eb;background:#fafafa;border-radius:0 0 16px 16px;text-align:right;">
+            <button type="button" onclick="document.getElementById('dpaDetailsModalOverlay').style.opacity = '0'; document.getElementById('dpaDetailsModalOverlay').style.visibility = 'hidden';" class="px-5 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition-colors border-none cursor-pointer">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+{# --- SUBMIT CONFIRMATION MODAL --- #}
+<div id="submitConfirmModal" class="fixed inset-0 z-[100000] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform scale-95 transition-transform duration-300" id="modalDialog">
+        <div class="p-6 text-center border-b border-gray-100">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100 mb-4">
+                <i class="ki-filled ki-information-3 text-4xl text-amber-600"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-gray-900">Are you sure you want to submit?</h3>
+            <p class="text-sm text-gray-500 mt-2 font-medium">This cannot be undone. Please review your details below.</p>
+        </div>
+        <div class="p-6 bg-gray-50 text-left" id="summaryContent">
+        </div>
+        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end bg-white">
+            <button type="button" onclick="closeConfirmationModal()" class="px-5 py-3 rounded-xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors w-full sm:w-auto">
+                No, I have some changes
+            </button>
+            <button type="button" id="btnConfirmSubmit" onclick="confirmSubmission()" class="px-5 py-3 rounded-xl font-bold text-white bg-feu-green-700 hover:bg-feu-green-600 transition-colors shadow-lg shadow-feu-green-700/30 w-full sm:w-auto flex items-center justify-center gap-2">
+                Yes, I'm sure
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script src="{{ asset('js/validation.js') }}?v={{ 'now'|date('U') }}"></script>
+<script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
+
+<script>
+    function toggleOtherSource() {
+        const otherInput = document.getElementById('marketing_source_other');
+        const isOther = document.getElementById('source_other').checked;
+        const container = document.getElementById('other_source_input_container');
+        if (container) container.style.display = isOther ? 'block' : 'none';
+        otherInput.style.display = isOther ? 'block' : 'none';
+        otherInput.required = isOther;
+    }
+
+    const loader = document.getElementById('enrollmentLoader');
+    if (loader) {
+        const minLoadTime = 1500;
+        const startTime = Date.now();
+        
+        window.addEventListener('load', function() {
+            const timeElapsed = Date.now() - startTime;
+            const remainingTime = Math.max(0, minLoadTime - timeElapsed);
+            
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(() => loader.remove(), 500);
+            }, remainingTime); 
+        });
+    }
+
+    // FEU Diliman specialized missing document warning flow overrides
+    window.showDocWarningModal = function(missingDocs) {
+        if (typeof window.showPremiumWaiverModal === 'function') {
+            window.showPremiumWaiverModal(missingDocs);
+        }
+    };
+
+    function initDilimanLrnCheck() {
+        const lrnInput = document.getElementById('lrnInput');
+        if (lrnInput && !lrnInput.hasAttribute('data-lrn-check-init')) {
+            lrnInput.setAttribute('data-lrn-check-init', '1');
+            lrnInput.addEventListener('blur', function() {
+                const lrn = this.value;
+                if(lrn.length === 12) {
+                    fetch('{{ path("app_enrollment_diliman_check_lrn") }}?lrn=' + encodeURIComponent(lrn))
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.exists) {
+                                this.classList.add('is-invalid', 'border-red-400');
+                                this.setCustomValidity('LRN is already taken');
+                                if (window.showToast) window.showToast('The provided LRN is already registered in the system.', 'error');
+                            } else {
+                                this.classList.remove('is-invalid', 'border-red-400');
+                                this.setCustomValidity('');
+                            }
+                        });
+                }
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDilimanLrnCheck);
+    } else {
+        initDilimanLrnCheck();
+    }
+    document.addEventListener('turbo:load', initDilimanLrnCheck);
+</script>
+
+{% endblock %}

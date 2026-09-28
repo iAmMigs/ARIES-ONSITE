@@ -29,6 +29,7 @@ class AuditBedApplicant
     #[ORM\Column(length: 15, nullable: true)] private ?string $schoolYearOfEntry = null;
     #[ORM\Column(length: 20, nullable: true)] private ?string $admissionType = null;
     #[ORM\Column(type: Types::FLOAT, nullable: true)] private ?float $examinationScore = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $examinationDate = null;
 
     // Personal Info
     #[ORM\Column(length: 100, nullable: true)] private ?string $lastName = null;
@@ -40,10 +41,11 @@ class AuditBedApplicant
     #[ORM\Column(length: 10, nullable: true)] private ?string $gender = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $religion = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $citizenship = null;
-    #[ORM\Column(length: 255, nullable: true)] private ?string $indigenousGroup = null;
+
     #[ORM\Column(length: 50, nullable: true)] private ?string $passportNumber = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaType = null;
     #[ORM\Column(length: 50, nullable: true)] private ?string $visaStatus = null;
+    #[ORM\Column(length: 100, nullable: true)] private ?string $indigenousGroup = null;
 
     // Contact
     #[ORM\Column(length: 50, nullable: true)] private ?string $mobileNumber = null;
@@ -68,6 +70,32 @@ class AuditBedApplicant
     // Other
     #[ORM\Column(type: Types::TEXT, nullable: true)] private ?string $photoSlug = null;
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $admissionDate = null;
+    #[ORM\Column(length: 50, nullable: true)] private ?string $schoolType = null;
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)] private ?\DateTimeInterface $documentsAgreedDate = null;
+
+    #[ORM\Column(name: 'preferred_name', length: 100, nullable: true)]
+    private ?string $preferredName = null;
+
+    #[ORM\Column(name: 'suffix', length: 20, nullable: true)]
+    private ?string $suffix = null;
+
+    #[ORM\Column(name: 'country_of_birth', length: 100, nullable: true)]
+    private ?string $countryOfBirth = null;
+
+    #[ORM\Column(name: 'civil_status', length: 50, nullable: true)]
+    private ?string $civilStatus = null;
+
+    #[ORM\Column(name: 'country_of_residence', length: 100, nullable: true)]
+    private ?string $countryOfResidence = null;
+
+    #[ORM\Column(name: 'permanent_country', length: 100, nullable: true)]
+    private ?string $permanentCountry = null;
+
+    #[ORM\Column(name: 'last_grade_completed', length: 50, nullable: true)]
+    private ?string $lastGradeCompleted = null;
+
+    #[ORM\Column(name: 'general_average', type: Types::STRING, length: 50, nullable: true)]
+    private ?string $generalAverage = null;
 
     public function __set($name, $value) {
         if (property_exists($this, $name)) {

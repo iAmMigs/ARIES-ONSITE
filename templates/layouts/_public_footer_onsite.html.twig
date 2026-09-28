@@ -1,9 +1,10 @@
 {# templates/layouts/_public_footer_onsite.html.twig #}
-{# ARIES Public Site Footer - Adapted for Onsite Enrollment System #}
+{# ARIES Public Site Footer - Campus-Specific #}
+{# Expects 'campus' variable ('alabang' or 'diliman') from the controller #}
 
 <footer class="footer-main bg-gray-900 text-gray-300" id="contact">
     <div class="container mx-auto px-4 lg:px-8 py-16 relative z-10">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             
             <div class="lg:col-span-1">
                 <div class="flex items-center gap-3 mb-5">
@@ -16,7 +17,11 @@
                     </div>
                 </div>
                 <p class="text-sm text-gray-400 mb-6 leading-relaxed">
-                    Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Diliman and FEU Alabang.
+                    {% if campus is defined and campus == 'alabang' %}
+                        Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Alabang.
+                    {% else %}
+                        Admission, Registration, Information, and Enrollment System — Your gateway to academic excellence at FEU Diliman.
+                    {% endif %}
                 </p>
                 
                 <div class="footer-badge inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl">
@@ -26,6 +31,7 @@
             </div>
 
             <div>
+                {% if campus is defined and campus == 'alabang' %}
                 <h4 class="text-white font-bold text-lg mb-6 border-b border-white/10 pb-2 inline-block">FEU Alabang Tracks</h4>
                 <ul class="space-y-3">
                     <li>
@@ -40,7 +46,7 @@
                     </li>
                     <li>
                         <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Computer Studies And Multimedia Arts">
-                            <i class="ki-filled ki-monitor text-xs opacity-60 text-feu-green-500"></i> CSMA
+                            <i class="ki-filled ki-laptop text-xs opacity-60 text-feu-green-500"></i> CSMA
                         </span>
                     </li>
                     <li>
@@ -74,54 +80,55 @@
                         </span>
                     </li>
                 </ul>
-            </div>
-
-            <div>
-                <h4 class="text-white font-bold text-lg mb-6 border-b border-white/10 pb-2 inline-block">FEU Diliman Tracks</h4>
+                {% else %}
+                <h4 class="text-white font-bold text-lg mb-6 border-b border-white/10 pb-2 inline-block">FEU Diliman Frameworks</h4>
                 <ul class="space-y-3">
                     <li>
-                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Accountancy, Business and Management">
-                            <i class="ki-filled ki-chart-line text-xs opacity-60 text-feu-green-500"></i> ABM
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Accountancy, Business Administration, and Management">
+                            <i class="ki-filled ki-chart-line text-xs opacity-60 text-feu-green-500"></i> Accountancy, Business Administration, and Management
                         </span>
                     </li>
                     <li>
-                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="General Academic Strand">
-                            <i class="ki-filled ki-star text-xs opacity-60 text-feu-green-500"></i> GAS
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Arts and Humanities">
+                            <i class="ki-filled ki-book-open text-xs opacity-60 text-feu-green-500"></i> Arts and Humanities
                         </span>
                     </li>
                     <li>
-                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Humanities and Social Sciences">
-                            <i class="ki-filled ki-book-open text-xs opacity-60 text-feu-green-500"></i> HUMSS
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Engineering and Architecture">
+                            <i class="ki-filled ki-setting-2 text-xs opacity-60 text-feu-green-500"></i> Engineering and Architecture
                         </span>
                     </li>
                     <li>
-                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Sports Track">
-                            <i class="ki-filled ki-abstract text-xs opacity-60 text-feu-green-500"></i> SPORTS
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="IT and Computer Science">
+                            <i class="ki-filled ki-laptop text-xs opacity-60 text-feu-green-500"></i> IT and Computer Science
                         </span>
                     </li>
                     <li>
-                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Science, Technology, Engineering and Mathematics">
-                            <i class="ki-filled ki-flask text-xs opacity-60 text-feu-green-500"></i> STEM
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Medicine and Health Sciences">
+                            <i class="ki-filled ki-heart text-xs opacity-60 text-feu-green-500"></i> Medicine and Health Sciences
+                        </span>
+                    </li>
+                    <li>
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Tourism and Hospitality">
+                            <i class="ki-filled ki-briefcase text-xs opacity-60 text-feu-green-500"></i> Tourism and Hospitality
+                        </span>
+                    </li>
+                    <li>
+                        <span class="text-sm text-gray-400 flex items-center gap-2 hover:text-white transition-colors cursor-default" title="Mixed Framework">
+                            <i class="ki-filled ki-star text-xs opacity-60 text-feu-green-500"></i> Mixed Framework
                         </span>
                     </li>
                 </ul>
+                {% endif %}
             </div>
 
             <div>
                 <h4 class="text-white font-bold mb-6 flex items-center gap-2">
                     <i class="ki-filled ki-phone text-feu-gold-400 text-sm"></i>
-                    Onsite Locations
+                    Campus Location
                 </h4>
                 <ul class="space-y-4">
-                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
-                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900/50 flex-shrink-0">
-                            <i class="ki-filled ki-geolocation text-blue-400 text-sm"></i>
-                        </div>
-                        <span class="text-sm text-gray-400 leading-relaxed">
-                            <strong class="text-gray-300">FEU Diliman</strong><br>
-                            Regalado Ave., Fairview, QC
-                        </span>
-                    </li>
+                    {% if campus is defined and campus == 'alabang' %}
                     <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
                         <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-900/50 flex-shrink-0">
                             <i class="ki-filled ki-geolocation text-purple-400 text-sm"></i>
@@ -131,6 +138,17 @@
                             Alabang-Zapote Rd., Las Piñas
                         </span>
                     </li>
+                    {% else %}
+                    <li class="flex items-start gap-3 p-3 bg-gray-800/30 rounded-xl hover:bg-gray-800/50 transition-colors">
+                        <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900/50 flex-shrink-0">
+                            <i class="ki-filled ki-geolocation text-blue-400 text-sm"></i>
+                        </div>
+                        <span class="text-sm text-gray-400 leading-relaxed">
+                            <strong class="text-gray-300">FEU Diliman</strong><br>
+                            Sampaguita Avenue, Mapayapa Village III, Pasong Tamo, Quezon City 1101
+                        </span>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

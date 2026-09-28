@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Diliman Dashboard{% endblock %}
+{% block title %}Diliman Dashboard – ARIES{% endblock %}
 
 {% block body %}
 <div class="flex h-screen overflow-hidden bg-gray-50">
@@ -10,27 +10,290 @@
     {# --- MAIN CONTENT --- #}
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         {# Header #}
-        {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Dashboard'} %}
+        {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Executive Dashboard'} %}
 
         {# Scrollable Content #}
-        <div class="flex-1 overflow-y-auto p-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {# Stat Cards #}
-                {% for label, value in {'Today': stats.today, 'This Week': stats.week, 'This Month': stats.month, 'Total Applicants': stats.total} %}
-                <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="text-sm text-gray-500 font-medium uppercase tracking-wide mb-2">{{ label }}</div>
-                    <div class="flex items-end gap-2">
-                        <span class="text-4xl font-bold text-feu-green-700">{{ value }}</span>
-                        <span class="text-sm text-gray-400 mb-1">registrations</span>
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+
+                {# Header & KPI Overview Banner #}
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200/80">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <span class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                    FEU Diliman
+                                </span>
+                                <h1 class="text-2xl font-black text-gray-900 tracking-tight">Executive Dashboard</h1>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">Real-time enrollment tracking, registration trends, and applicant analytics.</p>
+                        </div>
+                        
+                        {% if activeSY %}
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-50 border border-gray-200/80 text-xs font-medium text-gray-600">
+                            <i class="ki-filled ki-calendar text-feu-green-700 text-base"></i>
+                            <span>Active SY: <strong class="text-gray-900 font-mono font-bold">{{ activeSY.label }}</strong></span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {# KPI Cards #}
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
+                        <div class="bg-emerald-50/60 p-4 rounded-xl border border-emerald-100">
+                            <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Today</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-emerald-900">{{ stats.today }}</span>
+                                <i class="ki-filled ki-calendar-tick text-2xl text-emerald-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
+                            <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block">This Week</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-blue-900">{{ stats.week }}</span>
+                                <i class="ki-filled ki-chart-line-up text-2xl text-blue-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-100">
+                            <span class="text-xs font-bold text-amber-700 uppercase tracking-wider block">This Month</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-amber-900">{{ stats.month }}</span>
+                                <i class="ki-filled ki-user-square text-2xl text-amber-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Total Applicants</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-2xl font-black text-gray-900">{{ stats.total }}</span>
+                                <i class="ki-filled ki-people text-2xl text-feu-green-700"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
 
-            {# Chart #}
-            <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                <h3 class="text-lg font-bold text-gray-800 mb-6">Registration Trends (Last 7 Days)</h3>
-                <div id="registrationChart" style="height: 350px;"></div>
+                {# Chart Container #}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-800 text-base">Registration Trends (Last 7 Days)</h3>
+                        <span class="text-xs text-gray-500">Activity Overview</span>
+                    </div>
+                    <div class="p-6">
+                        <div id="registrationChart" style="height: 350px;"></div>
+                    </div>
+                </div>
+
+                {# Enrollment Summary Card #}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-base">Enrollment Summary — FEU DILIMAN</h3>
+                            <p class="text-xs text-gray-500">Current SY ({{ activeSY ? activeSY.label : 'N/A' }})</p>
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">Breakdown by Level & Framework</span>
+                    </div>
+
+                    {# Main Enrollment Table #}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                    <th class="py-3.5 px-6">Campus - Level</th>
+                                    <th class="py-3.5 px-6 text-center">New Students</th>
+                                    <th class="py-3.5 px-6 text-center">Transferees</th>
+                                    <th class="py-3.5 px-6 text-right">Total Applicants</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm">
+                                {% for row in summary.rows %}
+                                <tr class="hover:bg-gray-50/70 transition-colors">
+                                    <td class="py-3.5 px-6 font-semibold text-gray-900">{{ row.name }}</td>
+                                    <td class="py-3.5 px-6 text-center font-bold text-gray-700">{{ row.new }}</td>
+                                    <td class="py-3.5 px-6 text-center font-bold text-gray-700">{{ row.transferee }}</td>
+                                    <td class="py-3.5 px-6 text-right font-black text-feu-green-800">{{ row.current }}</td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="bg-gray-50/90 font-black text-gray-900 border-t-2 border-gray-200">
+                                    <td class="py-4 px-6 uppercase text-xs tracking-wider text-gray-900">Total</td>
+                                    <td class="py-4 px-6 text-center font-black">{{ summary.total.new }}</td>
+                                    <td class="py-4 px-6 text-center font-black">{{ summary.total.transferee }}</td>
+                                    <td class="py-4 px-6 text-right text-base text-feu-green-900">{{ summary.total.current }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# Sub-Breakdowns 3-Column Grid #}
+                    <div class="p-6 border-t border-gray-100 bg-gray-50/20">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                            {# GRS Table Card #}
+                            <div class="bg-white rounded-xl border border-gray-200/80 overflow-hidden shadow-xs">
+                                <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60 flex items-center justify-between">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-gray-700">GRS (Grade School)</h4>
+                                    <span class="text-[10px] text-gray-400 font-medium">Primary</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b border-gray-200 text-[10px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                                <th class="py-2.5 px-4">Level</th>
+                                                <th class="py-2.5 px-3 text-center">New</th>
+                                                <th class="py-2.5 px-3 text-center">Trans</th>
+                                                <th class="py-2.5 px-4 text-right">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 text-xs">
+                                            {% set grsNew = 0 %}{% set grsTrans = 0 %}{% set grsTotal = 0 %}
+                                            {% for item in summary.grs %}
+                                            <tr class="hover:bg-gray-50/70 transition-colors">
+                                                <td class="py-2 px-4 font-semibold text-gray-800">{{ item.name }}</td>
+                                                <td class="py-2 px-3 text-center font-medium text-gray-600">{{ item.new }}</td>
+                                                <td class="py-2 px-3 text-center font-medium text-gray-600">{{ item.transferee }}</td>
+                                                <td class="py-2 px-4 text-right font-black text-feu-green-800">{{ item.total }}</td>
+                                            </tr>
+                                            {% set grsNew = grsNew + item.new %}{% set grsTrans = grsTrans + item.transferee %}{% set grsTotal = grsTotal + item.total %}
+                                            {% endfor %}
+                                            <tr class="bg-gray-50/80 font-black text-gray-900 border-t border-gray-200">
+                                                <td class="py-2.5 px-4 uppercase text-[10px] tracking-wider text-gray-900">Total GRS</td>
+                                                <td class="py-2.5 px-3 text-center">{{ grsNew }}</td>
+                                                <td class="py-2.5 px-3 text-center">{{ grsTrans }}</td>
+                                                <td class="py-2.5 px-4 text-right font-black text-feu-green-900">{{ grsTotal }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {# JHS Table Card #}
+                            <div class="bg-white rounded-xl border border-gray-200/80 overflow-hidden shadow-xs">
+                                <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60 flex items-center justify-between">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-gray-700">JHS (Junior High)</h4>
+                                    <span class="text-[10px] text-gray-400 font-medium">Grades 7–10</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b border-gray-200 text-[10px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                                <th class="py-2.5 px-4">Level</th>
+                                                <th class="py-2.5 px-3 text-center">New</th>
+                                                <th class="py-2.5 px-3 text-center">Trans</th>
+                                                <th class="py-2.5 px-4 text-right">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 text-xs">
+                                            {% set jhsNew = 0 %}{% set jhsTrans = 0 %}{% set jhsTotal = 0 %}
+                                            {% for item in summary.jhs %}
+                                            <tr class="hover:bg-gray-50/70 transition-colors">
+                                                <td class="py-2 px-4 font-semibold text-gray-800">{{ item.name }}</td>
+                                                <td class="py-2 px-3 text-center font-medium text-gray-600">{{ item.new }}</td>
+                                                <td class="py-2 px-3 text-center font-medium text-gray-600">{{ item.transferee }}</td>
+                                                <td class="py-2 px-4 text-right font-black text-feu-green-800">{{ item.total }}</td>
+                                            </tr>
+                                            {% set jhsNew = jhsNew + item.new %}{% set jhsTrans = jhsTrans + item.transferee %}{% set jhsTotal = jhsTotal + item.total %}
+                                            {% endfor %}
+                                            <tr class="bg-gray-50/80 font-black text-gray-900 border-t border-gray-200">
+                                                <td class="py-2.5 px-4 uppercase text-[10px] tracking-wider text-gray-900">Total JHS</td>
+                                                <td class="py-2.5 px-3 text-center">{{ jhsNew }}</td>
+                                                <td class="py-2.5 px-3 text-center">{{ jhsTrans }}</td>
+                                                <td class="py-2.5 px-4 text-right font-black text-feu-green-900">{{ jhsTotal }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {# SHS Table Card #}
+                            <div class="bg-white rounded-xl border border-gray-200/80 overflow-hidden shadow-xs">
+                                <div class="px-5 py-3 border-b border-gray-100 bg-gray-50/60 flex items-center justify-between">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-gray-700">SHS (Frameworks)</h4>
+                                    <span class="text-[10px] text-gray-400 font-medium">Grades 11–12</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm text-left border-collapse">
+                                        <thead>
+                                            <tr class="border-b border-gray-200 text-[10px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                                <th class="py-2.5 px-4">Framework</th>
+                                                <th class="py-2.5 px-3 text-center">New</th>
+                                                <th class="py-2.5 px-3 text-center">Trans</th>
+                                                <th class="py-2.5 px-4 text-right">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 text-xs">
+                                            {% set shsNew = 0 %}{% set shsTrans = 0 %}{% set shsTotal = 0 %}
+                                            {% for item in summary.shs %}
+                                            <tr class="hover:bg-gray-50/70 transition-colors">
+                                                <td class="py-2 px-4 font-semibold text-gray-800">{{ item.name }}</td>
+                                                <td class="py-2 px-3 text-center font-medium text-gray-600">{{ item.new }}</td>
+                                                <td class="py-2 px-3 text-center font-medium text-gray-600">{{ item.transferee }}</td>
+                                                <td class="py-2 px-4 text-right font-black text-feu-green-800">{{ item.total }}</td>
+                                            </tr>
+                                            {% set shsNew = shsNew + item.new %}{% set shsTrans = shsTrans + item.transferee %}{% set shsTotal = shsTotal + item.total %}
+                                            {% endfor %}
+                                            <tr class="bg-gray-50/80 font-black text-gray-900 border-t border-gray-200">
+                                                <td class="py-2.5 px-4 uppercase text-[10px] tracking-wider text-gray-900">Total SHS</td>
+                                                <td class="py-2.5 px-3 text-center">{{ shsNew }}</td>
+                                                <td class="py-2.5 px-3 text-center">{{ shsTrans }}</td>
+                                                <td class="py-2.5 px-4 text-right font-black text-feu-green-900">{{ shsTotal }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                {# University Discovery Card #}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-base">University Discovery</h3>
+                            <p class="text-xs text-gray-500">Applicant Survey Tracking</p>
+                        </div>
+                        <span class="text-xs text-gray-400 font-medium">Source Conversion</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
+                                    <th class="py-3.5 px-6">Source</th>
+                                    <th class="py-3.5 px-6 text-center">Count</th>
+                                    <th class="py-3.5 px-6 text-right">Percentage</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm">
+                                {% set discoveryTotal = 0 %}
+                                {% for ds in discoveryStats %}{% set discoveryTotal = discoveryTotal + ds.cnt %}{% endfor %}
+
+                                {% for ds in discoveryStats %}
+                                {% set pct = discoveryTotal > 0 ? (ds.cnt / discoveryTotal * 100)|number_format(1) : 0 %}
+                                <tr class="hover:bg-gray-50/70 transition-colors">
+                                    <td class="py-3.5 px-6 font-semibold text-gray-800">{{ ds.source }}</td>
+                                    <td class="py-3.5 px-6 text-center font-bold text-gray-700">{{ ds.cnt }}</td>
+                                    <td class="py-3.5 px-6 text-right">
+                                        <div class="flex items-center justify-end gap-3">
+                                            <div class="w-24 bg-gray-100 rounded-full h-2 overflow-hidden hidden sm:block">
+                                                <div class="bg-feu-green-600 h-2 rounded-full" style="width: {{ pct }}%"></div>
+                                            </div>
+                                            <span class="font-bold text-gray-900 w-12 text-right">{{ pct }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                                <tr class="bg-gray-50/90 font-black text-gray-900 border-t-2 border-gray-200">
+                                    <td class="py-4 px-6 uppercase text-xs tracking-wider text-gray-900">Total Surveyed</td>
+                                    <td class="py-4 px-6 text-center font-black">{{ discoveryTotal }}</td>
+                                    <td class="py-4 px-6 text-right font-black text-base text-feu-green-900">100%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
@@ -43,13 +306,38 @@ document.addEventListener('DOMContentLoaded', function() {
             name: 'Registrations',
             data: {{ chartData|map(d => d.count)|json_encode|raw }}
         }],
-        chart: { type: 'area', height: 350, toolbar: { show: false } },
+        chart: { 
+            type: 'area', 
+            height: 350, 
+            toolbar: { show: false },
+            fontFamily: 'inherit'
+        },
         colors: ['#1a4d2e'],
-        fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.9, stops: [0, 90, 100] } },
+        fill: { 
+            type: 'gradient', 
+            gradient: { 
+                shadeIntensity: 1, 
+                opacityFrom: 0.5, 
+                opacityTo: 0.05, 
+                stops: [0, 95, 100] 
+            } 
+        },
         dataLabels: { enabled: false },
-        stroke: { curve: 'smooth', width: 2 },
-        xaxis: { categories: {{ chartData|map(d => d.date)|json_encode|raw }} },
-        tooltip: { y: { formatter: function (val) { return val + " Students" } } }
+        stroke: { curve: 'smooth', width: 3 },
+        xaxis: { 
+            categories: {{ chartData|map(d => d.date)|json_encode|raw }},
+            axisBorder: { show: false },
+            axisTicks: { show: false }
+        },
+        grid: {
+            borderColor: '#f3f4f6',
+            strokeDashArray: 4
+        },
+        tooltip: { 
+            y: { 
+                formatter: function (val) { return val + " Students" } 
+            } 
+        }
     };
     var chart = new ApexCharts(document.querySelector("#registrationChart"), options);
     chart.render();

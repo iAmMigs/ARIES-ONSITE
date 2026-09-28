@@ -258,7 +258,11 @@
 
 /* Input Group */
 .input-group {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: stretch;
     position: relative;
+    width: 100%;
 }
 
 .input-group .form-input {
@@ -283,6 +287,211 @@
 
 .input-group .form-input.is-invalid + .input-icon {
     color: var(--error-primary);
+}
+
+/* Country Code Phone Input Picker */
+.phone-input-group {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    width: 100%;
+}
+
+.phone-input-group + .error-message {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    color: #dc2626;
+    display: block;
+    width: 100%;
+}
+
+.country-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.65rem;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    border-top-left-radius: 0.475rem;
+    border-bottom-left-radius: 0.475rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+    user-select: none;
+    height: 42px;
+}
+
+.country-picker-btn:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.country-picker-btn:focus, .country-picker-btn[aria-expanded="true"] {
+    outline: none;
+    border-color: #166534;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(22, 101, 52, 0.15);
+    z-index: 3;
+}
+
+.country-picker-btn:disabled {
+    background-color: #f1f5f9;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-remove-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #dc2626;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-remove-row:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+.country-flag-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.country-dial-text {
+    font-size: 0.85rem;
+    color: #334155;
+    font-weight: 600;
+}
+
+.phone-input-field {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+    height: 42px;
+}
+
+.phone-input-field:focus {
+    z-index: 2;
+}
+
+.country-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 320px;
+    max-width: 92vw;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    z-index: 1060;
+    overflow: hidden;
+}
+
+.country-search-box-wrapper {
+    position: relative;
+    padding: 0.5rem 0.625rem;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.country-search-box-wrapper .country-search-input {
+    width: 100%;
+    padding: 0.4rem 0.65rem 0.4rem 2rem;
+    font-size: 0.8125rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.375rem;
+    background-color: #ffffff;
+    outline: none;
+}
+
+.country-search-box-wrapper .country-search-input:focus {
+    border-color: #166534;
+    box-shadow: 0 0 0 2px rgba(22, 101, 52, 0.15);
+}
+
+.country-search-box-wrapper .country-search-icon {
+    position: absolute;
+    left: 1.15rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: 0.875rem;
+}
+
+.country-list {
+    max-height: 240px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0.25rem 0;
+    list-style: none;
+}
+
+.country-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.55rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #1e293b;
+    transition: background-color 0.15s ease;
+}
+
+.country-item:hover, .country-item.highlighted {
+    background-color: #f1f5f9;
+}
+
+.country-item.active {
+    background-color: #ecfdf5;
+    color: #065f46;
+    font-weight: 600;
+}
+
+.country-item-flag {
+    font-size: 1.15rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.country-item-name {
+    flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.country-item-code {
+    font-size: 0.75rem;
+    color: #64748b;
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.country-no-results {
+    padding: 1rem 0.75rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.8125rem;
 }
 
 /* Error Message */
