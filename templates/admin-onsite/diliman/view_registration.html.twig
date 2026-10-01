@@ -134,7 +134,7 @@
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Citizenship</div><div class="font-medium text-gray-800">{{ registration.citizenship }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Preferred Name</div><div class="font-medium text-gray-800">{{ registration.preferredName|default('N/A') }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Suffix</div><div class="font-medium text-gray-800">{{ registration.suffix|default('N/A') }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Civil Status</div><div class="font-medium text-gray-800">{{ registration.civilStatus|default('N/A') }}</div></div>
+
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Birth</div><div class="font-medium text-gray-800">{{ registration.countryOfBirth|default('N/A') }}</div></div>
                             <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Residence</div><div class="font-medium text-gray-800">{{ registration.countryOfResidence|default('N/A') }}</div></div>
                         </div>
@@ -164,7 +164,7 @@
                             <div class="text-xs text-gray-400 uppercase font-bold mb-1">Current Address</div>
                             <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
                             <div class="text-sm text-gray-500">
-                                {{ registration.currentBarangay|location_barangay }}, {{ registration.currentCity|location_city }}, {{ registration.currentProvince|location_province }} {{ registration.currentZip }}
+                                {{ [registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.currentZip %} {{ registration.currentZip }}{% endif %}
                             </div>
                         </div>
                         <div class="pt-4 border-t border-gray-100">
@@ -172,12 +172,12 @@
                             {% if registration.citizenship|upper == 'INTERNATIONAL' %}
                                 <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
                                 <div class="text-sm text-gray-500">
-                                    {{ registration.permanentBarangay|default('')|location_barangay }}, {{ registration.permanentCity|default('')|location_city }}, {{ registration.permanentProvince|default('')|location_province }}, {{ registration.permanentCountry|default('') }} {{ registration.permanentZip }}
+                                    {{ [registration.permanentBarangay|default('')|location_barangay, registration.permanentCity|default('')|location_city, registration.permanentProvince|default('')|location_province, registration.permanentCountry|default('')]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
                                 </div>
                             {% else %}
                                 <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
                                 <div class="text-sm text-gray-500">
-                                    {{ registration.permanentBarangay|location_barangay }}, {{ registration.permanentCity|location_city }}, {{ registration.permanentProvince|location_province }} {{ registration.permanentZip }}
+                                    {{ [registration.permanentBarangay|location_barangay, registration.permanentCity|location_city, registration.permanentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
                                 </div>
                             {% endif %}
                         </div>
@@ -422,10 +422,10 @@
                         </div>
                     </div>
 
-                    {# System Info #}
+                    {# General Information #}
                     <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-setting-2 text-feu-green-600"></i> System Info
+                            <i class="ki-filled ki-information-2 text-feu-green-600"></i> General Information
                         </h3>
                         <div class="space-y-3">
                             <div class="flex justify-between text-sm">

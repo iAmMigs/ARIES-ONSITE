@@ -470,17 +470,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>
+                            <td style="width: 50%;">
                                 <div class="lbl">Birth Place</div>
                                 <div class="val">{{ registration.birthPlace|default('N/A') }}</div>
                             </td>
-                            <td>
+                            <td colspan="2" style="width: 50%;">
                                 <div class="lbl">Religion</div>
                                 <div class="val">{{ registration.religion|default('N/A') }}</div>
-                            </td>
-                            <td>
-                                <div class="lbl">Civil Status</div>
-                                <div class="val">{{ registration.civilStatus|default('Single') }}</div>
                             </td>
                         </tr>
                         <tr>
@@ -552,14 +548,14 @@
                                     <div class="lbl">Current Address</div>
                                     <div class="val" style="font-size: 7.5pt;">{{ registration.currentAddress|default('N/A') }}</div>
                                     <div class="val-sub">
-                                        {{ registration.currentBarangay|location_barangay }}{% if registration.currentCity %}, {{ registration.currentCity|location_city }}{% endif %}{% if registration.currentProvince %}, {{ registration.currentProvince|location_province }}{% endif %}{% if registration.currentZip %} {{ registration.currentZip }}{% endif %}
+                                        {{ [registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.currentZip %} {{ registration.currentZip }}{% endif %}
                                     </div>
                                 </td>
                                 <td style="width: 50%;">
                                     <div class="lbl">Permanent Address</div>
                                     <div class="val" style="font-size: 7.5pt;">{{ registration.permanentAddress|default('N/A') }}</div>
                                     <div class="val-sub">
-                                        {{ registration.permanentBarangay|location_barangay }}{% if registration.permanentCity %}, {{ registration.permanentCity|location_city }}{% endif %}{% if registration.permanentProvince %}, {{ registration.permanentProvince|location_province }}{% endif %}{% if registration.permanentCountry %}, {{ registration.permanentCountry }}{% endif %}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
+                                        {{ [registration.permanentBarangay|location_barangay, registration.permanentCity|location_city, registration.permanentProvince|location_province, registration.permanentCountry]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
                                     </div>
                                 </td>
                             </tr>
@@ -645,6 +641,38 @@
                         </table>
                     </div>
                     {% endif %}
+                </div>
+
+                {# CARD E: GENERAL INFORMATION #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> General Information
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="field-table">
+                        <tr>
+                            <td style="width: 50%;">
+                                <div class="lbl">Date Applied</div>
+                                <div class="val">{{ registration.createdAt ? registration.createdAt|date('M d, Y') : 'N/A' }}</div>
+                            </td>
+                            <td style="width: 50%;">
+                                <div class="lbl">School Year Entry</div>
+                                <div class="val">{{ registration.schoolYearOfEntry|default('N/A') }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="lbl">Discovery Source</div>
+                                <div class="val" style="font-size: 7.5pt; font-weight: normal; color: #374151;">
+                                    {{ registration.marketingSource|default('Direct Walk-in / Onsite') }}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
 
             </td>
@@ -787,38 +815,6 @@
                                 </tr>
                             {% endfor %}
                         </tbody>
-                    </table>
-                </div>
-
-                {# CARD E: SYSTEM & SUBMISSION METADATA #}
-                <div class="card">
-                    <table class="card-header-table">
-                        <tr>
-                            <td class="card-title">
-                                <span class="card-title-icon">&bull;</span> System Information
-                            </td>
-                        </tr>
-                    </table>
-
-                    <table class="field-table">
-                        <tr>
-                            <td style="width: 50%;">
-                                <div class="lbl">Date Applied</div>
-                                <div class="val">{{ registration.createdAt ? registration.createdAt|date('M d, Y') : 'N/A' }}</div>
-                            </td>
-                            <td style="width: 50%;">
-                                <div class="lbl">School Year Entry</div>
-                                <div class="val">{{ registration.schoolYearOfEntry|default('N/A') }}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                <div class="lbl">Discovery Source</div>
-                                <div class="val" style="font-size: 7.5pt; font-weight: normal; color: #374151;">
-                                    {{ registration.marketingSource|default('Direct Walk-in / Onsite') }}
-                                </div>
-                            </td>
-                        </tr>
                     </table>
                 </div>
 

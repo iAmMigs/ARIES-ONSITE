@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/components.css') }}?v={{ 'now'|date('U') }}">
 {% endblock %}
 
 {% block body %}
@@ -38,14 +39,14 @@
                         {# Profile Picture (Editable) #}
                         <div class="flex-shrink-0 relative group">
                             <div class="w-40 h-40 rounded-2xl overflow-hidden border-4 border-white shadow-lg relative">
-                                <img src="{{ registration.photoSlug ? asset(registration.photoSlug) : asset('metronic/media/avatars/blank.png') }}" class="w-full h-full object-cover">
+                                <img id="applicantAvatarImg" src="{{ registration.photoSlug ? asset(registration.photoSlug) : asset('metronic/media/avatars/blank.png') }}" class="w-full h-full object-cover">
                                 
                                 {# Hover Overlay for Upload #}
-                                <label class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <label for="applicantAvatarInput" class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                                     <i class="ki-filled ki-pencil text-white text-2xl mb-1"></i>
                                     <span class="text-xs text-white font-bold uppercase">Change Photo</span>
-                                    <input type="file" name="profile_picture" class="hidden" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
                                 </label>
+                                <input type="file" id="applicantAvatarInput" name="profile_picture" class="hidden" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
                             </div>
                         </div>
 
@@ -96,7 +97,18 @@
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-phone"></i> Mobile</label>
-                                    <input type="text" name="mobile" value="{{ registration.mobileNumber }}" class="w-full text-sm text-gray-600 border border-gray-400 rounded-lg px-3 py-2.5 mt-1 shadow-sm focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
+                                    <div class="mt-1">
+                                        {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                            prefix: 'applicant_mobile',
+                                            dial_name: 'mobile_country_dial_code',
+                                            input_name: 'mobile',
+                                            input_id: 'applicantMobileInput',
+                                            input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                            value: registration.mobileNumber,
+                                            placeholder: '9xxxxxxxxx',
+                                            countries: countries
+                                        } %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -213,15 +225,7 @@
                                     <label class="text-xs text-gray-400 uppercase font-bold">Suffix</label>
                                     <input type="text" name="suffix" value="{{ registration.suffix }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Civil Status</label>
-                                    <select name="civil_status" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value="">Select Civil Status</option>
-                                        {% for status in ['Single', 'Married', 'Widowed', 'Separated'] %}
-                                            <option value="{{ status }}" {{ registration.civilStatus|upper == status|upper ? 'selected' : '' }}>{{ status }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
+
                                 <div>
                                     <label class="text-xs text-gray-400 uppercase font-bold">Country of Birth</label>
                                     <select name="country_of_birth" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
@@ -295,7 +299,7 @@
                             {# Current #}
                             <div class="mb-6">
                                 <div class="text-xs text-gray-400 uppercase font-bold mb-2">Current Address</div>
-                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.currentAddress }}, {{ registration.currentBarangay }}, {{ registration.currentCity }}, {{ registration.currentProvince }}</div>
+                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ [registration.currentAddress, registration.currentBarangay, registration.currentCity, registration.currentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') }}</div>
                                 
                                 <div class="grid grid-cols-2 gap-3 mb-3">
                                     <div>
@@ -322,7 +326,7 @@
                             {# Permanent #}
                             <div class="pt-4 border-t border-gray-100">
                                 <div class="text-xs text-gray-400 uppercase font-bold mb-2">Permanent Address</div>
-                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ registration.permanentAddress }}, {{ registration.permanentBarangay }}, {{ registration.permanentCity }}, {{ registration.permanentProvince }}</div>
+                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ [registration.permanentAddress, registration.permanentBarangay, registration.permanentCity, registration.permanentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') }}</div>
 
                                 {% if registration.citizenship|upper == 'INTERNATIONAL' %}
                                     <div class="grid grid-cols-2 gap-3 mb-3">
@@ -432,7 +436,18 @@
                                         </div>
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
-                                            <input type="text" name="guardians[{{ loop.index0 }}][contact]" value="{{ guardian.contactNo }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                            <div class="mt-1">
+                                                {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                                    prefix: 'guardian_' ~ loop.index0,
+                                                    dial_name: 'guardians[' ~ loop.index0 ~ '][country_dial_code]',
+                                                    input_name: 'guardians[' ~ loop.index0 ~ '][contact]',
+                                                    input_id: 'guardian_contact_' ~ loop.index0,
+                                                    input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                                    value: guardian.contactNo,
+                                                    placeholder: '9xxxxxxxxx',
+                                                    countries: countries
+                                                } %}
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
@@ -766,24 +781,24 @@
                                         {% endfor %}
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
-                                            <input type="file" name="profile_picture" accept=".jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                            <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                         </div>
                                     </div>
                                 {% else %}
                                     <div class="space-y-3">
                                         <div>
                                             <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
-                                            <input type="file" name="profile_picture" accept=".jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                            <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                         </div>
                                     </div>
                                 {% endif %}
                             </div>
                         </div>
 
-                        {# System Info #}
+                        {# General Information #}
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-setting-2 text-feu-green-600"></i> System Info
+                                <i class="ki-filled ki-information-2 text-feu-green-600"></i> General Information
                             </h3>
                             <div class="space-y-3">
                                 <div class="flex justify-between text-sm">
@@ -848,7 +863,18 @@
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
-                                        <input type="text" name="guardians[{{ emergencyIndex }}][contact]" value="{{ emergencyContact ? emergencyContact.contactNo : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Contact No">
+                                        <div class="mt-1">
+                                            {% include 'enrollment-onsite/_phone_input.html.twig' with {
+                                                prefix: 'emergency_contact_' ~ emergencyIndex,
+                                                dial_name: 'guardians[' ~ emergencyIndex ~ '][country_dial_code]',
+                                                input_name: 'guardians[' ~ emergencyIndex ~ '][contact]',
+                                                input_id: 'emergency_contact_' ~ emergencyIndex,
+                                                input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                                value: emergencyContact ? emergencyContact.contactNo : '',
+                                                placeholder: '9xxxxxxxxx',
+                                                countries: countries
+                                            } %}
+                                        </div>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
@@ -1306,8 +1332,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function(e) {
-                const img = input.closest('.group').querySelector('img');
-                if(img) img.src = e.target.result;
+                const img = document.getElementById('applicantAvatarImg');
+                if (img) img.src = e.target.result;
             }
             reader.readAsDataURL(input.files[0]);
         }
@@ -1448,4 +1474,5 @@ document.addEventListener('input', function(e) {
         }
     });
 </script>
+<script src="{{ asset('js/phone-picker.js') }}?v={{ 'now'|date('U') }}"></script>
 {% endblock %}

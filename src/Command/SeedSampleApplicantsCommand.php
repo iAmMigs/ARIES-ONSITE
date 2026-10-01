@@ -79,7 +79,6 @@ class SeedSampleApplicantsCommand extends Command
         $dilimanReg->setBirthDate(new \DateTime('2013-04-15'));
         $dilimanReg->setBirthPlace('QUEZON CITY');
         $dilimanReg->setGender(ApplicantBed::GENDER_MALE);
-        $dilimanReg->setCivilStatus('Single');
         $dilimanReg->setReligion('ROMAN CATHOLIC');
         $dilimanReg->setCitizenship('FILIPINO');
         $dilimanReg->setNationality('FILIPINO');
@@ -234,7 +233,6 @@ class SeedSampleApplicantsCommand extends Command
         $dilimanInt->setBirthDate(new \DateTime('2009-08-22'));
         $dilimanInt->setBirthPlace('SEOUL, SOUTH KOREA');
         $dilimanInt->setGender(ApplicantBed::GENDER_MALE);
-        $dilimanInt->setCivilStatus('Single');
         $dilimanInt->setReligion('CHRISTIAN');
         $dilimanInt->setCitizenship('INTERNATIONAL');
         $dilimanInt->setNationality('SOUTH KOREAN');
@@ -395,7 +393,6 @@ class SeedSampleApplicantsCommand extends Command
         $alabang1->setBirthDate(new \DateTime('2019-11-05'));
         $alabang1->setBirthPlace('MUNTINLUPA CITY');
         $alabang1->setGender(ApplicantBed::GENDER_FEMALE);
-        $alabang1->setCivilStatus('Single');
         $alabang1->setReligion('ROMAN CATHOLIC');
         $alabang1->setCitizenship('FILIPINO');
         $alabang1->setNationality('FILIPINO');
@@ -550,7 +547,6 @@ class SeedSampleApplicantsCommand extends Command
         $alabang2->setBirthDate(new \DateTime('2009-06-18'));
         $alabang2->setBirthPlace('SAN PEDRO, LAGUNA');
         $alabang2->setGender(ApplicantBed::GENDER_MALE);
-        $alabang2->setCivilStatus('Single');
         $alabang2->setReligion('ROMAN CATHOLIC');
         $alabang2->setCitizenship('FILIPINO');
         $alabang2->setNationality('FILIPINO');
