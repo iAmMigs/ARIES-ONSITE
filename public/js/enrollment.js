@@ -182,11 +182,13 @@ window.updateGradeLevels = function() {
             isLocked = false;
             if (eduType === 'Grade School') {
                 options = [
+                    {val: 'Grade 1', label: 'Grade 1'},
                     {val: 'Grade 2', label: 'Grade 2'}, {val: 'Grade 3', label: 'Grade 3'},
                     {val: 'Grade 4', label: 'Grade 4'}, {val: 'Grade 5', label: 'Grade 5'}, {val: 'Grade 6', label: 'Grade 6'}
                 ];
             } else if (eduType === 'Junior High School') {
                 options = [
+                    {val: 'Grade 7', label: 'Grade 7'},
                     {val: 'Grade 8', label: 'Grade 8'}, {val: 'Grade 9', label: 'Grade 9'}, {val: 'Grade 10', label: 'Grade 10'}
                 ];
             } else if (eduType === 'Senior High School') {
@@ -1279,16 +1281,32 @@ function initSessionTimeout() {
         window.location.href = landingUrl;
     }
 
+    function isDpaPending() {
+        const dpaOverlay = document.getElementById('dpaModalOverlay');
+        return dpaOverlay && !sessionStorage.getItem('dpa_agreed');
+    }
+
     // --- Reset the 5-minute idle timer ---
     function resetIdleTimer() {
         if (idleTimer) clearTimeout(idleTimer);
+        // Do NOT start session countdown if DPA modal is still pending agreement
+        if (isDpaPending()) {
+            return;
+        }
         idleTimer = setTimeout(showWarning, IDLE_LIMIT);
     }
+
+    // Globally expose to start session timeout once DPA is agreed
+    window.startSessionTimeout = function() {
+        resetIdleTimer();
+    };
 
     // --- Listen for any user activity ---
     const activityEvents = ['mousemove','mousedown','keydown','touchstart','scroll','input','change'];
     activityEvents.forEach(evt => {
         document.addEventListener(evt, () => {
+            // Do not track session timeout activity while DPA is pending
+            if (isDpaPending()) return;
             // Only reset idle if the warning is NOT currently visible
             if (!overlay || overlay.style.display === 'none') {
                 resetIdleTimer();
@@ -1296,8 +1314,10 @@ function initSessionTimeout() {
         }, { passive: true });
     });
 
-    // Start the idle timer
-    resetIdleTimer();
+    // Start the idle timer only if DPA is already agreed / not pending
+    if (!isDpaPending()) {
+        resetIdleTimer();
+    }
 }
 
 function initCampusSelection() {
@@ -1718,10 +1738,21 @@ function initDynamicFormatting() {
             if (el) window.ARIESValidation.setupFormatting(el, 'name');
         });
 
-        const textFields = ['other_religion', 'birth_place', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
+        const textFields = ['other_religion', 'birth_place', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name'];
         textFields.forEach(name => {
             const el = document.querySelector(`[name="${name}"]`);
             if (el) window.ARIESValidation.setupFormatting(el, 'text');
+        });
+
+        const addressFields = [
+            'address', 'perm_address',
+            'father_addr_street', 'father_perm_street', 'father_ofw_perm_street',
+            'mother_addr_street', 'mother_perm_street', 'mother_ofw_perm_street',
+            'guardian_addr_street', 'guardian_perm_street'
+        ];
+        addressFields.forEach(name => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el) window.ARIESValidation.setupFormatting(el, 'address');
         });
     }
 }
@@ -2603,6 +2634,9 @@ function initDPAModal() {
             sessionStorage.setItem('dpa_agreed', '1');
             overlay.classList.remove('visible');
             document.body.style.overflow = '';
+            if (typeof window.startSessionTimeout === 'function') {
+                window.startSessionTimeout();
+            }
         });
     }
 }

@@ -268,47 +268,51 @@
             <input type="hidden" name="_token" value="{{ csrf_token('admin_access_create') }}">
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Employee Number <span class="text-rose-500">*</span></label>
-                <input type="text" name="emp_num" inputmode="numeric" pattern="[0-9]+" required placeholder="e.g. 202110444"
-                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
-                <span class="text-[11px] text-gray-400 mt-1 block">Positive numbers only (e.g. 202110444).</span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">First Name <span class="text-rose-500">*</span></label>
-                    <input type="text" name="first_name" required placeholder="e.g. Juan"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Last Name <span class="text-rose-500">*</span></label>
-                    <input type="text" name="last_name" required placeholder="e.g. Dela Cruz"
-                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Email Address <span class="text-rose-500">*</span></label>
-                <input type="email" name="email" required placeholder="e.g. jdelacruz@{{ campus == 'alabang' ? 'feualabang.edu.ph' : 'feudiliman.edu.ph' }}"
-                       class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
-                <span class="text-[11px] text-gray-400 mt-1 block">Used as the administrator's portal login credential.</span>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Initial Password <span class="text-rose-500">*</span></label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Employee Number <span class="text-rose-500">*</span>
+                </label>
                 <div class="relative">
-                    <input type="password" name="password" id="newAdminPassword" required minlength="8" placeholder="Minimum 8 characters"
-                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
-                    <button type="button" onclick="togglePasswordVisibility('newAdminPassword', this)" 
-                            class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
-                        <i class="ki-filled ki-eye text-lg"></i>
-                    </button>
+                    <input type="text" name="emp_num" id="newAdminEmpNum" inputmode="numeric" pattern="[0-9]+" required placeholder="e.g. 123456789"
+                           autocomplete="off"
+                           class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-gray-200 text-sm focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20 font-medium">
+                    <div id="empLookupSpinner" class="absolute right-3 top-2.5 hidden text-feu-green-700">
+                        <i class="ki-filled ki-loading animate-spin text-lg"></i>
+                    </div>
+                </div>
+                <span class="text-[11px] text-gray-400 mt-1 block">Enter employee ID to verify associate record from central database.</span>
+            </div>
+
+            {# Dynamic Verification Result Card #}
+            <div id="empLookupResult" class="hidden transition-all duration-200">
+                {# Verified Associate Card #}
+                <div id="empCardSuccess" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                            <i class="ki-filled ki-check-circle text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-gray-900" id="assocCardUsername">@username</span>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">Associate Verified</span>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mt-0.5">Employee ID: <strong class="text-gray-700" id="assocCardEmpId">---</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Error / Notice Card #}
+                <div id="empCardError" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3">
+                    <i class="ki-filled ki-cross-circle text-rose-600 text-lg mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-xs font-bold text-rose-900" id="assocCardErrorTitle">Not Found</p>
+                        <p class="text-[11px] text-rose-700 mt-0.5" id="assocCardErrorMsg">Employee ID was not found in the Associate directory.</p>
+                    </div>
                 </div>
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Role Tier <span class="text-rose-500">*</span></label>
-                <select name="tier" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20">
+                <select name="tier" required class="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white focus:border-feu-green-600 focus:ring-2 focus:ring-feu-green-600/20 font-medium">
                     {% if canCreateSenior %}
                         <option value="senior_admin">Senior Admin (Tier 2)</option>
                     {% endif %}
@@ -333,8 +337,8 @@
                         class="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold text-xs hover:bg-gray-50 transition-colors">
                     Cancel
                 </button>
-                <button type="submit" 
-                        class="px-5 py-2.5 rounded-xl bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold text-xs shadow-md transition-all">
+                <button type="submit" id="btnSubmitCreateAdmin" disabled
+                        class="px-5 py-2.5 rounded-xl bg-feu-green-800 hover:bg-feu-green-900 text-white font-bold text-xs shadow-md opacity-40 cursor-not-allowed transition-all">
                     Create Administrator
                 </button>
             </div>
@@ -505,13 +509,96 @@
     const transferBaseUrl = "{{ path('app_admin_access_transfer_master', {campus: campus, id: 0}) }}".replace('/0', '');
     const deleteBaseUrl = "{{ path('app_admin_access_delete', {campus: campus, id: 0}) }}".replace('/0', '');
 
-    // Modal Controls
+    // Modal Controls & Realtime Associate Lookup
+    const empInput = document.getElementById('newAdminEmpNum');
+    const empSpinner = document.getElementById('empLookupSpinner');
+    const empResultBox = document.getElementById('empLookupResult');
+    const empCardSuccess = document.getElementById('empCardSuccess');
+    const empCardError = document.getElementById('empCardError');
+    const btnSubmitCreate = document.getElementById('btnSubmitCreateAdmin');
+    let empLookupDebounce = null;
+
     function openCreateModal() {
         document.getElementById('createAdminModal').classList.remove('hidden');
+        if (empInput) empInput.focus();
     }
 
     function closeCreateModal() {
         document.getElementById('createAdminModal').classList.add('hidden');
+        if (empInput) empInput.value = '';
+        if (empSpinner) empSpinner.classList.add('hidden');
+        if (empResultBox) empResultBox.classList.add('hidden');
+        if (empCardSuccess) empCardSuccess.classList.add('hidden');
+        if (empCardError) empCardError.classList.add('hidden');
+        if (btnSubmitCreate) {
+            btnSubmitCreate.disabled = true;
+            btnSubmitCreate.classList.add('opacity-40', 'cursor-not-allowed');
+        }
+    }
+
+    if (empInput) {
+        empInput.addEventListener('input', function() {
+            clearTimeout(empLookupDebounce);
+            const val = this.value.trim();
+
+            if (!val || !/^\d+$/.test(val)) {
+                if (empSpinner) empSpinner.classList.add('hidden');
+                if (empResultBox) empResultBox.classList.add('hidden');
+                if (empCardSuccess) empCardSuccess.classList.add('hidden');
+                if (empCardError) empCardError.classList.add('hidden');
+                if (btnSubmitCreate) {
+                    btnSubmitCreate.disabled = true;
+                    btnSubmitCreate.classList.add('opacity-40', 'cursor-not-allowed');
+                }
+                return;
+            }
+
+            if (empSpinner) empSpinner.classList.remove('hidden');
+
+            empLookupDebounce = setTimeout(async function() {
+                try {
+                    const res = await fetch(`/api/admin/assoc/lookup?employee_id=${encodeURIComponent(val)}&campus={{ campus }}`);
+                    const data = await res.json();
+
+                    if (empSpinner) empSpinner.classList.add('hidden');
+                    if (empResultBox) empResultBox.classList.remove('hidden');
+
+                    if (data.success && data.status === 'available') {
+                        document.getElementById('assocCardUsername').textContent = '@' + data.user_name;
+                        document.getElementById('assocCardEmpId').textContent = data.employee_id;
+                        if (empCardSuccess) empCardSuccess.classList.remove('hidden');
+                        if (empCardError) empCardError.classList.add('hidden');
+
+                        if (btnSubmitCreate) {
+                            btnSubmitCreate.disabled = false;
+                            btnSubmitCreate.classList.remove('opacity-40', 'cursor-not-allowed');
+                        }
+                    } else {
+                        document.getElementById('assocCardErrorTitle').textContent = (data.status === 'already_admin') ? 'Already Registered' : 'Not Found';
+                        document.getElementById('assocCardErrorMsg').textContent = data.message || 'Associate could not be verified.';
+                        if (empCardError) empCardError.classList.remove('hidden');
+                        if (empCardSuccess) empCardSuccess.classList.add('hidden');
+
+                        if (btnSubmitCreate) {
+                            btnSubmitCreate.disabled = true;
+                            btnSubmitCreate.classList.add('opacity-40', 'cursor-not-allowed');
+                        }
+                    }
+                } catch (e) {
+                    if (empSpinner) empSpinner.classList.add('hidden');
+                    if (empResultBox) empResultBox.classList.remove('hidden');
+                    document.getElementById('assocCardErrorTitle').textContent = 'Verification Error';
+                    document.getElementById('assocCardErrorMsg').textContent = 'Unable to connect to Associate verification service.';
+                    if (empCardError) empCardError.classList.remove('hidden');
+                    if (empCardSuccess) empCardSuccess.classList.add('hidden');
+
+                    if (btnSubmitCreate) {
+                        btnSubmitCreate.disabled = true;
+                        btnSubmitCreate.classList.add('opacity-40', 'cursor-not-allowed');
+                    }
+                }
+            }, 300);
+        });
     }
 
     function openTransferModal(empNum, name, email) {

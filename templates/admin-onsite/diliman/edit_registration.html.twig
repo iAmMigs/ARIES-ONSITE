@@ -969,13 +969,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const nameInputs = document.querySelectorAll('input[name="last_name"], input[name="first_name"], input[name="middle_name"]');
         nameInputs.forEach(el => ARIESValidation.setupFormatting(el, 'name'));
 
-        const textInputs = document.querySelectorAll('input[name="birth_place"], input[name="religion"], input[name="current_address"], input[name="permanent_address"]');
+        const addressInputs = document.querySelectorAll('input[name="current_address"], input[name="permanent_address"]');
+        addressInputs.forEach(el => ARIESValidation.setupFormatting(el, 'address'));
+
+        const textInputs = document.querySelectorAll('input[name="birth_place"], input[name="religion"]');
         textInputs.forEach(el => ARIESValidation.setupFormatting(el, 'text'));
 
         const arrayInputs = document.querySelectorAll('input[name^="guardians"][type="text"], input[name^="siblings"][type="text"], input[name^="schools"][type="text"]');
         arrayInputs.forEach(el => {
             const isName = el.name.includes('[name]') || el.name.includes('full_name') || el.name.includes('last_name') || el.name.includes('first_name') || el.name.includes('middle_name') || el.name.includes('parentName') || el.name.includes('SiblingName');
-            ARIESValidation.setupFormatting(el, isName ? 'name' : 'text');
+            const isAddress = el.name.includes('address') || el.name.includes('street');
+            ARIESValidation.setupFormatting(el, isName ? 'name' : (isAddress ? 'address' : 'text'));
         });
     }
 

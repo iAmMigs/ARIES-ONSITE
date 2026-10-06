@@ -25,4 +25,8 @@ services:
             $studentPortalUrl: '%env(STUDENT_PORTAL_URL)%'
             $activationGuideUrl: '%env(ACTIVATION_GUIDE_URL)%'
             $emailSender: '%env(ADMISSIONS_EMAIL_SENDER)%'
+
+    App\Service\AssocLoginService:
+        arguments:
+            $assocConnection: '@doctrine.dbal.assoc_connection'
     # please note that last definitions always *replace* previous ones

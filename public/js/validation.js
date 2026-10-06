@@ -53,6 +53,7 @@ const ARIESValidation = (function() {
     }
 
     function removeSpecialChars(value) { return value.replace(/[^a-zA-Z0-9\s]/g, ''); }
+    function removeAddressChars(value) { return value.replace(/[^a-zA-Z0-9À-ÿñÑ\s,.\-#'()\/]/g, ''); }
     function removeNonAlpha(value) { return value.replace(/[^a-zA-Z\s]/g, ''); }
 
     function setupFormatting(input, type = 'text') {
@@ -64,7 +65,14 @@ const ARIESValidation = (function() {
         input.addEventListener('input', function() {
             const cursorStart = this.selectionStart;
             const originalVal = this.value;
-            let cleanVal = (type === 'name') ? removeNonAlpha(originalVal) : removeSpecialChars(originalVal);
+            let cleanVal;
+            if (type === 'name') {
+                cleanVal = removeNonAlpha(originalVal);
+            } else if (type === 'address') {
+                cleanVal = removeAddressChars(originalVal);
+            } else {
+                cleanVal = removeSpecialChars(originalVal);
+            }
             
             if (originalVal !== cleanVal) {
                 this.value = cleanVal;

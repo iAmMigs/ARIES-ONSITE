@@ -1,13 +1,12 @@
 security:
     password_hashers:
+        App\Entity\AdminUser:
+            id: App\Security\Md5PasswordHasher
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 
     providers:
-        # This is the CRITICAL part. It tells Symfony to check the 'admin_user' table.
-        app_admin_provider:
-            entity:
-                class: App\Entity\AdminUser
-                property: email
+        app_assoc_admin_provider:
+            id: App\Security\AssocAdminUserProvider
 
     firewalls:
         dev:
@@ -15,8 +14,10 @@ security:
             security: false
         main:
             lazy: true
-            provider: app_admin_provider
+            provider: app_assoc_admin_provider
             entry_point: App\Security\CampusAuthenticationEntryPoint
+            login_throttling:
+                max_attempts: 5
             form_login:
                 login_path: app_auth_login_diliman
                 check_path: app_auth_login_check
@@ -37,3 +38,4 @@ security:
         - { path: ^/alabang-admin, roles: ROLE_ADMIN }
         - { path: ^/diliman-admin, roles: ROLE_ADMIN }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }

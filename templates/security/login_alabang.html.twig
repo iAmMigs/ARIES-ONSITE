@@ -64,12 +64,12 @@
                 <input type="hidden" name="_failure_path" value="{{ path('app_auth_login_alabang') }}">
                 <input type="hidden" name="_campus" value="feu_alabang">
                 <div>
-                    <label for="username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Email Address</label>
+                    <label for="username" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Username or Employee ID</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="ki-filled ki-sms text-gray-400"></i>
+                            <i class="ki-filled ki-user text-gray-400"></i>
                         </div>
-                        <input type="email" value="{{ last_username }}" name="_username" id="username" class="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-feu-gold-500 focus:border-transparent transition-all font-medium" placeholder="admin@feualabang.edu.ph" required autofocus autocomplete="email">
+                        <input type="text" value="{{ last_username }}" name="_username" id="username" class="block w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-feu-gold-500 focus:border-transparent transition-all font-medium" placeholder="e.g. 123456788 or testi" required autofocus autocomplete="username">
                     </div>
                 </div>
 

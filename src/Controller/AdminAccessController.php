@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\AdminUser;
 use App\Repository\AdminUserRepository;
+use App\Service\AssocLoginService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -67,7 +68,7 @@ class AdminAccessController extends AbstractController
         string $campus,
         Request $request,
         AdminUserRepository $adminUserRepo,
-        UserPasswordHasherInterface $passwordHasher,
+        AssocLoginService $assocLoginService,
         EntityManagerInterface $em
     ): Response {
         $currentUser = $this->getAuthenticatedAdmin();
@@ -80,15 +81,11 @@ class AdminAccessController extends AbstractController
         }
 
         $empNumRaw = trim((string) $request->request->get('emp_num', ''));
-        $firstName = trim((string) $request->request->get('first_name', ''));
-        $lastName  = trim((string) $request->request->get('last_name', ''));
-        $email     = strtolower(trim((string) $request->request->get('email', '')));
-        $password  = (string) $request->request->get('password', '');
         $tier      = (string) $request->request->get('tier', AdminUser::TIER_STAFF);
         $canManage = $request->request->getBoolean('can_manage_admins');
 
-        if ($empNumRaw === '' || $firstName === '' || $lastName === '' || $email === '' || $password === '') {
-            $this->addFlash('error', 'All fields (Employee Number, First Name, Last Name, Email, Password) are required.');
+        if ($empNumRaw === '') {
+            $this->addFlash('error', 'Employee Number is required.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
@@ -99,23 +96,26 @@ class AdminAccessController extends AbstractController
 
         $empNum = (int) $empNumRaw;
         if ($empNum <= 0 || (float) $empNumRaw > 4294967295) {
-            $this->addFlash('error', 'Employee Number must be a valid positive number up to 4,294,967,295.');
+            $this->addFlash('error', 'Employee Number must be a valid positive number.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
+        // 1. Verify existence in central Associate directory
+        $assoc = $assocLoginService->findByEmployeeId($empNumRaw);
+        if (!$assoc) {
+            $this->addFlash('error', sprintf('Employee #%d was not found in the central Associate directory.', $empNum));
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        // 2. Check if already an administrator in ARIES
         $existingEmp = $adminUserRepo->find($empNum);
         if ($existingEmp) {
-            $this->addFlash('error', sprintf('An administrator with employee number "%d" already exists in the system.', $empNum));
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
-
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->addFlash('error', 'Please provide a valid email address.');
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
-
-        if (strlen($password) < 8) {
-            $this->addFlash('error', 'Password must be at least 8 characters long.');
+            $this->addFlash('error', sprintf(
+                'Employee #%d (@%s) is already registered as an administrator for %s.',
+                $empNum,
+                $assoc['user_name'],
+                $existingEmp->getCampus() === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman'
+            ));
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
@@ -124,36 +124,31 @@ class AdminAccessController extends AbstractController
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
-        $existing = $adminUserRepo->findOneBy(['email' => $email]);
-        if ($existing) {
-            $this->addFlash('error', sprintf('An administrator with email "%s" already exists in the system.', $email));
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
+        $username = (string) ($assoc['user_name'] ?? ('user' . $empNum));
 
         $newAdmin = new AdminUser();
         $newAdmin->setEmpNum($empNum);
-        $newAdmin->setFirstName($firstName);
-        $newAdmin->setLastName($lastName);
-        $newAdmin->setEmail($email);
+        $newAdmin->setFirstName(ucfirst($username));
+        $newAdmin->setLastName('Staff');
+        $newAdmin->setEmail($username . '@feu' . ($campusCode === 'feu_alabang' ? 'alabang' : 'diliman') . '.edu.ph');
         $newAdmin->setCampus($campusCode);
         $newAdmin->setTier($tier);
         $newAdmin->setRoles(['ROLE_ADMIN']);
         $newAdmin->setIsActive(true);
+        $newAdmin->setPassword(''); // Delegated to central assoc_login MD5
 
         // Only Master Admin can grant module management access
         $newAdmin->setCanManageAdmins($currentUser->isMasterAdmin() ? $canManage : false);
-
-        $hashedPassword = $passwordHasher->hashPassword($newAdmin, $password);
-        $newAdmin->setPassword($hashedPassword);
 
         $em->persist($newAdmin);
         $em->flush();
 
         $this->addFlash('success', sprintf(
-            'Administrator %s (%s) has been successfully created as %s.',
-            $newAdmin->getFullName(),
-            $newAdmin->getEmail(),
-            $newAdmin->getTierLabel()
+            'Associate @%s (Employee #%d) has been successfully granted %s access for %s.',
+            $username,
+            $empNum,
+            $newAdmin->getTierLabel(),
+            $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman'
         ));
 
         return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);

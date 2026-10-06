@@ -121,15 +121,13 @@ class AdminAccessControllerTest extends TestCase
         $request = new Request([], [
             '_token' => 'dummy',
             'emp_num' => 'ABC12345',
-            'first_name' => 'Juan',
-            'last_name' => 'Dela Cruz',
-            'email' => 'jdelacruz@feualabang.edu.ph',
-            'password' => 'password123',
             'tier' => AdminUser::TIER_STAFF
         ]);
         $request->setSession($session);
 
-        $response = $this->controller->create('alabang', $request, $this->repoMock, $this->hasherMock, $this->emMock);
+        $assocServiceMock = $this->createMock(\App\Service\AssocLoginService::class);
+
+        $response = $this->controller->create('alabang', $request, $this->repoMock, $assocServiceMock, $this->emMock);
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertSame(['Employee Number must contain positive numbers only.'], $session->getFlashBag()->get('error'));
     }
@@ -156,8 +154,13 @@ class AdminAccessControllerTest extends TestCase
         $this->container->set('request_stack', $requestStack);
 
         $this->repoMock->method('find')->with(202110444)->willReturn(null);
-        $this->repoMock->method('findOneBy')->willReturn(null);
-        $this->hasherMock->method('hashPassword')->willReturn('hashed_secret');
+
+        $assocServiceMock = $this->createMock(\App\Service\AssocLoginService::class);
+        $assocServiceMock->method('findByEmployeeId')->with('202110444')->willReturn([
+            'employee_id' => '202110444',
+            'user_name' => 'jdelacruz',
+            'pass_word' => '098f6bcd4621d373cade4e832627b4f6'
+        ]);
 
         $savedAdmin = null;
         $this->emMock->expects($this->once())
@@ -170,17 +173,14 @@ class AdminAccessControllerTest extends TestCase
         $request = new Request([], [
             '_token' => 'dummy',
             'emp_num' => '202110444',
-            'first_name' => 'Juan',
-            'last_name' => 'Dela Cruz',
-            'email' => 'jdelacruz@feualabang.edu.ph',
-            'password' => 'password123',
             'tier' => AdminUser::TIER_STAFF
         ]);
         $request->setSession($session);
 
-        $response = $this->controller->create('alabang', $request, $this->repoMock, $this->hasherMock, $this->emMock);
+        $response = $this->controller->create('alabang', $request, $this->repoMock, $assocServiceMock, $this->emMock);
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertNotNull($savedAdmin);
         $this->assertSame(202110444, $savedAdmin->getEmpNum());
+        $this->assertSame('Jdelacruz', $savedAdmin->getFirstName());
     }
 }
