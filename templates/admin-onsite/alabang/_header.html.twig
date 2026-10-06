@@ -3,16 +3,16 @@
     
     <div class="flex items-center gap-4">
         <div class="text-right hidden sm:block">
-            {# DYNAMICALLY CALL THE LOGGED IN USER'S NAME #}
+            {# DYNAMICALLY CALL THE LOGGED IN USER'S USERNAME / NAME #}
             <div class="text-sm font-bold text-gray-900">
-                {{ app.user.firstName }} {{ app.user.lastName }}
+                {{ app.user.username|default(app.user.fullName) }}
             </div>
             {# DYNAMICALLY SHOW THEIR CAMPUS ROLE #}
             <div class="text-xs text-gray-500">
                 {{ app.user.campus == 'feu_alabang' ? 'Alabang Administrator' : 'Diliman Administrator' }}
             </div>
         </div>
-        <img src="{{ asset('metronic/media/avatars/300-1.png') }}" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100">
+        <img src="{{ app.user.profilePicture ? asset(app.user.profilePicture) : asset('images/default-avatar.svg') }}" alt="User Avatar" class="w-10 h-10 rounded-lg object-cover ring-2 ring-gray-100 bg-gray-100">
     </div>
 </header>
 

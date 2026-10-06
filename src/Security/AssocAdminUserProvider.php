@@ -64,8 +64,11 @@ class AssocAdminUserProvider implements UserProviderInterface
             );
         }
 
-        // 3. Inject the MD5 password hash from assoc_login into in-memory AdminUser for credential verification
+        // 3. Inject the MD5 password hash and username from assoc_login into in-memory AdminUser
         $adminUser->setPassword((string) ($assoc['pass_word'] ?? ''));
+        if (!empty($assoc['user_name'])) {
+            $adminUser->setUsername((string) $assoc['user_name']);
+        }
 
         return $adminUser;
     }
@@ -92,6 +95,9 @@ class AssocAdminUserProvider implements UserProviderInterface
         $assoc = $this->assocLoginService->findByEmployeeId((string) $empNum);
         if ($assoc) {
             $refreshed->setPassword((string) ($assoc['pass_word'] ?? ''));
+            if (!empty($assoc['user_name'])) {
+                $refreshed->setUsername((string) $assoc['user_name']);
+            }
         }
 
         return $refreshed;

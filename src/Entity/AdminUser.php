@@ -41,6 +41,8 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $campus = null;
 
+    private ?string $username = null;
+
     public const TIER_MASTER = 'master_admin';
     public const TIER_SENIOR = 'senior_admin';
     public const TIER_STAFF  = 'staff_admin';
@@ -98,6 +100,9 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getLastName(): ?string { return $this->lastName; }
     public function setLastName(string $lastName): static { $this->lastName = $lastName; return $this; }
+
+    public function getUsername(): ?string { return $this->username; }
+    public function setUsername(?string $username): static { $this->username = $username; return $this; }
 
     public function getProfilePicture(): ?string { return $this->profilePicture; }
     public function setProfilePicture(?string $profilePicture): static { $this->profilePicture = $profilePicture; return $this; }
