@@ -146,5 +146,48 @@ class AssocAdminUserProviderTest extends TestCase
 
         $this->assertSame('098f6bcd4621d373cade4e832627b4f6', $result->getPassword());
     }
+
+    public function testLoadUserByIdentifierSuccessViaEmail(): void
+    {
+        $adminUser = new AdminUser();
+        $adminUser->setEmpNum(1);
+        $adminUser->setEmail('admin@feudiliman.edu.ph');
+        $adminUser->setCampus('feu_diliman');
+        $adminUser->setIsActive(true);
+
+        $assocService = $this->createMock(AssocLoginService::class);
+        $assocService->expects($this->once())
+            ->method('findByIdentifier')
+            ->with('admin@feudiliman.edu.ph')
+            ->willReturn(null); // not found in assoc directly
+
+        $assocService->expects($this->once())
+            ->method('findByEmployeeId')
+            ->with('1')
+            ->willReturn([
+                'employee_id' => '1',
+                'user_name' => 'admindiliman',
+                'pass_word' => '0192023a7bbd73250516f069df18b500',
+            ]);
+
+        $adminRepo = $this->createMock(AdminUserRepository::class);
+        $adminRepo->expects($this->once())
+            ->method('findOneBy')
+            ->with(['email' => 'admin@feudiliman.edu.ph'])
+            ->willReturn($adminUser);
+
+        $adminRepo->expects($this->once())
+            ->method('find')
+            ->with(1)
+            ->willReturn($adminUser);
+
+        $provider = new AssocAdminUserProvider($assocService, $adminRepo);
+        $user = $provider->loadUserByIdentifier('admin@feudiliman.edu.ph');
+
+        $this->assertInstanceOf(AdminUser::class, $user);
+        $this->assertSame('0192023a7bbd73250516f069df18b500', $user->getPassword());
+        $this->assertSame('admin@feudiliman.edu.ph', $user->getEmail());
+    }
 }
+
 

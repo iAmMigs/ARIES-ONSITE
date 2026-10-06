@@ -31,8 +31,17 @@ class AssocAdminUserProvider implements UserProviderInterface
     {
         $cleanIdentifier = trim($identifier);
 
-        // 1. Check central assoc_login table
+        // 1. Check central assoc_login table (by username or employee_id)
         $assoc = $this->assocLoginService->findByIdentifier($cleanIdentifier);
+
+        // 1b. If not found directly, check if identifier is an AdminUser email in ARIES
+        if (!$assoc) {
+            $adminByEmail = $this->adminUserRepo->findOneBy(['email' => $cleanIdentifier]);
+            if ($adminByEmail && $adminByEmail->getEmpNum() !== null) {
+                $assoc = $this->assocLoginService->findByEmployeeId((string) $adminByEmail->getEmpNum());
+            }
+        }
+
         if (!$assoc) {
             $e = new UserNotFoundException(sprintf('User "%s" not found in Associate directory.', $cleanIdentifier));
             $e->setUserIdentifier($cleanIdentifier);
