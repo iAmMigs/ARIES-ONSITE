@@ -107,15 +107,23 @@ class AdminAccessController extends AbstractController
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
-        // 2. Check if already an administrator in ARIES
+        // 2. Check if already an administrator in ARIES or campus mismatch
         $existingEmp = $adminUserRepo->find($empNum);
-        if ($existingEmp) {
-            $this->addFlash('error', sprintf(
-                'Employee #%d (@%s) is already registered as an administrator for %s.',
-                $empNum,
-                $assoc['user_name'],
-                $existingEmp->getCampus() === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman'
-            ));
+        $userNameLower = strtolower((string) ($assoc['user_name'] ?? ''));
+
+        // PRIORITY 1: If employee is from a different school / campus
+        $isDifferentCampus = ($existingEmp && $existingEmp->getCampus() !== $campusCode)
+            || (str_contains($userNameLower, 'diliman') && $campusCode === 'feu_alabang')
+            || (str_contains($userNameLower, 'alabang') && $campusCode === 'feu_diliman');
+
+        if ($isDifferentCampus) {
+            $this->addFlash('error', 'This Employee is not an associate of this campus');
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        // PRIORITY 2: If employee is already registered as admin in correct campus
+        if ($existingEmp && $existingEmp->getCampus() === $campusCode) {
+            $this->addFlash('error', sprintf('%s Is already registered as an admin', $existingEmp->getFullName()));
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
@@ -125,11 +133,23 @@ class AdminAccessController extends AbstractController
         }
 
         $username = (string) ($assoc['user_name'] ?? ('user' . $empNum));
+        $firstName = trim((string) ($assoc['first_name'] ?? ''));
+        $lastName = trim((string) ($assoc['last_name'] ?? ''));
+
+        if (!$firstName && !empty($assoc['full_name'])) {
+            $parts = explode(' ', (string) $assoc['full_name'], 2);
+            $firstName = $parts[0] ?? '';
+            $lastName = $parts[1] ?? 'Staff';
+        }
+        if (!$firstName) {
+            $firstName = ucfirst($username);
+            $lastName = 'Staff';
+        }
 
         $newAdmin = new AdminUser();
         $newAdmin->setEmpNum($empNum);
-        $newAdmin->setFirstName(ucfirst($username));
-        $newAdmin->setLastName('Staff');
+        $newAdmin->setFirstName($firstName);
+        $newAdmin->setLastName($lastName ?: 'Staff');
         $newAdmin->setEmail($username . '@feu' . ($campusCode === 'feu_alabang' ? 'alabang' : 'diliman') . '.edu.ph');
         $newAdmin->setCampus($campusCode);
         $newAdmin->setTier($tier);

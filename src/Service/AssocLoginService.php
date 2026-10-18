@@ -28,7 +28,7 @@ class AssocLoginService
             return null;
         }
 
-        $sql = 'SELECT employee_id, user_name, pass_word FROM assoc_login WHERE employee_id = :id LIMIT 1';
+        $sql = 'SELECT * FROM assoc_login WHERE employee_id = :id LIMIT 1';
         $row = $this->assocConnection->executeQuery($sql, ['id' => $cleanId])->fetchAssociative();
 
         return is_array($row) ? $row : null;

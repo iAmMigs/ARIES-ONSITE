@@ -24,6 +24,7 @@ class AssocEmployeeApiController
     {
         $rawEmployeeId = trim((string) $request->query->get('employee_id', ''));
         $campus = strtolower(trim((string) $request->query->get('campus', '')));
+        $targetCampusCode = ($campus === 'alabang' || $campus === 'feu_alabang') ? 'feu_alabang' : 'feu_diliman';
 
         if ($rawEmployeeId === '') {
             return new JsonResponse([
@@ -43,32 +44,55 @@ class AssocEmployeeApiController
             ]);
         }
 
-        // 2. Check if already an administrator in ARIES
         $empNum = (int) $assoc['employee_id'];
         $existingAdmin = $this->adminUserRepo->find($empNum);
+        $userNameLower = strtolower((string) ($assoc['user_name'] ?? ''));
 
-        if ($existingAdmin) {
-            $existingCampus = $existingAdmin->getCampus();
-            $campusLabel = $existingCampus === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman';
+        // PRIORITY 1: If employee is from a different school / campus
+        $isDifferentCampus = ($existingAdmin && $existingAdmin->getCampus() !== $targetCampusCode)
+            || (str_contains($userNameLower, 'diliman') && $targetCampusCode === 'feu_alabang')
+            || (str_contains($userNameLower, 'alabang') && $targetCampusCode === 'feu_diliman');
+
+        if ($isDifferentCampus) {
+            return new JsonResponse([
+                'success' => false,
+                'status' => 'different_campus',
+                'title' => 'Campus Mismatch',
+                'message' => 'This Employee is not an associate of this campus',
+            ]);
+        }
+
+        // PRIORITY 2: If employee is already registered as admin in correct campus
+        if ($existingAdmin && $existingAdmin->getCampus() === $targetCampusCode) {
+            $fullName = $existingAdmin->getFullName();
 
             return new JsonResponse([
                 'success' => false,
                 'status' => 'already_admin',
-                'message' => sprintf(
-                    'Employee #%s (@%s) is already registered as an administrator for %s.',
-                    $assoc['employee_id'],
-                    $assoc['user_name'],
-                    $campusLabel
-                ),
+                'title' => 'Already Registered',
+                'full_name' => $fullName,
+                'message' => sprintf('%s Is already registered as an admin', $fullName),
             ]);
         }
 
-        // 3. Available to be added
+        // PRIORITY 3: Viable to be added - showcase Full Name
+        $fullName = trim(($assoc['first_name'] ?? '') . ' ' . ($assoc['last_name'] ?? ''));
+        if (!$fullName && !empty($assoc['full_name'])) {
+            $fullName = (string) $assoc['full_name'];
+        }
+        if (!$fullName && !empty($assoc['name'])) {
+            $fullName = (string) $assoc['name'];
+        }
+        if (!$fullName) {
+            $fullName = ucwords(str_replace(['.', '_', '-'], ' ', (string) ($assoc['user_name'] ?? '')));
+        }
+
         return new JsonResponse([
             'success' => true,
             'status' => 'available',
             'employee_id' => $assoc['employee_id'],
             'user_name' => $assoc['user_name'],
+            'full_name' => $fullName,
         ]);
     }
 }
