@@ -50,6 +50,20 @@ class EnrollmentAlabangController extends AbstractController
         $nationalities = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
         $countries    = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
+        $countryMapBySfId = [];
+        foreach ($countries as $c) {
+            if ($c->getCountrySfId() !== null && $c->getCountrySfId() !== '') {
+                $countryMapBySfId[(string)$c->getCountrySfId()] = $c;
+            }
+        }
+        $nationalityIsoMap = [];
+        foreach ($nationalities as $nat) {
+            $sfId = $nat->getCountrySfId();
+            if ($sfId !== null && isset($countryMapBySfId[(string)$sfId])) {
+                $nationalityIsoMap[$nat->getCitizenshipName()] = $countryMapBySfId[(string)$sfId]->getIso();
+            }
+        }
+
         return $this->render('enrollment-onsite/alabang/enroll.html.twig', [
             'selected_campus'        => $campus,
             'open_sys'               => $openSYs,
@@ -59,6 +73,7 @@ class EnrollmentAlabangController extends AbstractController
             'citizenships'           => $citizenships,
             'nationalities'          => $nationalities,
             'countries'              => $countries,
+            'nationality_iso_map'    => $nationalityIsoMap,
         ]);
     }
 
@@ -98,6 +113,36 @@ class EnrollmentAlabangController extends AbstractController
                 $this->addFlash('error', 'The provided LRN is already registered.');
                 return $this->redirectToRoute('app_enrollment_alabang_apply');
             }
+        }
+
+        $firstNameInput = trim((string)$request->request->get('first_name', ''));
+        $lastNameInput = trim((string)$request->request->get('last_name', ''));
+        $birthdayInput = trim((string)$request->request->get('birthday', ''));
+        $emailInput = trim((string)$request->request->get('email', ''));
+
+        if ($firstNameInput !== '' && $lastNameInput !== '' && $birthdayInput !== '' && $emailInput !== '') {
+            try {
+                $bDate = new \DateTime($birthdayInput);
+                $dupCheck = $em->getRepository(ApplicantBed::class)->createQueryBuilder('a')
+                    ->where('a.campus = :campus')
+                    ->andWhere('LOWER(TRIM(a.firstName)) = :firstName')
+                    ->andWhere('LOWER(TRIM(a.lastName)) = :lastName')
+                    ->andWhere('a.birthDate = :birthDate')
+                    ->andWhere('LOWER(TRIM(a.personalEmail)) = :email')
+                    ->setParameter('campus', $campusCode)
+                    ->setParameter('firstName', strtolower($firstNameInput))
+                    ->setParameter('lastName', strtolower($lastNameInput))
+                    ->setParameter('birthDate', $bDate)
+                    ->setParameter('email', strtolower($emailInput))
+                    ->setMaxResults(1)
+                    ->getQuery()
+                    ->getOneOrNullResult();
+
+                if ($dupCheck) {
+                    $this->addFlash('error', sprintf('Duplicate Registration Blocked: An application for %s %s already exists in the system (Student Number: %s).', $firstNameInput, $lastNameInput, $dupCheck->getStudentNumber()));
+                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                }
+            } catch (\Exception $e) { }
         }
 
         $em->beginTransaction();
@@ -240,6 +285,7 @@ class EnrollmentAlabangController extends AbstractController
                 $regions = $request->request->all()['educ_' . $lvl . '_region'] ?? [];
                 $provinces = $request->request->all()['educ_' . $lvl . '_province'] ?? [];
                 $cities = $request->request->all()['educ_' . $lvl . '_city'] ?? [];
+                $addresses = $request->request->all()['educ_' . $lvl . '_address'] ?? [];
 
                 if (is_array($schools)) {
                     foreach ($schools as $index => $schoolName) {
@@ -256,15 +302,52 @@ class EnrollmentAlabangController extends AbstractController
                                 'shs' => 'Senior High School',
                                 default => strtoupper($lvl)
                             });
+
+                            $addrVal = trim((string)($addresses[$index] ?? ''));
+                            if ($addrVal === '') {
+                                $em->rollback();
+                                $this->addFlash('error', sprintf('Address Line is required for school: %s', $schoolName));
+                                return $this->redirectToRoute('app_enrollment_alabang_apply');
+                            }
+                            $school->setAddressLine($addrVal);
                             
                             $isInt = !empty($isInternationals[$index]);
                             $school->setIsInternational($isInt);
                             if ($isInt) {
-                                $school->setCountry($countries[$index] ?? null);
+                                $countryVal = trim((string)($countries[$index] ?? ''));
+                                if ($countryVal === '') {
+                                    $em->rollback();
+                                    $this->addFlash('error', sprintf('Country is required for international school: %s', $schoolName));
+                                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                                }
+                                $school->setCountry($countryVal);
                             } else {
-                                $school->setRegion($regions[$index] ?? null);
-                                $school->setProvince($provinces[$index] ?? null);
-                                $school->setCity($cities[$index] ?? null);
+                                $regVal = trim((string)($regions[$index] ?? ''));
+                                $provVal = trim((string)($provinces[$index] ?? ''));
+                                $cityVal = trim((string)($cities[$index] ?? ''));
+                                if ($regVal === '' || $provVal === '' || $cityVal === '') {
+                                    $em->rollback();
+                                    $this->addFlash('error', sprintf('Region, Province, and City/Municipality are required for school: %s', $schoolName));
+                                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                                }
+                                if (is_numeric($regVal)) {
+                                    $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => (int)$regVal]);
+                                    $school->setRegion($r ? $r->getRegionDesc() : $regVal);
+                                } else {
+                                    $school->setRegion($regVal);
+                                }
+                                if (is_numeric($provVal)) {
+                                    $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => (int)$provVal]);
+                                    $school->setProvince($p ? $p->getProvinceDesc() : $provVal);
+                                } else {
+                                    $school->setProvince($provVal);
+                                }
+                                if (is_numeric($cityVal)) {
+                                    $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => (int)$cityVal]);
+                                    $school->setCity($c ? $c->getCityDesc() : $cityVal);
+                                } else {
+                                    $school->setCity($cityVal);
+                                }
                             }
                             
                             $applicant->addSchool($school);
@@ -590,10 +673,10 @@ class EnrollmentAlabangController extends AbstractController
         $payload = json_decode($request->getContent(), true) ?: $request->request->all();
         $firstName = trim((string)($payload['first_name'] ?? ''));
         $lastName = trim((string)($payload['last_name'] ?? ''));
-        $middleName = trim((string)($payload['middle_name'] ?? ''));
-        $birthDateStr = trim((string)($payload['birth_date'] ?? ''));
+        $birthDateStr = trim((string)($payload['birth_date'] ?? $payload['birthday'] ?? ''));
+        $email = trim((string)($payload['email'] ?? ''));
 
-        if (!$firstName || !$lastName || !$birthDateStr) {
+        if (!$firstName || !$lastName || !$birthDateStr || !$email) {
             return $this->json(['exists' => false]);
         }
 
@@ -608,27 +691,24 @@ class EnrollmentAlabangController extends AbstractController
             ->andWhere('LOWER(TRIM(a.firstName)) = :firstName')
             ->andWhere('LOWER(TRIM(a.lastName)) = :lastName')
             ->andWhere('a.birthDate = :birthDate')
+            ->andWhere('LOWER(TRIM(a.personalEmail)) = :email')
             ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
             ->setParameter('firstName', strtolower($firstName))
             ->setParameter('lastName', strtolower($lastName))
-            ->setParameter('birthDate', $birthDate);
-
-        if ($middleName !== '') {
-            $qb->andWhere('LOWER(TRIM(a.middleName)) = :middleName')
-               ->setParameter('middleName', strtolower($middleName));
-        } else {
-            $qb->andWhere('(a.middleName IS NULL OR TRIM(a.middleName) = \'\')');
-        }
+            ->setParameter('birthDate', $birthDate)
+            ->setParameter('email', strtolower($email));
 
         $existing = $qb->setMaxResults(1)->getQuery()->getOneOrNullResult();
 
         if ($existing) {
             return $this->json([
                 'exists' => true,
+                'blocked' => true,
                 'applicant' => [
                     'studentNumber' => $existing->getStudentNumber(),
                     'fullName' => trim($existing->getFirstName() . ' ' . ($existing->getMiddleName() ? $existing->getMiddleName() . ' ' : '') . $existing->getLastName()),
                     'birthDate' => $existing->getBirthDate() ? $existing->getBirthDate()->format('F j, Y') : '',
+                    'email' => $existing->getPersonalEmail() ?? '',
                     'createdAt' => $existing->getCreatedAt() ? $existing->getCreatedAt()->format('M d, Y') : '',
                 ]
             ]);

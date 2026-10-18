@@ -141,6 +141,7 @@ class AdminAlabangController extends AbstractController
 
         $sources = [
             'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
+            'Facebook', 'Instagram', 'TikTok',
             'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
             'Friends', 'Family/Relatives',
             'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in', 'Other'
@@ -563,14 +564,25 @@ class AdminAlabangController extends AbstractController
         $documentSetups = $this->getFilteredDocumentSetups($registration, $em, ApplicantBed::CAMPUS_ALABANG);
         
         $uploadedDocsMap = [];
+        $waivedDocsMap = [];
         foreach ($registration->getRequirements() as $req) {
-            if (!$req->isDeleted() && $req->getStoredFileName() && $req->getSlug()) {
+            if (!$req->isDeleted() && $req->getSlug()) {
                 $slugLower = strtolower(trim((string)$req->getSlug()));
-                $uploadedDocsMap[$slugLower] = true;
-                $uploadedDocsMap[$req->getSlug()] = true;
-                foreach ($documentSetups as $setup) {
-                    if (strtolower(trim((string)$setup->getSlug())) === $slugLower) {
-                        $uploadedDocsMap[$setup->getId()] = true;
+                if ($req->isWaived()) {
+                    $waivedDocsMap[$slugLower] = true;
+                    $waivedDocsMap[$req->getSlug()] = true;
+                    foreach ($documentSetups as $setup) {
+                        if (strtolower(trim((string)$setup->getSlug())) === $slugLower) {
+                            $waivedDocsMap[$setup->getId()] = true;
+                        }
+                    }
+                } elseif ($req->getStoredFileName()) {
+                    $uploadedDocsMap[$slugLower] = true;
+                    $uploadedDocsMap[$req->getSlug()] = true;
+                    foreach ($documentSetups as $setup) {
+                        if (strtolower(trim((string)$setup->getSlug())) === $slugLower) {
+                            $uploadedDocsMap[$setup->getId()] = true;
+                        }
                     }
                 }
             }
@@ -624,6 +636,7 @@ class AdminAlabangController extends AbstractController
             'campus' => 'alabang',
             'documentSetups' => $documentSetups,
             'uploadedDocsMap' => $uploadedDocsMap,
+            'waivedDocsMap' => $waivedDocsMap,
             'age' => $age,
             'father' => $father,
             'mother' => $mother,
@@ -682,6 +695,38 @@ class AdminAlabangController extends AbstractController
         $countries = $em->getRepository(\App\Entity\LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
         if ($request->isMethod('POST')) {
+            $firstNameInput = trim((string)$request->request->get('first_name', ''));
+            $lastNameInput = trim((string)$request->request->get('last_name', ''));
+            $dobInput = trim((string)$request->request->get('birth_date', ''));
+            $emailInput = trim((string)$request->request->get('email', ''));
+
+            if ($firstNameInput !== '' && $lastNameInput !== '' && $dobInput !== '' && $emailInput !== '') {
+                try {
+                    $bDate = new \DateTime($dobInput);
+                    $dupCheck = $repository->createQueryBuilder('a')
+                        ->where('a.campus = :campus')
+                        ->andWhere('a.studentNumber != :currentId')
+                        ->andWhere('LOWER(TRIM(a.firstName)) = :firstName')
+                        ->andWhere('LOWER(TRIM(a.lastName)) = :lastName')
+                        ->andWhere('a.birthDate = :birthDate')
+                        ->andWhere('LOWER(TRIM(a.personalEmail)) = :email')
+                        ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
+                        ->setParameter('currentId', $registration->getStudentNumber())
+                        ->setParameter('firstName', strtolower($firstNameInput))
+                        ->setParameter('lastName', strtolower($lastNameInput))
+                        ->setParameter('birthDate', $bDate)
+                        ->setParameter('email', strtolower($emailInput))
+                        ->setMaxResults(1)
+                        ->getQuery()
+                        ->getOneOrNullResult();
+
+                    if ($dupCheck) {
+                        $this->addFlash('error', sprintf('Duplicate Registration Blocked: Another applicant (%s %s) with the same Name, Date of Birth, and Email already exists (Student Number: %s).', $firstNameInput, $lastNameInput, $dupCheck->getStudentNumber()));
+                        return $this->redirectToRoute('app_admin_alabang_registration_edit', ['id' => $id]);
+                    }
+                } catch (\Exception $e) { }
+            }
+
             $registration->setFirstName($request->request->get('first_name'));
             $registration->setLastName($request->request->get('last_name'));
             $registration->setMiddleName($request->request->get('middle_name'));
@@ -795,7 +840,8 @@ class AdminAlabangController extends AbstractController
                         $em->persist($req);
                     }
                     
-                    $filename = strtoupper($inputName) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.pdf';
+                    $extension = $docFile->guessExtension() ?: 'pdf';
+                    $filename = strtoupper($inputName) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $extension;
                     try {
                         $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
                         $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
@@ -1059,6 +1105,7 @@ class AdminAlabangController extends AbstractController
                     $sch->setSchool($data['name']);
                     $sch->setSchoolYear($data['year']);
                     $sch->setSchoolType($data['type'] ?? null);
+                    $sch->setAddressLine(!empty($data['address_line']) ? trim((string)$data['address_line']) : null);
                     
                     $isInt = !empty($data['is_international']);
                     $sch->setIsInternational($isInt);
@@ -1422,6 +1469,88 @@ class AdminAlabangController extends AbstractController
             $this->addFlash('success', 'Document soft-deleted successfully.');
         }
         return $this->redirectToRoute('app_admin_alabang_registration_edit', ['id' => $id]);
+    }
+
+    #[Route('/registration/{id}/document/{slug}/waive', name: 'app_admin_alabang_registration_doc_waive', methods: ['POST'])]
+    public function waiveApplicantDocument(string $id, string $slug, Request $request, EntityManagerInterface $em): Response
+    {
+        $redirectTarget = $request->request->get('_redirect') === 'edit'
+            ? 'app_admin_alabang_registration_edit'
+            : 'app_admin_alabang_registration_view';
+
+        if (!$this->isCsrfTokenValid('waive_doc_' . $id . '_' . $slug, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute($redirectTarget, ['id' => $id]);
+        }
+
+        $registration = $em->getRepository(ApplicantBed::class)->find($id);
+        if (!$registration || $registration->getCampus() !== ApplicantBed::CAMPUS_ALABANG) {
+            throw $this->createNotFoundException();
+        }
+
+        $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
+            'applicant' => $registration,
+            'Slug' => $slug
+        ]);
+
+        if (!$req) {
+            $setup = $em->getRepository(DocumentSetup::class)->findOneBy([
+                'slug' => $slug,
+                'campus' => [ApplicantBed::CAMPUS_ALABANG, null],
+            ]);
+            $req = new ApplicantBedRequirement();
+            $req->setApplicant($registration);
+            $req->setSlug($slug);
+            $req->setRequirement($setup ? $setup->getDocumentName() : ucwords(str_replace(['-', '_'], ' ', $slug)));
+            $em->persist($req);
+        }
+
+        $req->setStatus(ApplicantBedRequirement::STATUS_WAIVED);
+        $req->setIsDeleted(false);
+        if (!$req->getDateSubmitted()) {
+            $req->setDateSubmitted(new \DateTime());
+        }
+
+        $em->flush();
+        $this->addFlash('success', 'Document requirement waived successfully.');
+        return $this->redirectToRoute($redirectTarget, ['id' => $id]);
+    }
+
+    #[Route('/registration/{id}/document/{slug}/unwaive', name: 'app_admin_alabang_registration_doc_unwaive', methods: ['POST'])]
+    public function unwaiveApplicantDocument(string $id, string $slug, Request $request, EntityManagerInterface $em): Response
+    {
+        $redirectTarget = $request->request->get('_redirect') === 'edit'
+            ? 'app_admin_alabang_registration_edit'
+            : 'app_admin_alabang_registration_view';
+
+        if (!$this->isCsrfTokenValid('unwaive_doc_' . $id . '_' . $slug, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute($redirectTarget, ['id' => $id]);
+        }
+
+        $registration = $em->getRepository(ApplicantBed::class)->find($id);
+        if (!$registration || $registration->getCampus() !== ApplicantBed::CAMPUS_ALABANG) {
+            throw $this->createNotFoundException();
+        }
+
+        $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
+            'applicant' => $registration,
+            'Slug' => $slug
+        ]);
+
+        if ($req) {
+            if ($req->getStoredFileName()) {
+                $req->setStatus(ApplicantBedRequirement::STATUS_SUBMITTED);
+                $req->setIsDeleted(false);
+            } else {
+                $req->setIsDeleted(true);
+                $req->setStatus(ApplicantBedRequirement::STATUS_PENDING);
+            }
+            $em->flush();
+            $this->addFlash('success', 'Requirement waiver removed successfully.');
+        }
+
+        return $this->redirectToRoute($redirectTarget, ['id' => $id]);
     }
 
     private function getFilteredDocumentSetups(ApplicantBed $registration, EntityManagerInterface $em, string $campus): array

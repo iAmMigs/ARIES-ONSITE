@@ -158,7 +158,7 @@ const ARIESValidation = (function() {
     }
 
     function setValid(input, errorEl) {
-        input.classList.remove('is-invalid');
+        input.classList.remove('is-invalid', 'border-red-400');
         input.classList.add('is-valid');
         
         // Handle Select2
@@ -167,7 +167,7 @@ const ARIESValidation = (function() {
             if (container) {
                 const selection = container.querySelector('.select2-selection');
                 if (selection) {
-                    selection.classList.remove('is-invalid');
+                    selection.classList.remove('is-invalid', 'border-red-400');
                     selection.classList.add('is-valid');
                 }
             }
@@ -208,7 +208,7 @@ const ARIESValidation = (function() {
     }
     
     function resetField(input, errorEl) {
-        input.classList.remove('is-valid', 'is-invalid');
+        input.classList.remove('is-valid', 'is-invalid', 'border-red-400', 'border-green-400');
         
         // Handle Select2
         if (input.classList.contains('select2-hidden-accessible')) {
@@ -216,7 +216,7 @@ const ARIESValidation = (function() {
             if (container) {
                 const selection = container.querySelector('.select2-selection');
                 if (selection) {
-                    selection.classList.remove('is-valid', 'is-invalid');
+                    selection.classList.remove('is-valid', 'is-invalid', 'border-red-400', 'border-green-400');
                 }
             }
         }
@@ -226,6 +226,19 @@ const ARIESValidation = (function() {
             errorEl.style.display = 'none';
             errorEl.setAttribute('aria-hidden', 'true');
         }
+
+        // Clean any error-message element created by form enhancements
+        const anchor = input.closest('.phone-input-group') || input.closest('.input-wrapper') || input.closest('.input-group') || input.closest('.relative') || input;
+        if (anchor.nextElementSibling && anchor.nextElementSibling.classList.contains('error-message')) {
+            anchor.nextElementSibling.remove();
+        } else {
+            const parent = anchor.parentElement || input.parentElement;
+            if (parent) {
+                const existing = parent.querySelector('.error-message');
+                if (existing) existing.remove();
+            }
+        }
+
         input.removeAttribute('aria-invalid');
     }
 

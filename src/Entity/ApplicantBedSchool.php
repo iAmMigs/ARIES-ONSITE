@@ -48,6 +48,9 @@ class ApplicantBedSchool
     #[ORM\Column(name: 'city', type: Types::STRING, length: 100, nullable: true)]
     private ?string $city = null;
 
+    #[ORM\Column(name: 'address_line', type: Types::STRING, length: 255, nullable: true)]
+    private ?string $addressLine = null;
+
     public function getId(): ?int { return $this->id; }
 
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
@@ -79,4 +82,7 @@ class ApplicantBedSchool
 
     public function getCity(): ?string { return $this->city; }
     public function setCity(?string $city): static { $this->city = $city; return $this; }
+
+    public function getAddressLine(): ?string { return $this->addressLine; }
+    public function setAddressLine(?string $addressLine): static { $this->addressLine = $addressLine; return $this; }
 }

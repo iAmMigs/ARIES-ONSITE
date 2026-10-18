@@ -35,4 +35,9 @@ class LookupCitizenship
     {
         return $this->country;
     }
+
+    public function getCountrySfId(): ?int
+    {
+        return $this->countrySfId;
+    }
 }

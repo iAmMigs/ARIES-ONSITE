@@ -213,7 +213,7 @@
                                          </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-mono font-medium text-xs">
-                                        {{ sy.yearStart }} – {{ sy.yearEnd }}
+                                        {{ sy.yearStart }} - {{ sy.yearEnd }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         {% if sy.promissoryDeadline %}
@@ -351,7 +351,7 @@
         }
         const yearEnd    = yearStart + 1;
         const syLabel    = 'SY' + String(yearStart).slice(-2) + String(yearEnd).slice(-2);
-        preview.textContent = syLabel + ' (' + yearStart + '–' + yearEnd + ')';
+        preview.textContent = syLabel + ' (' + yearStart + '-' + yearEnd + ')';
         preview.classList.remove('italic', 'text-gray-400');
         preview.classList.add('text-feu-green-800', 'font-bold');
     });

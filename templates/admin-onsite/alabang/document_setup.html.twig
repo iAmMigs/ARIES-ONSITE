@@ -407,40 +407,18 @@
 
 <script>
 // --- NEW STUDENT ENTRY GRADE CONSTRAINTS ---
-const NEW_STUDENT_VALID_GRADES = ['Kinder', 'Grade 1', 'Grade 7', 'Grade 11'];
-
 function applyStudentTypeGradeFilter(studentTypeSelect, checkboxes, allCheckbox, clearBtn, badgeEl, autoCheckDefaults = false) {
     if (!studentTypeSelect) return;
-    const isNewStudent = studentTypeSelect.value === 'New Student';
     
     if (badgeEl) {
-        badgeEl.classList.toggle('hidden', !isNewStudent);
+        badgeEl.classList.add('hidden');
     }
 
     checkboxes.forEach(cb => {
         const parentLabel = cb.closest('label');
-        if (isNewStudent) {
-            const isValidForNew = NEW_STUDENT_VALID_GRADES.includes(cb.value);
-            if (isValidForNew) {
-                cb.disabled = false;
-                if (autoCheckDefaults) {
-                    cb.checked = true;
-                }
-                if (parentLabel) {
-                    parentLabel.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                }
-            } else {
-                cb.checked = false;
-                cb.disabled = true;
-                if (parentLabel) {
-                    parentLabel.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                }
-            }
-        } else {
-            cb.disabled = false;
-            if (parentLabel) {
-                parentLabel.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-            }
+        cb.disabled = false;
+        if (parentLabel) {
+            parentLabel.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
         }
     });
 

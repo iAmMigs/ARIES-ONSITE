@@ -421,7 +421,7 @@
                                     <i class="ki-filled ki-check fs-4"></i>
                                 </div>
                                 <h4 class="font-bold text-lg text-feu-green-dark mb-1">{{ sy.label }}</h4>
-                                <p class="text-xs font-semibold text-gray-500 font-mono">{{ sy.yearStart }}–{{ sy.yearEnd }}</p>
+                                <p class="text-xs font-semibold text-gray-500 font-mono">{{ sy.yearStart }}-{{ sy.yearEnd }}</p>
                             </div>
                         {% endfor %}
                     </div>
@@ -556,7 +556,7 @@
                             <select name="nationality" id="nationalitySelect" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
                                 <option value=""></option>
                                 {% for nat in nationalities %}
-                                    <option value="{{ nat.citizenshipName }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
+                                    <option value="{{ nat.citizenshipName }}" data-iso="{{ nationality_iso_map[nat.citizenshipName]|default('') }}" {% if nat.citizenshipName == 'FILIPINO' %}selected{% endif %}>{{ nat.citizenshipName }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -655,7 +655,7 @@
                             </select>
                         </div>
                         <div class="col-12 mt-3">
-                            <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                            <label class="form-label">Address Line <span class="required">*</span></label>
                             <input type="text" name="address" class="form-control" required>
                         </div>
                         <div class="col-md-12 mt-2">
@@ -720,7 +720,7 @@
                         <!-- Common Street and Zip Fields -->
                         <div class="row g-3">
                             <div class="col-12 mt-3">
-                                <label class="form-label">House No. / Street / Bldg <span class="required">*</span></label>
+                                <label class="form-label">Address Line <span class="required">*</span></label>
                                 <input type="text" name="perm_address" id="permAddressInput" class="form-control">
                             </div>
                             <div class="col-md-12 mt-2">
@@ -820,8 +820,8 @@
                                             <select id="father_addr_barangay" name="father_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                         </div>
                                         <div class="col-12 mt-2">
-                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
-                                            <input type="text" name="father_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            <label class="form-label text-xs">Address Line</label>
+                                            <input type="text" name="father_addr_street" class="form-control form-control-sm" placeholder="Address Line">
                                         </div>
                                         <div class="col-md-4 mt-2">
                                             <label class="form-label text-xs">Zip Code</label>
@@ -855,8 +855,8 @@
                                                 <select id="father_perm_barangay" name="father_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                             </div>
                                             <div class="col-12 mt-2">
-                                                <label class="form-label text-xs">House No. / Street / Bldg</label>
-                                                <input type="text" name="father_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                                <label class="form-label text-xs">Address Line</label>
+                                                <input type="text" name="father_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                             </div>
                                             <div class="col-md-4 mt-2">
                                                 <label class="form-label text-xs">Zip Code</label>
@@ -934,8 +934,8 @@
                                                 <select id="father_ofw_perm_barangay" name="father_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                             </div>
                                             <div class="col-12 mt-2">
-                                                <label class="form-label text-xs">House No. / Street / Bldg <span class="required">*</span></label>
-                                                <input type="text" name="father_ofw_perm_street" id="father_ofw_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                                <label class="form-label text-xs">Address Line <span class="required">*</span></label>
+                                                <input type="text" name="father_ofw_perm_street" id="father_ofw_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                             </div>
                                             <div class="col-md-4 mt-2">
                                                 <label class="form-label text-xs">Zip Code <span class="required">*</span></label>
@@ -1054,8 +1054,8 @@
                                             <select id="mother_addr_barangay" name="mother_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                         </div>
                                         <div class="col-12 mt-2">
-                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
-                                            <input type="text" name="mother_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            <label class="form-label text-xs">Address Line</label>
+                                            <input type="text" name="mother_addr_street" class="form-control form-control-sm" placeholder="Address Line">
                                         </div>
                                         <div class="col-md-4 mt-2">
                                             <label class="form-label text-xs">Zip Code</label>
@@ -1089,8 +1089,8 @@
                                                 <select id="mother_perm_barangay" name="mother_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                             </div>
                                             <div class="col-12 mt-2">
-                                                <label class="form-label text-xs">House No. / Street / Bldg</label>
-                                                <input type="text" name="mother_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                                <label class="form-label text-xs">Address Line</label>
+                                                <input type="text" name="mother_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                             </div>
                                             <div class="col-md-4 mt-2">
                                                 <label class="form-label text-xs">Zip Code</label>
@@ -1168,8 +1168,8 @@
                                                 <select id="mother_ofw_perm_barangay" name="mother_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                             </div>
                                             <div class="col-12 mt-2">
-                                                <label class="form-label text-xs">House No. / Street / Bldg <span class="required">*</span></label>
-                                                <input type="text" name="mother_ofw_perm_street" id="mother_ofw_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                                <label class="form-label text-xs">Address Line <span class="required">*</span></label>
+                                                <input type="text" name="mother_ofw_perm_street" id="mother_ofw_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                             </div>
                                             <div class="col-md-4 mt-2">
                                                 <label class="form-label text-xs">Zip Code <span class="required">*</span></label>
@@ -1265,8 +1265,8 @@
                                         <select id="guardian_addr_barangay" name="guardian_addr_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                     </div>
                                     <div class="col-12 mt-2">
-                                        <label class="form-label text-xs">House No. / Street / Bldg</label>
-                                        <input type="text" name="guardian_addr_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                        <label class="form-label text-xs">Address Line</label>
+                                        <input type="text" name="guardian_addr_street" class="form-control form-control-sm" placeholder="Address Line">
                                     </div>
                                     <div class="col-md-4 mt-2">
                                         <label class="form-label text-xs">Zip Code</label>
@@ -1300,8 +1300,8 @@
                                             <select id="guardian_perm_barangay" name="guardian_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                         </div>
                                         <div class="col-12 mt-2">
-                                            <label class="form-label text-xs">House No. / Street / Bldg</label>
-                                            <input type="text" name="guardian_perm_street" class="form-control form-control-sm" placeholder="House No. / Street / Bldg">
+                                            <label class="form-label text-xs">Address Line</label>
+                                            <input type="text" name="guardian_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                         </div>
                                         <div class="col-md-4 mt-2">
                                             <label class="form-label text-xs">Zip Code</label>
@@ -1372,7 +1372,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-xs">School Type <span class="required">*</span></label>
-                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input" onchange="toggleSchoolType(this, 'educ_kinder_0')">
+                                    <select name="educ_kinder_type[]" class="form-select form-select-sm educ-input" onchange="window.toggleSchoolType(this, 'educ_kinder_0')">
                                         <option value="Private">Private</option>
                                         <option value="Public">Public</option>
                                         <option value="International">International</option>
@@ -1384,40 +1384,49 @@
                                 </div>
                             </div>
                             
+                            <input type="hidden" name="educ_kinder_is_international[]" id="educ_kinder_0_intl_hidden" class="intl-hidden-input" value="0">
+
                             <div class="row g-2 mt-2 location-local-group" id="educ_kinder_0_local">
                                 <div class="col-md-4">
-                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region</label>
-                                    <select id="educ_kinder_0_region" class="form-select form-select-sm" data-placeholder="Region">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region <span class="required text-danger">*</span></label>
+                                    <select id="educ_kinder_0_region" class="form-select form-select-sm educ-input" data-placeholder="Region" required>
                                         <option value=""></option>
                                     </select>
                                     <input type="hidden" name="educ_kinder_region[]" id="educ_kinder_0_region_hidden">
                                 </div>
                                 <div class="col-md-4 position-relative">
-                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province</label>
-                                    <input type="text" id="educ_kinder_0_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province <span class="required text-danger">*</span></label>
+                                    <input type="text" id="educ_kinder_0_province_search" class="form-control form-control-sm province-autocomplete educ-input" placeholder="Province" autocomplete="off" required>
                                     <input type="hidden" id="educ_kinder_0_province" name="educ_kinder_province[]">
                                     <div id="educ_kinder_0_province_suggestions" class="autocomplete-suggestions hidden"></div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality</label>
-                                    <select id="educ_kinder_0_city" name="educ_kinder_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality <span class="required text-danger">*</span></label>
+                                    <select id="educ_kinder_0_city" name="educ_kinder_city[]" class="form-select form-select-sm educ-input" disabled data-placeholder="City/Municipality" required>
                                         <option value=""></option>
                                     </select>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line <span class="required text-danger">*</span></label>
+                                    <input type="text" id="educ_kinder_0_local_addr" name="educ_kinder_address[]" class="form-control form-control-sm educ-input" placeholder="House No. / Street / Bldg / Subdivision">
                                 </div>
                             </div>
                             
                             <div class="row g-2 mt-2 location-intl-group" id="educ_kinder_0_intl_group" style="display:none;">
                                 <div class="col-md-6">
-                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
-                                    <select name="educ_kinder_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country <span class="required text-danger">*</span></label>
+                                    <select name="educ_kinder_country[]" class="form-select form-select-sm country-select educ-input" data-placeholder="Country">
                                         <option value="">Select Country</option>
                                         {% for country in countries %}
                                             <option value="{{ country.countryName }}">{{ country.countryName }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line <span class="required text-danger">*</span></label>
+                                    <input type="text" id="educ_kinder_0_intl_addr" class="form-control form-control-sm educ-input" placeholder="School Address Line / Street / City">
+                                </div>
                             </div>
-                            <input type="hidden" name="educ_kinder_is_international[]" id="educ_kinder_0_intl_hidden" class="intl-hidden-input" value="0">
                         </div>
 
                         {# Elementary #}
@@ -1504,6 +1513,9 @@
                                         {'name': 'Banner', 'icon': 'ki-flag'},
                                         {'name': 'Campus Tour', 'icon': 'ki-geolocation'},
                                         {'name': 'Events', 'icon': 'ki-calendar'},
+                                        {'name': 'Facebook', 'icon': 'ki-facebook'},
+                                        {'name': 'Instagram', 'icon': 'ki-instagram'},
+                                        {'name': 'TikTok', 'icon': 'ki-tiktok'},
                                         {'name': 'Social Media', 'icon': 'ki-share'},
                                         {'name': 'Google/Website', 'icon': 'ki-compass'},
                                         {'name': 'Immersion', 'icon': 'ki-user-square'},
@@ -1550,6 +1562,36 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {# --- RESERVATION AGREEMENT & DEPED WITHDRAWAL POLICY --- #}
+            <div class="card mb-5 animate-section border border-gray-200 shadow-sm" id="reservation-agreement-card">
+                <div class="card-header bg-light">
+                    <h3 class="card-title text-feu-green-800 font-bold flex items-center gap-2">
+                        <i class="ki-filled ki-shield-tick text-feu-green-600 fs-1"></i>
+                        Reservation Agreement & DepEd Withdrawal Policy
+                    </h3>
+                </div>
+                <div class="card-body p-6">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-sm text-gray-700 leading-relaxed">
+                        <p class="font-bold text-gray-900 mb-2">
+                            DepEd Policy on Withdrawal (DepEd Order No. 19, s. 2008 & DepEd Memo No. 41, s. 2024):
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1.5 mb-3 text-xs md:text-sm">
+                            <li><strong>Within week 1 of classes:</strong> The school may charge up to <strong>10%</strong> of the total amount due for the term.</li>
+                            <li><strong>Within week 2 of classes:</strong> The school may charge up to <strong>20%</strong> of the total amount due for the term.</li>
+                            <li><strong>After week 2 of classes:</strong> The school may charge <strong>100%</strong> (all school fees in full), unless the withdrawal is due to a valid/justifiable reason (where fees are charged only up to the last month of attendance). An administrative processing fee of <strong>Php 1,000.00</strong> applies upon withdrawal.</li>
+                            <li>Non-compliance with the submission of required documents or failure to settle fees within the deadline will invalidate admission and enrollment. The reservation fee of <strong>Php 5,000.00</strong> is non-refundable should the applicant decide not to enroll.</li>
+                        </ul>
+                    </div>
+
+                    <div class="interactive-check-card p-4 flex gap-3 items-center border border-gray-300 rounded-xl hover:bg-gray-50 transition-all shadow-sm bg-white cursor-pointer" onclick="const cb = document.getElementById('reservation_policy_agreement'); if (event.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); }">
+                        <input type="checkbox" id="reservation_policy_agreement" name="reservation_policy_agreement" required class="form-check-input w-5 h-5 text-feu-green-700 rounded border-gray-300 focus:ring-feu-green-600 cursor-pointer shrink-0">
+                        <label for="reservation_policy_agreement" class="text-xs md:text-sm font-bold text-feu-green-900 m-0 cursor-pointer select-none">
+                            I have read, understood, and agree to the Reservation Agreement & DepEd Withdrawal Policy. <span class="text-danger">*</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -1642,17 +1684,17 @@
             </button>
         </div>
         <div class="dpa-scroll-content text-sm text-gray-700 space-y-4" style="padding:2rem;overflow-y:auto;">
-            <p>Far Eastern University Admissions and Financial Assistance is committed to protecting and upholding the rights of student applicants, including their right to keep personal information private. In compliance with Republic Act 10173, otherwise known as the Data Privacy Act of 2012, and guided by the principles of transparency, legitimate purpose, and proportionality, this policy statement sets out the data-privacy rights of applicants in FEU and describes the information that may be collected from them; the collection methods and timing of collection; the purposes for which the data may be used; the storage, transmission, and method of use of such data; the conditions under which data are shared with third parties; the data retention period; and the rules that govern the students’ participation when they are asked to share their personal information.</p>
+            <p>Far Eastern University Admissions and Financial Assistance is committed to protecting and upholding the rights of student applicants, including their right to keep personal information private. In compliance with Republic Act 10173, otherwise known as the Data Privacy Act of 2012, and guided by the principles of transparency, legitimate purpose, and proportionality, this policy statement sets out the data-privacy rights of applicants in FEU and describes the information that may be collected from them; the collection methods and timing of collection; the purposes for which the data may be used; the storage, transmission, and method of use of such data; the conditions under which data are shared with third parties; the data retention period; and the rules that govern the studentsâ€™ participation when they are asked to share their personal information.</p>
             
             <h4 class="font-bold text-gray-900">1. Identity of the Process Owner and its Services</h4>
-            <p>The Admissions and Financial Assistance (AFA) manages the university’s admissions processes, including student recruitment, applicant screening, and selection of students applying for admission to various academic programs in the university. The AFA is also responsible for the management of financial assistance which includes university-funded and externally funded scholarship grants.</p>
+            <p>The Admissions and Financial Assistance (AFA) manages the universityâ€™s admissions processes, including student recruitment, applicant screening, and selection of students applying for admission to various academic programs in the university. The AFA is also responsible for the management of financial assistance which includes university-funded and externally funded scholarship grants.</p>
             <p>Admissions and Financial Assistance also works closely with the Office of the University Registrar (OUR), Information Technology Services (ITS), different Institutes, and Academic Services to ensure a smooth process and quality student experience of applicants during their admission process.</p>
 
             <h4 class="font-bold text-gray-900">2. Personal Data that are Collected</h4>
             <p>The following personal data are collected:</p>
             <ul class="list-decimal pl-5 space-y-1">
                 <li>Personal details such as complete name, birth date, place of birth, sex at birth, birth order, gender identity, number of siblings, religion, awards received, and identification photos;</li>
-                <li>Parents/guardians’ information such as complete name, occupation, place of work, education credentials;</li>
+                <li>Parents/guardiansâ€™ information such as complete name, occupation, place of work, education credentials;</li>
                 <li>Household information such as household size and gross family income;</li>
                 <li>Contact information such as current and permanent address, email address, telephone number, mobile number;</li>
                 <li>Pre-FEU academic credentials and other relevant circumstances, former schools attended, academic performance, and disciplinary record;</li>
@@ -1660,7 +1702,7 @@
             </ul>
 
             <h4 class="font-bold text-gray-900">3. Collection Methods and Timing of Collection</h4>
-            <p>The applicant’s personal data are primarily collected and acquired in many forms. This may be through written records, photographic images, and digital/electronic means. The data are collected when students apply for admission to the university through online registration in its admission system, and when students proceed with their enrollment applications. The collection of data may also happen in survey of the students’ preference of courses.</p>
+            <p>The applicantâ€™s personal data are primarily collected and acquired in many forms. This may be through written records, photographic images, and digital/electronic means. The data are collected when students apply for admission to the university through online registration in its admission system, and when students proceed with their enrollment applications. The collection of data may also happen in survey of the studentsâ€™ preference of courses.</p>
 
             <h4 class="font-bold text-gray-900">4. Purpose(s) for which Personal Data will be Collected and Used</h4>
             <p>For the efficient admission process and management of school records, personal data are collected and used for the following purposes:</p>
@@ -1668,21 +1710,21 @@
                 <li>evaluating the admission application of the student to the university;</li>
                 <li>processing acceptance or confirmation of new students in preparation for enrollment;</li>
                 <li>evaluating and processing of scholarship applications, grants, allowances, reports to benefactors, and other forms of financial assistance;</li>
-                <li>generating reports for research purposes such as exploring students’ backgrounds and characteristics, etc.</li>
+                <li>generating reports for research purposes such as exploring studentsâ€™ backgrounds and characteristics, etc.</li>
                 <li>generating reports for intervention programs for better academic and campus experiences such guidance and counseling, language enrichment programs, academic support, etc.</li>
                 <li>communicating admission-related, enrollment-related, and scholarship-related advisories, announcements, and activities.</li>
             </ul>
 
             <h4 class="font-bold text-gray-900">5. Storage and Transmission of Personal Information</h4>
-            <p>FEU Admissions and Financial Assistance shall ensure that all collected personal data are stored in secured storage facilities to avoid unauthorized access to this sensitive personal information. Personal data are stored in physical and electronic systems with appropriate organizational, physical, and technical security measures. Through coordination with ITS, AFA shall ensure that only authorized staff shall have access to each student’s personal information only for the purposes cited in Section 4.</p>
+            <p>FEU Admissions and Financial Assistance shall ensure that all collected personal data are stored in secured storage facilities to avoid unauthorized access to this sensitive personal information. Personal data are stored in physical and electronic systems with appropriate organizational, physical, and technical security measures. Through coordination with ITS, AFA shall ensure that only authorized staff shall have access to each studentâ€™s personal information only for the purposes cited in Section 4.</p>
             <p>Storage of personal data in cloud-based platforms is managed by ITS in partnership with third-party providers, subject to applicable laws and regulations and information security measures.</p>
 
             <h4 class="font-bold text-gray-900">6. Method of Use</h4>
-            <p>The collected data are processed in relation to the purposes and uses stipulated in Section IV. The term “processing” shall be subject to the same Definitions and Implementing Rules and Regulations as are found in the Data Privacy Act, which include collection, recording, organization, storage, updating or modification, retrieval, use, consolidation, erasure, or destruction of data.</p>
+            <p>The collected data are processed in relation to the purposes and uses stipulated in Section IV. The term â€œprocessingâ€ shall be subject to the same Definitions and Implementing Rules and Regulations as are found in the Data Privacy Act, which include collection, recording, organization, storage, updating or modification, retrieval, use, consolidation, erasure, or destruction of data.</p>
 
             <h4 class="font-bold text-gray-900">7. Third-Party Transfer</h4>
             <p>In accordance with the Data Privacy Act of 2012, AFA will use and transfer the collected data to provide efficient services to its stakeholders, primarily students. It may share the data with various offices within the university such as Office of the University Registrar, Academic Institutes, Academic Services departments, etc.</p>
-            <p>Sharing of individually identifiable personal data with FEU Schools or other third parties is prohibited unless the data subject gives consent to the Admissions Office that he/she desires to enroll in another FEU campus instead of his/her first preference during online registration or expressly waives this restriction in writing and when the data subject personally applied for a scholarship grant from FEU’s external benefactors.</p>
+            <p>Sharing of individually identifiable personal data with FEU Schools or other third parties is prohibited unless the data subject gives consent to the Admissions Office that he/she desires to enroll in another FEU campus instead of his/her first preference during online registration or expressly waives this restriction in writing and when the data subject personally applied for a scholarship grant from FEUâ€™s external benefactors.</p>
             <p>Data sharing and disclosure may happen in the following circumstances:</p>
             <ul class="list-decimal pl-5 space-y-1">
                 <li>awarding of scholarship grants;</li>
@@ -1804,7 +1846,7 @@
                 </p>
                 
                 <p class="text-gray-800 leading-relaxed text-base mt-4">
-                    I acknowledge that my child’s enrollment is provisional to his completion of the requirements enumerated below and shall be made official when I/we submit to the school the original copy of the documents on or before <strong>{{ active_sy.promissoryDeadline ? active_sy.promissoryDeadline|date('F j, Y') : 'July 24, 2026' }}</strong>.
+                    I acknowledge that my childâ€™s enrollment is provisional to his completion of the requirements enumerated below and shall be made official when I/we submit to the school the original copy of the documents on or before <strong>{{ active_sy.promissoryDeadline ? active_sy.promissoryDeadline|date('F j, Y') : 'July 24, 2026' }}</strong>.
                 </p>
 
                 <div class="mt-6 pt-4 border-t border-gray-200">
@@ -1836,6 +1878,9 @@
 {% include 'enrollment-onsite/_duplicate_warning_modal.html.twig' %}
 
 
+<script>
+    window.nationalityIsoMap = {{ nationality_iso_map|default({})|json_encode|raw }};
+</script>
 <script src="{{ asset('js/validation.js') }}?v={{ 'now'|date('U') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
 

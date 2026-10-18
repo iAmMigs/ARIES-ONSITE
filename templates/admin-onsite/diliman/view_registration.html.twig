@@ -318,8 +318,14 @@
                                 <div class="text-xs text-gray-500 mt-1">School Year: {{ sYear }}</div>
                                 {% if school.schoolType %}<div class="text-xs text-gray-400 mt-0.5">{{ school.schoolType }}</div>{% endif %}
                                 {% if school.isInternational %}
+                                    {% if school.addressLine %}
+                                        <div class="text-[10px] text-gray-700 mt-0.5"><i class="ki-filled ki-map"></i> {{ school.addressLine }}</div>
+                                    {% endif %}
                                     <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.country }}</div>
                                 {% else %}
+                                    {% if school.addressLine %}
+                                        <div class="text-[10px] text-gray-700 mt-0.5"><i class="ki-filled ki-map"></i> {{ school.addressLine }}</div>
+                                    {% endif %}
                                     {% if school.region or school.province or school.city %}
                                         <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.city|location_city }}, {{ school.province|location_province }}, {{ school.region|location_region }}</div>
                                     {% endif %}
@@ -387,31 +393,71 @@
                                     {% endif %}
                                 {% endfor %}
 
-                                {% if req %}
-                                    <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
-                                        <div class="flex-shrink-0">
-                                            <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
-                                        </div>
-                                        <div class="overflow-hidden">
-                                            <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                            <div class="text-xs text-gray-400">
-                                                {% if req.status == 'S' %}
-                                                    Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
-                                                {% else %}
-                                                    Pending
-                                                {% endif %}
+                                {% if req and req.status == 'W' %}
+                                    <div class="flex items-center justify-between p-3 rounded-xl border border-amber-200 bg-amber-50/40">
+                                        <div class="flex items-center gap-3 overflow-hidden">
+                                            <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">
+                                                <i class="ki-filled ki-shield-cross text-base"></i>
+                                            </div>
+                                            <div class="overflow-hidden">
+                                                <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                <div class="text-[10px] text-amber-700 font-bold uppercase flex items-center gap-1">
+                                                    <i class="ki-filled ki-verify text-xs"></i> Waived by Admin (Exempted)
+                                                </div>
                                             </div>
                                         </div>
-                                    </a>
+                                        <form method="POST" action="{{ path('app_admin_diliman_registration_doc_unwaive', {id: registration.studentNumber, slug: req.slug}) }}" class="m-0" onsubmit="return confirm('Remove waiver and restore this requirement?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('unwaive_doc_' ~ registration.studentNumber ~ '_' ~ req.slug) }}">
+                                            <button type="submit" class="btn btn-xs btn-light-secondary text-gray-600 hover:text-red-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-white transition-all flex items-center gap-1" title="Cancel waiver">
+                                                <i class="ki-filled ki-cross text-[10px]"></i> Unwaive
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% elseif req and req.status == 'S' %}
+                                    <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                        {% if req.storedFileName %}
+                                            <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1">
+                                                <div class="flex-shrink-0">
+                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                    <div class="text-xs text-gray-400">
+                                                        Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        {% else %}
+                                            <div class="flex items-center gap-3 overflow-hidden flex-1">
+                                                <div class="flex-shrink-0">
+                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                    <div class="text-xs text-gray-400">
+                                                        Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 {% else %}
-                                    <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
-                                        <div class="flex-shrink-0">
-                                            <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
+                                    <div class="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                        <div class="flex items-center gap-3 overflow-hidden">
+                                            <div class="flex-shrink-0">
+                                                <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
+                                            </div>
+                                            <div class="overflow-hidden">
+                                                <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
+                                                <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
+                                            </div>
                                         </div>
-                                        <div class="overflow-hidden">
-                                            <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
-                                            <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
-                                        </div>
+                                        <form method="POST" action="{{ path('app_admin_diliman_registration_doc_waive', {id: registration.studentNumber, slug: setup.slug}) }}" class="m-0" onsubmit="return confirm('Are you sure you want to officially waive this requirement for this applicant?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('waive_doc_' ~ registration.studentNumber ~ '_' ~ setup.slug) }}">
+                                            <button type="submit" class="btn btn-xs btn-light-warning text-amber-700 hover:bg-amber-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-300/80 shadow-2xs transition-all flex items-center gap-1" title="Waive requirement">
+                                                <i class="ki-filled ki-shield-cross text-xs"></i> Waive
+                                            </button>
+                                        </form>
                                     </div>
                                 {% endif %}
                             {% endfor %}

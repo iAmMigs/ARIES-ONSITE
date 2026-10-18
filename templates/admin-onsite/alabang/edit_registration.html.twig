@@ -671,6 +671,9 @@
                                             {% endfor %}
                                         </select>
                                     </div>
+                                    <div class="mb-2">
+                                        <input type="text" name="schools[{{ loop.index0 }}][address_line]" value="{{ school.addressLine }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2" placeholder="Address Line (House No. / Street / Bldg / Subdivision)">
+                                    </div>
                                     <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
                                 </div>
                                 {% else %}
@@ -681,118 +684,164 @@
 
                         {# Documents (Editable) #}
                         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-folder-added text-feu-green-600"></i> Submitted Files
-                            </h3>
-
-                            {# Promissory Date Edit #}
-                            <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200">
-                                <label class="block">
-                                    <span class="text-[10px] text-amber-800 uppercase font-bold mb-2 block flex items-center gap-1">
-                                        <i class="ki-filled ki-calendar"></i> Promissory Submission Date
-                                    </span>
-                                    <input type="date" name="documents_agreed_date" value="{{ registration.documentsAgreedDate ? registration.documentsAgreedDate|date('Y-m-d') : '' }}" 
-                                           class="w-full border-gray-300 rounded-lg text-sm font-bold text-gray-700 px-3 py-2">
-                                    <p class="text-[9px] text-amber-600 mt-2 italic">Leave blank if all documents are submitted.</p>
-                                </label>
+                            <div class="mb-4 pb-3 border-b border-gray-100">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0 shadow-xs">
+                                        <i class="ki-filled ki-folder-added text-base"></i>
+                                    </div>
+                                    <h3 class="text-base font-bold text-gray-900">Submitted Files</h3>
+                                </div>
+                                <div class="mt-3 p-3 rounded-xl bg-amber-50/70 border border-amber-200">
+                                    <label class="block">
+                                        <span class="text-[11px] text-amber-900 uppercase font-bold mb-1.5 flex items-center justify-between">
+                                            <span class="flex items-center gap-1.5">
+                                                <i class="ki-filled ki-calendar text-amber-600"></i> Promissory Submission Date
+                                            </span>
+                                            {% if registration.documentsAgreedDate %}
+                                                <span class="text-[10px] text-amber-800 font-extrabold bg-white/80 px-2 py-0.5 rounded border border-amber-200">
+                                                    Current: {{ registration.documentsAgreedDate|date('M d, Y') }}
+                                                </span>
+                                            {% endif %}
+                                        </span>
+                                        <input type="date" name="documents_agreed_date" value="{{ registration.documentsAgreedDate ? registration.documentsAgreedDate|date('Y-m-d') : '' }}" 
+                                               class="w-full bg-white border border-amber-300 rounded-lg text-xs font-semibold text-gray-800 px-3 py-1.5 focus:ring-1 focus:ring-amber-500">
+                                        <p class="text-[10px] text-amber-700/80 mt-1 italic">Leave blank if all requirements are submitted or waived.</p>
+                                    </label>
+                                </div>
                             </div>
 
-                            <div class="space-y-4">
-                                {# 2x2 ID Picture Row #}
-                                <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center border border-gray-200 bg-white">
-                                                {% if registration.photoSlug %}
-                                                    <img src="{{ asset(registration.photoSlug) }}" class="w-full h-full object-cover" alt="2x2 Photo">
-                                                {% else %}
-                                                    <i class="ki-filled ki-picture text-gray-400"></i>
-                                                {% endif %}
-                                            </div>
-                                            <div>
-                                                <div class="text-sm font-bold text-gray-800">2x2 ID Picture of the Applicant</div>
-                                                {% if registration.photoSlug %}
-                                                    <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                                                        <i class="ki-filled ki-eye"></i> View Current Photo
-                                                    </a>
-                                                {% else %}
-                                                    <span class="text-xs text-red-500 font-bold">Missing / Not Complied (Promissory)</span>
-                                                {% endif %}
+                            <div class="space-y-3">
+                                {# 2x2 ID Picture Compliance #}
+                                {% if registration.photoSlug %}
+                                    <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                        <div class="flex-shrink-0">
+                                            <img src="{{ asset(registration.photoSlug) }}" class="w-8 h-8 rounded-lg object-cover border border-gray-200" alt="2x2 Photo">
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="text-sm font-bold text-gray-800 truncate">2x2 ID Picture of the Applicant</div>
+                                            <div class="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                                                <i class="ki-filled ki-check-circle text-xs"></i> Complied / Submitted
                                             </div>
                                         </div>
+                                    </a>
+                                {% else %}
+                                    <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                        <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
+                                            <i class="ki-filled ki-picture text-base"></i>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="text-sm font-bold text-red-800 truncate">2x2 ID Picture of the Applicant</div>
+                                            <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Complied (Promissory)</div>
+                                        </div>
                                     </div>
-                                    <div class="text-xs text-gray-400">
-                                        {% if registration.photoSlug %}Submitted / Complied{% else %}Pending (To be emailed){% endif %}
-                                    </div>
-                                </div>
+                                {% endif %}
 
-                                {% set hasActiveDocs = false %}
-                                {% for req in registration.requirements %}
-                                    {% set isRelevant = false %}
-                                    {% for setup in documentSetups %}
-                                        {% if setup.slug|lower == req.Slug|lower %}
-                                            {% set isRelevant = true %}
+                                {% for setup in documentSetups %}
+                                    {% set req = null %}
+                                    {% for r in registration.requirements %}
+                                        {% if r.Slug|lower == setup.slug|lower and not r.isDeleted %}
+                                            {% set req = r %}
                                         {% endif %}
                                     {% endfor %}
 
-                                    {% if not req.isDeleted and isRelevant %}
-                                        {% set hasActiveDocs = true %}
-                                        <div class="p-3 rounded-xl border border-gray-100 bg-gray-50">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="w-8 h-8 flex items-center justify-center">
-                                                        <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-full h-full" alt="PDF">
-                                                    </div>
-                                                    <div>
-                                                        <div class="text-sm font-bold text-gray-800">{{ req.requirement }}</div>
-                                                        <a href="{{ asset(req.storedFileName) }}" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                                                            <i class="ki-filled ki-eye"></i> View Current File
-                                                        </a>
+                                    {% if req and req.status == 'W' %}
+                                        <div class="flex items-center justify-between p-3 rounded-xl border border-amber-200 bg-amber-50/40">
+                                            <div class="flex items-center gap-3 overflow-hidden">
+                                                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">
+                                                    <i class="ki-filled ki-shield-cross text-base"></i>
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                    <div class="text-[10px] text-amber-700 font-bold uppercase flex items-center gap-1">
+                                                        <i class="ki-filled ki-verify text-xs"></i> Waived by Admin (Exempted)
                                                     </div>
                                                 </div>
-                                                
-                                                {# Delete Trigger #}
-                                                <button type="button" class="btn btn-sm btn-light-danger px-3 py-2 text-xs" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-alabang-{{ req.Slug }}').submit();">
-                                                    <i class="ki-filled ki-trash"></i> Delete
-                                                </button>
                                             </div>
-                                            <div class="text-xs text-gray-400">
-                                                {% if req.status == 'S' %}Submitted{% else %}Pending{% endif %}
+                                            <button type="button" class="btn btn-xs btn-light-secondary text-gray-600 hover:text-red-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-white transition-all flex items-center gap-1" title="Cancel waiver" onclick="if(confirm('Remove waiver and restore this requirement?')) document.getElementById('unwaive-doc-alabang-{{ setup.slug }}').submit();">
+                                                <i class="ki-filled ki-cross text-[10px]"></i> Unwaive
+                                            </button>
+                                        </div>
+                                    {% elseif req and req.status == 'S' %}
+                                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                            {% if req.storedFileName %}
+                                                <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1">
+                                                    <div class="flex-shrink-0">
+                                                        <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                                                    </div>
+                                                    <div class="overflow-hidden">
+                                                        <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                        <div class="text-xs text-gray-400">
+                                                            Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            {% else %}
+                                                <div class="flex items-center gap-3 overflow-hidden flex-1">
+                                                    <div class="flex-shrink-0">
+                                                        <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                                                    </div>
+                                                    <div class="overflow-hidden">
+                                                        <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                        <div class="text-xs text-gray-400">
+                                                            Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-xs btn-light-danger text-red-600 hover:bg-red-50 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-red-200 shadow-2xs transition-all flex items-center gap-1 ml-2" title="Delete document" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-alabang-{{ setup.slug }}').submit();">
+                                                <i class="ki-filled ki-trash text-[10px]"></i> Delete
+                                            </button>
+                                        </div>
+                                    {% else %}
+                                        <div class="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                            <div class="flex items-center gap-3 overflow-hidden">
+                                                <div class="flex-shrink-0">
+                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
+                                                </div>
+                                                <div class="overflow-hidden">
+                                                    <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
+                                                    <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
+                                                </div>
                                             </div>
+                                            <button type="button" class="btn btn-xs btn-light-warning text-amber-700 hover:bg-amber-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-300/80 shadow-2xs transition-all flex items-center gap-1" title="Waive requirement" onclick="if(confirm('Are you sure you want to officially waive this requirement for this applicant?')) document.getElementById('waive-doc-alabang-{{ setup.slug }}').submit();">
+                                                <i class="ki-filled ki-shield-cross text-xs"></i> Waive
+                                            </button>
                                         </div>
                                     {% endif %}
                                 {% endfor %}
-                                
-                                {% if not hasActiveDocs %}
-                                    <div class="text-center py-6 text-gray-400 text-sm italic">No relevant documents found.</div>
-                                {% endif %}
 
-                                <hr class="mt-6 mb-4 border-gray-200">
-                        
-                                {# Dynamic Uploads #}
-                                <h6 class="text-sm font-bold mt-2 mb-3 text-gray-700">Upload / Replace Documents</h6>
-                                {% if documentSetups is defined and documentSetups|length > 0 %}
-                                    <div class="space-y-3">
-                                        {% for docSetup in documentSetups %}
-                                            <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">{{ docSetup.documentName }}</label>
-                                                <input type="file" name="{{ docSetup.slug }}" accept=".pdf" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                            </div>
-                                        {% endfor %}
-                                        <div>
-                                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
-                                            <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <div class="space-y-3">
-                                        <div>
-                                            <label class="text-[10px] text-gray-500 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
-                                            <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                        </div>
-                                    </div>
+                                {% if documentSetups|length == 0 %}
+                                    <div class="text-center py-6 text-gray-400 text-sm italic">No document requirements for this student type.</div>
                                 {% endif %}
                             </div>
+
+                            <hr class="mt-6 mb-4 border-gray-200">
+
+                            {# Dynamic Uploads #}
+                            <h6 class="text-sm font-bold mt-2 mb-3 text-gray-700 flex items-center gap-2">
+                                <i class="ki-filled ki-file-up text-feu-green-600"></i> Upload / Replace Documents
+                            </h6>
+                            {% if documentSetups is defined and documentSetups|length > 0 %}
+                                <div class="space-y-3">
+                                    {% for docSetup in documentSetups %}
+                                        <div>
+                                            <label class="text-[11px] text-gray-600 uppercase font-bold mb-1 block">{{ docSetup.documentName }}</label>
+                                            <input type="file" name="{{ docSetup.slug }}" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+                                        </div>
+                                    {% endfor %}
+                                    <div>
+                                        <label class="text-[11px] text-gray-600 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
+                                        <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="text-[11px] text-gray-600 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
+                                        <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
 
                         {# General Information #}
@@ -934,6 +983,29 @@
         </div>
     </main>
 </div>
+
+{# Hidden action forms for Waive, Unwaive, Delete outside #editForm #}
+{% for setup in documentSetups %}
+    {% set req = null %}
+    {% for r in registration.requirements %}
+        {% if r.Slug|lower == setup.slug|lower and not r.isDeleted %}
+            {% set req = r %}
+        {% endif %}
+    {% endfor %}
+
+    <form id="waive-doc-alabang-{{ setup.slug }}" action="{{ path('app_admin_alabang_registration_doc_waive', {id: registration.studentNumber, slug: setup.slug}) }}" method="POST" class="hidden">
+        <input type="hidden" name="_token" value="{{ csrf_token('waive_doc_' ~ registration.studentNumber ~ '_' ~ setup.slug) }}">
+        <input type="hidden" name="_redirect" value="edit">
+    </form>
+
+    {% if req %}
+        <form id="unwaive-doc-alabang-{{ setup.slug }}" action="{{ path('app_admin_alabang_registration_doc_unwaive', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden">
+            <input type="hidden" name="_token" value="{{ csrf_token('unwaive_doc_' ~ registration.studentNumber ~ '_' ~ req.slug) }}">
+            <input type="hidden" name="_redirect" value="edit">
+        </form>
+        <form id="delete-doc-alabang-{{ setup.slug }}" action="{{ path('app_admin_alabang_registration_doc_delete', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden"></form>
+    {% endif %}
+{% endfor %}
 
 {% for req in registration.requirements %}
     {% if not req.isDeleted %}
