@@ -400,7 +400,7 @@ class EnrollmentAlabangController extends AbstractController
                     if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
 
                     $ext = $file->guessExtension() ?: $clientExt;
-                    $filename = strtoupper($slug) . '-' . $studentNo . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
+                    $filename = $studentNo . '-' . strtoupper($slug) . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
                     $file->move($targetDir, $filename);
                     
                     $req = new ApplicantBedRequirement();

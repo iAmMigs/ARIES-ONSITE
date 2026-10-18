@@ -859,7 +859,7 @@ class AdminDilimanController extends AbstractController
                     @mkdir($targetDir, 0777, true);
                 }
                 $ext = $chosenProfile->guessExtension() ?: 'png';
-                $filename = 'ID-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $ext;
+                $filename = $registration->getStudentNumber() . '-ID-' . uniqid() . '.' . $ext;
                 try {
                     $chosenProfile->move($targetDir, $filename);
                     $registration->setPhotoSlug('uploads/onsite-id-pics/' . $filename);
@@ -891,7 +891,7 @@ class AdminDilimanController extends AbstractController
                     }
                     
                     $extension = $docFile->guessExtension() ?: 'pdf';
-                    $filename = strtoupper($inputName) . '-' . $registration->getStudentNumber() . '-' . uniqid() . '.' . $extension;
+                    $filename = $registration->getStudentNumber() . '-' . strtoupper($inputName) . '-' . uniqid() . '.' . $extension;
                     try {
                         $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
                         $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
