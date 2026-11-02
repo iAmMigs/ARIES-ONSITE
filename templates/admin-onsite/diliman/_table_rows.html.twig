@@ -24,7 +24,7 @@
         <div class="font-bold text-gray-900 tracking-tight text-sm">
             {{ r.lastName }}, {{ r.firstName }}{% if r.middleName %} {{ r.middleName }}{% endif %}{% if r.suffix %} {{ r.suffix }}{% endif %}
         </div>
-        <div class="text-xs text-gray-400 font-mono">{{ r.email|default('') }}</div>
+        <div class="text-xs text-gray-400 font-mono">{{ r.personalEmail|default(r.email|default('')) }}</div>
     </td>
 
     {# --- 4. LEVEL / STRAND --- #}
@@ -68,7 +68,7 @@
                 </span>
             {% else %}
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="All documents complied">
-                    <i class="ki-filled ki-check-circle text-emerald-600"></i> Complied
+                    <i class="ki-filled ki-check-circle text-emerald-600"></i> Documents Complied
                 </span>
             {% endif %}
         </div>

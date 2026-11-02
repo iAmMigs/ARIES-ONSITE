@@ -48,6 +48,7 @@
                     </button>
 
                     <form id="addDocFormContainer" action="{{ path('app_admin_diliman_documents') }}" method="POST" class="hidden p-6 md:p-8 border-t border-gray-100 space-y-6">
+                        <input type="hidden" name="_token" value="{{ csrf_token('admin_doc_setup_create') }}">
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <!-- Document Name -->
@@ -270,6 +271,7 @@
                                             </button>
 
                                             <form action="{{ path('app_admin_diliman_documents_delete', {id: doc.id}) }}" method="POST" onsubmit="return confirm('Delete this requirement forever?');" class="inline m-0">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_doc_setup_delete_' ~ doc.id) }}">
                                                 <button type="submit" 
                                                         class="p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
                                                         title="Delete Requirement">
@@ -321,6 +323,7 @@
             </button>
         </div>
         <form id="editDocForm" method="POST" class="p-6 space-y-5">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_doc_setup_update') }}">
             <div>
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Document Name <span class="text-red-500">*</span></label>
                 <input type="text" name="name" id="edit_name" 

@@ -6,6 +6,12 @@ doctrine:
                 url: '%env(resolve:DATABASE_URL)%'
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
+            diliman:
+                url: '%env(resolve:DILIMAN_DATABASE_URL)%'
+                use_savepoints: true
+            alabang:
+                url: '%env(resolve:ALABANG_DATABASE_URL)%'
+                use_savepoints: true
             assoc:
                 url: '%env(resolve:ASSOC_DATABASE_URL)%'
                 use_savepoints: true
@@ -29,12 +35,8 @@ doctrine:
             auto_mapping: false
 
 when@test:
-    doctrine:
-        dbal:
-            connections:
-                default:
-                    # "TEST_TOKEN" is typically set by ParaTest
-                    dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+    framework:
+        test: true
 
 when@prod:
     doctrine:

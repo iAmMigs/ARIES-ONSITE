@@ -39,7 +39,7 @@
                     <form method="GET" action="{{ path('app_admin_diliman_registrations') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end" id="filterForm">
                         
                         {# 1. Search Keyword #}
-                        <div class="lg:col-span-3">
+                        <div class="lg:col-span-2">
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Search Keyword</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -47,11 +47,25 @@
                                 </div>
                                 <input type="text" name="search" value="{{ filters.search|default('') }}" 
                                        class="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
-                                       placeholder="Search name or student no...">
+                                       placeholder="Search name or ID...">
                             </div>
                         </div>
 
-                        {# 2. Education Level #}
+                        {# 2. School Year #}
+                        <div class="lg:col-span-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">School Year</label>
+                            <select name="school_year" 
+                                    class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs">
+                                <option value="">All School Years</option>
+                                {% for sy in schoolYears|default([]) %}
+                                    <option value="{{ sy.label }}" {{ filters.school_year|default('') == sy.label ? 'selected' : '' }}>
+                                        {{ sy.label }}{% if sy.isActive %} (Active){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {# 3. Education Level #}
                         <div class="lg:col-span-2">
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Education</label>
                             <select name="education_type" id="eduSelect" 
@@ -63,8 +77,8 @@
                             </select>
                         </div>
 
-                        {# 3. Grade Level Dropdown #}
-                        <div class="lg:col-span-3 relative group">
+                        {# 4. Grade Level Dropdown #}
+                        <div class="lg:col-span-2 relative group">
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Grade Level</label>
                             <button type="button" 
                                     class="w-full text-left bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm flex justify-between items-center outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
@@ -114,7 +128,7 @@
                             <select name="promissory" 
                                     class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs">
                                 <option value="">All</option>
-                                <option value="complied" {{ filters.promissory|default('') == 'complied' ? 'selected' : '' }}>Complied</option>
+                                <option value="complied" {{ filters.promissory|default('') == 'complied' ? 'selected' : '' }}>Documents Complied</option>
                                 <option value="not_complied" {{ filters.promissory|default('') == 'not_complied' ? 'selected' : '' }}>Not Complied</option>
                             </select>
                         </div>
@@ -154,7 +168,7 @@
                 {# --- TABLE CONTAINER --- #}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                        <h3 class="font-bold text-gray-800 text-base">Applicant Records ({{ totalItems }})</h3>
+                        <h3 class="font-bold text-gray-800 text-base">Applicant Records</h3>
                         <span class="text-xs text-gray-500">
                             Showing page <strong class="text-gray-800">{{ currentPage }}</strong> of {{ totalPages|default(1) }}
                         </span>

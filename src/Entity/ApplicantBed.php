@@ -279,6 +279,7 @@ class ApplicantBed
     public function setLandLineNumber(?string $n): static { $this->landLineNumber = $n; return $this; }
     public function getPersonalEmail(): ?string { return $this->personalEmail; }
     public function setPersonalEmail(string $e): static { $this->personalEmail = $e; return $this; }
+    public function getEmail(): ?string { return $this->personalEmail; }
     
     public function getPhotoSlug(): ?string { return $this->photoSlug; }
     public function setPhotoSlug(?string $p): static { $this->photoSlug = $p; return $this; }
@@ -357,4 +358,10 @@ class ApplicantBed
 
     public function getPassport(): ?ApplicantBedPassport { return $this->passport; }
     public function setPassport(?ApplicantBedPassport $passport): static { $this->passport = $passport; return $this; }
+
+    public function getFullName(): string
+    {
+        $parts = array_filter([$this->firstName, $this->middleName, $this->lastName, $this->extensionName]);
+        return implode(' ', $parts);
+    }
 }

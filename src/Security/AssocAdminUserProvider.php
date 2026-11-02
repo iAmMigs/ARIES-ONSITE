@@ -7,6 +7,8 @@ namespace App\Security;
 use App\Entity\AdminUser;
 use App\Repository\AdminUserRepository;
 use App\Service\AssocLoginService;
+use App\Service\CampusDatabaseSwitcher;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
@@ -15,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * Loads and bridges authenticated users between the central Associate Login database
- * and ARIES AdminUser entities.
+ * and ARIES campus-specific AdminUser entities.
  *
  * @implements UserProviderInterface<AdminUser>
  */
@@ -23,7 +25,9 @@ class AssocAdminUserProvider implements UserProviderInterface
 {
     public function __construct(
         private readonly AssocLoginService $assocLoginService,
-        private readonly AdminUserRepository $adminUserRepo
+        private readonly AdminUserRepository $adminUserRepo,
+        private readonly CampusDatabaseSwitcher $databaseSwitcher,
+        private readonly RequestStack $requestStack
     ) {
     }
 
@@ -42,8 +46,41 @@ class AssocAdminUserProvider implements UserProviderInterface
 
         $empId = (int) $assoc['employee_id'];
 
-        // 2. Fetch linked AdminUser from ARIES database
-        $adminUser = $this->adminUserRepo->find($empId);
+        // Determine target campus from current HTTP request
+        $request = $this->requestStack->getMainRequest();
+        $targetCampus = null;
+        if ($request) {
+            $targetCampus = (string) $request->request->get('_campus', '');
+            if (!$targetCampus) {
+                $failurePath = (string) $request->request->get('_failure_path', '');
+                if (str_contains($failurePath, 'alabang')) {
+                    $targetCampus = CampusDatabaseSwitcher::CAMPUS_ALABANG;
+                } elseif (str_contains($failurePath, 'diliman')) {
+                    $targetCampus = CampusDatabaseSwitcher::CAMPUS_DILIMAN;
+                } else {
+                    $path = strtolower($request->getPathInfo());
+                    if (str_contains($path, 'alabang')) {
+                        $targetCampus = CampusDatabaseSwitcher::CAMPUS_ALABANG;
+                    } elseif (str_contains($path, 'diliman')) {
+                        $targetCampus = CampusDatabaseSwitcher::CAMPUS_DILIMAN;
+                    }
+                }
+            }
+        }
+
+        if ($targetCampus) {
+            $this->databaseSwitcher->switchToCampus($targetCampus);
+            $adminUser = $this->adminUserRepo->find($empId);
+        } else {
+            // Fallback: check Diliman first, then Alabang
+            $this->databaseSwitcher->switchToCampus(CampusDatabaseSwitcher::CAMPUS_DILIMAN);
+            $adminUser = $this->adminUserRepo->find($empId);
+            if (!$adminUser) {
+                $this->databaseSwitcher->switchToCampus(CampusDatabaseSwitcher::CAMPUS_ALABANG);
+                $adminUser = $this->adminUserRepo->find($empId);
+            }
+        }
+
         if (!$adminUser) {
             throw new CustomUserMessageAuthenticationException(
                 'This associate account is not registered as an ARIES Administrator for this campus. Please contact your system administrator.'
@@ -76,9 +113,19 @@ class AssocAdminUserProvider implements UserProviderInterface
             throw new UserNotFoundException('Cannot refresh user with null employee number.');
         }
 
+        if ($user->getCampus()) {
+            $this->databaseSwitcher->switchToCampus($user->getCampus());
+        }
+
         $refreshed = $this->adminUserRepo->find($empNum);
         if (!$refreshed) {
             $e = new UserNotFoundException(sprintf('AdminUser with employee number "%d" not found.', $empNum));
+            $e->setUserIdentifier((string) $empNum);
+            throw $e;
+        }
+
+        if (!$refreshed->isActive()) {
+            $e = new UserNotFoundException(sprintf('This administrator account (#%d) has been deactivated.', $empNum));
             $e->setUserIdentifier((string) $empNum);
             throw $e;
         }

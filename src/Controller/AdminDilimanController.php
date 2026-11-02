@@ -19,10 +19,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Service\ApplicantDeletionService;
+use App\Service\DocumentComplianceService;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 #[Route('/diliman-admin')]
 class AdminDilimanController extends AbstractController
 {
+    public function __construct(
+        private readonly DocumentComplianceService $complianceService
+    ) {
+    }
     #[Route('/', name: 'app_admin_diliman_dashboard')]
     public function dashboard(ApplicantBedRepository $repository, SchoolYearRepository $syRepo): Response
     {
@@ -165,7 +171,7 @@ class AdminDilimanController extends AbstractController
             ->getResult();
 
         $sources = [
-            'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Social Media',
+            'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Other Social Media',
             'Facebook', 'Instagram', 'TikTok',
             'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
             'Friends', 'Family/Relatives',
@@ -183,6 +189,9 @@ class AdminDilimanController extends AbstractController
             $individualSources = array_map('trim', explode(',', $srcStr));
             foreach ($individualSources as $singleSrc) {
                 if ($singleSrc === '') continue;
+                if ($singleSrc === 'Social Media' || str_starts_with($singleSrc, 'Social Media')) {
+                    $singleSrc = 'Other Social Media';
+                }
                 if (isset($discoveryMap[$singleSrc])) {
                     $discoveryMap[$singleSrc] += $cnt;
                 } else {
@@ -209,9 +218,10 @@ class AdminDilimanController extends AbstractController
     }
 
     #[Route('/registrations', name: 'app_admin_diliman_registrations')]
-    public function registrations(Request $request, ApplicantBedRepository $repository): Response
+    public function registrations(Request $request, ApplicantBedRepository $repository, SchoolYearRepository $syRepo): Response
     {
         $qb = $repository->createQueryBuilder('a')
+            ->leftJoin('a.passport', 'p')->addSelect('p')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
             ->orderBy('a.createdAt', 'DESC');
@@ -219,6 +229,11 @@ class AdminDilimanController extends AbstractController
         if ($search = $request->query->get('search')) {
             $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
                ->setParameter('search', "%$search%");
+        }
+
+        if ($sy = $request->query->get('school_year')) {
+            $qb->andWhere('a.schoolYearOfEntry = :schoolYear')
+               ->setParameter('schoolYear', $sy);
         }
 
         if ($eduType = $request->query->get('education_type')) {
@@ -282,21 +297,25 @@ class AdminDilimanController extends AbstractController
         $totalItems = count($paginator);
         $totalPages = ceil($totalItems / $limit);
 
+        $schoolYears = $syRepo->findByCampusOrdered(ApplicantBed::CAMPUS_DILIMAN);
+
         return $this->render('admin-onsite/diliman/registrations.html.twig', [
             'registrations' => $paginator,
             'filters' => $request->query->all(),
             'currentPage' => $page,
             'totalPages' => $totalPages,
-            'totalItems' => $totalItems
+            'totalItems' => $totalItems,
+            'schoolYears' => $schoolYears,
         ]);
     }
 
     #[Route('/registrations/export', name: 'app_admin_diliman_registrations_export')]
-    public function export(Request $request, ApplicantBedRepository $repository): Response
+    public function export(Request $request, ApplicantBedRepository $repository, SchoolYearRepository $syRepo): Response
     {
         $qb = $repository->createQueryBuilder('a')
             ->leftJoin('a.guardians', 'g')->addSelect('g')
             ->leftJoin('a.schools', 's')->addSelect('s')
+            ->leftJoin('a.passport', 'p')->addSelect('p')
             ->where('a.campus = :campus')
             ->setParameter('campus', ApplicantBed::CAMPUS_DILIMAN)
             ->orderBy('a.createdAt', 'DESC');
@@ -304,6 +323,11 @@ class AdminDilimanController extends AbstractController
         if ($search = $request->query->get('search')) {
             $qb->andWhere('a.firstName LIKE :search OR a.lastName LIKE :search OR a.studentNumber LIKE :search')
                ->setParameter('search', "%$search%");
+        }
+
+        if ($sy = $request->query->get('school_year')) {
+            $qb->andWhere('a.schoolYearOfEntry = :schoolYear')
+               ->setParameter('schoolYear', $sy);
         }
 
         if ($eduType = $request->query->get('education_type')) {
@@ -362,6 +386,17 @@ class AdminDilimanController extends AbstractController
         
         // UTF-8 BOM so Excel opens with proper UTF-8 encoding
         fputs($handle, "\xEF\xBB\xBF");
+
+        // CSV formula injection sanitizer (protects against DDE execution in Excel/Calc)
+        $sanitizeCsv = static function (mixed $value): mixed {
+            if (!is_string($value)) {
+                return $value;
+            }
+            if ($value !== '' && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+                return "'" . $value;
+            }
+            return $value;
+        };
 
         // Comprehensive CSV Headers
             fputcsv($handle, [
@@ -492,7 +527,7 @@ class AdminDilimanController extends AbstractController
                     default => $applicant->getGender() ?? ''
                 };
 
-                fputcsv($handle, [
+                fputcsv($handle, array_map($sanitizeCsv, [
                     $applicant->getStudentNumber(),
                     $applicant->getCampus() === ApplicantBed::CAMPUS_ALABANG ? 'FEU Alabang' : 'FEU Diliman',
                     $applicant->getSchoolYearOfEntry() ?? '',
@@ -562,7 +597,7 @@ class AdminDilimanController extends AbstractController
                     $applicant->isDocumentsAgreed() ? 'Yes' : 'No',
                     $applicant->getDocumentsAgreedDate() ? $applicant->getDocumentsAgreedDate()->format('Y-m-d') : '',
                     $applicant->getCreatedAt() ? $applicant->getCreatedAt()->format('Y-m-d H:i:s') : ''
-                ]);
+                ]));
             }
             rewind($handle);
             $csvContent = (string)stream_get_contents($handle);
@@ -639,19 +674,32 @@ class AdminDilimanController extends AbstractController
             }
         }
 
-        // Photo as base64 for Dompdf offline rendering
+        $projectDir = (string)$this->getParameter('kernel.project_dir');
+
+        // Photo as base64 for Dompdf offline rendering (with strict path validation against path traversal)
         $photoBase64 = null;
         if ($registration->getPhotoSlug()) {
-            $publicDir = $this->getParameter('kernel.project_dir') . '/public';
-            $photoPath = $publicDir . '/' . ltrim($registration->getPhotoSlug(), '/');
-            if (file_exists($photoPath) && is_readable($photoPath)) {
-                $type = pathinfo($photoPath, PATHINFO_EXTENSION);
-                $data = file_get_contents($photoPath);
+            $publicDir = $projectDir . '/public';
+            $uploadsDir = realpath($publicDir . '/uploads/onsite-id-pics');
+            $rawPhotoPath = $publicDir . '/' . ltrim((string)$registration->getPhotoSlug(), '/');
+            $realPhotoPath = realpath($rawPhotoPath);
+
+            if ($realPhotoPath !== false && $uploadsDir !== false && str_starts_with($realPhotoPath, $uploadsDir) && is_readable($realPhotoPath)) {
+                $type = pathinfo($realPhotoPath, PATHINFO_EXTENSION);
+                $data = file_get_contents($realPhotoPath);
                 if ($data !== false) {
                     $photoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
                 }
             }
         }
+
+        // Campus Logo as base64 for Dompdf offline rendering
+        $logoPath = $projectDir . '/public/images/hero/diliman.png';
+        $logoBase64 = is_readable($logoPath) ? 'data:image/png;base64,' . base64_encode((string)file_get_contents($logoPath)) : null;
+
+        // Della Robbia font as base64 for offline rendering
+        $fontPath = $projectDir . '/public/fonts/della_robbia/DELAROBB.TTF';
+        $dellaRobbiaBase64 = is_readable($fontPath) ? base64_encode((string)file_get_contents($fontPath)) : null;
 
         $activeSY = $em->getRepository(\App\Entity\SchoolYear::class)->findOneBy(['campus' => ApplicantBed::CAMPUS_DILIMAN, 'isActive' => true]);
         $promissoryDeadline = $registration->getDocumentsAgreedDate() ?? ($activeSY ? $activeSY->getPromissoryDeadline() : null);
@@ -668,13 +716,15 @@ class AdminDilimanController extends AbstractController
             'guardian' => $guardian,
             'lastSchoolName' => $lastSchoolName,
             'photoBase64' => $photoBase64,
+            'logoBase64' => $logoBase64,
+            'dellaRobbiaBase64' => $dellaRobbiaBase64,
             'promissoryDeadline' => $promissoryDeadline,
             'activeSY' => $activeSY,
         ]);
 
         $options = new \Dompdf\Options();
         $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
+        $options->set('isRemoteEnabled', false);
         $options->setDefaultFont('Helvetica');
 
         $dompdf = new \Dompdf\Dompdf($options);
@@ -720,6 +770,11 @@ class AdminDilimanController extends AbstractController
         $countries = $em->getRepository(\App\Entity\LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
 
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_edit_registration_' . $registration->getStudentNumber(), (string)$request->request->get('_token'))) {
+                $this->addFlash('error', 'Invalid security token. Please try submitting again.');
+                return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+            }
+
             $firstNameInput = trim((string)$request->request->get('first_name', ''));
             $lastNameInput = trim((string)$request->request->get('last_name', ''));
             $dobInput = trim((string)$request->request->get('birth_date', ''));
@@ -775,6 +830,8 @@ class AdminDilimanController extends AbstractController
             $registration->setReligion($request->request->get('religion'));
             $registration->setCitizenship($request->request->get('citizenship'));
             $registration->setNationality($request->request->get('nationality'));
+            $lrn = trim((string)$request->request->get('lrn', ''));
+            $registration->setLrn($lrn !== '' ? $lrn : null);
             $registration->setPreferredName($request->request->get('preferred_name'));
             $registration->setSuffix($request->request->get('suffix'));
             $registration->setCountryOfBirth($request->request->get('country_of_birth'));
@@ -837,12 +894,6 @@ class AdminDilimanController extends AbstractController
                 $registration->setBirthDate(new \DateTime($dob));
             }
 
-            if ($agreedDateStr = $request->request->get('documents_agreed_date')) {
-                $registration->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
-            } else {
-                $registration->setDocumentsAgreedDate(null);
-            }
-
             $profileFile = $request->files->get('profile_picture');
             $sidebarProfileFile = $request->files->get('profile_picture_sidebar');
             $chosenProfile = ($profileFile && $profileFile->isValid()) 
@@ -854,11 +905,20 @@ class AdminDilimanController extends AbstractController
                     $this->addFlash('error', 'The profile picture exceeds the 5MB limit.');
                     return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
                 }
+                $photoMime = (string)$chosenProfile->getMimeType();
+                if (!str_starts_with($photoMime, 'image/')) {
+                    $this->addFlash('error', 'The profile picture must be a valid image (JPEG, PNG, WEBP).');
+                    return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+                }
                 $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/onsite-id-pics';
                 if (!is_dir($targetDir)) {
                     @mkdir($targetDir, 0777, true);
                 }
-                $ext = $chosenProfile->guessExtension() ?: 'png';
+                $safePhotoExts = ['jpg', 'jpeg', 'png', 'webp'];
+                $ext = strtolower((string)($chosenProfile->guessExtension() ?: 'png'));
+                if (!in_array($ext, $safePhotoExts, true)) {
+                    $ext = 'png';
+                }
                 $filename = $registration->getStudentNumber() . '-ID-' . uniqid() . '.' . $ext;
                 try {
                     $chosenProfile->move($targetDir, $filename);
@@ -872,14 +932,43 @@ class AdminDilimanController extends AbstractController
                 $inputName = $docSetup->getSlug();
                 $docFile = $request->files->get($inputName);
                 
-                if ($docFile) {
+                if ($docFile instanceof UploadedFile && $docFile->isValid()) {
                     if ($docFile->getSize() > 10485760) {
                         $this->addFlash('error', 'The document ' . $docSetup->getDocumentName() . ' exceeds the 10MB limit.');
                         return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
                     }
+
+                    $allowedTypesString = $docSetup->getAllowedFileTypes();
+                    $allowedExtensions = !empty($allowedTypesString)
+                        ? array_map('trim', explode(',', strtolower($allowedTypesString)))
+                        : ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+
+                    if (in_array('jpg', $allowedExtensions, true) && !in_array('jpeg', $allowedExtensions, true)) {
+                        $allowedExtensions[] = 'jpeg';
+                    } elseif (in_array('jpeg', $allowedExtensions, true) && !in_array('jpg', $allowedExtensions, true)) {
+                        $allowedExtensions[] = 'jpg';
+                    }
+
+                    $clientExt = strtolower((string)$docFile->getClientOriginalExtension());
+                    if (!in_array($clientExt, $allowedExtensions, true)) {
+                        $this->addFlash('error', 'Invalid format for ' . $docSetup->getDocumentName() . '. Allowed: ' . implode(', ', $allowedExtensions));
+                        return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+                    }
+
+                    $mime = (string)$docFile->getMimeType();
+                    $isAllowedMime = str_starts_with($mime, 'image/')
+                        || $mime === 'application/pdf'
+                        || (in_array('docx', $allowedExtensions, true) && ($mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || $mime === 'application/zip'))
+                        || (in_array('doc', $allowedExtensions, true) && ($mime === 'application/msword'));
+
+                    if (!$isAllowedMime) {
+                        $this->addFlash('error', 'Invalid file type for ' . $docSetup->getDocumentName());
+                        return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+                    }
+
                     $req = $em->getRepository(ApplicantBedRequirement::class)->findOneBy([
                         'applicant' => $registration, 
-                        'Slug' => $inputName
+                        'slug' => $inputName
                     ]);
                     
                     if (!$req) {
@@ -890,10 +979,18 @@ class AdminDilimanController extends AbstractController
                         $em->persist($req);
                     }
                     
-                    $extension = $docFile->guessExtension() ?: 'pdf';
+                    $safeExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx'];
+                    $extension = strtolower((string)($docFile->guessExtension() ?: $clientExt));
+                    if (!in_array($extension, $safeExts, true)) {
+                        $extension = 'pdf';
+                    }
                     $filename = $registration->getStudentNumber() . '-' . strtoupper($inputName) . '-' . uniqid() . '.' . $extension;
                     try {
-                        $docFile->move($this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName(), $filename);
+                        $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
+                        if (!is_dir($targetDir)) {
+                            @mkdir($targetDir, 0777, true);
+                        }
+                        $docFile->move($targetDir, $filename);
                         $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
                         $req->setIsDeleted(false);
                         $req->setDateSubmitted(new \DateTime());
@@ -901,6 +998,8 @@ class AdminDilimanController extends AbstractController
                     } catch (\Exception $e) { }
                 }
             }
+
+            $this->complianceService->syncComplianceStatus($registration);
 
             $examTaken = $request->request->get('exam_taken') === '1';
             $paymentPaid = $request->request->get('payment_paid') === '1';
@@ -936,8 +1035,7 @@ class AdminDilimanController extends AbstractController
                 $registration->setExaminationDate(null);
             }
 
-            $this->hydrateAddress($registration, $request, $em, 'current');
-            $this->hydrateAddress($registration, $request, $em, 'permanent');
+
 
             $guardiansData = $request->request->all('guardians');
             foreach ($registration->getGuardians() as $index => $g) {
@@ -990,6 +1088,9 @@ class AdminDilimanController extends AbstractController
                     $g->setDeceased(isset($data['deceased']));
                     $g->setOFW(isset($data['ofw']));
                     $g->setNationality(strtoupper($data['nationality'] ?? 'FILIPINO'));
+                    if (array_key_exists('email', $data)) {
+                        $g->setEmail($data['email'] ? trim((string)$data['email']) : null);
+                    }
 
                     if ($gType === 'GUARDIAN') {
                         $sameAsApplicant = isset($data['same_as_applicant']);
@@ -1108,6 +1209,9 @@ class AdminDilimanController extends AbstractController
                         $newG->setContactNo('');
                     }
                     $newG->setNationality(strtoupper($data['nationality'] ?? 'FILIPINO'));
+                    if (array_key_exists('email', $data)) {
+                        $newG->setEmail($data['email'] ? trim((string)$data['email']) : null);
+                    }
                     $registration->addGuardian($newG);
                     $em->persist($newG);
                 }
@@ -1194,12 +1298,12 @@ class AdminDilimanController extends AbstractController
     private function hydrateApplicantAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em): void
     {
         $curStreet = $request->request->get('current_address');
-        if ($curStreet !== null && trim((string)$curStreet) !== '') {
-            $applicant->setCurrentAddress(strtoupper(trim((string)$curStreet)));
+        if ($curStreet !== null) {
+            $applicant->setCurrentAddress(trim((string)$curStreet) !== '' ? strtoupper(trim((string)$curStreet)) : null);
         }
         $curZip = $request->request->get('current_zip');
-        if ($curZip !== null && trim((string)$curZip) !== '') {
-            $applicant->setCurrentZip(trim((string)$curZip));
+        if ($curZip !== null) {
+            $applicant->setCurrentZip(trim((string)$curZip) !== '' ? trim((string)$curZip) : null);
         }
 
         $curReg = $request->request->get('addr_region');
@@ -1224,12 +1328,12 @@ class AdminDilimanController extends AbstractController
         }
 
         $permStreet = $request->request->get('permanent_address');
-        if ($permStreet !== null && trim((string)$permStreet) !== '') {
-            $applicant->setPermanentAddress(strtoupper(trim((string)$permStreet)));
+        if ($permStreet !== null) {
+            $applicant->setPermanentAddress(trim((string)$permStreet) !== '' ? strtoupper(trim((string)$permStreet)) : null);
         }
         $permZip = $request->request->get('permanent_zip');
-        if ($permZip !== null && trim((string)$permZip) !== '') {
-            $applicant->setPermanentZip(trim((string)$permZip));
+        if ($permZip !== null) {
+            $applicant->setPermanentZip(trim((string)$permZip) !== '' ? trim((string)$permZip) : null);
         }
 
         if (strtoupper($applicant->getCitizenship() ?? '') === 'INTERNATIONAL') {
@@ -1339,70 +1443,17 @@ class AdminDilimanController extends AbstractController
         $g->setPermanentZip($data['ofw_perm_zip'] ?? $data['perm_zip'] ?? '');
     }
 
-    private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type): void
-    {
-        if ($type === 'permanent' && strtoupper($applicant->getCitizenship() ?? '') === 'INTERNATIONAL') {
-            $applicant->setPermanentCountry($request->request->get('perm_country'));
-            $applicant->setPermanentProvince($request->request->get('perm_province_text'));
-            $applicant->setPermanentCity($request->request->get('perm_city_text'));
-            $applicant->setPermanentBarangay($request->request->get('perm_barangay_text'));
-            $applicant->setPermanentRegion(null);
-            $applicant->setPermanentAddress($request->request->get('permanent_address'));
-            $applicant->setPermanentZip($request->request->get('permanent_zip'));
-            return;
-        }
-
-        $prefix = ($type === 'current') ? 'addr' : 'perm';
-        $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
-
-        $regionCode = $request->request->get($prefix . '_region');
-        $provCode = $request->request->get($prefix . '_province');
-        $cityCode = $request->request->get($prefix . '_city');
-        $brgyName = $request->request->get($prefix . '_barangay');
-
-        if ($regionCode) {
-            $r = is_numeric($regionCode)
-                ? $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => (int)$regionCode])
-                : $em->getRepository(LookupRegion::class)->findOneBy(['regionDesc' => $regionCode]);
-            $applicant->{'set'.$fieldPrefix.'Region'}($r ? $r->getRegionDesc() : $regionCode);
-        } else {
-            $applicant->{'set'.$fieldPrefix.'Region'}(null);
-        }
-        if ($provCode) {
-            $p = is_numeric($provCode)
-                ? $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => (int)$provCode])
-                : $em->getRepository(LookupProvince::class)->findOneBy(['provinceDesc' => $provCode]);
-            $applicant->{'set'.$fieldPrefix.'Province'}($p ? $p->getProvinceDesc() : $provCode);
-        } else {
-            $applicant->{'set'.$fieldPrefix.'Province'}(null);
-        }
-        if ($cityCode) {
-            $c = is_numeric($cityCode)
-                ? $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => (int)$cityCode])
-                : $em->getRepository(LookupCity::class)->findOneBy(['cityDesc' => $cityCode]);
-            $applicant->{'set'.$fieldPrefix.'City'}($c ? $c->getCityDesc() : $cityCode);
-        } else {
-            $applicant->{'set'.$fieldPrefix.'City'}(null);
-        }
-        if ($brgyName) {
-            $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyName);
-        } else {
-            $applicant->{'set'.$fieldPrefix.'Barangay'}(null);
-        }
-
-        $applicant->{'set'.$fieldPrefix.'Address'}($request->request->get($type . '_address'));
-        $applicant->{'set'.$fieldPrefix.'Zip'}($request->request->get($type . '_zip'));
-        if ($type === 'permanent') {
-            $applicant->setPermanentCountry(null);
-        }
-    }
-
     #[Route('/registration/{id}/delete', name: 'app_admin_diliman_delete', methods: ['POST'])]
     public function delete(string $id, Request $request, ApplicantBedRepository $repository, ApplicantDeletionService $service): Response
     {
         $registration = $repository->find($id);
         if (!$registration || $registration->getCampus() !== ApplicantBed::CAMPUS_DILIMAN) {
             throw $this->createNotFoundException();
+        }
+
+        if (!$this->isCsrfTokenValid('admin_delete_registration_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_diliman_registrations');
         }
 
         $service->deleteApplicant($registration);
@@ -1414,6 +1465,11 @@ class AdminDilimanController extends AbstractController
     public function documentSetup(EntityManagerInterface $em, Request $request): Response
     {
         if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('admin_doc_setup_create', (string) $request->request->get('_token'))) {
+                $this->addFlash('error', 'Invalid security token.');
+                return $this->redirectToRoute('app_admin_diliman_documents');
+            }
+
             $name = $request->request->get('name');
             $slug = 'req_' . strtolower(preg_replace('/[^a-zA-Z0-9]/', '_', $name));
             $slug = preg_replace('/_+/', '_', $slug); 
@@ -1445,8 +1501,13 @@ class AdminDilimanController extends AbstractController
     }
 
     #[Route('/document-setup/{id}/delete', name: 'app_admin_diliman_documents_delete', methods: ['POST'])]
-    public function deleteDocumentSetup(int $id, EntityManagerInterface $em): Response
+    public function deleteDocumentSetup(int $id, Request $request, EntityManagerInterface $em): Response
     {
+        if (!$this->isCsrfTokenValid('admin_doc_setup_delete_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_diliman_documents');
+        }
+
         $doc = $em->getRepository(DocumentSetup::class)->find($id);
         if (!$doc || ($doc->getCampus() !== null && $doc->getCampus() !== ApplicantBed::CAMPUS_DILIMAN)) {
             throw $this->createNotFoundException();
@@ -1461,6 +1522,11 @@ class AdminDilimanController extends AbstractController
     #[Route('/document-setup/{id}/update', name: 'app_admin_diliman_documents_update', methods: ['POST'])]
     public function updateDocumentSetup(int $id, EntityManagerInterface $em, Request $request): Response
     {
+        if (!$this->isCsrfTokenValid('admin_doc_setup_update', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_diliman_documents');
+        }
+
         $doc = $em->getRepository(DocumentSetup::class)->find($id);
         if (!$doc || ($doc->getCampus() !== null && $doc->getCampus() !== ApplicantBed::CAMPUS_DILIMAN)) {
             throw $this->createNotFoundException();
@@ -1481,8 +1547,13 @@ class AdminDilimanController extends AbstractController
     }
 
     #[Route('/registration/{id}/document/{slug}/soft-delete', name: 'app_admin_diliman_registration_doc_delete', methods: ['POST'])]
-    public function softDeleteApplicantDocument(string $id, string $slug, EntityManagerInterface $em): Response
+    public function softDeleteApplicantDocument(string $id, string $slug, Request $request, EntityManagerInterface $em): Response
     {
+        if (!$this->isCsrfTokenValid('admin_soft_delete_doc_' . $id . '_' . $slug, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_diliman_registration_edit', ['id' => $id]);
+        }
+
         $registration = $em->getRepository(ApplicantBed::class)->find($id);
         if (!$registration || $registration->getCampus() !== ApplicantBed::CAMPUS_DILIMAN) {
             throw $this->createNotFoundException();
@@ -1494,6 +1565,7 @@ class AdminDilimanController extends AbstractController
         ]);
         if ($req) {
             $req->setIsDeleted(true); 
+            $this->complianceService->syncComplianceStatus($registration);
             $em->flush();
             $this->addFlash('success', 'Document soft-deleted successfully.');
         }
@@ -1540,6 +1612,7 @@ class AdminDilimanController extends AbstractController
             $req->setDateSubmitted(new \DateTime());
         }
 
+        $this->complianceService->syncComplianceStatus($registration);
         $em->flush();
         $this->addFlash('success', 'Document requirement waived successfully.');
         return $this->redirectToRoute($redirectTarget, ['id' => $id]);
@@ -1575,6 +1648,7 @@ class AdminDilimanController extends AbstractController
                 $req->setIsDeleted(true);
                 $req->setStatus(ApplicantBedRequirement::STATUS_PENDING);
             }
+            $this->complianceService->syncComplianceStatus($registration);
             $em->flush();
             $this->addFlash('success', 'Requirement waiver removed successfully.');
         }
@@ -1584,55 +1658,6 @@ class AdminDilimanController extends AbstractController
 
     private function getFilteredDocumentSetups(ApplicantBed $registration, EntityManagerInterface $em, string $campus): array
     {
-        $allSetups = $em->getRepository(DocumentSetup::class)->findBy([
-            'campus' => [$campus, null]
-        ]);
-
-        $filtered = [];
-        $gradeLevel = $registration->getGradeLevel();
-        $admissionType = $registration->getAdmissionType(); // 'Freshman' or 'Transferee'
-        $citizenship = $registration->getCitizenship(); // 'Filipino', 'Foreign', 'Dual'
-
-        foreach ($allSetups as $setup) {
-            /* Check if applicant meets grade level requirement */
-            $grades = $setup->getGradeLevels();
-            if ($grades && !empty($grades)) {
-                $normalizedGrades = array_map(fn($g) => strtolower(str_replace([' ', '_', '-'], '', (string)$g)), $grades);
-                $normalizedApplicantGrade = strtolower(str_replace([' ', '_', '-'], '', (string)$gradeLevel));
-                if (!in_array('all', $normalizedGrades, true) && !in_array($normalizedApplicantGrade, $normalizedGrades, true)) {
-                    continue;
-                }
-            }
-
-            /* Check if applicant meets student admission type requirement */
-            $sReq = $setup->getStudentType(); // 'All', 'New', 'Transferee', 'Old'
-            if ($sReq && strtoupper($sReq) !== 'ALL') {
-                $sReqNorm = strtoupper(trim(str_replace([' ', '_', '-'], '', (string)$sReq)));
-                $admNorm = strtoupper(trim(str_replace([' ', '_', '-'], '', (string)$admissionType)));
-                if (($sReqNorm === 'NEW' || $sReqNorm === 'NEWSTUDENT') && $admNorm !== 'FRESHMAN' && $admNorm !== 'NEW' && $admNorm !== 'NEWSTUDENT') {
-                    continue;
-                }
-                if ($sReqNorm === 'TRANSFEREE' && $admNorm !== 'TRANSFEREE') {
-                    continue;
-                }
-            }
-
-            /* Check if applicant meets citizenship/nationality requirement */
-            $nReq = strtoupper((string) $setup->getNationalityType()); // 'All', 'Local', 'International', 'Filipino', 'Foreign'
-            if ($nReq !== '' && $nReq !== 'ALL') {
-                $isLocalReq = ($nReq === 'LOCAL' || $nReq === 'FILIPINO');
-                $isApplicantLocal = (strtoupper($citizenship) === 'LOCAL' || strtoupper($citizenship) === 'FILIPINO');
-                if ($isLocalReq && !$isApplicantLocal) {
-                    continue;
-                }
-                if (!$isLocalReq && $isApplicantLocal) {
-                    continue;
-                }
-            }
-
-            $filtered[] = $setup;
-        }
-
-        return $filtered;
+        return $this->complianceService->getApplicableDocuments($registration);
     }
 }

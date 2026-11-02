@@ -15,74 +15,81 @@
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Edit Student Details'} %}
 
-        <div class="flex-1 overflow-y-auto p-8">
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
              <form method="post" class="max-w-7xl mx-auto" id="editForm" enctype="multipart/form-data">
+                <input type="hidden" name="_token" value="{{ csrf_token('admin_edit_registration_' ~ registration.studentNumber) }}">
         
                 {# Header Actions #}
-                <div class="mb-6 flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <a href="{{ path('app_admin_diliman_registrations') }}" id="btn_discard" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-feu-green-700 hover:border-feu-green-600 transition-all shadow-sm">
-                            <i class="ki-filled ki-arrow-left"></i>
+                <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <a href="{{ path('app_admin_diliman_registrations') }}" id="btn_discard" class="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-200 rounded-xl text-gray-700 hover:text-red-600 hover:border-red-200 shadow-2xs transition-all font-semibold text-xs">
+                            <i class="ki-filled ki-arrow-left text-sm"></i>
+                            <span>Discard Changes</span>
                         </a>
-                        <span class="text-gray-500 text-sm font-medium">Discard Changes</span>
                     </div>
-                    <button type="submit" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
-                        <i class="ki-filled ki-check mr-2"></i> Save Changes
+                    <button type="submit" class="inline-flex items-center gap-2 bg-feu-green-600 hover:bg-feu-green-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-sm shadow-feu-green-700/20 transition-all cursor-pointer">
+                        <i class="ki-filled ki-check text-sm"></i>
+                        <span>Save Changes</span>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-12 gap-6">
-                    {# --- 1. APPLICANT CARD (Header) --- #}
-                    <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
+                    {# --- 1. APPLICANT CARD (Header Banner) --- #}
+                    <div class="col-span-12 bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80 flex flex-col md:flex-row gap-6 md:gap-8 items-start relative overflow-hidden">
                         
                         {# Profile Picture (Editable) #}
                         <div class="flex-shrink-0 relative group">
-                            <div class="w-40 h-40 rounded-2xl overflow-hidden border-4 border-white shadow-lg relative">
-                                <img id="applicantAvatarImg" src="{{ registration.photoSlug ? asset(registration.photoSlug) : asset('metronic/media/avatars/blank.png') }}" class="w-full h-full object-cover">
+                            <div class="w-36 h-36 rounded-2xl overflow-hidden border-4 border-white shadow-md ring-1 ring-gray-200/60 relative bg-gray-100">
+                                <img id="applicantAvatarImg" src="{{ registration.photoSlug ? asset(registration.photoSlug) : asset('metronic/media/avatars/blank.png') }}" class="w-full h-full object-cover" alt="Student Photo">
                                 
                                 {# Hover Overlay for Upload #}
-                                <label for="applicantAvatarInput" class="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                    <i class="ki-filled ki-pencil text-white text-2xl mb-1"></i>
-                                    <span class="text-xs text-white font-bold uppercase">Change Photo</span>
+                                <label for="applicantAvatarInput" class="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+                                    <i class="ki-filled ki-camera text-2xl mb-1"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider">Change Photo</span>
                                 </label>
-                                <input type="file" id="applicantAvatarInput" name="profile_picture" class="hidden" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
+                                <input type="file" id="applicantAvatarInput" name="profile_picture" class="hidden" accept=".jpg,.jpeg,.png,.webp" onchange="previewImage(this)">
                             </div>
                         </div>
 
-                        <div class="flex-grow pt-2 space-y-4">
+                        <div class="flex-grow pt-1 min-w-0 space-y-4">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Last Name</label>
-                                    <input type="text" name="last_name" value="{{ registration.lastName }}" class="w-full font-bold text-gray-900 border border-gray-300 bg-gray-50 rounded px-3 py-2 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="Last Name">
+                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Last Name</label>
+                                    <input type="text" name="last_name" value="{{ registration.lastName }}" class="w-full font-bold text-gray-900 border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-2xs focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="Last Name" required>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">First Name</label>
-                                    <input type="text" name="first_name" value="{{ registration.firstName }}" class="w-full font-bold text-gray-900 border border-gray-300 bg-gray-50 rounded px-3 py-2 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="First Name">
+                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">First Name</label>
+                                    <input type="text" name="first_name" value="{{ registration.firstName }}" class="w-full font-bold text-gray-900 border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-2xs focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="First Name" required>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Middle Name</label>
-                                    <input type="text" name="middle_name" value="{{ registration.middleName }}" class="w-full font-bold text-gray-900 border border-gray-300 bg-gray-50 rounded px-3 py-2 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="Middle Name">
+                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1">Middle Name</label>
+                                    <input type="text" name="middle_name" value="{{ registration.middleName }}" class="w-full font-bold text-gray-900 border border-gray-300 rounded-lg px-3 py-2 text-sm shadow-2xs focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none transition-colors" placeholder="Middle Name (Optional)">
                                 </div>
                             </div>
                             
-                            <div class="flex flex-wrap gap-3">
-                                <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200 cursor-not-allowed opacity-80">
-                                    <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <div class="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold border border-gray-200/70 font-mono select-none" title="Student Number is fixed">
+                                    <span class="text-[10px] text-gray-400 uppercase mr-1">ID</span>{{ registration.studentNumber }}
                                 </div>
 
-                                <select name="admission_type" class="bg-purple-50 text-purple-700 text-sm font-semibold border border-purple-100 rounded-lg px-2 py-1">
+                                {% if registration.lrn %}
+                                    <div class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200/70 font-mono select-none" title="Learner Reference Number">
+                                        <span class="text-[10px] text-blue-400 uppercase mr-1">LRN</span>{{ registration.lrn }}
+                                    </div>
+                                {% endif %}
+
+                                <select name="admission_type" class="bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200/70 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-purple-500 outline-none">
                                     <option value="New Student" {{ (registration.admissionType == 'New Student' or registration.admissionType == 'Freshman') ? 'selected' : '' }}>New Student</option>
                                     <option value="Transferee" {{ registration.admissionType == 'Transferee' ? 'selected' : '' }}>Transferee</option>
                                 </select>
                                                             
-                                <select name="grade_level" class="bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100 rounded-lg px-2 py-1" onchange="if(window.updateGradeDependents) window.updateGradeDependents()">
+                                <select name="grade_level" class="bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200/70 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-emerald-500 outline-none" onchange="if(window.updateGradeDependents) window.updateGradeDependents()">
                                     {% for level in ['kinder', 'grade_1', 'grade_2', 'grade_3', 'grade_4', 'grade_5', 'grade_6', 'grade_7', 'grade_8', 'grade_9', 'grade_10', 'grade_11', 'grade_12'] %}
                                         <option value="{{ level }}" {{ (registration.gradeLevel|lower|replace({' ': '_'}) == level|lower or (level == 'kinder' and registration.gradeLevel|lower in ['kinder', 'kindergarten'])) ? 'selected' : '' }}>{{ level|replace({'_': ' '})|title }}</option>
                                     {% endfor %}
                                 </select>
 
-                                <select name="track_strand" class="bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100 rounded-lg px-2 py-1">
+                                <select name="track_strand" class="bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200/70 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-amber-500 outline-none">
                                     <option value="">Select Framework / Strand</option>
                                     {% for framework in ['Accountancy, Business Administration, and Management', 'Arts and Humanities', 'Engineering and Architecture', 'IT and Computer Science', 'Medicine and Health Sciences', 'Tourism and Hospitality', 'Mixed Framework', 'STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'] %}
                                         <option value="{{ framework }}" {{ (registration.trackStrand|upper == framework|upper) ? 'selected' : '' }}>{{ framework }}</option>
@@ -92,18 +99,18 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-sms"></i> Email</label>
-                                    <input type="email" name="email" value="{{ registration.personalEmail }}" class="w-full text-sm text-gray-600 border border-gray-400 rounded-lg px-3 py-2.5 mt-1 shadow-sm focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500">
+                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1"><i class="ki-filled ki-sms mr-1 text-feu-green-600"></i> Personal Email</label>
+                                    <input type="email" name="email" value="{{ registration.personalEmail }}" class="w-full text-sm text-gray-800 border border-gray-300 rounded-lg px-3 py-2 shadow-2xs focus:ring-2 focus:ring-feu-green-200 focus:border-feu-green-500 outline-none" required>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold flex items-center gap-1"><i class="ki-filled ki-phone"></i> Mobile</label>
-                                    <div class="mt-1">
+                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-1"><i class="ki-filled ki-phone mr-1 text-feu-green-600"></i> Mobile Number</label>
+                                    <div>
                                         {% include 'enrollment-onsite/_phone_input.html.twig' with {
                                             prefix: 'applicant_mobile',
                                             dial_name: 'mobile_country_dial_code',
                                             input_name: 'mobile',
                                             input_id: 'applicantMobileInput',
-                                            input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                            input_class: 'border border-gray-300 rounded-r-lg text-sm shadow-2xs px-3 py-2',
                                             value: registration.mobileNumber,
                                             placeholder: '9xxxxxxxxx',
                                             countries: countries
@@ -113,132 +120,139 @@
                             </div>
                         </div>
 
-                        {# Dynamic Status Section #}
-                        <div id="statusSectionContainer" class="flex-shrink-0 self-start md:self-center min-w-[200px]">
-                            {# Examination Status - Only for SHS #}
-                            <div id="shsExamSection" class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center" style="{{ registration.educationType == 'SHS' ? '' : 'display: none;' }}">
-                                <div class="text-xs font-bold text-gray-400 uppercase mb-3">Examination Status</div>
+                        {# Dynamic Status Section (Right) #}
+                        <div id="statusSectionContainer" class="flex-shrink-0 self-stretch md:self-center min-w-[190px]">
+                            {# SHS Examination & Payment Status #}
+                            <div id="shsExamSection" class="bg-gray-50/80 p-4 rounded-xl border border-gray-200/70 text-center shadow-2xs" style="{{ registration.educationType == 'SHS' ? '' : 'display: none;' }}">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Examination Status</div>
                                 
-                                <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
-                                    <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.examinationScore is not null ? 'checked' : '' }}>
-                                    <span class="text-sm font-bold text-gray-700">Exam Taken</span>
+                                <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-2.5">
+                                    <input type="checkbox" name="exam_taken" id="examCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.examinationScore is not null ? 'checked' : '' }}>
+                                    <span class="text-xs font-bold text-gray-700">Exam Taken</span>
                                 </label>
 
-                                <div id="scoreBox" style="{{ registration.examinationScore is not null ? '' : 'display: none;' }}" class="space-y-3">
+                                <div id="scoreBox" style="{{ registration.examinationScore is not null ? '' : 'display: none;' }}" class="space-y-2">
                                     <div>
-                                        <input type="number" step="0.01" name="exam_score" value="{{ registration.examinationScore }}" class="w-full text-center border-gray-400 border-2 rounded-lg text-lg font-bold text-feu-green-700 shadow-inner px-3 py-2" placeholder="00.00">
-                                        <div class="text-[10px] text-gray-400 mt-1 uppercase font-bold">Examination Score</div>
+                                        <input type="number" step="0.01" name="exam_score" value="{{ registration.examinationScore }}" class="w-full text-center border-gray-300 border-2 rounded-lg text-lg font-black text-feu-green-700 shadow-inner px-2 py-1" placeholder="00.00">
+                                        <div class="text-[9px] text-gray-400 mt-0.5 uppercase font-bold tracking-wider">Exam Score</div>
                                     </div>
                                     <div>
-                                        <input type="date" name="exam_date" value="{{ registration.examinationDate ? registration.examinationDate|date('Y-m-d') : '' }}" class="w-full text-center border-gray-300 border rounded-lg text-sm font-bold text-gray-700 px-3 py-2 mt-2">
-                                        <div class="text-[10px] text-gray-400 mt-1 uppercase font-bold">Examination Date</div>
+                                        <input type="date" name="exam_date" value="{{ registration.examinationDate ? registration.examinationDate|date('Y-m-d') : '' }}" class="w-full text-center border-gray-300 border rounded-lg text-xs font-semibold text-gray-700 px-2 py-1">
+                                        <div class="text-[9px] text-gray-400 mt-0.5 uppercase font-bold tracking-wider">Exam Date</div>
                                     </div>
                                 </div>
-                                <div id="pendingBox" style="{{ registration.examinationScore is not null ? 'display: none;' : '' }}" class="text-sm font-bold text-orange-500">
-                                    Pending Examination
+                                <div id="pendingBox" style="{{ registration.examinationScore is not null ? 'display: none;' : '' }}" class="text-xs font-bold text-amber-600 py-1">
+                                    Pending Exam
                                 </div>
 
-                                <div class="mt-3 pt-3 border-t border-gray-200">
-                                    <div class="text-xs font-bold text-gray-400 uppercase mb-2">Payment Status</div>
+                                <div class="mt-3 pt-3 border-t border-gray-200/70">
+                                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Status</div>
                                     
-                                    <label class="flex items-center justify-center gap-2 cursor-pointer mb-2">
-                                        <input type="checkbox" name="payment_paid" id="shsPaymentPaidCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'checked' : '' }}>
-                                        <span class="text-sm font-bold text-gray-700">Paid</span>
+                                    <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-1">
+                                        <input type="checkbox" name="payment_paid" id="shsPaymentPaidCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'checked' : '' }}>
+                                        <span class="text-xs font-bold text-gray-700">Mark as Paid</span>
                                     </label>
 
-                                    <div id="shsPaymentPaidBox" class="text-sm font-bold text-green-600" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? '' : 'display: none;' }}">
-                                        Paid
+                                    <div id="shsPaymentPaidBox" class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1 mt-1" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? '' : 'display: none;' }}">
+                                        <i class="ki-filled ki-check-circle text-xs"></i> Paid
                                     </div>
-                                    <div id="shsPaymentPendingBox" class="text-sm font-bold text-orange-500" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'display: none;' : '' }}">
-                                        For Payment
+                                    <div id="shsPaymentPendingBox" class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-1" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'display: none;' : '' }}">
+                                        <i class="ki-filled ki-time text-xs"></i> For Payment
                                     </div>
                                 </div>
                             </div>
 
-                            {# Payment Status - For K-10 #}
-                            <div id="k10PaymentSection" class="bg-gray-50 p-4 rounded-xl border border-gray-200 text-center" style="{{ registration.educationType != 'SHS' ? '' : 'display: none;' }}">
-                                <div class="text-xs font-bold text-gray-400 uppercase mb-3">Payment Status</div>
+                            {# K-10 Payment Status #}
+                            <div id="k10PaymentSection" class="bg-gray-50/80 p-4 rounded-xl border border-gray-200/70 text-center shadow-2xs" style="{{ registration.educationType != 'SHS' ? '' : 'display: none;' }}">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Status</div>
                                 
-                                <label class="flex items-center justify-center gap-2 cursor-pointer mb-3">
-                                    <input type="checkbox" name="payment_paid" id="paymentPaidCheck" value="1" class="form-checkbox h-5 w-5 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Paid' ? 'checked' : '' }}>
-                                    <span class="text-sm font-bold text-gray-700">Paid</span>
+                                <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-1.5">
+                                    <input type="checkbox" name="payment_paid" id="paymentPaidCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Paid' ? 'checked' : '' }}>
+                                    <span class="text-xs font-bold text-gray-700">Mark as Paid</span>
                                 </label>
 
-                                <div id="paymentPendingBox" class="text-sm font-bold text-orange-500" style="{{ registration.admissionStatus == 'Paid' ? 'display: none;' : '' }}">
-                                    For Payment
+                                <div id="paymentPendingBox" class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-1" style="{{ registration.admissionStatus == 'Paid' ? 'display: none;' : '' }}">
+                                    <i class="ki-filled ki-time text-xs"></i> For Payment
                                 </div>
-                                <div id="paymentPaidBox" class="text-sm font-bold text-green-600" style="{{ registration.admissionStatus == 'Paid' ? '' : 'display: none;' }}">
-                                    Paid
+                                <div id="paymentPaidBox" class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1 mt-1" style="{{ registration.admissionStatus == 'Paid' ? '' : 'display: none;' }}">
+                                    <i class="ki-filled ki-check-circle text-xs"></i> Paid
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {# --- 2. DETAILS GRID --- #}
+                    {# --- 2. DETAILS GRID (Left Column 8-Cols) --- #}
                     <div class="col-span-12 lg:col-span-8 space-y-6">
-                        {# Personal Info #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-user text-feu-green-600"></i> Personal Information
-                            </h3>
-                            <div class="grid grid-cols-2 gap-y-4 gap-x-8">
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Gender</label>
-                                    <select name="gender" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                        {# 1. Personal Information Card #}
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-base border border-feu-green-100 flex-shrink-0">
+                                    <i class="ki-filled ki-user text-lg"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Personal Information</h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Gender</label>
+                                    <select name="gender" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none">
                                         <option value="Male" {{ (registration.gender == 'Male' or registration.gender == 'M') ? 'selected' : '' }}>Male</option>
                                         <option value="Female" {{ (registration.gender == 'Female' or registration.gender == 'F') ? 'selected' : '' }}>Female</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Birthday</label>
-                                    <input type="date" name="birth_date" value="{{ registration.birthDate|date('Y-m-d') }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Birthday</label>
+                                    <input type="date" name="birth_date" value="{{ registration.birthDate|date('Y-m-d') }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none" required>
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Birth Place</label>
-                                    <input type="text" name="birth_place" value="{{ registration.birthPlace }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Birth Place</label>
+                                    <input type="text" name="birth_place" value="{{ registration.birthPlace }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none" placeholder="City / Province of Birth">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Religion</label>
-                                    <input type="text" name="religion" value="{{ registration.religion }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Religion</label>
+                                    <input type="text" name="religion" value="{{ registration.religion }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none" placeholder="Religion (e.g. Roman Catholic)">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Nationality</label>
-                                    <select name="nationality" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Nationality</label>
+                                    <select name="nationality" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none">
                                         <option value="">Select Nationality</option>
                                         {% for nat in nationalities %}
                                             <option value="{{ nat.citizenshipName }}" {{ registration.nationality|upper == nat.citizenshipName|upper ? 'selected' : '' }}>{{ nat.citizenshipName }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Citizenship</label>
-                                    <select name="citizenship" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" onchange="const pCont = document.getElementById('passport_fields_container'); if(pCont) { pCont.style.display = this.value === 'INTERNATIONAL' ? '' : 'none'; }">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Citizenship</label>
+                                    <select name="citizenship" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none" onchange="const pCont = document.getElementById('passport_fields_container'); if(pCont) { pCont.style.display = this.value === 'INTERNATIONAL' ? '' : 'none'; }">
                                         <option value="LOCAL" {{ registration.citizenship|upper in ['LOCAL', 'FILIPINO'] ? 'selected' : '' }}>Local / Filipino</option>
                                         <option value="INTERNATIONAL" {{ registration.citizenship|upper in ['INTERNATIONAL', 'NON-FILIPINO', 'FOREIGN'] ? 'selected' : '' }}>International</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Preferred Name / Alias</label>
-                                    <input type="text" name="preferred_name" value="{{ registration.preferredName }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">LRN (Learner Reference No.)</label>
+                                    <input type="text" name="lrn" value="{{ registration.lrn }}" maxlength="12" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none font-mono" placeholder="12-digit LRN (Optional for Kinder)">
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Suffix</label>
-                                    <input type="text" name="suffix" value="{{ registration.suffix }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Preferred Name / Alias</label>
+                                    <input type="text" name="preferred_name" value="{{ registration.preferredName }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none" placeholder="Preferred Name (Optional)">
                                 </div>
-
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Country of Birth</label>
-                                    <select name="country_of_birth" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value=""></option>
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Suffix</label>
+                                    <input type="text" name="suffix" value="{{ registration.suffix }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none" placeholder="Jr., III, etc. (Optional)">
+                                </div>
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Country of Birth</label>
+                                    <select name="country_of_birth" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none">
+                                        <option value="">Select Country</option>
                                         {% for country in countries %}
                                             <option value="{{ country.countryName }}" {{ registration.countryOfBirth|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="text-xs text-gray-400 uppercase font-bold">Country of Residence</label>
-                                    <select name="country_of_residence" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                        <option value=""></option>
+                                <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs transition-all focus-within:border-feu-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-feu-green-500/10">
+                                    <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Country of Residence</label>
+                                    <select name="country_of_residence" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900 focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 outline-none">
+                                        <option value="">Select Country</option>
                                         {% for country in countries %}
                                             <option value="{{ country.countryName }}" {{ registration.countryOfResidence|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
                                         {% endfor %}
@@ -246,33 +260,36 @@
                                 </div>
                             </div>
 
-                            <div id="passport_fields_container" style="{{ registration.citizenship|upper == 'INTERNATIONAL' ? '' : 'display: none;' }}" class="mt-6 pt-4 border-t border-gray-100">
-                                <h4 class="text-sm font-bold text-feu-green-700 uppercase mb-3"><i class="ki-filled ki-profile-circle"></i> Passport & Visa Details</h4>
-                                <div class="grid grid-cols-2 gap-y-4 gap-x-8">
-                                    <div>
-                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Number</label>
-                                        <input type="text" name="passport_number" value="{{ registration.passport.passportNumber|default(registration.passportNumber) }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                            {# Passport & Visa for International #}
+                            <div id="passport_fields_container" style="{{ registration.citizenship|upper == 'INTERNATIONAL' ? '' : 'display: none;' }}" class="mt-6 pt-5 border-t border-gray-100">
+                                <h4 class="text-xs font-bold text-feu-green-800 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                                    <i class="ki-filled ki-profile-circle text-sm"></i> Passport & Visa Details
+                                </h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Passport Number</label>
+                                        <input type="text" name="passport_number" value="{{ registration.passport.passportNumber|default(registration.passportNumber) }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900">
                                     </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Country of Issue</label>
-                                        <select name="passport_country_issue" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Passport Country of Issue</label>
+                                        <select name="passport_country_issue" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900">
                                             <option value=""></option>
                                             {% for country in countries %}
                                                 <option value="{{ country.countryName }}" {{ (registration.passport and registration.passport.countryOfIssue|upper == country.countryName|upper) ? 'selected' : '' }}>{{ country.countryName }}</option>
                                             {% endfor %}
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Date Issued</label>
-                                        <input type="date" name="passport_date_issued" value="{{ (registration.passport and registration.passport.dateIssued) ? registration.passport.dateIssued|date('Y-m-d') : '' }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Passport Date Issued</label>
+                                        <input type="date" name="passport_date_issued" value="{{ (registration.passport and registration.passport.dateIssued) ? registration.passport.dateIssued|date('Y-m-d') : '' }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900">
                                     </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 uppercase font-bold">Passport Expiration Date</label>
-                                        <input type="date" name="passport_expiration_date" value="{{ (registration.passport and registration.passport.expirationDate) ? registration.passport.expirationDate|date('Y-m-d') : '' }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Passport Expiration Date</label>
+                                        <input type="date" name="passport_expiration_date" value="{{ (registration.passport and registration.passport.expirationDate) ? registration.passport.expirationDate|date('Y-m-d') : '' }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900">
                                     </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 uppercase font-bold">Visa Type</label>
-                                        <select name="visa_type" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                    <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Visa Type</label>
+                                        <select name="visa_type" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900">
                                             <option value="">Select Visa Type</option>
                                             <option value="student" {{ (registration.visaType == 'student' or '9f' in registration.visaType|lower) ? 'selected' : '' }}>Student Visa (9F)</option>
                                             <option value="special_student" {{ (registration.visaType == 'special_student' or 'ssp' in registration.visaType|lower or 'special study' in registration.visaType|lower) ? 'selected' : '' }}>Special Study Permit (SSP)</option>
@@ -282,57 +299,82 @@
                                             <option value="other" {{ registration.visaType == 'other' ? 'selected' : '' }}>Other</option>
                                         </select>
                                     </div>
-                                    <div>
-                                        <label class="text-xs text-gray-400 uppercase font-bold">Visa Status</label>
-                                        <input type="text" name="visa_status" value="{{ registration.visaStatus }}" class="w-full mt-1 border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="e.g. Active, Expired">
+                                    <div class="p-3.5 rounded-xl bg-gray-50/60 border border-gray-200/70 shadow-2xs">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Visa Status</label>
+                                        <input type="text" name="visa_status" value="{{ registration.visaStatus }}" class="w-full border border-gray-300 rounded-lg text-sm font-semibold shadow-2xs px-3 py-2 bg-white text-gray-900" placeholder="e.g. Active, Valid">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {# Address Information #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-map text-feu-green-600"></i> Address Information
-                            </h3>
+                        {# 2. Address Information Card #}
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-base border border-feu-green-100 flex-shrink-0">
+                                    <i class="ki-filled ki-map text-lg"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Address Information</h3>
+                            </div>
                             
-                            {# Current #}
-                            <div class="mb-6">
-                                <div class="text-xs text-gray-400 uppercase font-bold mb-2">Current Address</div>
-                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ [registration.currentAddress, registration.currentBarangay, registration.currentCity, registration.currentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') }}</div>
+                            {# Current Address Block #}
+                            <div class="mb-5 p-5 rounded-xl border border-gray-200/80 bg-white shadow-xs border-l-4 border-l-feu-green-600">
+                                <div class="text-xs font-black text-feu-green-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <i class="ki-filled ki-geolocation text-sm"></i> Current Address
+                                </div>
+                                {% set curStored = [registration.currentAddress, registration.currentBarangay, registration.currentCity, registration.currentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                {% if curStored %}
+                                    <div class="text-xs text-gray-500 mb-3.5 italic bg-gray-50/70 p-2.5 rounded-lg border border-gray-200/50">
+                                        <span class="font-semibold text-gray-700 not-italic">Stored:</span> {{ curStored }}
+                                    </div>
+                                {% endif %}
                                 
-                                <div class="grid grid-cols-2 gap-3 mb-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                                     <div>
-                                        <label class="text-[10px] text-gray-500">Region</label>
-                                        <select id="addr_region" name="addr_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-selected="{{ registration.currentRegion }}"><option value=""></option></select>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Region</label>
+                                        <select id="addr_region" name="addr_region" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" data-selected="{{ registration.currentRegion }}"><option value="">Select Region</option></select>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-gray-500">Province</label>
-                                        <select id="addr_province" name="addr_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.currentProvince }}"><option value=""></option></select>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Province</label>
+                                        <select id="addr_province" name="addr_province" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" disabled data-selected="{{ registration.currentProvince }}"><option value="">Select Province</option></select>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-gray-500">City</label>
-                                        <select id="addr_city" name="addr_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.currentCity }}"><option value=""></option></select>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">City / Municipality</label>
+                                        <select id="addr_city" name="addr_city" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" disabled data-selected="{{ registration.currentCity }}"><option value="">Select City</option></select>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-gray-500">Barangay</label>
-                                        <select id="addr_barangay" name="addr_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.currentBarangay }}"><option value=""></option></select>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Barangay</label>
+                                        <select id="addr_barangay" name="addr_barangay" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" disabled data-selected="{{ registration.currentBarangay }}"><option value="">Select Barangay</option></select>
                                     </div>
                                 </div>
-                                <input type="text" name="current_address" value="{{ registration.currentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
-                                <input type="text" name="current_zip" id="addr_zip" value="{{ registration.currentZip }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Zip Code">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                    <div class="sm:col-span-3">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">House No. / Street / Subdivision</label>
+                                        <input type="text" name="current_address" value="{{ registration.currentAddress }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="House No. / Street Address">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Zip Code</label>
+                                        <input type="text" name="current_zip" id="addr_zip" value="{{ registration.currentZip }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Zip Code">
+                                    </div>
+                                </div>
                             </div>
 
-                            {# Permanent #}
-                            <div class="pt-4 border-t border-gray-100">
-                                <div class="text-xs text-gray-400 uppercase font-bold mb-2">Permanent Address</div>
-                                <div class="text-xs text-blue-600 mb-2 italic">Stored: {{ [registration.permanentAddress, registration.permanentBarangay, registration.permanentCity, registration.permanentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') }}</div>
+                            {# Permanent Address Block #}
+                            <div class="p-5 rounded-xl border border-gray-200/80 bg-white shadow-xs border-l-4 border-l-amber-500">
+                                <div class="text-xs font-black text-gray-800 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <i class="ki-filled ki-home text-sm"></i> Permanent Address
+                                </div>
+                                {% set permStored = [registration.permanentAddress, registration.permanentBarangay, registration.permanentCity, registration.permanentProvince]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                {% if permStored %}
+                                    <div class="text-xs text-gray-500 mb-3.5 italic bg-gray-50/70 p-2.5 rounded-lg border border-gray-200/50">
+                                        <span class="font-semibold text-gray-700 not-italic">Stored:</span> {{ permStored }}
+                                    </div>
+                                {% endif %}
 
                                 {% if registration.citizenship|upper == 'INTERNATIONAL' %}
                                     <div class="grid grid-cols-2 gap-3 mb-3">
                                         <div>
-                                            <label class="text-[10px] text-gray-500">Country</label>
-                                            <select name="perm_country" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Country</label>
+                                            <select name="perm_country" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white">
                                                 <option value=""></option>
                                                 {% for country in countries %}
                                                     <option value="{{ country.countryName }}" {{ registration.permanentCountry|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
@@ -340,109 +382,142 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-500">State / Province</label>
-                                            <input type="text" name="perm_province_text" value="{{ registration.permanentProvince }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">State / Province</label>
+                                            <input type="text" name="perm_province_text" value="{{ registration.permanentProvince }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-500">City / Town</label>
-                                            <input type="text" name="perm_city_text" value="{{ registration.permanentCity }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">City / Town</label>
+                                            <input type="text" name="perm_city_text" value="{{ registration.permanentCity }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-500">Barangay / Suburb</label>
-                                            <input type="text" name="perm_barangay_text" value="{{ registration.permanentBarangay }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Barangay / Suburb</label>
+                                            <input type="text" name="perm_barangay_text" value="{{ registration.permanentBarangay }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                         </div>
                                     </div>
                                 {% else %}
-                                    <div class="grid grid-cols-2 gap-3 mb-3">
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                                         <div>
-                                            <label class="text-[10px] text-gray-500">Region</label>
-                                            <select id="perm_region" name="perm_region" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" data-selected="{{ registration.permanentRegion }}"><option value=""></option></select>
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Region</label>
+                                            <select id="perm_region" name="perm_region" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" data-selected="{{ registration.permanentRegion }}"><option value="">Select Region</option></select>
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-500">Province</label>
-                                            <select id="perm_province" name="perm_province" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentProvince }}"><option value=""></option></select>
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Province</label>
+                                            <select id="perm_province" name="perm_province" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" disabled data-selected="{{ registration.permanentProvince }}"><option value="">Select Province</option></select>
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-500">City</label>
-                                            <select id="perm_city" name="perm_city" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentCity }}"><option value=""></option></select>
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">City / Municipality</label>
+                                            <select id="perm_city" name="perm_city" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" disabled data-selected="{{ registration.permanentCity }}"><option value="">Select City</option></select>
                                         </div>
                                         <div>
-                                            <label class="text-[10px] text-gray-500">Barangay</label>
-                                            <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" disabled data-selected="{{ registration.permanentBarangay }}"><option value=""></option></select>
+                                            <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Barangay</label>
+                                            <select id="perm_barangay" name="perm_barangay" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-2.5 py-2 bg-white" disabled data-selected="{{ registration.permanentBarangay }}"><option value="">Select Barangay</option></select>
                                         </div>
                                     </div>
                                 {% endif %}
-                                <input type="text" name="permanent_address" value="{{ registration.permanentAddress }}" class="w-full border border-gray-400 rounded-lg text-sm mb-2 shadow-sm px-3 py-2.5" placeholder="Street Address">
-                                <input type="text" name="permanent_zip" id="perm_zip" value="{{ registration.permanentZip }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Zip Code">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                    <div class="sm:col-span-3">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">House No. / Street / Subdivision</label>
+                                        <input type="text" name="permanent_address" value="{{ registration.permanentAddress }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Permanent Street Address">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Zip Code</label>
+                                        <input type="text" name="permanent_zip" id="perm_zip" value="{{ registration.permanentZip }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Zip Code">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {# Parents / Family Background (FATHER and MOTHER ONLY) #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
-                            </h3>
-                            <div class="space-y-4">
+                        {# Resolve applicant full address for complete address fallbacks #}
+                        {% set applicantFullAddr = [registration.currentAddress, registration.currentBarangay, registration.currentCity, registration.currentProvince, registration.currentRegion, registration.currentZip]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+
+                        {# 3. Family Background Card (Father, Mother & Nested Siblings) #}
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-base border border-feu-green-100 flex-shrink-0">
+                                    <i class="ki-filled ki-people text-lg"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Family Background</h3>
+                            </div>
+
+                            <div class="space-y-5">
                                 {% for guardian in registration.guardians %}
                                     {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
                                     {% if gType in ['FATHER', 'MOTHER'] %}
-                                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 relative">
+                                    {% set parentResolvedAddr = [guardian.currentAddress, guardian.currentBarangay, guardian.currentCity, guardian.currentProvince, guardian.currentRegion, guardian.currentZip]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                    {% if (not parentResolvedAddr or guardian.sameAsApplicant) and applicantFullAddr %}{% set parentResolvedAddr = applicantFullAddr %}{% endif %}
+
+                                    <div class="p-5 bg-white rounded-xl border border-gray-200/80 shadow-xs relative">
                                         <input type="hidden" name="guardians[{{ loop.index0 }}][guardian_type]" value="{{ gType }}">
                                         <input type="hidden" name="guardians[{{ loop.index0 }}][relationship]" value="{{ guardian.relationship }}">
                                         
-                                        <div class="flex justify-between items-center mb-2">
-                                            <div class="text-xs text-feu-gold-600 font-bold uppercase">{{ guardian.relationship }}</div>
-                                            <div class="flex gap-2">
-                                                <label class="inline-flex items-center text-[10px]">
-                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" id="parent_deceased_{{ loop.index0 }}" value="1" {{ guardian.deceased ? 'checked' : '' }} onchange="toggleAdminParentStatus({{ loop.index0 }}, 'deceased')" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-3 h-3 mr-1">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <span class="px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-feu-gold-50 text-feu-gold-800 border border-feu-gold-200/80">
+                                                {{ guardian.relationship }}
+                                            </span>
+                                            <div class="flex items-center gap-3">
+                                                <label class="inline-flex items-center text-xs font-bold text-gray-700 cursor-pointer">
+                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][deceased]" id="parent_deceased_{{ loop.index0 }}" value="1" {{ guardian.deceased ? 'checked' : '' }} onchange="toggleAdminParentStatus({{ loop.index0 }}, 'deceased')" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-1.5">
                                                     Deceased
                                                 </label>
-                                                <label class="inline-flex items-center text-[10px]">
-                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][ofw]" id="parent_ofw_{{ loop.index0 }}" value="1" {{ guardian.OFW ? 'checked' : '' }} onchange="toggleAdminParentStatus({{ loop.index0 }}, 'ofw')" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1">
+                                                <label class="inline-flex items-center text-xs font-bold text-gray-700 cursor-pointer">
+                                                    <input type="checkbox" name="guardians[{{ loop.index0 }}][ofw]" id="parent_ofw_{{ loop.index0 }}" value="1" {{ guardian.OFW ? 'checked' : '' }} onchange="toggleAdminParentStatus({{ loop.index0 }}, 'ofw')" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-1.5">
                                                     OFW
                                                 </label>
                                             </div>
                                         </div>
                                         
                                         {% set parentNameVal = guardian.parentName|default('') %}
-                                        {% set nameParts = parentNameVal|split(',') %}
-                                        {% set lastNameVal = nameParts[0]|default('')|trim %}
-                                        {% set givenNameStr = nameParts|length > 1 ? nameParts[1] : '' %}
-                                        {% set givenNameParts = givenNameStr|trim|split(' ') %}
-                                        {% set middleNameVal = givenNameParts|length > 1 ? givenNameParts|last : '' %}
-                                        {% set firstNameVal = givenNameParts|length > 1 ? givenNameParts|slice(0, -1)|join(' ') : givenNameParts|join(' ') %}
+                                        {% if ',' in parentNameVal %}
+                                            {% set nameParts = parentNameVal|split(',') %}
+                                            {% set lastNameVal = nameParts[0]|default('')|trim %}
+                                            {% set givenNameStr = nameParts|length > 1 ? nameParts[1] : '' %}
+                                            {% set givenNameParts = givenNameStr|trim|split(' ') %}
+                                            {% set middleNameVal = givenNameParts|length > 1 ? givenNameParts|last : '' %}
+                                            {% set firstNameVal = givenNameParts|length > 1 ? givenNameParts|slice(0, -1)|join(' ') : givenNameParts|join(' ') %}
+                                        {% else %}
+                                            {% set words = parentNameVal|trim|split(' ') %}
+                                            {% if words|length > 1 %}
+                                                {% set lastNameVal = words|last %}
+                                                {% set middleNameVal = words|length > 2 ? words[words|length - 2] : '' %}
+                                                {% set firstNameVal = words|length > 2 ? words|slice(0, -2)|join(' ') : words|first %}
+                                            {% else %}
+                                                {% set lastNameVal = words|first|default('') %}
+                                                {% set firstNameVal = '' %}
+                                                {% set middleNameVal = '' %}
+                                            {% endif %}
+                                        {% endif %}
 
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3.5">
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">
                                                     {% if guardian.relationship|upper == 'MOTHER' %}Maiden Name{% else %}Last Name{% endif %}
                                                 </label>
-                                                <input type="text" name="guardians[{{ loop.index0 }}][last_name]" value="{{ lastNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                                <input type="text" name="guardians[{{ loop.index0 }}][last_name]" value="{{ lastNameVal }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">First Name</label>
-                                                <input type="text" name="guardians[{{ loop.index0 }}][first_name]" value="{{ firstNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">First Name</label>
+                                                <input type="text" name="guardians[{{ loop.index0 }}][first_name]" value="{{ firstNameVal }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Middle Name</label>
-                                                <input type="text" name="guardians[{{ loop.index0 }}][middle_name]" value="{{ middleNameVal }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Middle Name</label>
+                                                <input type="text" name="guardians[{{ loop.index0 }}][middle_name]" value="{{ middleNameVal }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                             </div>
                                         </div>
                                         
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
-                                                <input type="text" name="guardians[{{ loop.index0 }}][occupation]" value="{{ guardian.occupation }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Occupation</label>
+                                                <input type="text" name="guardians[{{ loop.index0 }}][occupation]" value="{{ guardian.occupation }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Occupation">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
-                                                <div class="mt-1">
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Contact No.</label>
+                                                <div>
                                                     {% include 'enrollment-onsite/_phone_input.html.twig' with {
                                                         prefix: 'guardian_' ~ loop.index0,
                                                         dial_name: 'guardians[' ~ loop.index0 ~ '][country_dial_code]',
                                                         input_name: 'guardians[' ~ loop.index0 ~ '][contact]',
                                                         input_id: 'guardian_contact_' ~ loop.index0,
-                                                        input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                                        input_class: 'border border-gray-300 rounded-r-lg text-xs font-medium shadow-2xs px-3 py-2',
                                                         value: guardian.contactNo,
                                                         placeholder: '9xxxxxxxxx',
                                                         countries: countries
@@ -450,8 +525,8 @@
                                                 </div>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
-                                                <select name="guardians[{{ loop.index0 }}][nationality]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Nationality</label>
+                                                <select name="guardians[{{ loop.index0 }}][nationality]" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                                     <option value="">Select Nationality</option>
                                                     {% for nat in nationalities %}
                                                         <option value="{{ nat.citizenshipName }}" {{ guardian.nationality|upper == nat.citizenshipName|upper ? 'selected' : '' }}>{{ nat.citizenshipName }}</option>
@@ -461,36 +536,52 @@
                                         </div>
 
                                         {# Parent Address Block #}
-                                        <div class="mt-4 pt-4 border-t border-gray-100" id="parent_addr_section_{{ loop.index0 }}" style="{{ guardian.deceased ? 'display:none;' : '' }}">
+                                        <div class="mt-4 pt-3.5 border-t border-gray-200/80" id="parent_addr_section_{{ loop.index0 }}" style="{{ guardian.deceased ? 'display:none;' : '' }}">
                                             <input type="hidden" name="guardians[{{ loop.index0 }}][same_as_applicant_submitted]" value="1">
                                             
                                             {# Standard Address (when not OFW) #}
                                             <div id="parent_standard_addr_{{ loop.index0 }}" style="{{ guardian.OFW ? 'display:none;' : '' }}">
-                                                <div class="flex items-center mb-3">
+                                                <div class="flex items-center mb-2">
                                                     <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-2" type="checkbox" id="parent_same_{{ loop.index0 }}" name="guardians[{{ loop.index0 }}][same_as_applicant]" value="1" onchange="toggleParentEditAddress({{ loop.index0 }})" {{ guardian.sameAsApplicant ? 'checked' : '' }}>
                                                     <label class="text-xs font-bold text-gray-700 cursor-pointer" for="parent_same_{{ loop.index0 }}">Same address as Applicant</label>
                                                 </div>
+
+                                                {# Resolved full address box when same as applicant #}
+                                                <div id="parent_same_preview_{{ loop.index0 }}" style="{{ not guardian.sameAsApplicant ? 'display:none;' : '' }}" class="mt-2.5 p-3 rounded-lg bg-gray-50/90 border border-gray-200/70 text-xs text-gray-700 flex items-start gap-2.5">
+                                                    <i class="ki-filled ki-geolocation text-feu-green-600 mt-0.5 text-sm flex-shrink-0"></i>
+                                                    <div>
+                                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Resolved Complete Address</span>
+                                                        <span class="font-bold text-gray-800">{{ parentResolvedAddr|default(applicantFullAddr)|default('No complete address recorded') }}</span>
+                                                    </div>
+                                                </div>
+
                                                 <div id="parent_addr_block_{{ loop.index0 }}" style="{{ guardian.sameAsApplicant ? 'display:none;' : '' }}">
-                                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2 mt-2">
                                                         <div>
-                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Region</label>
-                                                            <select id="parent_{{ loop.index0 }}_region" name="guardians[{{ loop.index0 }}][addr_region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentRegion }}"><option value="">Region</option></select>
+                                                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Region</label>
+                                                            <select id="parent_{{ loop.index0 }}_region" name="guardians[{{ loop.index0 }}][addr_region]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.currentRegion }}"><option value="">Region</option></select>
                                                         </div>
                                                         <div>
-                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Province</label>
-                                                            <select id="parent_{{ loop.index0 }}_province" name="guardians[{{ loop.index0 }}][addr_province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentProvince }}"><option value="">Province</option></select>
+                                                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Province</label>
+                                                            <select id="parent_{{ loop.index0 }}_province" name="guardians[{{ loop.index0 }}][addr_province]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.currentProvince }}"><option value="">Province</option></select>
                                                         </div>
                                                         <div>
-                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">City/Municipality</label>
-                                                            <select id="parent_{{ loop.index0 }}_city" name="guardians[{{ loop.index0 }}][addr_city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentCity }}"><option value="">City</option></select>
+                                                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">City/Municipality</label>
+                                                            <select id="parent_{{ loop.index0 }}_city" name="guardians[{{ loop.index0 }}][addr_city]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.currentCity }}"><option value="">City</option></select>
                                                         </div>
                                                         <div>
-                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Barangay</label>
-                                                            <select id="parent_{{ loop.index0 }}_barangay" name="guardians[{{ loop.index0 }}][addr_barangay]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.currentBarangay }}"><option value="">Barangay</option></select>
+                                                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Barangay</label>
+                                                            <select id="parent_{{ loop.index0 }}_barangay" name="guardians[{{ loop.index0 }}][addr_barangay]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.currentBarangay }}"><option value="">Barangay</option></select>
                                                         </div>
                                                     </div>
-                                                    <input type="text" name="guardians[{{ loop.index0 }}][addr_street]" value="{{ not guardian.OFW ? guardian.currentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs mb-2 shadow-sm px-3 py-2" placeholder="Street Address">
-                                                    <input type="text" name="guardians[{{ loop.index0 }}][addr_zip]" id="parent_{{ loop.index0 }}_zip" value="{{ not guardian.OFW ? guardian.currentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Zip Code">
+                                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                                        <div class="sm:col-span-3">
+                                                            <input type="text" name="guardians[{{ loop.index0 }}][addr_street]" value="{{ not guardian.OFW ? guardian.currentAddress : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Street Address">
+                                                        </div>
+                                                        <div>
+                                                            <input type="text" name="guardians[{{ loop.index0 }}][addr_zip]" id="parent_{{ loop.index0 }}_zip" value="{{ not guardian.OFW ? guardian.currentZip : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Zip Code">
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -500,10 +591,10 @@
                                                     <div class="text-xs font-bold text-blue-600 uppercase mb-2 flex items-center gap-1">
                                                         <i class="ki-filled ki-briefcase text-xs"></i> Workplace Address Abroad
                                                     </div>
-                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
                                                         <div>
-                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Country of Work</label>
-                                                            <select name="guardians[{{ loop.index0 }}][ofw_country]" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-2 py-2">
+                                                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Country of Work</label>
+                                                            <select name="guardians[{{ loop.index0 }}][ofw_country]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-2 py-1.5 bg-white">
                                                                 <option value="">Select Country</option>
                                                                 {% for c in countries %}
                                                                     {% if c.countryName|upper != 'PHILIPPINES' %}
@@ -512,24 +603,24 @@
                                                                 {% endfor %}
                                                             </select>
                                                         </div>
-                                                        <div class="md:col-span-2">
-                                                            <label class="text-[10px] text-gray-500 uppercase font-bold">Workplace / Residence Address</label>
-                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_address]" value="{{ guardian.OFW ? guardian.currentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Workplace Address">
+                                                        <div class="sm:col-span-2">
+                                                            <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Workplace Address</label>
+                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_address]" value="{{ guardian.OFW ? guardian.currentAddress : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Workplace Address">
                                                         </div>
                                                     </div>
-                                                    <div class="w-full md:w-1/3">
-                                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Postal Code</label>
-                                                        <input type="text" name="guardians[{{ loop.index0 }}][ofw_zip]" value="{{ guardian.OFW ? guardian.currentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Postal Code">
+                                                    <div class="w-full sm:w-1/3">
+                                                        <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Postal Code</label>
+                                                        <input type="text" name="guardians[{{ loop.index0 }}][ofw_zip]" value="{{ guardian.OFW ? guardian.currentZip : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Postal Code">
                                                     </div>
                                                 </div>
 
-                                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                                <div class="mt-3 pt-3 border-t border-gray-200/60">
                                                     <div class="text-xs font-bold text-gray-700 uppercase mb-2 flex items-center gap-1">
                                                         <i class="ki-filled ki-home text-xs text-feu-green-600"></i> Permanent Address
                                                     </div>
                                                     {% set isOfwPermSame = (guardian.OFW and guardian.permanentCountry == guardian.ofwCountry and guardian.permanentAddress == guardian.currentAddress) or (guardian.OFW and not guardian.permanentCity and not guardian.permanentCountry and not guardian.permanentAddress) %}
                                                     <div class="flex items-center mb-2">
-                                                        <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-2" type="checkbox" id="parent_ofw_perm_same_{{ loop.index0 }}" name="guardians[{{ loop.index0 }}][ofw_perm_same]" value="1" onchange="toggleAdminOfwPermSame({{ loop.index0 }})" {{ isOfwPermSame ? 'checked' : '' }}>
+                                                        <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3.5 h-3.5 mr-2" type="checkbox" id="parent_ofw_perm_same_{{ loop.index0 }}" name="guardians[{{ loop.index0 }}][ofw_perm_same]" value="1" onchange="toggleAdminOfwPermSame({{ loop.index0 }})" {{ isOfwPermSame ? 'checked' : '' }}>
                                                         <label class="text-xs font-medium text-gray-700 cursor-pointer" for="parent_ofw_perm_same_{{ loop.index0 }}">Same as current workplace address</label>
                                                     </div>
                                                     <div id="parent_ofw_perm_diff_{{ loop.index0 }}" style="{{ isOfwPermSame ? 'display:none;' : '' }}">
@@ -544,46 +635,52 @@
                                                             </label>
                                                         </div>
                                                         <div id="parent_ofw_perm_ph_{{ loop.index0 }}" style="{{ not isPermInPh ? 'display:none;' : '' }}">
-                                                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                                                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
                                                                 <div>
-                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Region</label>
-                                                                    <select id="parent_ofw_{{ loop.index0 }}_region" name="guardians[{{ loop.index0 }}][ofw_perm_region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentRegion }}"><option value="">Region</option></select>
+                                                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Region</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_region" name="guardians[{{ loop.index0 }}][ofw_perm_region]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.permanentRegion }}"><option value="">Region</option></select>
                                                                 </div>
                                                                 <div>
-                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Province</label>
-                                                                    <select id="parent_ofw_{{ loop.index0 }}_province" name="guardians[{{ loop.index0 }}][ofw_perm_province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentProvince }}"><option value="">Province</option></select>
+                                                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Province</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_province" name="guardians[{{ loop.index0 }}][ofw_perm_province]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.permanentProvince }}"><option value="">Province</option></select>
                                                                 </div>
                                                                 <div>
-                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">City/Municipality</label>
-                                                                    <select id="parent_ofw_{{ loop.index0 }}_city" name="guardians[{{ loop.index0 }}][ofw_perm_city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentCity }}"><option value="">City</option></select>
+                                                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">City/Municipality</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_city" name="guardians[{{ loop.index0 }}][ofw_perm_city]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.permanentCity }}"><option value="">City</option></select>
                                                                 </div>
                                                                 <div>
-                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Barangay</label>
-                                                                    <select id="parent_ofw_{{ loop.index0 }}_barangay" name="guardians[{{ loop.index0 }}][ofw_perm_barangay]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ guardian.permanentBarangay }}"><option value="">Barangay</option></select>
+                                                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Barangay</label>
+                                                                    <select id="parent_ofw_{{ loop.index0 }}_barangay" name="guardians[{{ loop.index0 }}][ofw_perm_barangay]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ guardian.permanentBarangay }}"><option value="">Barangay</option></select>
                                                                 </div>
                                                             </div>
-                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_street]" value="{{ isPermInPh ? guardian.permanentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs mb-2 shadow-sm px-3 py-2" placeholder="Street Address">
-                                                            <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_zip]" value="{{ isPermInPh ? guardian.permanentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Zip Code">
+                                                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                                                <div class="sm:col-span-3">
+                                                                    <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_street]" value="{{ isPermInPh ? guardian.permanentAddress : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Street Address">
+                                                                </div>
+                                                                <div>
+                                                                    <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_zip]" value="{{ isPermInPh ? guardian.permanentZip : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Zip Code">
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                         <div id="parent_ofw_perm_intl_{{ loop.index0 }}" style="{{ isPermInPh ? 'display:none;' : '' }}">
-                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
                                                                 <div>
-                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Country</label>
-                                                                    <select name="guardians[{{ loop.index0 }}][ofw_perm_country]" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-2 py-2">
+                                                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Country</label>
+                                                                    <select name="guardians[{{ loop.index0 }}][ofw_perm_country]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-2 py-1.5 bg-white">
                                                                         <option value="">Select Country</option>
                                                                         {% for c in countries %}
                                                                             <option value="{{ c.countryName }}" {{ guardian.permanentCountry|upper == c.countryName|upper ? 'selected' : '' }}>{{ c.countryName }}</option>
                                                                         {% endfor %}
                                                                     </select>
                                                                 </div>
-                                                                <div>
-                                                                    <label class="text-[10px] text-gray-500 uppercase font-bold">Address</label>
-                                                                    <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_address]" value="{{ not isPermInPh ? guardian.permanentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Address">
+                                                                <div class="sm:col-span-2">
+                                                                    <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Address</label>
+                                                                    <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_address]" value="{{ not isPermInPh ? guardian.permanentAddress : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Address">
                                                                 </div>
                                                             </div>
-                                                            <div class="w-full md:w-1/3">
-                                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Postal Code</label>
-                                                                <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_intl_zip]" value="{{ not isPermInPh ? guardian.permanentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-xs shadow-sm px-3 py-2" placeholder="Postal Code">
+                                                            <div class="w-full sm:w-1/3">
+                                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Postal Code</label>
+                                                                <input type="text" name="guardians[{{ loop.index0 }}][ofw_perm_intl_zip]" value="{{ not isPermInPh ? guardian.permanentZip : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Postal Code">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -594,148 +691,175 @@
                                     {% endif %}
                                 {% endfor %}
                             </div>
-                        </div>
 
-                        {# Siblings #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-profile-user text-feu-green-600"></i> Siblings
-                            </h3>
-                            <div class="space-y-2">
-                                {% if registration.siblings|length > 0 %}
-                                    {% for sibling in registration.siblings %}
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <input type="text" name="siblings[{{ loop.index0 }}][name]" value="{{ sibling.siblingName }}" class="border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Sibling Name">
-                                        <input type="text" name="siblings[{{ loop.index0 }}][school]" value="{{ sibling.school }}" class="border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="School">
-                                        <input type="text" name="siblings[{{ loop.index0 }}][feu_id]" value="{{ sibling.feuStudentNo }}" class="border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="FEU ID (if any)">
+                            {# Nested Siblings inside Family Background #}
+                            <div class="mt-6 pt-5 border-t border-gray-200/80">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="w-7 h-7 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-xs border border-feu-green-100 flex-shrink-0">
+                                        <i class="ki-filled ki-profile-user text-sm"></i>
                                     </div>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="text-sm text-gray-400 italic">No siblings listed.</p>
-                                {% endif %}
+                                    <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Siblings (Enrolled in FEU)</h4>
+                                </div>
+                                <div class="space-y-3">
+                                    {% if registration.siblings|length > 0 %}
+                                        {% for sibling in registration.siblings %}
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-gray-50/60 border border-gray-200/60">
+                                            <div>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Sibling Name</label>
+                                                <input type="text" name="siblings[{{ loop.index0 }}][name]" value="{{ sibling.siblingName }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-2 bg-white font-medium" placeholder="Sibling Name">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">FEU Campus / School</label>
+                                                <input type="text" name="siblings[{{ loop.index0 }}][school]" value="{{ sibling.school }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-2 bg-white font-medium" placeholder="e.g. FEU Diliman, FEU High School">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">FEU Student No.</label>
+                                                <input type="text" name="siblings[{{ loop.index0 }}][feu_id]" value="{{ sibling.feuStudentNo }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-2 bg-white font-medium" placeholder="20xxxxxx">
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p class="text-xs text-gray-400 italic py-1">No siblings enrolled in FEU.</p>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {# --- 3. SIDEBAR GRID --- #}
+                    {# --- 3. SIDEBAR GRID (Right Column 4-Cols) --- #}
                     <div class="col-span-12 lg:col-span-4 space-y-6">
-                        {# Education History #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
-                            </h3>
-                            <div class="mb-3">
-                                <label class="text-[10px] text-gray-500 uppercase font-bold">Last Grade Completed</label>
-                                <select name="last_grade_completed" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                        {# Education History Card #}
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-base border border-feu-green-100 flex-shrink-0">
+                                    <i class="ki-filled ki-teacher text-lg"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Education History</h3>
+                            </div>
+
+                            <div class="mb-3.5">
+                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">Last Grade Completed</label>
+                                <select name="last_grade_completed" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                     <option value="">Select Grade</option>
                                     {% for grade in ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'] %}
                                         <option value="{{ grade }}" {{ (registration.lastGradeCompleted|upper == grade|upper or (grade == 'Kinder' and registration.lastGradeCompleted|upper in ['KINDER', 'KINDERGARTEN'])) ? 'selected' : '' }}>{{ grade }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="mb-4 pb-2 border-b border-gray-100">
-                                <label class="text-[10px] text-gray-500 uppercase font-bold">General Average</label>
-                                <input type="text" name="general_average" value="{{ registration.generalAverage }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="e.g. 90.00 or A">
+                            <div class="mb-4 pb-3.5 border-b border-gray-100">
+                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1.5">General Average</label>
+                                <input type="text" name="general_average" value="{{ registration.generalAverage }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="e.g. 90.00 or A">
                             </div>
+
                             <div class="space-y-4">
                                 {% if registration.schools|length > 0 %}
                                     {% for school in registration.schools %}
-                                    <div class="relative pl-4 border-l-2 border-gray-200">
-                                        <div class="text-[10px] font-bold text-feu-green-600 uppercase mb-1">
-                                        {% if school.level == 'P' or school.level == 'E' or school.level|upper == 'ELEMENTARY' %}Elementary{% elseif school.level == 'I' or school.level|upper == 'JUNIOR HIGH SCHOOL' %}Junior High{% elseif school.level == 'K' or school.level|upper == 'KINDERGARTEN' %}Kindergarten{% else %}Senior High{% endif %}
-                                    </div>
-                                    <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="School Name">
-                                    <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.schoolYear }}" class="w-full border border-gray-400 rounded-lg text-sm mb-1 shadow-sm px-3 py-2.5" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
-                                    <select name="schools[{{ loop.index0 }}][type]" onchange="syncAdminSchoolType({{ loop.index0 }})" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5 mb-1">
-                                        <option value="">School Type</option>
-                                        <option value="Public" {{ school.schoolType|upper == 'PUBLIC' ? 'selected' : '' }}>Public</option>
-                                        <option value="Private" {{ school.schoolType|upper == 'PRIVATE' ? 'selected' : '' }}>Private</option>
-                                        <option value="International" {{ school.schoolType|upper == 'INTERNATIONAL' ? 'selected' : '' }}>International</option>
-                                    </select>
-                                    
-                                    <div class="mt-2 mb-1 flex items-center">
-                                        <input type="checkbox" id="school_{{ loop.index0 }}_intl" name="schools[{{ loop.index0 }}][is_international]" value="1" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-3 h-3 mr-1" {{ school.isInternational ? 'checked' : '' }} onchange="toggleAdminSchoolLocation({{ loop.index0 }})">
-                                        <label for="school_{{ loop.index0 }}_intl" class="text-[10px] uppercase font-bold text-gray-500 cursor-pointer">International School</label>
-                                    </div>
-                                    <div id="school_{{ loop.index0 }}_local_group" class="grid grid-cols-3 gap-2 mb-2" style="{{ school.isInternational ? 'display:none;' : '' }}">
-                                        <select id="school_{{ loop.index0 }}_region" name="schools[{{ loop.index0 }}][region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-1" data-selected="{{ school.region }}"><option value="">Region</option></select>
-                                        <select id="school_{{ loop.index0 }}_province" name="schools[{{ loop.index0 }}][province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-1" data-selected="{{ school.province }}"><option value="">Province</option></select>
-                                        <select id="school_{{ loop.index0 }}_city" name="schools[{{ loop.index0 }}][city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-1" data-selected="{{ school.city }}"><option value="">City</option></select>
-                                    </div>
-                                    <div id="school_{{ loop.index0 }}_intl_group" class="mb-2" style="{{ not school.isInternational ? 'display:none;' : '' }}">
-                                        <select name="schools[{{ loop.index0 }}][country]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
-                                            <option value="">Select Country</option>
-                                            {% for country in countries %}
-                                                <option value="{{ country.countryName }}" {{ school.country|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
-                                            {% endfor %}
+                                    <div class="relative pl-4 border-l-2 border-feu-green-200">
+                                        <span class="absolute top-1 -left-[5px] w-2 h-2 rounded-full bg-feu-green-600 ring-2 ring-white"></span>
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider mb-1">
+                                            {% if school.level == 'P' or school.level == 'E' or school.level|upper == 'ELEMENTARY' %}Elementary{% elseif school.level == 'I' or school.level|upper == 'JUNIOR HIGH SCHOOL' %}Junior High{% elseif school.level == 'K' or school.level|upper == 'KINDERGARTEN' %}Kindergarten{% else %}Senior High{% endif %}
+                                        </div>
+                                        <input type="text" name="schools[{{ loop.index0 }}][name]" value="{{ school.school }}" class="w-full border border-gray-300 rounded-lg text-xs mb-1.5 shadow-2xs px-3 py-1.5 bg-white" placeholder="School Name">
+                                        <input type="text" name="schools[{{ loop.index0 }}][year]" value="{{ school.schoolYear }}" class="w-full border border-gray-300 rounded-lg text-xs mb-1.5 shadow-2xs px-3 py-1.5 bg-white" placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" maxlength="9">
+                                        <select name="schools[{{ loop.index0 }}][type]" onchange="syncAdminSchoolType({{ loop.index0 }})" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 mb-1.5 bg-white">
+                                            <option value="">School Type</option>
+                                            <option value="Public" {{ school.schoolType|upper == 'PUBLIC' ? 'selected' : '' }}>Public</option>
+                                            <option value="Private" {{ school.schoolType|upper == 'PRIVATE' ? 'selected' : '' }}>Private</option>
+                                            <option value="International" {{ school.schoolType|upper == 'INTERNATIONAL' ? 'selected' : '' }}>International</option>
                                         </select>
-                                    </div>
-                                    <div class="mb-2">
-                                        <input type="text" name="schools[{{ loop.index0 }}][address_line]" value="{{ school.addressLine }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2" placeholder="Address Line (House No. / Street / Bldg / Subdivision)">
-                                    </div>
-                                    <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
+                                        
+                                        <div class="mt-1.5 mb-1 flex items-center">
+                                            <input type="checkbox" id="school_{{ loop.index0 }}_intl" name="schools[{{ loop.index0 }}][is_international]" value="1" class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-3 h-3 mr-1.5" {{ school.isInternational ? 'checked' : '' }} onchange="toggleAdminSchoolLocation({{ loop.index0 }})">
+                                            <label for="school_{{ loop.index0 }}_intl" class="text-[10px] uppercase font-bold text-gray-500 cursor-pointer">International School</label>
+                                        </div>
+                                        <div id="school_{{ loop.index0 }}_local_group" class="grid grid-cols-3 gap-1.5 mb-1.5" style="{{ school.isInternational ? 'display:none;' : '' }}">
+                                            <select id="school_{{ loop.index0 }}_region" name="schools[{{ loop.index0 }}][region]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1 bg-white" data-selected="{{ school.region }}"><option value="">Region</option></select>
+                                            <select id="school_{{ loop.index0 }}_province" name="schools[{{ loop.index0 }}][province]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1 bg-white" data-selected="{{ school.province }}"><option value="">Province</option></select>
+                                            <select id="school_{{ loop.index0 }}_city" name="schools[{{ loop.index0 }}][city]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1 bg-white" data-selected="{{ school.city }}"><option value="">City</option></select>
+                                        </div>
+                                        <div id="school_{{ loop.index0 }}_intl_group" class="mb-1.5" style="{{ not school.isInternational ? 'display:none;' : '' }}">
+                                            <select name="schools[{{ loop.index0 }}][country]" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white">
+                                                <option value="">Select Country</option>
+                                                {% for country in countries %}
+                                                    <option value="{{ country.countryName }}" {{ school.country|upper == country.countryName|upper ? 'selected' : '' }}>{{ country.countryName }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="mb-1">
+                                            <input type="text" name="schools[{{ loop.index0 }}][address_line]" value="{{ school.addressLine }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Address Line (House No. / Street / Bldg / Subdivision)">
+                                        </div>
                                     </div>
                                     {% endfor %}
                                 {% else %}
-                                    <div class="text-sm text-gray-400 italic">No history provided.</div>
+                                    <div class="text-xs text-gray-400 italic">No history provided.</div>
                                 {% endif %}
                             </div>
                         </div>
 
-                        {# Documents (Editable) #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <div class="mb-4 pb-3 border-b border-gray-100">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0 shadow-xs">
-                                        <i class="ki-filled ki-folder-added text-base"></i>
-                                    </div>
-                                    <h3 class="text-base font-bold text-gray-900">Submitted Files</h3>
+                        {# Submitted Files Card #}
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-base border border-feu-green-100 flex-shrink-0">
+                                    <i class="ki-filled ki-folder-added text-lg"></i>
                                 </div>
-                                <div class="mt-3 p-3 rounded-xl bg-amber-50/70 border border-amber-200">
-                                    <label class="block">
-                                        <span class="text-[11px] text-amber-900 uppercase font-bold mb-1.5 flex items-center justify-between">
-                                            <span class="flex items-center gap-1.5">
-                                                <i class="ki-filled ki-calendar text-amber-600"></i> Promissory Submission Date
-                                            </span>
-                                            {% if registration.documentsAgreedDate %}
-                                                <span class="text-[10px] text-amber-800 font-extrabold bg-white/80 px-2 py-0.5 rounded border border-amber-200">
-                                                    Current: {{ registration.documentsAgreedDate|date('M d, Y') }}
-                                                </span>
-                                            {% endif %}
-                                        </span>
-                                        <input type="date" name="documents_agreed_date" value="{{ registration.documentsAgreedDate ? registration.documentsAgreedDate|date('Y-m-d') : '' }}" 
-                                               class="w-full bg-white border border-amber-300 rounded-lg text-xs font-semibold text-gray-800 px-3 py-1.5 focus:ring-1 focus:ring-amber-500">
-                                        <p class="text-[10px] text-amber-700/80 mt-1 italic">Leave blank if all requirements are submitted or waived.</p>
-                                    </label>
-                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Submitted Files</h3>
                             </div>
 
+                            {# Promissory Notice Banner (Read-Only) #}
+                            {% if registration.documentsAgreedDate %}
+                                <div class="mb-4 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 shadow-2xs">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[11px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                                            <i class="ki-filled ki-calendar text-amber-600 text-sm"></i> Promissory Deadline
+                                        </span>
+                                        <span class="text-xs font-black text-amber-950 bg-white/90 px-2 py-0.5 rounded-md border border-amber-200/60 shadow-2xs">
+                                            {{ registration.documentsAgreedDate|date('M d, Y') }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-amber-800/80 mt-1 leading-relaxed">
+                                        Institutional deadline configured for missing documents.
+                                    </p>
+                                </div>
+                            {% endif %}
+
                             <div class="space-y-3">
-                                {# 2x2 ID Picture Compliance #}
+                                {# 2x2 ID Picture Row #}
                                 {% if registration.photoSlug %}
-                                    <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
-                                        <div class="flex-shrink-0">
-                                            <img src="{{ asset(registration.photoSlug) }}" class="w-8 h-8 rounded-lg object-cover border border-gray-200" alt="2x2 Photo">
-                                        </div>
-                                        <div class="overflow-hidden">
-                                            <div class="text-sm font-bold text-gray-800 truncate">2x2 ID Picture of the Applicant</div>
-                                            <div class="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                                                <i class="ki-filled ki-check-circle text-xs"></i> Complied / Submitted
+                                    <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                        <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="flex items-center gap-3 min-w-0 flex-1">
+                                            <div class="flex-shrink-0">
+                                                <img id="submittedFiles2x2Thumb" src="{{ asset(registration.photoSlug) }}" class="w-8 h-8 rounded-lg object-cover border border-gray-200" alt="2x2 Photo">
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-xs font-bold text-gray-800 truncate">2x2 ID Picture of the Applicant</div>
+                                                <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                                                    <i class="ki-filled ki-check-circle text-xs flex-shrink-0"></i>
+                                                    <span>Documents Complied / Submitted</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <label for="applicantAvatarInput" class="flex-shrink-0 btn btn-xs btn-light-primary text-feu-green-700 hover:bg-feu-green-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-feu-green-200 shadow-2xs transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap" title="Change or replace 2x2 ID photo">
+                                            <i class="ki-filled ki-picture text-xs"></i> Change Photo
+                                        </label>
+                                    </div>
+                                {% else %}
+                                    <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                            <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
+                                                <i class="ki-filled ki-picture text-base"></i>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-xs font-bold text-red-800 truncate">2x2 ID Picture of the Applicant</div>
+                                                <div class="text-[10px] text-red-500 font-bold uppercase whitespace-nowrap">Missing / Not Complied (Promissory)</div>
                                             </div>
                                         </div>
-                                    </a>
-                                {% else %}
-                                    <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
-                                        <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
-                                            <i class="ki-filled ki-picture text-base"></i>
-                                        </div>
-                                        <div class="overflow-hidden">
-                                            <div class="text-sm font-bold text-red-800 truncate">2x2 ID Picture of the Applicant</div>
-                                            <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Complied (Promissory)</div>
-                                        </div>
+                                        <label for="applicantAvatarInput" class="flex-shrink-0 btn btn-xs btn-light-success text-emerald-700 hover:bg-emerald-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-emerald-300 shadow-2xs transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap" title="Upload 2x2 ID photo">
+                                            <i class="ki-filled ki-file-up text-xs"></i> Upload ID
+                                        </label>
                                     </div>
                                 {% endif %}
 
+                                {# Dynamic Requirements Rows #}
                                 {% for setup in documentSetups %}
                                     {% set req = null %}
                                     {% for r in registration.requirements %}
@@ -745,65 +869,66 @@
                                     {% endfor %}
 
                                     {% if req and req.status == 'W' %}
-                                        <div class="flex items-center justify-between p-3 rounded-xl border border-amber-200 bg-amber-50/40">
-                                            <div class="flex items-center gap-3 overflow-hidden">
+                                        <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-amber-200 bg-amber-50/40">
+                                            <div class="flex items-center gap-3 min-w-0 flex-1">
                                                 <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">
                                                     <i class="ki-filled ki-shield-cross text-base"></i>
                                                 </div>
-                                                <div class="overflow-hidden">
-                                                    <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                                    <div class="text-[10px] text-amber-700 font-bold uppercase flex items-center gap-1">
-                                                        <i class="ki-filled ki-verify text-xs"></i> Waived by Admin (Exempted)
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-xs font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                    <div class="text-[10px] text-amber-700 font-bold uppercase flex items-center gap-1 whitespace-nowrap">
+                                                        <i class="ki-filled ki-verify text-xs flex-shrink-0"></i>
+                                                        <span>Waived by Admin</span>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <button type="button" class="btn btn-xs btn-light-secondary text-gray-600 hover:text-red-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-white transition-all flex items-center gap-1" title="Cancel waiver" onclick="if(confirm('Remove waiver and restore this requirement?')) document.getElementById('unwaive-doc-diliman-{{ setup.slug }}').submit();">
+                                            <button type="button" class="flex-shrink-0 btn btn-xs btn-light-secondary text-gray-600 hover:text-red-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-white transition-all flex items-center gap-1 whitespace-nowrap" title="Cancel waiver" onclick="if(confirm('Remove waiver and restore this requirement?')) document.getElementById('unwaive-doc-diliman-{{ setup.slug }}').submit();">
                                                 <i class="ki-filled ki-cross text-[10px]"></i> Unwaive
                                             </button>
                                         </div>
                                     {% elseif req and req.status == 'S' %}
-                                        <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                        <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
                                             {% if req.storedFileName %}
-                                                <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1">
+                                                <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 min-w-0 flex-1">
                                                     <div class="flex-shrink-0">
                                                         <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
                                                     </div>
-                                                    <div class="overflow-hidden">
-                                                        <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                                        <div class="text-xs text-gray-400">
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="text-xs font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                        <div class="text-[11px] text-gray-400 whitespace-nowrap">
                                                             Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
                                                         </div>
                                                     </div>
                                                 </a>
                                             {% else %}
-                                                <div class="flex items-center gap-3 overflow-hidden flex-1">
+                                                <div class="flex items-center gap-3 min-w-0 flex-1">
                                                     <div class="flex-shrink-0">
                                                         <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
                                                     </div>
-                                                    <div class="overflow-hidden">
-                                                        <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                                        <div class="text-xs text-gray-400">
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="text-xs font-bold text-gray-800 truncate">{{ req.requirement }}</div>
+                                                        <div class="text-[11px] text-gray-400 whitespace-nowrap">
                                                             Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
                                                         </div>
                                                     </div>
                                                 </div>
                                             {% endif %}
-                                            <button type="button" class="btn btn-xs btn-light-danger text-red-600 hover:bg-red-50 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-red-200 shadow-2xs transition-all flex items-center gap-1 ml-2" title="Delete document" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-diliman-{{ setup.slug }}').submit();">
+                                            <button type="button" class="flex-shrink-0 btn btn-xs btn-light-danger text-red-600 hover:bg-red-50 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-red-200 shadow-2xs transition-all flex items-center gap-1 whitespace-nowrap" title="Delete document" onclick="if(confirm('WARNING: Are you sure you want to soft-delete this document?')) document.getElementById('delete-doc-diliman-{{ setup.slug }}').submit();">
                                                 <i class="ki-filled ki-trash text-[10px]"></i> Delete
                                             </button>
                                         </div>
                                     {% else %}
-                                        <div class="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/30">
-                                            <div class="flex items-center gap-3 overflow-hidden">
+                                        <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                            <div class="flex items-center gap-3 min-w-0 flex-1">
                                                 <div class="flex-shrink-0">
                                                     <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
                                                 </div>
-                                                <div class="overflow-hidden">
-                                                    <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
-                                                    <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-xs font-bold text-red-800 truncate">{{ setup.documentName }}</div>
+                                                    <div class="text-[10px] text-red-500 font-bold uppercase whitespace-nowrap">Missing / Not Submitted</div>
                                                 </div>
                                             </div>
-                                            <button type="button" class="btn btn-xs btn-light-warning text-amber-700 hover:bg-amber-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-300/80 shadow-2xs transition-all flex items-center gap-1" title="Waive requirement" onclick="if(confirm('Are you sure you want to officially waive this requirement for this applicant?')) document.getElementById('waive-doc-diliman-{{ setup.slug }}').submit();">
+                                            <button type="button" class="flex-shrink-0 btn btn-xs btn-light-warning text-amber-700 hover:bg-amber-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-300/80 shadow-2xs transition-all flex items-center gap-1 whitespace-nowrap" title="Waive requirement" onclick="if(confirm('Are you sure you want to officially waive this requirement for this applicant?')) document.getElementById('waive-doc-diliman-{{ setup.slug }}').submit();">
                                                 <i class="ki-filled ki-shield-cross text-xs"></i> Waive
                                             </button>
                                         </div>
@@ -811,14 +936,14 @@
                                 {% endfor %}
 
                                 {% if documentSetups|length == 0 %}
-                                    <div class="text-center py-6 text-gray-400 text-sm italic">No document requirements for this student type.</div>
+                                    <div class="text-center py-6 text-gray-400 text-xs italic">No document requirements for this student type.</div>
                                 {% endif %}
                             </div>
 
-                            <hr class="mt-6 mb-4 border-gray-200">
+                            <hr class="mt-5 mb-4 border-gray-100">
 
                             {# Dynamic Uploads #}
-                            <h6 class="text-sm font-bold mt-2 mb-3 text-gray-700 flex items-center gap-2">
+                            <h6 class="text-xs font-bold mb-3 text-gray-700 flex items-center gap-2">
                                 <i class="ki-filled ki-file-up text-feu-green-600"></i> Upload / Replace Documents
                             </h6>
                             {% if documentSetups is defined and documentSetups|length > 0 %}
@@ -826,45 +951,48 @@
                                     {% for docSetup in documentSetups %}
                                         <div>
                                             <label class="text-[11px] text-gray-600 uppercase font-bold mb-1 block">{{ docSetup.documentName }}</label>
-                                            <input type="file" name="{{ docSetup.slug }}" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+                                            <input type="file" name="{{ docSetup.slug }}" accept=".pdf,.jpg,.jpeg,.png" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-feu-green-50 file:text-feu-green-800 hover:file:bg-feu-green-100 cursor-pointer">
                                         </div>
                                     {% endfor %}
                                     <div>
                                         <label class="text-[11px] text-gray-600 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
-                                        <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+                                        <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-feu-green-50 file:text-feu-green-800 hover:file:bg-feu-green-100 cursor-pointer">
                                     </div>
                                 </div>
                             {% else %}
                                 <div class="space-y-3">
                                     <div>
                                         <label class="text-[11px] text-gray-600 uppercase font-bold mb-1 block">2x2 ID Picture of the Applicant</label>
-                                        <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer">
+                                        <input type="file" name="profile_picture_sidebar" accept=".jpg,.jpeg,.png" onchange="previewImage(this)" class="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-feu-green-50 file:text-feu-green-800 hover:file:bg-feu-green-100 cursor-pointer">
                                     </div>
                                 </div>
                             {% endif %}
                         </div>
 
-                        {# General Information #}
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-information-2 text-feu-green-600"></i> General Information
-                            </h3>
+                        {# General Information Card #}
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-base border border-feu-green-100 flex-shrink-0">
+                                    <i class="ki-filled ki-information-2 text-lg"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">General Information</h3>
+                            </div>
                             <div class="space-y-3">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">Applied On</span>
-                                    <span class="font-medium text-gray-800">{{ registration.createdAt|date('M d, Y') }}</span>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-gray-400 font-semibold uppercase tracking-wider text-[10px]">Applied On</span>
+                                    <span class="font-bold text-gray-800">{{ registration.createdAt|date('M d, Y') }}</span>
                                 </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-500">School Year</span>
-                                    <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-gray-400 font-semibold uppercase tracking-wider text-[10px]">School Year</span>
+                                    <span class="px-2 py-0.5 rounded font-bold bg-gray-100 text-gray-800 border border-gray-200/60 font-mono">{{ registration.schoolYearOfEntry }}</span>
                                 </div>
-                                <div class="flex justify-between items-start text-sm">
-                                    <span class="text-gray-500 pt-0.5">Source</span>
+                                <div class="flex justify-between items-start text-xs pt-1 border-t border-gray-100">
+                                    <span class="text-gray-400 font-semibold uppercase tracking-wider text-[10px] pt-1">Source</span>
                                     <div class="text-right">
                                         {% if registration.marketingSource %}
                                             <div class="flex flex-wrap justify-end gap-1">
                                                 {% for src in registration.marketingSource|split(', ') %}
-                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                                                         {{ src }}
                                                     </span>
                                                 {% endfor %}
@@ -877,7 +1005,7 @@
                             </div>
                         </div>
 
-                        {# Emergency Contact Edit Block (Always renders via GUARDIAN type) #}
+                        {# Emergency Contact Edit Block #}
                         {% set emergencyContact = null %}
                         {% set emergencyIndex = 'new_999' %}
                         
@@ -889,36 +1017,48 @@
                             {% endif %}
                         {% endfor %}
 
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                                <i class="ki-filled ki-phone text-orange-500"></i> Emergency Contact
-                            </h3>
+                        {% set emergencyResolvedAddr = emergencyContact ? [emergencyContact.currentAddress, emergencyContact.currentBarangay, emergencyContact.currentCity, emergencyContact.currentProvince, emergencyContact.currentRegion, emergencyContact.currentZip]|filter(v => v is not empty and v|trim != '')|join(', ') : '' %}
+                        {% if (not emergencyResolvedAddr or (emergencyContact and emergencyContact.sameAsApplicant)) and applicantFullAddr %}{% set emergencyResolvedAddr = applicantFullAddr %}{% endif %}
+
+                        <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                            <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-100">
+                                <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-base border border-orange-100 flex-shrink-0">
+                                    <i class="ki-filled ki-phone text-lg"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-900 tracking-tight">Emergency Contact</h3>
+                            </div>
                             <div class="space-y-3">
                                 <input type="hidden" name="guardians[{{ emergencyIndex }}][guardian_type]" value="GUARDIAN">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Full Name</label>
-                                        <input type="text" name="guardians[{{ emergencyIndex }}][full_name]" value="{{ emergencyContact ? emergencyContact.parentName|default('')|trim(', ') : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Full Name">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Full Name</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][full_name]" value="{{ emergencyContact ? emergencyContact.parentName|default('')|trim(', ') : '' }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Full Name">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Relationship</label>
-                                        <input type="text" name="guardians[{{ emergencyIndex }}][relationship]" value="{{ emergencyContact ? emergencyContact.relationship : 'GUARDIAN' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Relationship</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][relationship]" value="{{ emergencyContact ? emergencyContact.relationship : 'GUARDIAN' }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
-                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Occupation</label>
-                                        <input type="text" name="guardians[{{ emergencyIndex }}][occupation]" value="{{ emergencyContact ? emergencyContact.occupation : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5" placeholder="Occupation">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Occupation</label>
+                                        <input type="text" name="guardians[{{ emergencyIndex }}][occupation]" value="{{ emergencyContact ? emergencyContact.occupation : '' }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Occupation">
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Contact No.</label>
-                                        <div class="mt-1">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Email Address</label>
+                                        <input type="email" name="guardians[{{ emergencyIndex }}][email]" value="{{ emergencyContact ? emergencyContact.email : '' }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Email Address">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Contact No.</label>
+                                        <div>
                                             {% include 'enrollment-onsite/_phone_input.html.twig' with {
                                                 prefix: 'emergency_contact_' ~ emergencyIndex,
                                                 dial_name: 'guardians[' ~ emergencyIndex ~ '][country_dial_code]',
                                                 input_name: 'guardians[' ~ emergencyIndex ~ '][contact]',
                                                 input_id: 'emergency_contact_' ~ emergencyIndex,
-                                                input_class: 'border border-gray-400 rounded-r-lg text-sm shadow-sm px-3 py-2.5',
+                                                input_class: 'border border-gray-300 rounded-r-lg text-xs font-medium shadow-2xs px-3 py-2',
                                                 value: emergencyContact ? emergencyContact.contactNo : '',
                                                 placeholder: '9xxxxxxxxx',
                                                 countries: countries
@@ -926,8 +1066,8 @@
                                         </div>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-gray-500 uppercase font-bold">Nationality</label>
-                                        <select name="guardians[{{ emergencyIndex }}][nationality]" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2.5">
+                                        <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Nationality</label>
+                                        <select name="guardians[{{ emergencyIndex }}][nationality]" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white">
                                             <option value="">Select Nationality</option>
                                             {% for nat in nationalities %}
                                                 <option value="{{ nat.citizenshipName }}" {{ (emergencyContact and emergencyContact.nationality|upper == nat.citizenshipName|upper) ? 'selected' : '' }}>{{ nat.citizenshipName }}</option>
@@ -937,39 +1077,48 @@
                                 </div>
 
                                 {# Guardian Address with Same as Applicant #}
-                                <div class="mt-4 pt-4 border-t border-gray-100">
-                                    <div class="flex items-center mb-3">
-                                        <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-50 w-4 h-4 mr-2" type="checkbox" id="guardian_same_as_applicant" name="guardians[{{ emergencyIndex }}][same_as_applicant]" value="1" onchange="toggleGuardianAddress()" {{ (emergencyContact and emergencyContact.sameAsApplicant) ? 'checked' : '' }}>
+                                <div class="mt-4 pt-3.5 border-t border-gray-200/80">
+                                    <div class="flex items-center mb-2">
+                                        <input class="rounded border-gray-300 text-feu-green-600 focus:ring-feu-green-500 w-4 h-4 mr-2" type="checkbox" id="guardian_same_as_applicant" name="guardians[{{ emergencyIndex }}][same_as_applicant]" value="1" onchange="toggleGuardianAddress()" {{ (emergencyContact and emergencyContact.sameAsApplicant) ? 'checked' : '' }}>
                                         <label class="text-xs font-bold text-gray-700 cursor-pointer" for="guardian_same_as_applicant">Same address as Applicant</label>
                                     </div>
                                     
+                                    {# Resolved address preview box #}
+                                    <div id="guardian_same_preview" style="{{ not (emergencyContact and emergencyContact.sameAsApplicant) ? 'display:none;' : '' }}" class="mt-2.5 p-3 rounded-lg bg-gray-50/90 border border-gray-200/70 text-xs text-gray-700 flex items-start gap-2.5">
+                                        <i class="ki-filled ki-geolocation text-feu-green-600 mt-0.5 text-sm flex-shrink-0"></i>
+                                        <div>
+                                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Resolved Complete Address</span>
+                                            <span class="font-bold text-gray-800">{{ emergencyResolvedAddr|default(applicantFullAddr)|default('No complete address recorded') }}</span>
+                                        </div>
+                                    </div>
+
                                     <div id="guardian_address_block" style="{{ (emergencyContact and emergencyContact.sameAsApplicant) ? 'display:none;' : '' }}">
-                                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                                        <div class="grid grid-cols-2 gap-2 mb-2 mt-2">
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Region</label>
-                                                <select id="guardian_addr_region" name="guardians[{{ emergencyIndex }}][addr_region]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentRegion : '' }}"><option value="">Region</option></select>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Region</label>
+                                                <select id="guardian_addr_region" name="guardians[{{ emergencyIndex }}][addr_region]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ emergencyContact ? emergencyContact.currentRegion : '' }}"><option value="">Region</option></select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Province</label>
-                                                <select id="guardian_addr_province" name="guardians[{{ emergencyIndex }}][addr_province]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentProvince : '' }}"><option value="">Province</option></select>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Province</label>
+                                                <select id="guardian_addr_province" name="guardians[{{ emergencyIndex }}][addr_province]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ emergencyContact ? emergencyContact.currentProvince : '' }}"><option value="">Province</option></select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">City/Municipality</label>
-                                                <select id="guardian_addr_city" name="guardians[{{ emergencyIndex }}][addr_city]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentCity : '' }}"><option value="">City</option></select>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">City/Municipality</label>
+                                                <select id="guardian_addr_city" name="guardians[{{ emergencyIndex }}][addr_city]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ emergencyContact ? emergencyContact.currentCity : '' }}"><option value="">City</option></select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Barangay</label>
-                                                <select id="guardian_addr_barangay" name="guardians[{{ emergencyIndex }}][addr_barangay]" class="w-full border border-gray-400 rounded-lg text-[10px] shadow-sm px-2 py-2" data-selected="{{ emergencyContact ? emergencyContact.currentBarangay : '' }}"><option value="">Barangay</option></select>
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Barangay</label>
+                                                <select id="guardian_addr_barangay" name="guardians[{{ emergencyIndex }}][addr_barangay]" class="w-full border border-gray-300 rounded-lg text-[10px] shadow-2xs px-2 py-1.5 bg-white" data-selected="{{ emergencyContact ? emergencyContact.currentBarangay : '' }}"><option value="">Barangay</option></select>
                                             </div>
                                         </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                            <div class="md:col-span-2">
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">House No. / Street / Bldg</label>
-                                                <input type="text" name="guardians[{{ emergencyIndex }}][addr_street]" value="{{ emergencyContact ? emergencyContact.currentAddress : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2" placeholder="Street Address">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            <div class="sm:col-span-2">
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">House No. / Street</label>
+                                                <input type="text" name="guardians[{{ emergencyIndex }}][addr_street]" value="{{ emergencyContact ? emergencyContact.currentAddress : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Street Address">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-gray-500 uppercase font-bold">Zip Code</label>
-                                                <input type="text" name="guardians[{{ emergencyIndex }}][addr_zip]" value="{{ emergencyContact ? emergencyContact.currentZip : '' }}" class="w-full border border-gray-400 rounded-lg text-sm shadow-sm px-3 py-2" placeholder="Zip Code">
+                                                <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Zip Code</label>
+                                                <input type="text" name="guardians[{{ emergencyIndex }}][addr_zip]" value="{{ emergencyContact ? emergencyContact.currentZip : '' }}" class="w-full border border-gray-300 rounded-lg text-xs shadow-2xs px-3 py-1.5 bg-white" placeholder="Zip Code">
                                             </div>
                                         </div>
                                     </div>
@@ -1003,13 +1152,17 @@
             <input type="hidden" name="_token" value="{{ csrf_token('unwaive_doc_' ~ registration.studentNumber ~ '_' ~ req.slug) }}">
             <input type="hidden" name="_redirect" value="edit">
         </form>
-        <form id="delete-doc-diliman-{{ setup.slug }}" action="{{ path('app_admin_diliman_registration_doc_delete', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden"></form>
+        <form id="delete-doc-diliman-{{ setup.slug }}" action="{{ path('app_admin_diliman_registration_doc_delete', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_soft_delete_doc_' ~ registration.studentNumber ~ '_' ~ req.slug) }}">
+        </form>
     {% endif %}
 {% endfor %}
 
 {% for req in registration.requirements %}
     {% if not req.isDeleted %}
-        <form id="delete-doc-diliman-{{ req.slug }}" action="{{ path('app_admin_diliman_registration_doc_delete', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden"></form>
+        <form id="delete-doc-diliman-{{ req.slug }}" action="{{ path('app_admin_diliman_registration_doc_delete', {id: registration.studentNumber, slug: req.slug}) }}" method="POST" class="hidden">
+            <input type="hidden" name="_token" value="{{ csrf_token('admin_soft_delete_doc_' ~ registration.studentNumber ~ '_' ~ req.slug) }}">
+        </form>
     {% endif %}
 {% endfor %}
 
@@ -1047,8 +1200,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('beforeunload', function(e) {
         if(isDirty) { e.preventDefault(); e.returnValue = ''; }
     });
-
-    // Exam/Payment UI handled by updateGradeDependents and updateExamUI below
 
     if(typeof ARIESValidation !== 'undefined') {
         const nameInputs = document.querySelectorAll('input[name="last_name"], input[name="first_name"], input[name="middle_name"]');
@@ -1325,8 +1476,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.toggleGuardianAddress = function() {
         const cb = document.getElementById('guardian_same_as_applicant');
         const block = document.getElementById('guardian_address_block');
+        const preview = document.getElementById('guardian_same_preview');
         if (cb && block) {
             block.style.display = cb.checked ? 'none' : '';
+        }
+        if (cb && preview) {
+            preview.style.display = cb.checked ? '' : 'none';
         }
     };
 
@@ -1339,8 +1494,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.toggleParentEditAddress = function(idx) {
         const cb = document.getElementById(`parent_same_${idx}`);
         const block = document.getElementById(`parent_addr_block_${idx}`);
+        const preview = document.getElementById(`parent_same_preview_${idx}`);
         if (cb && block) {
             block.style.display = cb.checked ? 'none' : '';
+        }
+        if (cb && preview) {
+            preview.style.display = cb.checked ? '' : 'none';
         }
     };
 
@@ -1423,10 +1582,12 @@ document.addEventListener('DOMContentLoaded', function() {
             reader.onload = function(e) {
                 const img = document.getElementById('applicantAvatarImg');
                 if (img) img.src = e.target.result;
-            }
+                const thumb = document.getElementById('submittedFiles2x2Thumb');
+                if (thumb) thumb.src = e.target.result;
+            };
             reader.readAsDataURL(input.files[0]);
         }
-    }
+    };
 
     // --- DYNAMIC FORM LOGIC ---
 
@@ -1439,10 +1600,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!gradeSelect) return;
         
         const level = gradeSelect.value.toLowerCase();
-        // Robust check for SHS: includes '11' or '12' or 'shs'
         const isSHS = level.includes('11') || level.includes('12') || level.includes('shs');
         
-        // 1. Toggle Framework Dropdown
+        // 1. Toggle Strand Dropdown
         if (strandSelect) {
             if (isSHS) {
                 strandSelect.style.display = ''; 
@@ -1471,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.updateGradeDependents();
     }
 
-    // Exam Checkbox Toggle (Internal visibility)
+    // Exam Checkbox Toggle
     const examCheck = document.getElementById('examCheck');
     const scoreBox = document.getElementById('scoreBox');
     const pendingBox = document.getElementById('pendingBox');
@@ -1521,25 +1681,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- INTERNATIONAL SCHOOL LOGIC ---
     window.toggleAdminSchoolLocation = function(index) {
-        const cb = document.getElementById(`school_${index}_intl`);
+        const isIntl = document.getElementById(`school_${index}_intl`).checked;
         const localGroup = document.getElementById(`school_${index}_local_group`);
         const intlGroup = document.getElementById(`school_${index}_intl_group`);
-        const typeSelect = document.querySelector(`select[name="schools[${index}][type]"]`);
 
-        if (!cb || !localGroup || !intlGroup) return;
-
-        if (cb.checked) {
+        if(isIntl) {
             localGroup.style.display = 'none';
             intlGroup.style.display = '';
-            if (typeSelect && typeSelect.value !== 'International') {
-                typeSelect.value = 'International';
-            }
         } else {
             localGroup.style.display = '';
             intlGroup.style.display = 'none';
-            if (typeSelect && typeSelect.value === 'International') {
-                typeSelect.value = '';
-            }
         }
     };
 

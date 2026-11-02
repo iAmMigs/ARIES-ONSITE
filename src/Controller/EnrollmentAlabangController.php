@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
+use App\Entity\ApplicantBedPassport;
 use App\Entity\ApplicantBedGuardian;
 use App\Entity\ApplicantBedSibling;
 use App\Entity\ApplicantBedSchool;
@@ -19,6 +20,7 @@ use App\Entity\LookupCitizenship;
 use App\Entity\LookupCountry;
 use App\Entity\SchoolYear;
 use App\Repository\SchoolYearRepository;
+use App\Service\DocumentComplianceService;
 use App\Service\StudentIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -82,16 +84,18 @@ class EnrollmentAlabangController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         StudentIdGenerator $idGenerator,
-        SchoolYearRepository $syRepo
+        SchoolYearRepository $syRepo,
+        DocumentComplianceService $complianceService
     ): Response
     {
-        // Log the incoming request data for debugging
-        error_log('Enrollment Submission POST data: ' . json_encode($request->request->all()));
-        error_log('Enrollment Submission FILES data: ' . json_encode(array_keys($request->files->all())));
-
         $campus = 'feu_alabang';
         $campusCode = SchoolYear::CAMPUS_ALABANG;
         
+        if (!$this->isCsrfTokenValid('enrollment_submit_alabang', (string)$request->request->get('_token'))) {
+            $this->addFlash('error', 'Your session has expired or the form submission token is invalid. Please try again.');
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
+        }
+
         $syId = $request->request->get('school_year_id');
         $selectedSY = null;
         if ($syId) {
@@ -174,7 +178,9 @@ class EnrollmentAlabangController extends AbstractController
             $applicant->setLastName($formatName($request->request->get('last_name')));
             $applicant->setFirstName($formatName($request->request->get('first_name')));
             $applicant->setMiddleName($formatName($request->request->get('middle_name')));
+            $applicant->setSuffix($formatName($request->request->get('suffix')));
             $applicant->setExtensionName($formatName($request->request->get('suffix')));
+            $applicant->setPreferredName($formatName($request->request->get('preferred_name')));
             
             if ($birthday = $request->request->get('birthday')) {
                 $applicant->setBirthDate(new \DateTime($birthday));
@@ -193,11 +199,27 @@ class EnrollmentAlabangController extends AbstractController
             $citizenship = $request->request->get('citizenship');
             $applicant->setCitizenship($citizenship);
             $applicant->setNationality($request->request->get('nationality'));
+            $applicant->setCountryOfBirth($request->request->get('country_of_birth'));
+            $applicant->setCountryOfResidence($request->request->get('country_of_residence'));
             
             if (strtoupper($citizenship) === 'INTERNATIONAL') {
                 $applicant->setPassportNumber($request->request->get('passport_number'));
                 $applicant->setVisaType($request->request->get('visa_type'));
                 $applicant->setVisaStatus($request->request->get('visa_status'));
+
+                // Link and persist Passport entity
+                $passport = new ApplicantBedPassport();
+                $passport->setApplicant($applicant);
+                $passport->setPassportNumber($request->request->get('passport_number', ''));
+                $passport->setCountryOfIssue($request->request->get('passport_country_issue', ''));
+                if ($pIssueDate = $request->request->get('passport_date_issued')) {
+                    $passport->setDateIssued(new \DateTime($pIssueDate));
+                }
+                if ($pExpDate = $request->request->get('passport_expiration_date')) {
+                    $passport->setExpirationDate(new \DateTime($pExpDate));
+                }
+                $em->persist($passport);
+                $applicant->setPassport($passport);
             }
 
             $rawMarketing = $request->request->all()['marketing_source'] ?? $request->request->get('marketing_source');
@@ -220,6 +242,12 @@ class EnrollmentAlabangController extends AbstractController
                 $applicant->setMarketingSource($marketingSource !== '' ? $marketingSource : null);
             }
 
+            if (empty($applicant->getMarketingSource())) {
+                $em->rollback();
+                $this->addFlash('error', 'Please select at least one option in the survey (How did you learn about us).');
+                return $this->redirectToRoute('app_enrollment_alabang_apply');
+            }
+
             $agreedDateStr = $request->request->get('documents_agreed_date');
             $promissoryAgreement = $request->request->get('promissory_agreement');
 
@@ -238,7 +266,6 @@ class EnrollmentAlabangController extends AbstractController
             $applicant->setPersonalEmail($request->request->get('email'));
             $applicant->setLandLineNumber($request->request->get('landline'));
 
-            error_log("Enrollment Alabang: Hydrating Address for " . $applicant->getLastName());
             $this->hydrateAddress($applicant, $request, $em, 'current');
             if ($request->request->get('sameAsCurrent') === 'on') {
                 $applicant->setPermanentRegion($applicant->getCurrentRegion());
@@ -304,12 +331,7 @@ class EnrollmentAlabangController extends AbstractController
                             });
 
                             $addrVal = trim((string)($addresses[$index] ?? ''));
-                            if ($addrVal === '') {
-                                $em->rollback();
-                                $this->addFlash('error', sprintf('Address Line is required for school: %s', $schoolName));
-                                return $this->redirectToRoute('app_enrollment_alabang_apply');
-                            }
-                            $school->setAddressLine($addrVal);
+                            $school->setAddressLine($addrVal !== '' ? $addrVal : null);
                             
                             $isInt = !empty($isInternationals[$index]);
                             $school->setIsInternational($isInt);
@@ -357,65 +379,41 @@ class EnrollmentAlabangController extends AbstractController
                 }
             }
 
-            $documentSetups = $em->getRepository(DocumentSetup::class)->findBy([
-                'campus' => [$applicant->getCampus(), null]
-            ]);
-            
+            $applicableSetups = $complianceService->getApplicableDocuments($applicant);
             $processedReqSlugs = [];
-            foreach ($documentSetups as $docSetup) {
-                $isMatch = true;
-                if ($docSetup->getStudentType() && strtoupper($docSetup->getStudentType()) !== strtoupper($applicant->getAdmissionType())) $isMatch = false;
-                $studentNationality = strtoupper($applicant->getCitizenship());
-                if ($docSetup->getNationalityType() && strtoupper($docSetup->getNationalityType()) !== $studentNationality) $isMatch = false;
-                if ($docSetup->getGradeLevels() && !in_array($applicant->getGradeLevel(), $docSetup->getGradeLevels())) $isMatch = false;
-                
-                if (!$isMatch) continue;
 
+            foreach ($applicableSetups as $docSetup) {
                 $slug = $docSetup->getSlug();
-                if (in_array($slug, $processedReqSlugs)) continue;
-                $processedReqSlugs[] = $slug;
-                
+                if (in_array($slug, $processedReqSlugs, true)) {
+                    continue;
+                }
+
                 $file = $request->files->get($slug);
-                
-                if ($file instanceof UploadedFile) {
-                    if ($file->getSize() > 10485760) throw new \Exception('File ' . $docSetup->getDocumentName() . ' exceeds 10MB limit.');
-
-                    $allowedTypesString = $docSetup->getAllowedFileTypes();
-                    $allowedExtensions = !empty($allowedTypesString)
-                        ? array_map('trim', explode(',', strtolower($allowedTypesString)))
-                        : ['pdf', 'jpg', 'jpeg', 'png'];
-
-                    $clientExt = strtolower((string)$file->getClientOriginalExtension());
-                    if (!in_array($clientExt, $allowedExtensions, true)) {
-                        throw new \Exception('Invalid format for ' . $docSetup->getDocumentName());
-                    }
-
-                    $mime = (string)$file->getMimeType();
-                    $isAllowedMime = str_starts_with($mime, 'image/') || $mime === 'application/pdf';
-                    if (!$isAllowedMime) {
-                        throw new \Exception('Invalid file type for ' . $docSetup->getDocumentName());
-                    }
-
-                    $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
-                    if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
-
-                    $ext = $file->guessExtension() ?: $clientExt;
-                    $filename = $studentNo . '-' . strtoupper($slug) . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
-                    $file->move($targetDir, $filename);
-                    
-                    $req = new ApplicantBedRequirement();
-                    $req->setApplicant($applicant);
-                    $req->setRequirement($docSetup->getDocumentName());
-                    $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
-                    $req->setSlug($slug);
-                    $req->setStatus('S');
-                    $req->setDateSubmitted(new \DateTime());
-                    $req->setIsDeleted(false);
-                    
-                    $applicant->addRequirement($req);
-                    $em->persist($req);
+                if ($file instanceof UploadedFile && $file->isValid()) {
+                    $processedReqSlugs[] = $slug;
+                    $this->saveUploadedRequirement($applicant, $docSetup, $file, $studentNo, $em);
                 }
             }
+
+            // Fallback: Catch any additional uploaded documents sent in request matching a valid setup for this campus
+            foreach ($request->files->all() as $fileKey => $uploadedFile) {
+                if (in_array($fileKey, $processedReqSlugs, true) || $fileKey === 'profile_picture' || $fileKey === 'profile_picture_sidebar') {
+                    continue;
+                }
+                if ($uploadedFile instanceof UploadedFile && $uploadedFile->isValid()) {
+                    $extraDocSetup = $em->getRepository(DocumentSetup::class)->findOneBy([
+                        'slug' => $fileKey,
+                        'campus' => [$campusCode, null],
+                    ]);
+                    if ($extraDocSetup) {
+                        $processedReqSlugs[] = $fileKey;
+                        $this->saveUploadedRequirement($applicant, $extraDocSetup, $uploadedFile, $studentNo, $em);
+                    }
+                }
+            }
+
+            // Synchronize document compliance status (ensuring missing documents are flagged with promissory deadline)
+            $complianceService->syncComplianceStatus($applicant);
 
             $em->flush();
             $em->commit();
@@ -436,6 +434,72 @@ class EnrollmentAlabangController extends AbstractController
             $this->addFlash('error', 'Submission failed: ' . $e->getMessage());
             return $this->redirectToRoute('app_enrollment_alabang_apply');
         }
+    }
+
+    /**
+     * Validates and persists an uploaded applicant document strictly adhering to admin-configured file rules.
+     */
+    private function saveUploadedRequirement(
+        ApplicantBed $applicant,
+        DocumentSetup $docSetup,
+        UploadedFile $file,
+        string $studentNo,
+        EntityManagerInterface $em
+    ): void {
+        if ($file->getSize() > 10485760) {
+            throw new \Exception('File ' . $docSetup->getDocumentName() . ' exceeds 10MB limit.');
+        }
+
+        $allowedTypesString = $docSetup->getAllowedFileTypes();
+        $allowedExtensions = !empty($allowedTypesString)
+            ? array_map('trim', explode(',', strtolower($allowedTypesString)))
+            : ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+
+        if (in_array('jpg', $allowedExtensions, true) && !in_array('jpeg', $allowedExtensions, true)) {
+            $allowedExtensions[] = 'jpeg';
+        } elseif (in_array('jpeg', $allowedExtensions, true) && !in_array('jpg', $allowedExtensions, true)) {
+            $allowedExtensions[] = 'jpg';
+        }
+
+        $clientExt = strtolower((string)$file->getClientOriginalExtension());
+        if (!in_array($clientExt, $allowedExtensions, true)) {
+            throw new \Exception('Invalid format for ' . $docSetup->getDocumentName() . '. Allowed: ' . implode(', ', $allowedExtensions));
+        }
+
+        $mime = (string)$file->getMimeType();
+        $isAllowedMime = str_starts_with($mime, 'image/') 
+            || $mime === 'application/pdf'
+            || (in_array('docx', $allowedExtensions, true) && ($mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || $mime === 'application/zip'))
+            || (in_array('doc', $allowedExtensions, true) && ($mime === 'application/msword'));
+
+        if (!$isAllowedMime) {
+            throw new \Exception('Invalid file type for ' . $docSetup->getDocumentName());
+        }
+
+        $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        $safeExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx'];
+        $ext = strtolower((string)($file->guessExtension() ?: $clientExt));
+        if (!in_array($ext, $safeExts, true)) {
+            $ext = 'pdf';
+        }
+        $filename = $studentNo . '-' . strtoupper($docSetup->getSlug()) . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
+        $file->move($targetDir, $filename);
+
+        $req = new ApplicantBedRequirement();
+        $req->setApplicant($applicant);
+        $req->setRequirement($docSetup->getDocumentName());
+        $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
+        $req->setSlug($docSetup->getSlug());
+        $req->setStatus('S');
+        $req->setDateSubmitted(new \DateTime());
+        $req->setIsDeleted(false);
+
+        $applicant->addRequirement($req);
+        $em->persist($req);
     }
 
     private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
@@ -488,9 +552,16 @@ class EnrollmentAlabangController extends AbstractController
         $slotType = strtoupper($slot); 
 
         if ($slot === 'guardian') {
-            $fullname = strtoupper(trim($request->request->get('guardian_name', '')));
-            $relationship = strtoupper(trim($request->request->get('guardian_relation', 'GUARDIAN')));
-            $occupation = '';
+            $fullname = strtoupper(trim((string)$request->request->get('guardian_name', '')));
+            $relationship = strtoupper(trim((string)$request->request->get('guardian_relation', 'GUARDIAN')));
+            $occupation = strtoupper(trim((string)$request->request->get('guardian_occupation', '')));
+            if ($occupation === '') {
+                if (in_array($relationship, ['FATHER', 'DAD'])) {
+                    $occupation = strtoupper(trim((string)$request->request->get('father_occupation', '')));
+                } elseif (in_array($relationship, ['MOTHER', 'MOM'])) {
+                    $occupation = strtoupper(trim((string)$request->request->get('mother_occupation', '')));
+                }
+            }
         } else {
             $lname = trim($request->request->get($slot . '_lastname', ''));
             $fname = trim($request->request->get($slot . '_firstname', ''));
@@ -585,9 +656,15 @@ class EnrollmentAlabangController extends AbstractController
                 $permInPh = $request->request->get($slot . '_ofw_perm_in_ph');
                 if ($permInPh === 'yes') {
                     $guardian->setPermanentCountry(null);
-                    $guardian->setPermanentRegion(strtoupper((string)($request->request->get($slot . '_ofw_perm_region') ?: '')));
-                    $guardian->setPermanentProvince(strtoupper((string)($request->request->get($slot . '_ofw_perm_province') ?: '')));
-                    $guardian->setPermanentCity(strtoupper((string)($request->request->get($slot . '_ofw_perm_city') ?: '')));
+                    [$ofwReg, $ofwProv, $ofwCity] = $this->resolveAddressDesc(
+                        $em,
+                        (string)$request->request->get($slot . '_ofw_perm_region', ''),
+                        (string)$request->request->get($slot . '_ofw_perm_province', ''),
+                        (string)$request->request->get($slot . '_ofw_perm_city', '')
+                    );
+                    $guardian->setPermanentRegion($ofwReg);
+                    $guardian->setPermanentProvince($ofwProv);
+                    $guardian->setPermanentCity($ofwCity);
                     $guardian->setPermanentBarangay((string)$request->request->get($slot . '_ofw_perm_barangay', ''));
                     $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_ofw_perm_street') ?: '')));
                     $guardian->setPermanentZip((string)$request->request->get($slot . '_ofw_perm_zip', ''));
@@ -617,9 +694,15 @@ class EnrollmentAlabangController extends AbstractController
             $guardian->setPermanentCountry($applicant->getPermanentCountry());
         } else {
             $guardian->setPermanentCountry(null);
-            $guardian->setCurrentRegion(strtoupper((string)($request->request->get($slot . '_addr_region') ?: '')));
-            $guardian->setCurrentProvince(strtoupper((string)($request->request->get($slot . '_addr_province') ?: '')));
-            $guardian->setCurrentCity(strtoupper((string)($request->request->get($slot . '_addr_city') ?: '')));
+            [$curReg, $curProv, $curCity] = $this->resolveAddressDesc(
+                $em,
+                (string)$request->request->get($slot . '_addr_region', ''),
+                (string)$request->request->get($slot . '_addr_province', ''),
+                (string)$request->request->get($slot . '_addr_city', '')
+            );
+            $guardian->setCurrentRegion($curReg);
+            $guardian->setCurrentProvince($curProv);
+            $guardian->setCurrentCity($curCity);
             $guardian->setCurrentBarangay((string)$request->request->get($slot . '_addr_barangay', ''));
             $guardian->setCurrentAddress(strtoupper((string)($request->request->get($slot . '_addr_street') ?: '')));
             $guardian->setCurrentZip((string)$request->request->get($slot . '_addr_zip', ''));
@@ -633,9 +716,15 @@ class EnrollmentAlabangController extends AbstractController
                 $guardian->setPermanentAddress($guardian->getCurrentAddress());
                 $guardian->setPermanentZip($guardian->getCurrentZip());
             } else {
-                $guardian->setPermanentRegion(strtoupper((string)($request->request->get($slot . '_perm_region') ?: '')));
-                $guardian->setPermanentProvince(strtoupper((string)($request->request->get($slot . '_perm_province') ?: '')));
-                $guardian->setPermanentCity(strtoupper((string)($request->request->get($slot . '_perm_city') ?: '')));
+                [$permReg, $permProv, $permCity] = $this->resolveAddressDesc(
+                    $em,
+                    (string)$request->request->get($slot . '_perm_region', ''),
+                    (string)$request->request->get($slot . '_perm_province', ''),
+                    (string)$request->request->get($slot . '_perm_city', '')
+                );
+                $guardian->setPermanentRegion($permReg);
+                $guardian->setPermanentProvince($permProv);
+                $guardian->setPermanentCity($permCity);
                 $guardian->setPermanentBarangay((string)$request->request->get($slot . '_perm_barangay', ''));
                 $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_perm_street') ?: '')));
                 $guardian->setPermanentZip((string)$request->request->get($slot . '_perm_zip', ''));
@@ -715,5 +804,43 @@ class EnrollmentAlabangController extends AbstractController
         }
 
         return $this->json(['exists' => false]);
+    }
+
+    /**
+     * Resolves raw region, province, and city codes to their human-readable descriptions.
+     *
+     * @return array{0: ?string, 1: ?string, 2: ?string}
+     */
+    private function resolveAddressDesc(EntityManagerInterface $em, string $regCode, string $provCode, string $cityCode): array
+    {
+        $regDesc = trim($regCode);
+        if ($regDesc !== '') {
+            $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regDesc]);
+            if ($r) {
+                $regDesc = $r->getRegionDesc();
+            }
+        }
+
+        $provDesc = trim($provCode);
+        if ($provDesc !== '') {
+            $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provDesc]);
+            if ($p) {
+                $provDesc = $p->getProvinceDesc();
+            }
+        }
+
+        $cityDesc = trim($cityCode);
+        if ($cityDesc !== '') {
+            $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityDesc]);
+            if ($c) {
+                $cityDesc = $c->getCityDesc();
+            }
+        }
+
+        return [
+            $regDesc !== '' ? strtoupper($regDesc) : null,
+            $provDesc !== '' ? strtoupper($provDesc) : null,
+            $cityDesc !== '' ? strtoupper($cityDesc) : null,
+        ];
     }
 }

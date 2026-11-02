@@ -404,21 +404,26 @@ window.updatePermanentAddressFields = function() {
         }
     });
 
-    // Handle common inputs (Street and Zip)
+    // Handle common inputs (Street is optional, Zip is required when enabled)
     const streetInput = document.getElementById('permAddressInput') || document.querySelector('[name="perm_address"]');
     const zipInput = document.getElementById('perm_zip');
-    [streetInput, zipInput].forEach(i => {
-        if (i) {
-            if (isChecked) {
-                i.disabled = true;
-                i.removeAttribute('required');
-                if (window.ARIESValidation) window.ARIESValidation.resetField(i, window.ARIESValidation.getErrorElement(i));
-            } else {
-                i.disabled = false;
-                i.setAttribute('required', 'required');
-            }
+    if (streetInput) {
+        streetInput.disabled = isChecked;
+        streetInput.removeAttribute('required');
+        if (isChecked && window.ARIESValidation) {
+            window.ARIESValidation.resetField(streetInput, window.ARIESValidation.getErrorElement(streetInput));
         }
-    });
+    }
+    if (zipInput) {
+        if (isChecked) {
+            zipInput.disabled = true;
+            zipInput.removeAttribute('required');
+            if (window.ARIESValidation) window.ARIESValidation.resetField(zipInput, window.ARIESValidation.getErrorElement(zipInput));
+        } else {
+            zipInput.disabled = false;
+            zipInput.setAttribute('required', 'required');
+        }
+    }
 };
 
 window.toggleGuardianAddress = function() {
@@ -658,6 +663,7 @@ window.syncGuardianFromParent = function() {
     const gName = document.getElementById('guardian_name');
     const gRelation = document.getElementById('guardian_relation');
     const gContact = document.getElementById('guardian_contact');
+    const gOccupation = document.getElementById('guardian_occupation');
     
     if (!gName || !gRelation || !gContact) return;
 
@@ -666,6 +672,7 @@ window.syncGuardianFromParent = function() {
         const pFirst = (document.getElementById(`${activeType}_firstname`)?.value || '').trim();
         const pMiddle = (document.getElementById(`${activeType}_middlename`)?.value || '').trim();
         const pContact = document.getElementById(`${activeType}_contact`)?.value || '';
+        const pOccupation = (document.getElementById(`${activeType}_occupation`)?.value || '').trim();
         
         let fullName = '';
         if (pLast && pFirst) {
@@ -679,6 +686,9 @@ window.syncGuardianFromParent = function() {
         gName.value = fullName;
         gRelation.value = activeType === 'father' ? 'Father' : 'Mother';
         gContact.value = pContact;
+        if (gOccupation) {
+            gOccupation.value = pOccupation;
+        }
 
         // Sync country dial code and flag to guardian
         const pDial = document.getElementById(`${activeType}CountryDialCode`)?.value || '+63';
@@ -706,11 +716,16 @@ window.syncGuardianFromParent = function() {
         gName.classList.add('bg-gray-50', 'cursor-not-allowed');
         gRelation.classList.add('bg-gray-50', 'cursor-not-allowed');
         gContact.classList.add('bg-gray-50', 'cursor-not-allowed');
+        if (gOccupation) {
+            gOccupation.readOnly = true;
+            gOccupation.classList.add('bg-gray-50', 'cursor-not-allowed');
+        }
 
         // Reset validation styling if values are now present
         if (window.ARIESValidation) {
             if (fullName) window.ARIESValidation.resetField(gName, window.ARIESValidation.getErrorElement(gName));
             if (pContact) window.ARIESValidation.resetField(gContact, window.ARIESValidation.getErrorElement(gContact));
+            if (pOccupation && gOccupation) window.ARIESValidation.resetField(gOccupation, window.ARIESValidation.getErrorElement(gOccupation));
             window.ARIESValidation.resetField(gRelation, window.ARIESValidation.getErrorElement(gRelation));
         }
     }
@@ -757,6 +772,10 @@ window.setGuardian = function(type) {
             gName.value = '';
             gRelation.value = '';
             gContact.value = '';
+            const gOccupation = document.getElementById('guardian_occupation');
+            if (gOccupation) {
+                gOccupation.value = '';
+            }
 
             // Reset guardian country dial code and flag
             const gDial = document.getElementById('guardianCountryDialCode');
@@ -782,6 +801,10 @@ window.setGuardian = function(type) {
             gName.classList.remove('bg-gray-50', 'cursor-not-allowed');
             gRelation.classList.remove('bg-gray-50', 'cursor-not-allowed');
             gContact.classList.remove('bg-gray-50', 'cursor-not-allowed');
+            if (gOccupation) {
+                gOccupation.readOnly = false;
+                gOccupation.classList.remove('bg-gray-50', 'cursor-not-allowed');
+            }
         } else {
             window.syncGuardianFromParent();
         }
@@ -2126,7 +2149,12 @@ window.toggleSchoolType = function(triggerEl, prefix) {
             }
         }
         if (countrySelect) countrySelect.setAttribute('required', 'required');
-        if (intlAddr) intlAddr.setAttribute('required', 'required');
+        if (intlAddr) {
+            intlAddr.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(intlAddr, window.ARIESValidation.getErrorElement(intlAddr));
+            }
+        }
     } else {
         if (localGroup) localGroup.style.display = '';
         if (intlGroup) intlGroup.style.display = 'none';
@@ -2145,7 +2173,12 @@ window.toggleSchoolType = function(triggerEl, prefix) {
         if (regSelect) regSelect.setAttribute('required', 'required');
         if (provSearch) provSearch.setAttribute('required', 'required');
         if (citySelect) citySelect.setAttribute('required', 'required');
-        if (localAddr) localAddr.setAttribute('required', 'required');
+        if (localAddr) {
+            localAddr.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(localAddr, window.ARIESValidation.getErrorElement(localAddr));
+            }
+        }
     }
     
     window.isFormDirty = true;
@@ -2403,6 +2436,40 @@ function initFormValidation() {
         inputs.forEach(input => {
             if (!validateSingleField(input)) isFormValid = false;
         });
+
+        // Marketing Survey validation (must have at least 1 option selected)
+        const surveyChecks = form.querySelectorAll('input[name="marketing_source[]"]:checked');
+        const surveyContainer = document.querySelector('.survey-grid');
+        let surveyError = document.getElementById('survey-validation-error');
+        if (!surveyError && surveyContainer) {
+            surveyError = document.createElement('div');
+            surveyError.id = 'survey-validation-error';
+            surveyError.className = 'text-danger font-semibold text-xs mt-2';
+            surveyError.innerText = 'Please select at least one option on how you learned about us.';
+            surveyContainer.parentNode.appendChild(surveyError);
+        }
+
+        if (surveyChecks.length === 0) {
+            isFormValid = false;
+            if (surveyError) {
+                surveyError.innerText = 'Please select at least one option on how you learned about us.';
+                surveyError.style.display = 'block';
+            }
+            if (surveyContainer) surveyContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            const otherCheck = document.getElementById('source_other');
+            const otherInput = document.getElementById('marketing_source_other');
+            if (otherCheck && otherCheck.checked && otherInput && !otherInput.value.trim()) {
+                isFormValid = false;
+                if (surveyError) {
+                    surveyError.innerText = 'Please specify how you learned about us in the text field.';
+                    surveyError.style.display = 'block';
+                }
+                otherInput.focus();
+            } else if (surveyError) {
+                surveyError.style.display = 'none';
+            }
+        }
 
         const lrnInput = document.querySelector('[name="lrn"]');
         if (lrnInput && lrnInput.classList.contains('is-invalid')) isFormValid = false;
@@ -2710,8 +2777,8 @@ window.addSchoolRow = function(level) {
                 </select>
             </div>
             <div class="col-12 mt-2">
-                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line <span class="required text-danger">*</span></label>
-                <input type="text" id="${prefix}_local_addr" name="educ_${level}_address[]" class="form-control form-control-sm educ-input" placeholder="House No. / Street / Bldg / Subdivision" required oninput="window.isFormDirty = true;">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line</label>
+                <input type="text" id="${prefix}_local_addr" name="educ_${level}_address[]" class="form-control form-control-sm educ-input" placeholder="House No. / Street / Bldg / Subdivision" oninput="window.isFormDirty = true;">
             </div>
         </div>
         
@@ -2723,7 +2790,7 @@ window.addSchoolRow = function(level) {
                 </select>
             </div>
             <div class="col-md-6">
-                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line <span class="required text-danger">*</span></label>
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line</label>
                 <input type="text" id="${prefix}_intl_addr" class="form-control form-control-sm educ-input" placeholder="School Address Line / Street / City" oninput="window.isFormDirty = true;">
             </div>
         </div>

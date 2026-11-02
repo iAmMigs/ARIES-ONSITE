@@ -9,7 +9,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-
 use Symfony\Bundle\SecurityBundle\Security;
 
 class SecurityController extends AbstractController
@@ -29,7 +28,7 @@ class SecurityController extends AbstractController
         $user = $this->getUser();
         if ($user instanceof AdminUser) {
             if ($user->getCampus() === 'feu_diliman') {
-                return $this->redirectToRoute('app_admin_diliman_dashboard');
+                return $this->resolveLandingRoute($user);
             }
             $security->logout(false);
         }
@@ -46,7 +45,7 @@ class SecurityController extends AbstractController
         $user = $this->getUser();
         if ($user instanceof AdminUser) {
             if ($user->getCampus() === 'feu_alabang') {
-                return $this->redirectToRoute('app_admin_alabang_dashboard');
+                return $this->resolveLandingRoute($user);
             }
             $security->logout(false);
         }
@@ -84,10 +83,37 @@ class SecurityController extends AbstractController
             return $this->redirectToRoute('app_auth_login_diliman');
         }
 
-        return match ($user->getCampus()) {
-            'feu_alabang' => $this->redirectToRoute('app_admin_alabang_dashboard'),
-            'feu_diliman' => $this->redirectToRoute('app_admin_diliman_dashboard'),
-            default       => $this->redirectToRoute('app_auth_login_diliman'),
-        };
+        return $this->resolveLandingRoute($user);
+    }
+
+    /**
+     * Redirects the user to the first module they have permission to access.
+     */
+    public function resolveLandingRoute(AdminUser $user): Response
+    {
+        $campus = $user->getCampus();
+        $isAlabang = ($campus === 'feu_alabang');
+
+        if ($user->hasModule(AdminUser::MODULE_DASHBOARD)) {
+            return $this->redirectToRoute($isAlabang ? 'app_admin_alabang_dashboard' : 'app_admin_diliman_dashboard');
+        }
+
+        if ($user->hasModule(AdminUser::MODULE_REGISTRATIONS)) {
+            return $this->redirectToRoute($isAlabang ? 'app_admin_alabang_registrations' : 'app_admin_diliman_registrations');
+        }
+
+        if ($user->hasModule(AdminUser::MODULE_DOCUMENTS)) {
+            return $this->redirectToRoute($isAlabang ? 'app_admin_alabang_documents' : 'app_admin_diliman_documents');
+        }
+
+        if ($user->hasModule(AdminUser::MODULE_SCHOOL_YEAR)) {
+            return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
+        }
+
+        if ($user->hasModule(AdminUser::MODULE_ADMIN_ACCESS)) {
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
+        }
+
+        return $this->redirectToRoute($isAlabang ? 'app_auth_login_alabang' : 'app_auth_login_diliman');
     }
 }

@@ -10,224 +10,307 @@
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
         {% include 'admin-onsite/alabang/_header.html.twig' with {'page_title': 'View Student Details'} %}
 
-        <div class="flex-1 overflow-y-auto p-8">
-            <div class="max-w-7xl mx-auto mb-6 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <a href="{{ path('app_admin_alabang_registrations') }}" class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:text-feu-green-700 hover:border-feu-green-600 transition-all shadow-sm">
-                        <i class="ki-filled ki-arrow-left"></i>
-                    </a>
-                    <span class="text-gray-500 text-sm font-medium">Back to List</span>
-                </div>
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+            {# Action Navigation Bar #}
+            <div class="max-w-7xl mx-auto mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <a href="{{ path('app_admin_alabang_registration_pdf', {'id': registration.studentNumber}) }}" 
-                       class="inline-flex items-center gap-2 bg-white border border-gray-300 text-gray-700 hover:text-feu-green-800 hover:bg-gray-50 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-xs"
-                       title="Export and Download Official PDF Record">
-                        <i class="ki-filled ki-file-down text-base text-feu-green-700"></i> Export PDF
-                    </a>
-                    <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.studentNumber}) }}" class="btn-feu-primary px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-feu-green-700/20">
-                        <i class="ki-filled ki-pencil mr-2"></i> Edit Details
+                    <a href="{{ path('app_admin_alabang_registrations') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-200 rounded-xl text-gray-700 hover:text-feu-green-700 hover:border-feu-green-300 shadow-2xs transition-all font-semibold text-xs">
+                        <i class="ki-filled ki-arrow-left text-sm"></i>
+                        <span>Back to List</span>
                     </a>
                 </div>
-             </div>
+                <div class="flex items-center gap-2.5">
+                    <a href="{{ path('app_admin_alabang_registration_pdf', {'id': registration.studentNumber}) }}" 
+                       class="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 hover:text-feu-green-800 hover:border-feu-green-300 hover:bg-gray-50/80 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                       title="Export and Download Official PDF Record">
+                        <i class="ki-filled ki-file-down text-base text-feu-green-700"></i>
+                        <span>Export PDF</span>
+                    </a>
+                    <a href="{{ path('app_admin_alabang_registration_edit', {'id': registration.studentNumber}) }}" class="inline-flex items-center gap-2 bg-feu-green-600 hover:bg-feu-green-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm shadow-feu-green-700/20 transition-all">
+                        <i class="ki-filled ki-pencil text-sm"></i>
+                        <span>Edit Details</span>
+                    </a>
+                </div>
+            </div>
 
             <div class="max-w-7xl mx-auto grid grid-cols-12 gap-6">
-                {# --- 1. APPLICANT CARD --- #}
-                <div class="col-span-12 bg-white rounded-2xl p-6 shadow-sm border border-gray-200 flex flex-col md:flex-row gap-8 items-start relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-feu-gold-100 rounded-bl-full -mr-16 -mt-16 opacity-50"></div>
+                {# --- 1. APPLICANT CARD (Banner) --- #}
+                <div class="col-span-12 bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80 flex flex-col md:flex-row gap-6 md:gap-8 items-start relative overflow-hidden">
                     
                     <div class="flex-shrink-0">
                         {% if registration.photoSlug %}
-                            <img src="{{ asset(registration.photoSlug) }}" class="w-40 h-40 rounded-2xl object-cover border-4 border-white shadow-lg">
+                            <img src="{{ asset(registration.photoSlug) }}" class="w-36 h-36 rounded-2xl object-cover border-4 border-white shadow-md ring-1 ring-gray-200/60" alt="Student Photo">
                         {% else %}
-                            <div class="w-40 h-40 rounded-2xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-5xl font-bold border-4 border-white shadow-lg">
-                                 {{ registration.firstName|first }}
+                            <div class="w-36 h-36 rounded-2xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-4xl font-black border-4 border-white shadow-md ring-1 ring-gray-200/60">
+                                {{ registration.firstName|first }}
                             </div>
                         {% endif %}
                     </div>
 
-                    <div class="flex-grow pt-2">
-                        <h2 class="text-3xl font-extrabold text-gray-900 mb-2">{{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}</h2>
+                    <div class="flex-grow pt-1 min-w-0">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-1 truncate">{{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}</h2>
+                        {% if registration.preferredName %}
+                            <div class="text-sm font-semibold text-gray-500 mb-2.5">
+                                &ldquo;{{ registration.preferredName }}&rdquo;
+                            </div>
+                        {% endif %}
                         
-                        <div class="flex flex-wrap gap-3 mb-6">
-                             <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-600 text-sm font-semibold border border-gray-200">
-                                <span class="text-xs text-gray-400 uppercase mr-1">Student ID</span> {{ registration.studentNumber }}
+                        <div class="flex flex-wrap items-center gap-2 mb-4">
+                            <div class="px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold tracking-wide border border-gray-200/70 font-mono">
+                                <span class="text-[10px] text-gray-400 uppercase mr-1">ID</span>{{ registration.studentNumber }}
                             </div>
 
-                            <div class="px-3 py-1 rounded-lg bg-purple-50 text-purple-700 text-sm font-semibold border border-purple-100">
-                                {{ registration.admissionType|default('Null') }}
+                            {% if registration.lrn %}
+                                <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold tracking-wide border border-blue-200/70 font-mono">
+                                    <span class="text-[10px] text-blue-400 uppercase mr-1">LRN</span>{{ registration.lrn }}
+                                </div>
+                            {% endif %}
+
+                            <div class="px-3 py-1 rounded-lg bg-purple-50 text-purple-700 text-xs font-bold border border-purple-200/60">
+                                {{ registration.admissionType|default('New Student') }}
                             </div>
 
-                             <div class="px-3 py-1 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold border border-blue-100">
+                            <div class="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200/60">
                                 {{ registration.gradeLevel|replace({'_': ' '})|title }}
                             </div>
+
                             {% if registration.trackStrand %}
-                            <div class="px-3 py-1 rounded-lg bg-amber-50 text-amber-700 text-sm font-semibold border border-amber-100">
-                                {{ registration.trackStrand }}
-                            </div>
+                                <div class="px-3 py-1 rounded-lg bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200/60">
+                                    {{ registration.trackStrand }}
+                                </div>
                             {% endif %}
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-sm text-gray-600">
-                            <div class="flex items-center gap-2"><i class="ki-filled ki-sms text-feu-green-600"></i> {{ registration.personalEmail }}</div>
-                            <div class="flex items-center gap-2"><i class="ki-filled ki-phone text-feu-green-600"></i> {{ registration.mobileNumber }}</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-xs font-medium text-gray-600">
+                            <div class="flex items-center gap-2 truncate">
+                                <i class="ki-filled ki-sms text-feu-green-600 text-sm flex-shrink-0"></i>
+                                <span class="truncate">{{ registration.personalEmail }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="ki-filled ki-phone text-feu-green-600 text-sm flex-shrink-0"></i>
+                                <span>{{ registration.mobileNumber }}</span>
+                            </div>
                         </div>
                     </div>
 
                     {% if registration.educationType == 'SHS' %}
-                    <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
-                        <div class="text-xs font-bold text-gray-400 uppercase mb-2">
-                             {% if registration.examinationScore is not null %}
+                    <div class="flex-shrink-0 self-stretch md:self-center bg-gray-50/80 p-4 rounded-xl border border-gray-200/70 text-center min-w-[170px] shadow-2xs">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                            {% if registration.examinationScore is not null %}
                                 Examination Score
                             {% else %}
                                 Examination Status
                             {% endif %}
                         </div>
-                        <div class="text-lg font-bold text-feu-green-700">
+                        <div class="text-lg font-black text-feu-green-700">
                             {% if registration.examinationScore is not null %}
                                 <span class="text-2xl">{{ registration.examinationScore }}</span>
                                 {% if registration.examinationDate %}
-                                    <div class="text-[10px] text-gray-400 uppercase font-bold mt-2 pt-2 border-t border-gray-200">
+                                    <div class="text-[10px] text-gray-400 uppercase font-semibold mt-1 pt-1 border-t border-gray-200/70">
                                         Taken: {{ registration.examinationDate|date('M d, Y') }}
                                     </div>
                                 {% endif %}
                             {% else %}
-                                {{ registration.admissionStatus == 'Pending' or registration.admissionStatus == 'P' ? 'Pending Exam' : registration.admissionStatus }}
+                                <span class="text-sm font-bold text-amber-600">
+                                    {{ registration.admissionStatus == 'Pending' or registration.admissionStatus == 'P' ? 'Pending Exam' : registration.admissionStatus }}
+                                </span>
                             {% endif %}
                         </div>
-                        <div class="mt-3 pt-3 border-t border-gray-200">
-                            <div class="text-xs font-bold text-gray-400 uppercase mb-1">Payment Status</div>
-                            <div class="text-base font-bold">
+                        <div class="mt-3 pt-3 border-t border-gray-200/70">
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Payment Status</div>
+                            <div>
                                 {% if registration.examinationScore is not null or registration.admissionStatus in ['Paid', 'Enrolled', 'Completed', 'C'] %}
-                                    <span class="text-green-600">Paid</span>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                        <i class="ki-filled ki-check-circle text-xs"></i> Paid
+                                    </span>
                                 {% else %}
-                                    <span class="text-orange-500">For Payment</span>
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                                        <i class="ki-filled ki-time text-xs"></i> For Payment
+                                    </span>
                                 {% endif %}
                             </div>
                         </div>
-                     </div>
+                    </div>
                     {% else %}
-                    <div class="flex-shrink-0 self-start md:self-center bg-gray-50 p-4 rounded-xl border border-gray-200 text-center min-w-[150px]">
-                        <div class="text-xs font-bold text-gray-400 uppercase mb-2">Payment Status</div>
-                        <div class="text-lg font-bold text-feu-green-700">
-                            {% if registration.admissionStatus == 'Paid' %}
-                                <span class="text-green-600">Paid</span>
+                    <div class="flex-shrink-0 self-stretch md:self-center bg-gray-50/80 p-4 rounded-xl border border-gray-200/70 text-center min-w-[170px] shadow-2xs">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Payment Status</div>
+                        <div>
+                            {% if registration.admissionStatus in ['Paid', 'Enrolled', 'Completed', 'C'] %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800">
+                                    <i class="ki-filled ki-check-circle text-xs"></i> Paid
+                                </span>
                             {% else %}
-                                <span class="text-orange-500">For Payment</span>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800">
+                                    <i class="ki-filled ki-time text-xs"></i> For Payment
+                                </span>
                             {% endif %}
                         </div>
-                     </div>
+                    </div>
                     {% endif %}
                 </div>
 
-                {# --- 2. DETAILS GRID --- #}
+                {# --- 2. DETAILS GRID (Left Column 8-Cols) --- #}
                 <div class="col-span-12 lg:col-span-8 space-y-6">
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-user text-feu-green-600"></i> Personal Information
-                        </h3>
-                        <div class="grid grid-cols-2 gap-y-4 gap-x-8">
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Gender</div><div class="font-medium text-gray-800">{{ registration.gender }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Birthday</div><div class="font-medium text-gray-800">{{ registration.birthDate|date('F j, Y') }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Birth Place</div><div class="font-medium text-gray-800">{{ registration.birthPlace }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Religion</div><div class="font-medium text-gray-800">{{ registration.religion }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Nationality</div><div class="font-medium text-gray-800">{{ registration.nationality }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Citizenship</div><div class="font-medium text-gray-800">{{ registration.citizenship }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Preferred Name</div><div class="font-medium text-gray-800">{{ registration.preferredName|default('N/A') }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Suffix</div><div class="font-medium text-gray-800">{{ registration.suffix|default('N/A') }}</div></div>
+                    {# Personal Information Card #}
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-5 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0">
+                                <i class="ki-filled ki-user text-base"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">Personal Information</h3>
+                        </div>
 
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Birth</div><div class="font-medium text-gray-800">{{ registration.countryOfBirth|default('N/A') }}</div></div>
-                            <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Residence</div><div class="font-medium text-gray-800">{{ registration.countryOfResidence|default('N/A') }}</div></div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                            {% set genderFormatted = registration.gender|upper in ['M', 'MALE'] ? 'Male' : (registration.gender|upper in ['F', 'FEMALE'] ? 'Female' : registration.gender|default('N/A')) %}
+                            {% set personalFields = [
+                                {'label': 'Gender', 'value': genderFormatted},
+                                {'label': 'Birthday', 'value': registration.birthDate|date('F j, Y')},
+                                {'label': 'Birth Place', 'value': registration.birthPlace|default('N/A')},
+                                {'label': 'Religion', 'value': registration.religion|default('N/A')},
+                                {'label': 'Nationality', 'value': registration.nationality|default('FILIPINO')},
+                                {'label': 'Citizenship', 'value': registration.citizenship},
+                                {'label': 'LRN (Learner Ref. No.)', 'value': registration.lrn|default('N/A')},
+                                {'label': 'Suffix', 'value': registration.suffix|default('N/A')},
+                                {'label': 'Country of Birth', 'value': registration.countryOfBirth|default('N/A')},
+                                {'label': 'Country of Residence', 'value': registration.countryOfResidence|default('N/A')}
+                            ] %}
+                            {% for f in personalFields %}
+                                <div class="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/60 shadow-2xs hover:bg-white hover:shadow-xs transition-all">
+                                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ f.label }}</div>
+                                    <div class="text-[15px] font-bold text-gray-900 leading-snug truncate" title="{{ f.value }}">{{ f.value }}</div>
+                                </div>
+                            {% endfor %}
                         </div>
 
                         {% if registration.citizenship|upper == 'INTERNATIONAL' %}
-                            <div class="mt-6 pt-4 border-t border-gray-100">
-                                <h4 class="text-sm font-bold text-feu-green-700 uppercase mb-3 flex items-center gap-2">
-                                    <i class="ki-filled ki-profile-circle"></i> Passport &amp; Visa Details
+                            <div class="mt-6 pt-5 border-t border-gray-100">
+                                <h4 class="text-xs font-bold text-feu-green-800 uppercase tracking-wider mb-3.5 flex items-center gap-2">
+                                    <i class="ki-filled ki-profile-circle text-sm"></i> Passport & Visa Details
                                 </h4>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
-                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Passport Number</div><div class="font-medium text-gray-800">{{ registration.passport.passportNumber|default(registration.passportNumber)|default('N/A') }}</div></div>
-                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Country of Issue</div><div class="font-medium text-gray-800">{{ registration.passport.countryOfIssue|default('N/A') }}</div></div>
-                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Date Issued</div><div class="font-medium text-gray-800">{{ registration.passport.dateIssued ? registration.passport.dateIssued|date('F j, Y') : 'N/A' }}</div></div>
-                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Expiration Date</div><div class="font-medium text-gray-800">{{ registration.passport.expirationDate ? registration.passport.expirationDate|date('F j, Y') : 'N/A' }}</div></div>
-                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Visa Type</div><div class="font-medium text-gray-800">{{ registration.visaType|default('N/A')|title }}</div></div>
-                                    <div><div class="text-xs text-gray-400 uppercase font-bold">Visa Status</div><div class="font-medium text-gray-800">{{ registration.visaStatus|default('N/A') }}</div></div>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                                    {% set passportFields = [
+                                        {'label': 'Passport Number', 'value': registration.passport.passportNumber|default(registration.passportNumber)|default('N/A')},
+                                        {'label': 'Country of Issue', 'value': registration.passport.countryOfIssue|default('N/A')},
+                                        {'label': 'Date Issued', 'value': registration.passport.dateIssued ? registration.passport.dateIssued|date('F j, Y') : 'N/A'},
+                                        {'label': 'Expiration Date', 'value': registration.passport.expirationDate ? registration.passport.expirationDate|date('F j, Y') : 'N/A'},
+                                        {'label': 'Visa Type', 'value': registration.visaType|default('N/A')|title},
+                                        {'label': 'Visa Status', 'value': registration.visaStatus|default('N/A')}
+                                    ] %}
+                                    {% for pf in passportFields %}
+                                        <div class="p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/60 shadow-2xs">
+                                            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ pf.label }}</div>
+                                            <div class="text-[15px] font-bold text-gray-900 leading-snug truncate" title="{{ pf.value }}">{{ pf.value }}</div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
                             </div>
                         {% endif %}
                     </div>
 
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-map text-feu-green-600"></i> Address Information
-                        </h3>
-                        <div class="mb-4">
-                            <div class="text-xs text-gray-400 uppercase font-bold mb-1">Current Address</div>
-                            <p class="text-gray-800 font-medium">{{ registration.currentAddress }}</p>
-                            <div class="text-sm text-gray-500">
-                                {{ [registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.currentZip %} {{ registration.currentZip }}{% endif %}
+                    {# Address Information Card #}
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-5 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0">
+                                <i class="ki-filled ki-map text-base"></i>
                             </div>
+                            <h3 class="text-lg font-bold text-gray-900">Address Information</h3>
                         </div>
-                        <div class="pt-4 border-t border-gray-100">
-                            <div class="text-xs text-gray-400 uppercase font-bold mb-1">Permanent Address</div>
-                            {% if registration.citizenship|upper == 'INTERNATIONAL' %}
-                                <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
-                                <div class="text-sm text-gray-500">
-                                    {{ [registration.permanentBarangay|default('')|location_barangay, registration.permanentCity|default('')|location_city, registration.permanentProvince|default('')|location_province, registration.permanentCountry|default('')]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {# Current Address Block #}
+                            <div class="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs border-l-4 border-l-feu-green-600">
+                                <div class="text-xs font-bold text-feu-green-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                    <i class="ki-filled ki-geolocation text-sm"></i> Current Address
                                 </div>
-                            {% else %}
-                                <p class="text-gray-800 font-medium">{{ registration.permanentAddress }}</p>
-                                <div class="text-sm text-gray-500">
-                                    {{ [registration.permanentBarangay|location_barangay, registration.permanentCity|location_city, registration.permanentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
+                                <p class="text-[15px] font-bold text-gray-900 leading-snug mt-2">{{ registration.currentAddress|default('No Street Address Provided') }}</p>
+                                <div class="text-sm text-gray-600 mt-1">
+                                    {{ [registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.currentZip %} {{ registration.currentZip }}{% endif %}
                                 </div>
-                            {% endif %}
+                            </div>
+
+                            {# Permanent Address Block #}
+                            <div class="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs border-l-4 border-l-amber-500">
+                                <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                    <i class="ki-filled ki-home text-sm"></i> Permanent Address
+                                </div>
+                                {% if registration.citizenship|upper == 'INTERNATIONAL' %}
+                                    <p class="text-[15px] font-bold text-gray-900 leading-snug mt-2">{{ registration.permanentAddress|default('No Permanent Address Provided') }}</p>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        {{ [registration.permanentBarangay|default('')|location_barangay, registration.permanentCity|default('')|location_city, registration.permanentProvince|default('')|location_province, registration.permanentCountry|default('')]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-[15px] font-bold text-gray-900 leading-snug mt-2">{{ registration.permanentAddress|default('No Permanent Address Provided') }}</p>
+                                    <div class="text-sm text-gray-600 mt-1">
+                                        {{ [registration.permanentBarangay|location_barangay, registration.permanentCity|location_city, registration.permanentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
 
-                    {# Parents Background (Only shows FATHER or MOTHER guardianType) #}
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-people text-feu-green-600"></i> Family Background
-                        </h3>
+                    {# Parents / Family Background Card (Includes Siblings Subsection) #}
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-5 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0">
+                                <i class="ki-filled ki-people text-base"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">Family Background</h3>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {% for guardian in registration.guardians %}
                                 {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
                                 {% if gType in ['FATHER', 'MOTHER'] %}
-                                    <div class="p-4 rounded-xl border bg-gray-50 border-gray-100 relative">
-                                        <div class="flex justify-between items-start mb-2">
-                                            <div class="text-xs text-feu-gold-600 font-bold uppercase">
-                                                {{ guardian.relationship }}
+                                    <div class="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs border-t-4 border-t-feu-gold-500 relative flex flex-col justify-between">
+                                        <div>
+                                            <div class="flex justify-between items-start mb-2">
+                                                <span class="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wider bg-feu-gold-50 text-feu-gold-800 border border-feu-gold-200/60">
+                                                    {{ guardian.relationship }}
+                                                </span>
+                                                <div class="flex gap-1.5">
+                                                    {% if guardian.deceased %}
+                                                        <span class="px-2.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-bold uppercase tracking-wider">Deceased</span>
+                                                    {% endif %}
+                                                    {% if guardian.OFW %}
+                                                        <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-bold uppercase tracking-wider">OFW</span>
+                                                    {% endif %}
+                                                </div>
                                             </div>
-                                            <div class="flex gap-2">
-                                                {% if guardian.deceased %}
-                                                    <span class="px-2 py-0.5 rounded bg-red-100 text-red-600 text-[10px] font-bold uppercase">Deceased</span>
-                                                {% endif %}
-                                                {% if guardian.OFW %}
-                                                    <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-600 text-[10px] font-bold uppercase">OFW</span>
-                                                {% endif %}
+                                            {% set rawParentName = guardian.parentName|default('')|trim(', ') %}
+                                            {% if ',' in rawParentName %}
+                                                {% set pParts = rawParentName|split(',') %}
+                                                {% set displayParentName = (pParts[1]|trim ~ ' ' ~ pParts[0]|trim)|trim %}
+                                            {% else %}
+                                                {% set displayParentName = rawParentName %}
+                                            {% endif %}
+                                            <div class="text-base font-bold text-gray-900 mt-1.5">{{ displayParentName }}</div>
+                                            <div class="text-xs text-gray-500 font-semibold mt-0.5">Nationality: {{ guardian.nationality|default('FILIPINO') }}</div>
+                                            <div class="text-sm {{ guardian.occupation ? 'text-gray-700 font-semibold' : 'text-gray-400 italic' }} mt-2 flex items-center gap-1.5">
+                                                <i class="ki-filled ki-briefcase text-xs text-feu-green-600"></i>
+                                                <span>{{ guardian.occupation ?: 'Occupation Not Specified' }}</span>
+                                            </div>
+                                            <div class="text-sm text-gray-700 mt-1 flex items-center gap-1.5">
+                                                <i class="ki-filled ki-phone text-xs text-feu-green-600"></i>
+                                                <span>{{ guardian.contactNo ?: 'No Contact Provided' }}</span>
                                             </div>
                                         </div>
-                                        <div class="font-bold text-gray-800">{{ guardian.parentName|default('')|trim(', ') }}</div>
-                                        <div class="text-xs text-gray-500 font-semibold mt-1">Nationality: {{ guardian.nationality|default('FILIPINO') }}</div>
-                                        <div class="text-sm {{ guardian.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
-                                            {{ guardian.occupation ?: 'Occupation Not Specified' }}
-                                        </div>
-                                        <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ guardian.contactNo ?: 'No Contact Provided' }}</div>
+
                                         {% if not guardian.deceased %}
                                             {% if guardian.OFW %}
-                                                <div class="mt-2 pt-2 border-t border-gray-200 text-xs space-y-1.5">
+                                                <div class="mt-3.5 pt-3 border-t border-gray-100 text-xs space-y-2">
                                                     <div>
-                                                        <span class="font-bold text-gray-700 flex items-center gap-1">
-                                                            <i class="ki-filled ki-briefcase text-xs text-blue-500"></i> Workplace Address:
+                                                        <span class="font-bold text-gray-700 flex items-center gap-1 text-xs">
+                                                            <i class="ki-filled ki-briefcase text-xs text-blue-600"></i> Workplace Address:
                                                         </span>
-                                                        <span class="text-gray-600 block pl-4">
+                                                        <span class="text-gray-600 block pl-4 text-xs mt-0.5">
                                                             {{ guardian.currentAddress }}{% if guardian.ofwCountry %}, {{ guardian.ofwCountry }}{% endif %}{% if guardian.currentZip %} ({{ guardian.currentZip }}){% endif %}
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <span class="font-bold text-gray-700 flex items-center gap-1">
+                                                        <span class="font-bold text-gray-700 flex items-center gap-1 text-xs">
                                                             <i class="ki-filled ki-home text-xs text-feu-green-600"></i> Permanent Address:
                                                         </span>
-                                                        <span class="text-gray-600 block pl-4">
+                                                        <span class="text-gray-600 block pl-4 text-xs mt-0.5">
                                                             {% if guardian.permanentCountry %}
                                                                 {{ guardian.permanentAddress }}{% if guardian.permanentCountry %}, {{ guardian.permanentCountry }}{% endif %}{% if guardian.permanentZip %} ({{ guardian.permanentZip }}){% endif %}
                                                             {% elseif guardian.permanentCity or guardian.permanentProvince %}
@@ -240,151 +323,190 @@
                                                         </span>
                                                     </div>
                                                 </div>
-                                            {% elseif guardian.sameAsApplicant %}
-                                                <div class="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
-                                                    <i class="ki-filled ki-geolocation text-xs"></i> Same address as applicant
-                                                </div>
-                                            {% elseif guardian.currentAddress or guardian.currentCity %}
-                                                <div class="text-xs text-gray-600 mt-1.5 flex items-start gap-1">
-                                                    <i class="ki-filled ki-geolocation text-xs mt-0.5 text-gray-400"></i>
-                                                    <span>{{ guardian.currentAddress }}{% if guardian.currentBarangay %}, {{ guardian.currentBarangay|location_barangay }}{% endif %}{% if guardian.currentCity %}, {{ guardian.currentCity|location_city }}{% endif %}{% if guardian.currentProvince %}, {{ guardian.currentProvince|location_province }}{% endif %}{% if guardian.currentZip %} {{ guardian.currentZip }}{% endif %}</span>
-                                                </div>
+                                            {% else %}
+                                                {# Complete Address Fallback Resolution #}
+                                                {% set pAddress = guardian.currentAddress ?: (guardian.sameAsApplicant ? registration.currentAddress : '') %}
+                                                {% set pBarangay = guardian.currentBarangay ?: (guardian.sameAsApplicant ? registration.currentBarangay : '') %}
+                                                {% set pCity = guardian.currentCity ?: (guardian.sameAsApplicant ? registration.currentCity : '') %}
+                                                {% set pProvince = guardian.currentProvince ?: (guardian.sameAsApplicant ? registration.currentProvince : '') %}
+                                                {% set pZip = guardian.currentZip ?: (guardian.sameAsApplicant ? registration.currentZip : '') %}
+                                                {% set pFullLoc = [pBarangay|location_barangay, pCity|location_city, pProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+
+                                                {% if pAddress or pCity %}
+                                                    <div class="mt-3.5 pt-3 border-t border-gray-100 text-xs text-gray-600 flex items-start gap-1.5">
+                                                        <i class="ki-filled ki-geolocation text-sm text-feu-green-600 flex-shrink-0 mt-0.5"></i>
+                                                        <div>
+                                                            <span class="font-bold text-gray-800 text-xs block leading-snug">{{ pAddress }}</span>
+                                                            <span class="text-xs text-gray-500">{{ pFullLoc }}{% if pZip %} {{ pZip }}{% endif %}</span>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
                                             {% endif %}
                                         {% endif %}
                                     </div>
                                 {% endif %}
                             {% endfor %}
                         </div>
-                    </div>
 
-                    {# Siblings #}
-                    {% if registration.siblings|length > 0 %}
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-profile-user text-feu-green-600"></i> Siblings
-                        </h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left">
-                                <thead>
-                                    <tr class="text-xs text-gray-400 uppercase border-b border-gray-100"><th class="py-2">Name</th><th class="py-2">School</th><th class="py-2">FEU ID</th></tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-50">
+                        {# Siblings Subsection (Nested Inside Family Background) #}
+                        <div class="mt-6 pt-5 border-t border-gray-200/80">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="ki-filled ki-profile-user text-feu-green-600 text-base"></i>
+                                <h4 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Siblings (Enrolled in FEU)</h4>
+                            </div>
+                            {% if registration.siblings|length > 0 %}
+                                <div class="space-y-2">
                                     {% for sibling in registration.siblings %}
-                                    <tr>
-                                        <td class="py-2 font-medium text-gray-800">{{ sibling.siblingName }}</td>
-                                        <td class="py-2 text-gray-500">{{ sibling.school }}</td>
-                                        <td class="py-2 text-gray-500">
-                                            {% if sibling.isFeuStudent %}
-                                                <span class="text-feu-green-600 font-bold">{{ sibling.feuStudentNo }}</span>
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                    </tr>
+                                        <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/70 shadow-2xs">
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-900 block">{{ sibling.siblingName }}</span>
+                                                <span class="text-xs text-gray-500">{{ sibling.school }}</span>
+                                            </div>
+                                            <div>
+                                                {% if sibling.feuStudentNo %}
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                        <i class="ki-filled ki-verify text-xs"></i> FEU ID: {{ sibling.feuStudentNo }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                        <i class="ki-filled ki-verify text-xs"></i> FEU Student
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
                                     {% endfor %}
-                                </tbody>
-                            </table>
+                                </div>
+                            {% else %}
+                                <p class="text-xs text-gray-400 italic">No siblings enrolled in FEU.</p>
+                            {% endif %}
                         </div>
                     </div>
-                    {% endif %}
                 </div>
 
-                {# --- 3. SIDEBAR GRID --- #}
+                {# --- 3. SIDEBAR GRID (Right Column 4-Cols) --- #}
                 <div class="col-span-12 lg:col-span-4 space-y-6">
-                    {# Education History #}
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-teacher text-feu-green-600"></i> Education History
-                        </h3>
+                    {# Education History Card #}
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0">
+                                <i class="ki-filled ki-teacher text-base"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">Education History</h3>
+                        </div>
+
                         {% if registration.lastGradeCompleted or registration.generalAverage is not null %}
-                            <div class="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
-                                <div><div class="text-gray-400 font-bold uppercase">Last Grade Completed</div><div class="font-bold text-gray-800 mt-0.5">{{ registration.lastGradeCompleted|default('N/A') }}</div></div>
-                                <div><div class="text-gray-400 font-bold uppercase">General Average</div><div class="font-bold text-feu-green-700 mt-0.5">{% if registration.generalAverage is not null and registration.generalAverage != '' %}{% if registration.generalAverage matches '/^[0-9]+(\\.[0-9]+)?$/' %}{{ registration.generalAverage|number_format(2) }}{% else %}{{ registration.generalAverage }}{% endif %}{% else %}N/A{% endif %}</div></div>
+                            <div class="grid grid-cols-2 gap-3 mb-4 p-3.5 bg-gray-50/80 rounded-xl border border-gray-200/60 shadow-2xs">
+                                <div>
+                                    <div class="text-xs text-gray-500 font-bold uppercase tracking-wider">Last Grade Completed</div>
+                                    <div class="font-bold text-gray-900 text-sm mt-1">{{ registration.lastGradeCompleted|default('N/A') }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-500 font-bold uppercase tracking-wider">General Average</div>
+                                    <div class="font-extrabold text-feu-green-700 text-sm mt-1">
+                                        {% if registration.generalAverage is not null and registration.generalAverage != '' %}
+                                            {% if registration.generalAverage matches '/^[0-9]+(\\.[0-9]+)?$/' %}
+                                                {{ registration.generalAverage|number_format(2) }}
+                                            {% else %}
+                                                {{ registration.generalAverage }}
+                                            {% endif %}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
+
                         <div class="space-y-4">
                             {% set levelMap = {'P': 'Elementary', 'I': 'Junior High', 'S': 'Senior High', 'E': 'Elementary', 'K': 'Kindergarten'} %}
                             {% for school in registration.schools %}
-                            {# Auto-convert old 4-digit entries (e.g. '2024') to '2023-2024' #}
-                            {% set sYear = school.schoolYear %}
-                            {% if sYear|length == 4 %}
-                                {% set sYear = (sYear - 1) ~ '-' ~ sYear %}
-                            {% endif %}
-                            <div class="relative pl-4 border-l-2 border-gray-200">
-                                <div class="text-[10px] font-bold text-feu-green-600 uppercase mb-0.5">
-                                    {{ levelMap[school.level]|default(school.level) }}
-                                </div>
-                                <div class="text-sm font-bold text-gray-800">{{ school.school }}</div>
-                                <div class="text-xs text-gray-500 mt-1">School Year: {{ sYear }}</div>
-                                {% if school.schoolType %}<div class="text-xs text-gray-400 mt-0.5">{{ school.schoolType }}</div>{% endif %}
-                                {% if school.isInternational %}
-                                    {% if school.addressLine %}
-                                        <div class="text-[10px] text-gray-700 mt-0.5"><i class="ki-filled ki-map"></i> {{ school.addressLine }}</div>
-                                    {% endif %}
-                                    <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.country }}</div>
-                                {% else %}
-                                    {% if school.addressLine %}
-                                        <div class="text-[10px] text-gray-700 mt-0.5"><i class="ki-filled ki-map"></i> {{ school.addressLine }}</div>
-                                    {% endif %}
-                                    {% if school.region or school.province or school.city %}
-                                        <div class="text-[10px] text-gray-500 mt-0.5"><i class="ki-filled ki-geolocation"></i> {{ school.city|location_city }}, {{ school.province|location_province }}, {{ school.region|location_region }}</div>
-                                    {% endif %}
+                                {% set sYear = school.schoolYear %}
+                                {% if sYear|length == 4 %}
+                                    {% set sYear = (sYear - 1) ~ '-' ~ sYear %}
                                 {% endif %}
-                                <span class="absolute top-0 left-[-5px] w-2 h-2 rounded-full bg-gray-300"></span>
-                            </div>
+                                <div class="relative pl-4 border-l-2 border-feu-green-200">
+                                    <span class="absolute top-1 -left-[5px] w-2 h-2 rounded-full bg-feu-green-600 ring-2 ring-white"></span>
+                                    <div class="text-xs font-extrabold text-feu-green-700 uppercase tracking-wider mb-0.5">
+                                        {{ levelMap[school.level]|default(school.level) }}
+                                    </div>
+                                    <div class="text-[15px] font-bold text-gray-900 leading-snug">{{ school.school }}</div>
+                                    <div class="text-xs text-gray-600 mt-0.5">School Year: <span class="font-semibold text-gray-800">{{ sYear }}</span></div>
+                                    {% if school.schoolType %}
+                                        <div class="text-xs text-gray-500 mt-0.5 font-medium">{{ school.schoolType }}</div>
+                                    {% endif %}
+                                    {% if school.isInternational %}
+                                        {% if school.addressLine %}
+                                            <div class="text-xs text-gray-700 mt-0.5 flex items-center gap-1"><i class="ki-filled ki-map text-gray-400"></i> {{ school.addressLine }}</div>
+                                        {% endif %}
+                                        <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-1"><i class="ki-filled ki-geolocation text-gray-400"></i> {{ school.country }}</div>
+                                    {% else %}
+                                        {% if school.addressLine %}
+                                            <div class="text-xs text-gray-700 mt-0.5 flex items-center gap-1"><i class="ki-filled ki-map text-gray-400"></i> {{ school.addressLine }}</div>
+                                        {% endif %}
+                                        {% if school.region or school.province or school.city %}
+                                            <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-1"><i class="ki-filled ki-geolocation text-gray-400"></i> {{ school.city|location_city }}, {{ school.province|location_province }}, {{ school.region|location_region }}</div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
                             {% else %}
                                 <div class="text-sm text-gray-400 italic">No history provided.</div>
                             {% endfor %}
                         </div>
                     </div>
 
-                    {# Documents #}
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <div class="mb-4 pb-3 border-b border-gray-100">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-xl bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0 shadow-xs">
-                                    <i class="ki-filled ki-folder-added text-base"></i>
-                                </div>
-                                <h3 class="text-base font-bold text-gray-900">Submitted Files</h3>
+                    {# Submitted Files Card #}
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0">
+                                <i class="ki-filled ki-folder-added text-base"></i>
                             </div>
-                            {% if registration.documentsAgreedDate %}
-                                <div class="mt-3 px-3.5 py-2 rounded-xl bg-amber-50/90 border border-amber-200 flex items-center justify-between gap-2 shadow-xs">
-                                    <div class="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
-                                        <i class="ki-filled ki-calendar text-amber-600 text-sm"></i>
-                                        <span>Promissory Deadline</span>
-                                    </div>
-                                    <span class="text-xs font-extrabold text-amber-950 bg-white/80 px-2.5 py-0.5 rounded-lg border border-amber-200/60 shadow-xs whitespace-nowrap">
-                                        {{ registration.documentsAgreedDate|date('F j, Y') }}
+                            <h3 class="text-lg font-bold text-gray-900">Submitted Files</h3>
+                        </div>
+
+                        {# Promissory Notice Banner (Read-Only) #}
+                        {% if registration.documentsAgreedDate %}
+                            <div class="mb-4 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 shadow-2xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                                        <i class="ki-filled ki-calendar text-amber-600 text-sm"></i> Promissory Deadline
+                                    </span>
+                                    <span class="text-xs font-black text-amber-950 bg-white/90 px-2 py-0.5 rounded-md border border-amber-200/60 shadow-2xs">
+                                        {{ registration.documentsAgreedDate|date('M d, Y') }}
                                     </span>
                                 </div>
-                            {% endif %}
-                        </div>
+                                <p class="text-xs text-amber-800/80 mt-1 leading-relaxed">
+                                    Applicant promised to submit pending documents on or before this date.
+                                </p>
+                            </div>
+                        {% endif %}
+
                         <div class="space-y-3">
                             {# 2x2 ID Picture Compliance #}
                             {% if registration.photoSlug %}
                                 <a href="{{ asset(registration.photoSlug) }}" target="_blank" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
                                     <div class="flex-shrink-0">
-                                        <img src="{{ asset(registration.photoSlug) }}" class="w-8 h-8 rounded-lg object-cover border border-gray-200" alt="2x2 Photo">
+                                        <img src="{{ asset(registration.photoSlug) }}" class="w-9 h-9 rounded-lg object-cover border border-gray-200" alt="2x2 Photo">
                                     </div>
                                     <div class="overflow-hidden">
-                                        <div class="text-sm font-bold text-gray-800 truncate">2x2 ID Picture of the Applicant</div>
-                                        <div class="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                                            <i class="ki-filled ki-check-circle text-xs"></i> Complied / Submitted
+                                        <div class="text-sm font-bold text-gray-900 truncate">2x2 ID Picture of the Applicant</div>
+                                        <div class="text-xs text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Documents Complied / Submitted
                                         </div>
                                     </div>
                                 </a>
                             {% else %}
                                 <div class="flex items-center gap-3 p-3 rounded-xl border border-red-100 bg-red-50/30">
-                                    <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
+                                    <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-red-100 text-red-500 flex items-center justify-center">
                                         <i class="ki-filled ki-picture text-base"></i>
                                     </div>
                                     <div class="overflow-hidden">
-                                        <div class="text-sm font-bold text-red-800 truncate">2x2 ID Picture of the Applicant</div>
-                                        <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Complied (Promissory)</div>
+                                        <div class="text-sm font-bold text-red-900 truncate">2x2 ID Picture of the Applicant</div>
+                                        <div class="text-xs text-red-600 font-bold uppercase mt-0.5">Missing / Not Complied (Promissory)</div>
                                     </div>
                                 </div>
                             {% endif %}
 
+                            {# Dynamic Requirement Rows #}
                             {% for setup in documentSetups %}
                                 {% set req = null %}
                                 {% for r in registration.requirements %}
@@ -394,47 +516,48 @@
                                 {% endfor %}
 
                                 {% if req and req.status == 'W' %}
-                                    <div class="flex items-center justify-between p-3 rounded-xl border border-amber-200 bg-amber-50/40">
-                                        <div class="flex items-center gap-3 overflow-hidden">
-                                            <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">
+                                    <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-amber-200 bg-amber-50/40">
+                                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                                            <div class="flex-shrink-0 w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">
                                                 <i class="ki-filled ki-shield-cross text-base"></i>
                                             </div>
-                                            <div class="overflow-hidden">
-                                                <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                                <div class="text-[10px] text-amber-700 font-bold uppercase flex items-center gap-1">
-                                                    <i class="ki-filled ki-verify text-xs"></i> Waived by Admin (Exempted)
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-sm font-bold text-gray-900 truncate">{{ req.requirement }}</div>
+                                                <div class="text-xs text-amber-800 font-bold uppercase flex items-center gap-1 whitespace-nowrap mt-0.5">
+                                                    <i class="ki-filled ki-verify text-xs flex-shrink-0"></i>
+                                                    <span>Waived by Admin</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <form method="POST" action="{{ path('app_admin_alabang_registration_doc_unwaive', {id: registration.studentNumber, slug: req.slug}) }}" class="m-0" onsubmit="return confirm('Remove waiver and restore this requirement?');">
+                                        <form method="POST" action="{{ path('app_admin_alabang_registration_doc_unwaive', {id: registration.studentNumber, slug: req.slug}) }}" class="m-0 flex-shrink-0" onsubmit="return confirm('Remove waiver and restore this requirement?');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('unwaive_doc_' ~ registration.studentNumber ~ '_' ~ req.slug) }}">
-                                            <button type="submit" class="btn btn-xs btn-light-secondary text-gray-600 hover:text-red-600 text-[11px] font-bold px-2.5 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-white transition-all flex items-center gap-1" title="Cancel waiver">
-                                                <i class="ki-filled ki-cross text-[10px]"></i> Unwaive
+                                            <button type="submit" class="btn btn-xs btn-light-secondary text-gray-600 hover:text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg border border-gray-200 shadow-2xs hover:bg-white transition-all flex items-center gap-1 whitespace-nowrap" title="Cancel waiver">
+                                                <i class="ki-filled ki-cross text-xs"></i> Unwaive
                                             </button>
                                         </form>
                                     </div>
                                 {% elseif req and req.status == 'S' %}
-                                    <div class="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
+                                    <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 hover:border-feu-green-200 transition-all group">
                                         {% if req.storedFileName %}
-                                            <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 overflow-hidden flex-1">
+                                            <a href="{{ asset(req.storedFileName) }}" target="_blank" class="flex items-center gap-3 min-w-0 flex-1">
                                                 <div class="flex-shrink-0">
-                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-9 h-9" alt="PDF">
                                                 </div>
-                                                <div class="overflow-hidden">
-                                                    <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                                    <div class="text-xs text-gray-400">
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-sm font-bold text-gray-900 truncate">{{ req.requirement }}</div>
+                                                    <div class="text-xs text-gray-500 whitespace-nowrap mt-0.5">
                                                         Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
                                                     </div>
                                                 </div>
                                             </a>
                                         {% else %}
-                                            <div class="flex items-center gap-3 overflow-hidden flex-1">
+                                            <div class="flex items-center gap-3 min-w-0 flex-1">
                                                 <div class="flex-shrink-0">
-                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8" alt="PDF">
+                                                    <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-9 h-9" alt="PDF">
                                                 </div>
-                                                <div class="overflow-hidden">
-                                                    <div class="text-sm font-bold text-gray-800 truncate">{{ req.requirement }}</div>
-                                                    <div class="text-xs text-gray-400">
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="text-sm font-bold text-gray-900 truncate">{{ req.requirement }}</div>
+                                                    <div class="text-xs text-gray-500 whitespace-nowrap mt-0.5">
                                                         Submitted {% if req.dateSubmitted %}• {{ req.dateSubmitted|date('M d, Y') }}{% endif %}
                                                     </div>
                                                 </div>
@@ -442,53 +565,56 @@
                                         {% endif %}
                                     </div>
                                 {% else %}
-                                    <div class="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/30">
-                                        <div class="flex items-center gap-3 overflow-hidden">
+                                    <div class="flex items-center justify-between gap-2 p-3 rounded-xl border border-red-100 bg-red-50/30">
+                                        <div class="flex items-center gap-3 min-w-0 flex-1">
                                             <div class="flex-shrink-0">
-                                                <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-8 h-8 opacity-20 grayscale" alt="PDF">
+                                                <img src="{{ asset('metronic/media/file-types/pdf.svg') }}" class="w-9 h-9 opacity-25 grayscale" alt="PDF">
                                             </div>
-                                            <div class="overflow-hidden">
-                                                <div class="text-sm font-bold text-red-800 truncate">{{ setup.documentName }}</div>
-                                                <div class="text-[10px] text-red-500 font-bold uppercase">Missing / Not Submitted</div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="text-sm font-bold text-red-900 truncate">{{ setup.documentName }}</div>
+                                                <div class="text-xs text-red-600 font-bold uppercase whitespace-nowrap mt-0.5">Missing / Not Submitted</div>
                                             </div>
                                         </div>
-                                        <form method="POST" action="{{ path('app_admin_alabang_registration_doc_waive', {id: registration.studentNumber, slug: setup.slug}) }}" class="m-0" onsubmit="return confirm('Are you sure you want to officially waive this requirement for this applicant?');">
+                                        <form method="POST" action="{{ path('app_admin_alabang_registration_doc_waive', {id: registration.studentNumber, slug: setup.slug}) }}" class="m-0 flex-shrink-0" onsubmit="return confirm('Are you sure you want to officially waive this requirement for this applicant?');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('waive_doc_' ~ registration.studentNumber ~ '_' ~ setup.slug) }}">
-                                            <button type="submit" class="btn btn-xs btn-light-warning text-amber-700 hover:bg-amber-100 font-bold text-[11px] px-2.5 py-1.5 rounded-lg border border-amber-300/80 shadow-2xs transition-all flex items-center gap-1" title="Waive requirement">
+                                            <button type="submit" class="btn btn-xs btn-light-warning text-amber-800 hover:bg-amber-100 font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-300/80 shadow-2xs transition-all flex items-center gap-1 whitespace-nowrap" title="Waive requirement">
                                                 <i class="ki-filled ki-shield-cross text-xs"></i> Waive
                                             </button>
                                         </form>
                                     </div>
                                 {% endif %}
                             {% endfor %}
-                            
+
                             {% if documentSetups|length == 0 %}
-                                <div class="text-center py-6 text-gray-400 text-sm italic">No document requirements for this student type.</div>
+                                <div class="text-center py-6 text-gray-400 text-xs italic">No document requirements for this student type.</div>
                             {% endif %}
                         </div>
                     </div>
 
-                    {# General Information #}
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ki-filled ki-information-2 text-feu-green-600"></i> General Information
-                        </h3>
+                    {# General Information Card #}
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-feu-green-50 text-feu-green-700 flex items-center justify-center text-sm border border-feu-green-100 flex-shrink-0">
+                                <i class="ki-filled ki-information-2 text-base"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">General Information</h3>
+                        </div>
                         <div class="space-y-3">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">Applied On</span>
-                                <span class="font-medium text-gray-800">{{ registration.createdAt|date('M d, Y') }}</span>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500 font-semibold uppercase tracking-wider text-xs">Applied On</span>
+                                <span class="font-bold text-gray-900">{{ registration.createdAt|date('M d, Y') }}</span>
                             </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">School Year</span>
-                                <span class="font-medium text-gray-800">{{ registration.schoolYearOfEntry }}</span>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500 font-semibold uppercase tracking-wider text-xs">School Year</span>
+                                <span class="px-2.5 py-0.5 rounded font-bold bg-gray-100 text-gray-900 border border-gray-200/60 font-mono text-xs">{{ registration.schoolYearOfEntry }}</span>
                             </div>
-                            <div class="flex justify-between items-start text-sm">
-                                <span class="text-gray-500 pt-0.5">Source</span>
+                            <div class="flex justify-between items-start text-sm pt-2 border-t border-gray-100">
+                                <span class="text-gray-500 font-semibold uppercase tracking-wider text-xs pt-1">Source</span>
                                 <div class="text-right">
                                     {% if registration.marketingSource %}
                                         <div class="flex flex-wrap justify-end gap-1">
                                             {% for src in registration.marketingSource|split(', ') %}
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                                                     {{ src }}
                                                 </span>
                                             {% endfor %}
@@ -501,7 +627,7 @@
                         </div>
                     </div>
 
-                    {# Emergency Contact (Always renders via GUARDIAN type) #}
+                    {# Emergency Contact Card #}
                     {% set emergencyContact = null %}
                     {% for guardian in registration.guardians %}
                         {% set gType = guardian.guardianType|default(guardian.relationship|upper in ['FATHER', 'MOTHER'] ? guardian.relationship|upper : 'GUARDIAN') %}
@@ -510,38 +636,56 @@
                         {% endif %}
                     {% endfor %}
 
-                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                             <i class="ki-filled ki-phone text-orange-500"></i> Emergency Contact
-                        </h3>
+                    <div class="bg-white rounded-2xl p-6 shadow-xs border border-gray-200/80">
+                        <div class="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+                            <div class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-sm border border-orange-100 flex-shrink-0">
+                                <i class="ki-filled ki-phone text-base"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">Emergency Contact</h3>
+                        </div>
                         
                         {% if emergencyContact %}
-                            <div class="p-4 rounded-xl border bg-orange-50 border-orange-100 relative">
+                            <div class="p-4 rounded-xl border bg-orange-50/50 border-orange-100 relative">
                                 <div class="flex justify-between items-start mb-2">
-                                    <div class="text-xs text-orange-600 font-bold uppercase">
+                                    <span class="px-2 py-0.5 rounded text-xs font-black uppercase tracking-wider bg-orange-100 text-orange-700">
                                         {{ emergencyContact.relationship }}
-                                    </div>
+                                    </span>
                                     {% if emergencyContact.sameAsApplicant is defined and emergencyContact.sameAsApplicant %}
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">
                                             <i class="ki-filled ki-check-circle text-xs"></i> Same as Applicant
                                         </span>
                                     {% endif %}
                                 </div>
-                                <div class="font-bold text-gray-800">{{ emergencyContact.parentName|default('')|trim(', ') }}</div>
-                                <div class="text-sm {{ emergencyContact.occupation ? 'text-gray-500' : 'text-gray-400 italic' }} mt-1">
-                                    {{ emergencyContact.occupation ?: 'Occupation Not Specified' }}
+                                {% set rawEmergName = emergencyContact.parentName|default('')|trim(', ') %}
+                                {% if ',' in rawEmergName %}
+                                    {% set eParts = rawEmergName|split(',') %}
+                                    {% set displayEmergName = (eParts[1]|trim ~ ' ' ~ eParts[0]|trim)|trim %}
+                                {% else %}
+                                    {% set displayEmergName = rawEmergName %}
+                                {% endif %}
+                                <div class="font-bold text-gray-900 text-base">{{ displayEmergName }}</div>
+                                <div class="text-sm {{ emergencyContact.occupation ? 'text-gray-700 font-semibold' : 'text-gray-400 italic' }} mt-1.5 flex items-center gap-1.5">
+                                    <i class="ki-filled ki-briefcase text-xs text-orange-400"></i>
+                                    <span>{{ emergencyContact.occupation ?: 'Occupation Not Specified' }}</span>
                                 </div>
-                                <div class="text-sm text-gray-500 mt-1"><i class="ki-filled ki-phone text-xs mr-1"></i> {{ emergencyContact.contactNo ?: 'No Contact Provided' }}</div>
+                                <div class="text-sm text-gray-700 mt-1 flex items-center gap-1.5">
+                                    <i class="ki-filled ki-phone text-xs text-orange-400"></i>
+                                    <span>{{ emergencyContact.contactNo ?: 'No Contact Provided' }}</span>
+                                </div>
+                                <div class="text-sm text-gray-700 mt-1 flex items-center gap-1.5">
+                                    <i class="ki-filled ki-sms text-xs text-orange-400"></i>
+                                    <span>{{ emergencyContact.email ?: 'No Email Provided' }}</span>
+                                </div>
                                 {% if emergencyContact.currentAddress or emergencyContact.currentCity %}
-                                    <div class="text-sm text-gray-500 mt-2 pt-2 border-t border-orange-100">
-                                        <i class="ki-filled ki-map text-xs mr-1"></i>
-                                        {{ emergencyContact.currentAddress }}{% if emergencyContact.currentBarangay %}, {{ emergencyContact.currentBarangay }}{% endif %}{% if emergencyContact.currentCity %}, {{ emergencyContact.currentCity }}{% endif %}{% if emergencyContact.currentProvince %}, {{ emergencyContact.currentProvince }}{% endif %} {{ emergencyContact.currentZip }}
+                                    <div class="text-xs text-gray-600 mt-2.5 pt-2 border-t border-orange-200/60 flex items-start gap-1">
+                                        <i class="ki-filled ki-map text-xs mr-1 text-orange-400 flex-shrink-0 mt-0.5"></i>
+                                        <span>{{ emergencyContact.currentAddress }}{% if emergencyContact.currentBarangay %}, {{ emergencyContact.currentBarangay }}{% endif %}{% if emergencyContact.currentCity %}, {{ emergencyContact.currentCity }}{% endif %}{% if emergencyContact.currentProvince %}, {{ emergencyContact.currentProvince }}{% endif %} {{ emergencyContact.currentZip }}</span>
                                     </div>
                                 {% endif %}
                             </div>
                         {% else %}
                             <div class="p-4 rounded-xl border bg-gray-50 border-gray-100 text-center">
-                                <p class="text-sm text-gray-400 italic font-medium">No Emergency Contact provided.</p>
+                                <p class="text-xs text-gray-400 italic font-medium">No Emergency Contact provided.</p>
                             </div>
                         {% endif %}
                     </div>

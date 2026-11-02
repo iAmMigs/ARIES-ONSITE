@@ -406,6 +406,7 @@
     <div class="container mx-auto px-4 max-w-5xl">
  
         <form action="{{ path('app_enrollment_diliman_submit') }}" method="POST" enctype="multipart/form-data" id="enrollmentForm" class="needs-validation" novalidate data-selected-campus="feu_diliman">
+            <input type="hidden" name="_token" value="{{ csrf_token('enrollment_submit_diliman') }}">
             
             {# --- SCHOOL YEAR SELECTION --- #}
             <div class="card mb-5 animate-section visible" id="sy-selection-card">
@@ -681,8 +682,8 @@
                             <input type="email" name="email" class="form-control" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Landline</label>
-                            <input type="tel" name="landline" class="form-control">
+                            <label class="form-label">Landline <span class="text-xs font-normal text-gray-500">(Leave blank if none)</span></label>
+                            <input type="tel" name="landline" class="form-control" placeholder="Leave blank if none">
                         </div>
                     </div>
 
@@ -714,8 +715,8 @@
                             </select>
                         </div>
                         <div class="col-12 mt-3">
-                            <label class="form-label">Address Line <span class="required">*</span></label>
-                            <input type="text" name="address" class="form-control" required>
+                            <label class="form-label">Address Line</label>
+                            <input type="text" name="address" class="form-control">
                         </div>
                         <div class="col-md-12 mt-2">
                             <label class="form-label">Zip Code <span class="required">*</span></label>
@@ -779,7 +780,7 @@
                         <!-- Common Street and Zip Fields -->
                         <div class="row g-3">
                             <div class="col-12 mt-3">
-                                <label class="form-label">Address Line <span class="required">*</span></label>
+                                <label class="form-label">Address Line</label>
                                 <input type="text" name="perm_address" id="permAddressInput" class="form-control">
                             </div>
                             <div class="col-md-12 mt-2">
@@ -1002,7 +1003,7 @@
                                                 <select id="father_ofw_perm_barangay" name="father_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                             </div>
                                             <div class="col-12 mt-2">
-                                                <label class="form-label text-xs">Address Line <span class="required">*</span></label>
+                                                <label class="form-label text-xs">Address Line</label>
                                                 <input type="text" name="father_ofw_perm_street" id="father_ofw_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                             </div>
                                             <div class="col-md-4 mt-2">
@@ -1245,7 +1246,7 @@
                                                 <select id="mother_ofw_perm_barangay" name="mother_ofw_perm_barangay" class="form-select form-select-sm" disabled><option value=""></option></select>
                                             </div>
                                             <div class="col-12 mt-2">
-                                                <label class="form-label text-xs">Address Line <span class="required">*</span></label>
+                                                <label class="form-label text-xs">Address Line</label>
                                                 <input type="text" name="mother_ofw_perm_street" id="mother_ofw_perm_street" class="form-control form-control-sm" placeholder="Address Line">
                                             </div>
                                             <div class="col-md-4 mt-2">
@@ -1306,6 +1307,10 @@
                                     placeholder: '9xxxxxxxxx',
                                     countries: countries
                                 } %}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Occupation <span class="required">*</span></label>
+                                <input type="text" name="guardian_occupation" id="guardian_occupation" class="form-control" placeholder="Occupation" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Email Address <span class="required">*</span></label>
@@ -1492,7 +1497,7 @@
                                     </select>
                                 </div>
                                 <div class="col-12 mt-2">
-                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line <span class="required text-danger">*</span></label>
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line</label>
                                     <input type="text" id="educ_kinder_0_local_addr" name="educ_kinder_address[]" class="form-control form-control-sm educ-input" placeholder="House No. / Street / Bldg / Subdivision">
                                 </div>
                             </div>
@@ -1508,7 +1513,7 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line <span class="required text-danger">*</span></label>
+                                    <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line</label>
                                     <input type="text" id="educ_kinder_0_intl_addr" class="form-control form-control-sm educ-input" placeholder="School Address Line / Street / City">
                                 </div>
                             </div>
@@ -1601,7 +1606,7 @@
                                         {'name': 'Facebook', 'icon': 'ki-facebook'},
                                         {'name': 'Instagram', 'icon': 'ki-instagram'},
                                         {'name': 'TikTok', 'icon': 'ki-tiktok'},
-                                        {'name': 'Social Media', 'icon': 'ki-share'},
+                                        {'name': 'Other Social Media', 'icon': 'ki-share'},
                                         {'name': 'Google/Website', 'icon': 'ki-compass'},
                                         {'name': 'Immersion', 'icon': 'ki-user-square'},
                                         {'name': 'Phone Inquiry', 'icon': 'ki-phone'},

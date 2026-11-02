@@ -5,16 +5,24 @@
     <title>Registration Record - {{ registration.studentNumber }}</title>
     <style>
         @page {
-            margin: 10mm 11mm 10mm 11mm;
+            margin: 6mm 8mm 6mm 8mm;
             size: A4 portrait;
         }
         * {
             box-sizing: border-box;
         }
+        {% if dellaRobbiaBase64 is defined and dellaRobbiaBase64 %}
+        @font-face {
+            font-family: 'Della Robbia BT';
+            font-style: normal;
+            font-weight: bold;
+            src: url('data:font/truetype;charset=utf-8;base64,{{ dellaRobbiaBase64 }}') format('truetype');
+        }
+        {% endif %}
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            font-size: 9pt;
-            line-height: 1.4;
+            font-size: 8pt;
+            line-height: 1.3;
             color: #1f2937;
             margin: 0;
             padding: 0;
@@ -26,31 +34,32 @@
             width: 100%;
             border-collapse: collapse;
             border-bottom: 2px solid #166534;
-            padding-bottom: 8px;
-            margin-bottom: 11px;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
         }
         .inst-title {
-            font-size: 14pt;
-            font-weight: 800;
+            font-family: 'Della Robbia BT', Georgia, 'Times New Roman', serif;
+            font-size: 13.5pt;
+            font-weight: bold;
             color: #166534;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .inst-sub {
-            font-size: 9pt;
+            font-size: 8.5pt;
             font-weight: 700;
             color: #374151;
         }
         .inst-record {
-            font-size: 8pt;
+            font-size: 7.5pt;
             color: #6b7280;
-            margin-top: 2px;
+            margin-top: 1px;
         }
         .campus-badge {
             display: inline-block;
-            padding: 3.5px 9px;
-            border-radius: 5px;
-            font-size: 8pt;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 7.5pt;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -72,17 +81,17 @@
             border-collapse: collapse;
             background-color: #ffffff;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 11px;
+            border-radius: 6px;
+            margin-bottom: 6px;
         }
         .hero-card td {
-            padding: 9px 12px;
+            padding: 6px 10px;
             vertical-align: middle;
         }
         .photo-frame {
-            width: 86px;
-            height: 86px;
-            border-radius: 8px;
+            width: 72px;
+            height: 72px;
+            border-radius: 6px;
             border: 2px solid #e5e7eb;
             background-color: #f9fafb;
             text-align: center;
@@ -90,38 +99,38 @@
             overflow: hidden;
         }
         .photo-img {
-            width: 86px;
-            height: 86px;
+            width: 72px;
+            height: 72px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 5px;
         }
         .photo-placeholder {
-            width: 86px;
-            height: 86px;
-            line-height: 86px;
-            font-size: 30pt;
+            width: 72px;
+            height: 72px;
+            line-height: 72px;
+            font-size: 24pt;
             font-weight: 800;
             color: #166534;
             background-color: #f0fdf4;
-            border-radius: 6px;
+            border-radius: 5px;
             text-align: center;
         }
         .student-name {
-            font-size: 15pt;
+            font-size: 13pt;
             font-weight: 800;
             color: #111827;
             letter-spacing: -0.3px;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         /* --- Pill Badges --- */
         .pill-badge {
             display: inline-block;
-            padding: 2.5px 8px;
-            border-radius: 5px;
-            font-size: 8pt;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 7pt;
             font-weight: 700;
-            margin-right: 4px;
+            margin-right: 3px;
             margin-bottom: 2px;
         }
         .badge-id {
@@ -173,21 +182,21 @@
         .status-box {
             background-color: #f9fafb;
             border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 8px 10px;
+            border-radius: 5px;
+            padding: 5px 8px;
             text-align: center;
-            width: 105px;
+            width: 100px;
         }
         .status-label {
-            font-size: 7pt;
+            font-size: 6.5pt;
             font-weight: 800;
             color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .status-val {
-            font-size: 12pt;
+            font-size: 11pt;
             font-weight: 800;
             color: #166534;
         }
@@ -196,35 +205,34 @@
         .grid-layout {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 8px 0;
-            margin-bottom: 9px;
+            border-spacing: 7px 0;
+            margin-bottom: 5px;
         }
         .card {
             background-color: #ffffff;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 9px 11px;
-            margin-bottom: 9px;
-            page-break-inside: avoid;
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
         }
         .card-header-table {
             width: 100%;
             border-collapse: collapse;
             border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 5px;
-            margin-bottom: 6px;
+            padding-bottom: 3px;
+            margin-bottom: 4px;
         }
         .card-title {
-            font-size: 9pt;
+            font-size: 8pt;
             font-weight: 800;
             color: #111827;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.3px;
         }
         .card-title-icon {
             color: #166534;
             font-weight: 800;
-            margin-right: 4px;
+            margin-right: 3px;
         }
 
         /* --- Label & Value Pairs --- */
@@ -233,26 +241,27 @@
             border-collapse: collapse;
         }
         .field-table td {
-            padding: 3px 4px 5px 4px;
+            padding: 2px 3px 3px 3px;
             vertical-align: top;
         }
         .lbl {
-            font-size: 7pt;
+            font-size: 6.5pt;
             font-weight: 800;
             color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
         }
         .val {
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-weight: 700;
             color: #111827;
         }
         .val-sub {
-            font-size: 8pt;
+            font-size: 7pt;
             color: #4b5563;
             font-weight: normal;
+            line-height: 1.25;
         }
 
         /* --- Education Highlight Box --- */
@@ -261,40 +270,40 @@
             border-collapse: collapse;
             background-color: #f9fafb;
             border: 1px solid #f3f4f6;
-            border-radius: 6px;
-            margin-bottom: 6px;
+            border-radius: 5px;
+            margin-bottom: 4px;
         }
         .edu-highlight td {
-            padding: 5px 7px;
+            padding: 3px 5px;
             vertical-align: middle;
         }
 
         /* --- School Timeline Items --- */
         .school-item {
-            border-left: 2.5px solid #166534;
-            padding-left: 7px;
-            margin-bottom: 6px;
+            border-left: 2px solid #166534;
+            padding-left: 6px;
+            margin-bottom: 4px;
         }
 
         /* --- Tables Inside Cards --- */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8pt;
+            font-size: 7.5pt;
         }
         .data-table th {
             background-color: #f9fafb;
             border-bottom: 1px solid #e5e7eb;
-            padding: 4px 6px;
+            padding: 3px 5px;
             text-align: left;
-            font-size: 7pt;
+            font-size: 6.5pt;
             font-weight: 800;
             color: #6b7280;
             text-transform: uppercase;
         }
         .data-table td {
             border-bottom: 1px solid #f3f4f6;
-            padding: 4px 6px;
+            padding: 3px 5px;
             vertical-align: middle;
         }
 
@@ -302,35 +311,35 @@
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 11px;
+            margin-top: 6px;
             page-break-inside: avoid;
         }
         .signature-box {
             width: 48%;
             border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 8px 12px;
+            border-radius: 5px;
+            padding: 5px 8px;
             background-color: #fbfbfa;
         }
         .sig-line {
             border-bottom: 1px solid #374151;
-            height: 30px;
-            margin-bottom: 4px;
+            height: 22px;
+            margin-bottom: 2px;
         }
         .sig-caption {
-            font-size: 7.5pt;
+            font-size: 7pt;
             color: #4b5563;
             text-align: center;
         }
 
         /* --- Footer --- */
         .doc-footer {
-            font-size: 7pt;
+            font-size: 6.5pt;
             color: #9ca3af;
             text-align: center;
-            margin-top: 9px;
+            margin-top: 5px;
             border-top: 1px solid #f3f4f6;
-            padding-top: 4px;
+            padding-top: 3px;
         }
     </style>
 </head>
@@ -341,6 +350,11 @@
     {# ========================================== #}
     <table class="institution-header">
         <tr>
+            {% if logoBase64 is defined and logoBase64 %}
+            <td style="width: 44px; vertical-align: middle; padding-right: 8px;">
+                <img src="{{ logoBase64 }}" style="width: 40px; height: 40px; object-fit: contain;" alt="FEU Logo">
+            </td>
+            {% endif %}
             <td style="vertical-align: middle;">
                 <div class="inst-title">Far Eastern University</div>
                 <div class="inst-sub">Basic Education Department</div>
@@ -440,14 +454,14 @@
     </table>
 
     {# ==================================================== #}
-    {# 3. TWO-COLUMN MAIN CONTENT (60% LEFT, 40% RIGHT)    #}
+    {# 3. TWO-COLUMN BALANCED CONTENT (51% LEFT, 49% RIGHT) #}
     {# ==================================================== #}
     <table class="grid-layout">
         <tr>
             {# ------------------------------------------------ #}
             {# LEFT COLUMN: PERSONAL INFO & FAMILY DETAILS     #}
             {# ------------------------------------------------ #}
-            <td style="width: 59%; vertical-align: top; padding: 0;">
+            <td style="width: 51%; vertical-align: top; padding: 0;">
 
                 {# CARD A: PERSONAL INFORMATION #}
                 <div class="card">
@@ -463,7 +477,7 @@
                         <tr>
                             <td style="width: 33%;">
                                 <div class="lbl">Gender</div>
-                                <div class="val">{{ registration.gender|default('N/A') }}</div>
+                                <div class="val">{{ registration.gender|upper in ['M', 'MALE'] ? 'Male' : (registration.gender|upper in ['F', 'FEMALE'] ? 'Female' : registration.gender|default('N/A')) }}</div>
                             </td>
                             <td style="width: 37%;">
                                 <div class="lbl">Birthday</div>
@@ -581,16 +595,35 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width: 18%;">Relation</th>
-                                <th style="width: 36%;">Full Name</th>
-                                <th style="width: 24%;">Contact No.</th>
-                                <th style="width: 22%;">Occupation / Notes</th>
+                                <th style="width: 16%;">Relation</th>
+                                <th style="width: 38%;">Full Name & Complete Address</th>
+                                <th style="width: 23%;">Contact No.</th>
+                                <th style="width: 23%;">Occupation / Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td><strong>Father</strong></td>
-                                <td>{{ father ? father.parentName|default('N/A') : 'N/A' }}</td>
+                                <td>
+                                    {% if father and father.parentName %}
+                                        {% set fName = father.parentName|trim %}
+                                        {% if ',' in fName %}
+                                            {% set fParts = fName|split(',') %}
+                                            <strong>{{ (fParts[1]|trim ~ ' ' ~ fParts[0]|trim)|trim }}</strong>
+                                        {% else %}
+                                            <strong>{{ fName }}</strong>
+                                        {% endif %}
+                                        {% set fAddr = [father.currentAddress, father.currentBarangay|location_barangay, father.currentCity|location_city, father.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% if not fAddr and father.sameAsApplicant %}
+                                            {% set fAddr = [registration.currentAddress, registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% endif %}
+                                        {% if fAddr %}
+                                            <div style="font-size: 6.5pt; color: #4b5563; margin-top: 1px; line-height: 1.2;">{{ fAddr }}{% if father.currentZip %} {{ father.currentZip }}{% endif %}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
                                 <td>{{ father ? father.contactNo|default('N/A') : 'N/A' }}</td>
                                 <td>
                                     {{ father ? father.occupation|default('N/A') : 'N/A' }}
@@ -600,7 +633,26 @@
                             </tr>
                             <tr>
                                 <td><strong>Mother</strong></td>
-                                <td>{{ mother ? mother.parentName|default('N/A') : 'N/A' }}</td>
+                                <td>
+                                    {% if mother and mother.parentName %}
+                                        {% set mName = mother.parentName|trim %}
+                                        {% if ',' in mName %}
+                                            {% set mParts = mName|split(',') %}
+                                            <strong>{{ (mParts[1]|trim ~ ' ' ~ mParts[0]|trim)|trim }}</strong>
+                                        {% else %}
+                                            <strong>{{ mName }}</strong>
+                                        {% endif %}
+                                        {% set mAddr = [mother.currentAddress, mother.currentBarangay|location_barangay, mother.currentCity|location_city, mother.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% if not mAddr and mother.sameAsApplicant %}
+                                            {% set mAddr = [registration.currentAddress, registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% endif %}
+                                        {% if mAddr %}
+                                            <div style="font-size: 6.5pt; color: #4b5563; margin-top: 1px; line-height: 1.2;">{{ mAddr }}{% if mother.currentZip %} {{ mother.currentZip }}{% endif %}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
                                 <td>{{ mother ? mother.contactNo|default('N/A') : 'N/A' }}</td>
                                 <td>
                                     {{ mother ? mother.occupation|default('N/A') : 'N/A' }}
@@ -611,7 +663,22 @@
                             {% if guardian and guardian.parentName %}
                             <tr>
                                 <td><strong>Guardian</strong></td>
-                                <td>{{ guardian.parentName }}</td>
+                                <td>
+                                    {% set gName = guardian.parentName|trim %}
+                                    {% if ',' in gName %}
+                                        {% set gParts = gName|split(',') %}
+                                        <strong>{{ (gParts[1]|trim ~ ' ' ~ gParts[0]|trim)|trim }}</strong>
+                                    {% else %}
+                                        <strong>{{ gName }}</strong>
+                                    {% endif %}
+                                    {% set gAddr = [guardian.currentAddress, guardian.currentBarangay|location_barangay, guardian.currentCity|location_city, guardian.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                    {% if not gAddr and guardian.sameAsApplicant %}
+                                        {% set gAddr = [registration.currentAddress, registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                    {% endif %}
+                                    {% if gAddr %}
+                                        <div style="font-size: 6.5pt; color: #4b5563; margin-top: 1px; line-height: 1.2;">{{ gAddr }}{% if guardian.currentZip %} {{ guardian.currentZip }}{% endif %}</div>
+                                    {% endif %}
+                                </td>
                                 <td>{{ guardian.contactNo|default('N/A') }}</td>
                                 <td>
                                     {{ guardian.relationship|default('Guardian') }}
@@ -621,71 +688,14 @@
                             {% endif %}
                         </tbody>
                     </table>
-
-                    {# Siblings Table (if any) #}
-                    {% if registration.siblings|length > 0 %}
-                    <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed #e5e7eb;">
-                        <div class="lbl" style="margin-bottom: 2px;">Siblings Enrolled / Attending</div>
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Sibling Name</th>
-                                    <th>School Attended</th>
-                                    <th>FEU Student No.</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sib in registration.siblings %}
-                                <tr>
-                                    <td>{{ sib.siblingName }}</td>
-                                    <td>{{ sib.school }}</td>
-                                    <td>{{ sib.isFeuStudent ? sib.feuStudentNo : 'Non-FEU' }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% endif %}
-                </div>
-
-                {# CARD E: GENERAL INFORMATION #}
-                <div class="card">
-                    <table class="card-header-table">
-                        <tr>
-                            <td class="card-title">
-                                <span class="card-title-icon">&bull;</span> General Information
-                            </td>
-                        </tr>
-                    </table>
-
-                    <table class="field-table">
-                        <tr>
-                            <td style="width: 50%;">
-                                <div class="lbl">Date Applied</div>
-                                <div class="val">{{ registration.createdAt ? registration.createdAt|date('M d, Y') : 'N/A' }}</div>
-                            </td>
-                            <td style="width: 50%;">
-                                <div class="lbl">School Year Entry</div>
-                                <div class="val">{{ registration.schoolYearOfEntry|default('N/A') }}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                <div class="lbl">Discovery Source</div>
-                                <div class="val" style="font-size: 7.5pt; font-weight: normal; color: #374151;">
-                                    {{ registration.marketingSource|default('Direct Walk-in / Onsite') }}
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
                 </div>
 
             </td>
 
             {# ------------------------------------------------ #}
-            {# RIGHT COLUMN: EDUCATION, FILES & PROMISSORY     #}
+            {# RIGHT COLUMN: EDUCATION, FILES, SIBLINGS & INFO  #}
             {# ------------------------------------------------ #}
-            <td style="width: 41%; vertical-align: top; padding: 0;">
+            <td style="width: 49%; vertical-align: top; padding: 0;">
 
                 {# CARD C: EDUCATION HISTORY #}
                 <div class="card">
@@ -824,6 +834,72 @@
                                 </tr>
                             {% endfor %}
                         </tbody>
+                    </table>
+                </div>
+
+                {# CARD E: SIBLINGS (ENROLLED IN FEU) #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> Siblings (Enrolled in FEU)
+                            </td>
+                        </tr>
+                    </table>
+
+                    {% if registration.siblings|length > 0 %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Sibling Name</th>
+                                <th style="width: 35%;">School Attended</th>
+                                <th style="width: 25%;">FEU Student No.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sib in registration.siblings %}
+                            <tr>
+                                <td><strong>{{ sib.siblingName }}</strong></td>
+                                <td>{{ sib.school }}</td>
+                                <td>{{ sib.feuStudentNo|default(sib.studentNo|default('N/A')) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <div style="font-size: 7.5pt; color: #9ca3af; font-style: italic; padding: 3px 0;">No siblings enrolled in FEU recorded.</div>
+                    {% endif %}
+                </div>
+
+                {# CARD F: GENERAL INFORMATION #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> General Information
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="field-table">
+                        <tr>
+                            <td style="width: 50%;">
+                                <div class="lbl">Date Applied</div>
+                                <div class="val">{{ registration.createdAt ? registration.createdAt|date('M d, Y') : 'N/A' }}</div>
+                            </td>
+                            <td style="width: 50%;">
+                                <div class="lbl">School Year Entry</div>
+                                <div class="val">{{ registration.schoolYearOfEntry|default('N/A') }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="lbl">Discovery Source</div>
+                                <div class="val" style="font-size: 7.5pt; font-weight: normal; color: #374151;">
+                                    {{ registration.marketingSource|default('Direct Walk-in / Onsite') }}
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 

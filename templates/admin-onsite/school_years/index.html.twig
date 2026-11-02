@@ -189,18 +189,18 @@
                         <table class="w-full text-sm text-left">
                             <thead class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
                                 <tr>
-                                    <th class="px-6 py-4 whitespace-nowrap">Session Label</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Academic Period</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Promissory Deadline</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Session Status</th>
-                                    <th class="px-6 py-4 whitespace-nowrap">Enrollment Window</th>
-                                    <th class="px-6 py-4 text-right whitespace-nowrap">Actions</th>
+                                    <th class="pl-6 pr-3 py-4 whitespace-nowrap">Session Label</th>
+                                    <th class="px-3 py-4 whitespace-nowrap">Academic Period</th>
+                                    <th class="px-3 py-4 whitespace-nowrap">Promissory Deadline</th>
+                                    <th class="px-3 py-4 whitespace-nowrap">Session Status</th>
+                                    <th class="px-3 py-4 whitespace-nowrap">Enrollment Window</th>
+                                    <th class="pl-3 pr-6 py-4 text-right whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 {% for sy in schoolYears %}
                                 <tr class="hover:bg-gray-50/70 transition-colors {% if sy.isActive %}bg-emerald-50/20{% endif %}">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="pl-6 pr-3 py-4 whitespace-nowrap">
                                          <div class="inline-flex items-center gap-2">
                                              <span class="font-bold font-mono text-sm px-2.5 py-1 rounded-lg {% if sy.isActive %}bg-emerald-100 text-emerald-900 border border-emerald-300{% else %}bg-gray-100 text-gray-800 border border-gray-200{% endif %}">
                                                  {{ sy.label }}
@@ -212,17 +212,17 @@
                                              {% endif %}
                                          </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-mono font-medium text-xs">
+                                    <td class="px-3 py-4 whitespace-nowrap text-gray-600 font-mono font-medium text-xs">
                                         {{ sy.yearStart }} - {{ sy.yearEnd }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-3 py-4 whitespace-nowrap">
                                         {% if sy.promissoryDeadline %}
                                             <span class="text-gray-700 font-medium text-xs">{{ sy.promissoryDeadline|date('M d, Y') }}</span>
                                         {% else %}
                                             <span class="text-gray-400 italic text-xs">Not set</span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-3 py-4 whitespace-nowrap">
                                         {% if sy.isActive %}
                                             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                                 <i class="ki-filled ki-check-circle text-xs"></i> Active
@@ -233,7 +233,7 @@
                                             </span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-3 py-4 whitespace-nowrap">
                                         {% if sy.enrollmentOpen %}
                                             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                                                 <i class="ki-filled ki-entrance-left text-xs"></i> Open
@@ -244,7 +244,7 @@
                                             </span>
                                         {% endif %}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <td class="pl-3 pr-6 py-4 whitespace-nowrap text-right">
                                         <div class="inline-flex items-center justify-end gap-1.5">
 
                                             {# Activate / Deactivate toggle #}
@@ -256,7 +256,7 @@
                                                       class="inline-block m-0" data-turbo="false">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('sy_deactivate_' ~ sy.id) }}">
                                                     <button type="submit"
-                                                            class="h-8 inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs whitespace-nowrap">
+                                                            class="h-8 inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-xs whitespace-nowrap">
                                                         <i class="ki-filled ki-cross text-xs"></i> Deactivate
                                                     </button>
                                                 </form>
@@ -268,7 +268,7 @@
                                                       class="inline-block m-0" data-turbo="false">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('sy_activate_' ~ sy.id) }}">
                                                     <button type="submit"
-                                                            class="h-8 inline-flex items-center gap-1.5 bg-feu-green-800 hover:bg-feu-green-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs whitespace-nowrap">
+                                                            class="h-8 inline-flex items-center gap-1 bg-feu-green-800 hover:bg-feu-green-900 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-xs whitespace-nowrap">
                                                         <i class="ki-filled ki-check text-xs"></i> Activate
                                                     </button>
                                                 </form>
@@ -281,7 +281,7 @@
                                                   class="inline-block m-0" data-turbo="false">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('sy_toggle_' ~ sy.id) }}">
                                                 <button type="submit"
-                                                        class="h-8 inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs whitespace-nowrap
+                                                        class="h-8 inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors shadow-xs whitespace-nowrap
                                                         {% if sy.enrollmentOpen %}bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300{% else %}bg-blue-100 text-blue-900 hover:bg-blue-200 border border-blue-300{% endif %}">
                                                     <i class="ki-filled {% if sy.enrollmentOpen %}ki-exit-right{% else %}ki-entrance-left{% endif %} text-xs"></i>
                                                     {% if sy.enrollmentOpen %}Close Enrollment{% else %}Open Enrollment{% endif %}

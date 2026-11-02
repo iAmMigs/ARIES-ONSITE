@@ -10,31 +10,39 @@
     
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {# Dashboard Link #}
+        {% if app.user and app.user.hasModule('dashboard') %}
         <a href="{{ path('app_admin_diliman_dashboard') }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'dashboard' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-chart-pie-simple text-xl"></i><span>Dashboard</span>
         </a>
+        {% endif %}
         
         {# Registrations Link #}
+        {% if app.user and app.user.hasModule('registrations') %}
         <a href="{{ path('app_admin_diliman_registrations') }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'registrations' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-people text-xl"></i><span>Registrations</span>
         </a>
+        {% endif %}
         
         {# Document Setup Link #}
+        {% if app.user and app.user.hasModule('documents') %}
         <a href="{{ path('app_admin_diliman_documents') }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'documents' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-folder text-xl"></i><span>Document Setup</span>
         </a>
+        {% endif %}
 
         {# School Year Management Link #}
+        {% if app.user and app.user.hasModule('school_year') %}
         <a href="{{ path('app_admin_school_year_index', {campus: 'diliman'}) }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'school_year' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-calendar text-xl"></i><span>School Year</span>
         </a>
+        {% endif %}
 
-        {# Admin Access Management Link (Master Admin or Approved Admins only) #}
-        {% if is_granted('ROLE_ADMIN') and app.user and (app.user.tier == 'master_admin' or app.user.canManageAdmins) %}
+        {# Admin Access Management Link #}
+        {% if app.user and app.user.hasModule('admin_access') %}
         <a href="{{ path('app_admin_access_index', {campus: 'diliman'}) }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'admin_access' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-shield-tick text-xl"></i><span>Admin Access</span>
