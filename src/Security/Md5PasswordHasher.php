@@ -23,7 +23,17 @@ class Md5PasswordHasher implements PasswordHasherInterface
             return false;
         }
 
-        return hash_equals(strtolower($hashedPassword), md5($plainPassword));
+        $stored = trim($hashedPassword);
+        if (hash_equals(strtolower($stored), md5($plainPassword))) {
+            return true;
+        }
+        if (password_verify($plainPassword, $stored)) {
+            return true;
+        }
+        if (hash_equals($stored, $plainPassword)) {
+            return true;
+        }
+        return false;
     }
 
     public function needsRehash(string $hashedPassword): bool

@@ -49,11 +49,17 @@ class DatabaseAuditSubscriber implements EventSubscriberInterface
 
         // 1. Direct path matching
         if (str_contains($path, 'alabang')) {
+            if ($request->hasSession()) {
+                $request->getSession()->set('_active_campus', CampusDatabaseSwitcher::CAMPUS_ALABANG);
+            }
             $this->databaseSwitcher->switchToCampus(CampusDatabaseSwitcher::CAMPUS_ALABANG);
             return;
         }
 
         if (str_contains($path, 'diliman')) {
+            if ($request->hasSession()) {
+                $request->getSession()->set('_active_campus', CampusDatabaseSwitcher::CAMPUS_DILIMAN);
+            }
             $this->databaseSwitcher->switchToCampus(CampusDatabaseSwitcher::CAMPUS_DILIMAN);
             return;
         }
@@ -61,6 +67,9 @@ class DatabaseAuditSubscriber implements EventSubscriberInterface
         // 2. Explicit form parameter during login (e.g. POST /login)
         $campusParam = $request->request->get('_campus');
         if (is_string($campusParam) && $campusParam !== '') {
+            if ($request->hasSession()) {
+                $request->getSession()->set('_active_campus', $campusParam);
+            }
             $this->databaseSwitcher->switchToCampus($campusParam);
             return;
         }
@@ -80,6 +89,15 @@ class DatabaseAuditSubscriber implements EventSubscriberInterface
         if (is_string($queryCampus) && $queryCampus !== '') {
             $this->databaseSwitcher->switchToCampus($queryCampus);
             return;
+        }
+
+        // 4. Fallback to active campus stored in session
+        if ($request->hasSession()) {
+            $sessionCampus = $request->getSession()->get('_active_campus');
+            if (is_string($sessionCampus) && $sessionCampus !== '') {
+                $this->databaseSwitcher->switchToCampus($sessionCampus);
+                return;
+            }
         }
 
         // 4. Fallback to authenticated admin's campus if logged in
@@ -111,6 +129,9 @@ class DatabaseAuditSubscriber implements EventSubscriberInterface
         // Prioritize explicit path context, then request campus parameter, then authenticated user campus
         $targetCampus = null;
         if (str_contains($path, 'alabang')) {
+            if ($request->hasSession()) {
+                $request->getSession()->set('_active_campus', CampusDatabaseSwitcher::CAMPUS_ALABANG);
+            }
             $targetCampus = CampusDatabaseSwitcher::CAMPUS_ALABANG;
         } elseif (str_contains($path, 'diliman')) {
             $targetCampus = CampusDatabaseSwitcher::CAMPUS_DILIMAN;

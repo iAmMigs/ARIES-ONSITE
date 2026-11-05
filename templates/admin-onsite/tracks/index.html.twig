@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Senior High Tracks & Strands - {{ campusName }} Admin{% endblock %}
+
+{% block body %}
+<div class="flex h-screen bg-gray-50 overflow-hidden font-sans">
+    {% if campusCode == 'feu_alabang' %}
+        {% include 'admin-onsite/alabang/_sidebar.html.twig' %}
+    {% else %}
+        {% include 'admin-onsite/diliman/_sidebar.html.twig' %}
+    {% endif %}
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-xs">
+            <div>
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
+                    <i class="ki-filled ki-briefcase text-feu-green-600 text-2xl"></i>
+                    Senior High Tracks & Strands
+                </h1>
+                <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage SHS tracks and strands offered at {{ campusName }}</p>
+            </div>
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-feu-green-50 text-feu-green-800 border border-feu-green-200">
+                    <i class="ki-filled ki-geolocation text-xs"></i> {{ campusName }}
+                </span>
+            </div>
+        </header>
+
+        <main class="p-6 space-y-6 max-w-5xl mx-auto w-full">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="p-4 rounded-xl border text-sm font-semibold flex items-center gap-2 {{ label == 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800' }}">
+                        <i class="ki-filled {{ label == 'success' ? 'ki-check-circle' : 'ki-information-2' }} text-base"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            <div class="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden flex flex-col">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-feu-green-100 text-feu-green-800 flex items-center justify-center font-bold text-sm">
+                            <i class="ki-filled ki-briefcase text-base"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-900">Tracks & Strands List</h2>
+                            <p class="text-xs text-gray-500">Frameworks available for incoming Grade 11 & 12</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Add Track Form #}
+                <div class="p-4 bg-gray-50 border-b border-gray-200">
+                    <form action="{{ path('app_admin_tracks_add', {campus: campus}) }}" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                        <div class="sm:col-span-3">
+                            <input type="text" name="code" placeholder="Code (e.g. STEM)" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                        </div>
+                        <div class="sm:col-span-6">
+                            <input type="text" name="name" placeholder="Full Track/Strand Name" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg bg-white">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <button type="submit" class="w-full bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-2xs">
+                                <i class="ki-filled ki-plus text-xs"></i> Add Track
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="divide-y divide-gray-100">
+                    {% for track in tracks %}
+                        <div class="p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-200">
+                                    {{ track.code }}
+                                </span>
+                                <div>
+                                    <div class="text-sm font-bold text-gray-900">{{ track.name }}</div>
+                                    <div class="text-[11px] text-gray-400">Order: {{ track.displayOrder }}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <form action="{{ path('app_admin_tracks_toggle', {campus: campus, id: track.id}) }}" method="POST">
+                                    {% if track.isActive %}
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Active
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer">
+                                            <i class="ki-filled ki-cross-circle text-xs"></i> Disabled
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="p-8 text-center text-xs text-gray-400 italic">No tracks configured yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+

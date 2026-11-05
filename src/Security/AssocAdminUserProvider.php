@@ -16,7 +16,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
- * Loads and bridges authenticated users between the central Associate Login database
+ * Loads and bridges authenticated users between the campus-specific Associate database
  * and ARIES campus-specific AdminUser entities.
  *
  * @implements UserProviderInterface<AdminUser>
@@ -35,18 +35,7 @@ class AssocAdminUserProvider implements UserProviderInterface
     {
         $cleanIdentifier = trim($identifier);
 
-        // 1. Check central assoc_login table strictly by Employee ID
-        $assoc = $this->assocLoginService->findByEmployeeId($cleanIdentifier);
-
-        if (!$assoc) {
-            $e = new UserNotFoundException(sprintf('User with Employee ID "%s" not found in Associate directory.', $cleanIdentifier));
-            $e->setUserIdentifier($cleanIdentifier);
-            throw $e;
-        }
-
-        $empId = (int) $assoc['employee_id'];
-
-        // Determine target campus from current HTTP request
+        // Determine target campus from current HTTP request or session
         $request = $this->requestStack->getMainRequest();
         $targetCampus = null;
         if ($request) {
@@ -63,23 +52,34 @@ class AssocAdminUserProvider implements UserProviderInterface
                         $targetCampus = CampusDatabaseSwitcher::CAMPUS_ALABANG;
                     } elseif (str_contains($path, 'diliman')) {
                         $targetCampus = CampusDatabaseSwitcher::CAMPUS_DILIMAN;
+                    } elseif ($request->hasSession()) {
+                        $targetCampus = (string) $request->getSession()->get('_active_campus', '');
                     }
                 }
             }
         }
 
-        if ($targetCampus) {
-            $this->databaseSwitcher->switchToCampus($targetCampus);
-            $adminUser = $this->adminUserRepo->find($empId);
-        } else {
-            // Fallback: check Diliman first, then Alabang
-            $this->databaseSwitcher->switchToCampus(CampusDatabaseSwitcher::CAMPUS_DILIMAN);
-            $adminUser = $this->adminUserRepo->find($empId);
-            if (!$adminUser) {
-                $this->databaseSwitcher->switchToCampus(CampusDatabaseSwitcher::CAMPUS_ALABANG);
-                $adminUser = $this->adminUserRepo->find($empId);
+        $resolvedCampus = $this->assocLoginService->resolveCampus($targetCampus ?: CampusDatabaseSwitcher::CAMPUS_DILIMAN);
+
+        // 1. Check campus-specific assoc_login table strictly by Employee ID
+        $assoc = $this->assocLoginService->findByEmployeeIdForCampus($cleanIdentifier, $resolvedCampus);
+
+        // Cross-campus check: if not found in this campus, check if they exist in the other campus
+        if (!$assoc) {
+            if ($this->assocLoginService->existsInOtherCampus($cleanIdentifier, $resolvedCampus)) {
+                throw new CustomUserMessageAuthenticationException('This Employee is not an associate of this campus');
             }
+
+            $e = new UserNotFoundException(sprintf('User with Employee ID "%s" not found in Associate directory.', $cleanIdentifier));
+            $e->setUserIdentifier($cleanIdentifier);
+            throw $e;
         }
+
+        $empId = (int) $assoc['emp_id'];
+
+        // 2. Switch DB to target campus and find AdminUser
+        $this->databaseSwitcher->switchToCampus($resolvedCampus);
+        $adminUser = $this->adminUserRepo->find($empId);
 
         if (!$adminUser) {
             throw new CustomUserMessageAuthenticationException(
@@ -93,8 +93,8 @@ class AssocAdminUserProvider implements UserProviderInterface
             );
         }
 
-        // 3. Inject the MD5 password hash and username from assoc_login into in-memory AdminUser
-        $adminUser->setPassword((string) ($assoc['pass_word'] ?? ''));
+        // 3. Inject the password hash and username from assoc_login into in-memory AdminUser
+        $adminUser->setPassword((string) ($assoc['password'] ?? ''));
         if (!empty($assoc['user_name'])) {
             $adminUser->setUsername((string) $assoc['user_name']);
         }
@@ -113,9 +113,8 @@ class AssocAdminUserProvider implements UserProviderInterface
             throw new UserNotFoundException('Cannot refresh user with null employee number.');
         }
 
-        if ($user->getCampus()) {
-            $this->databaseSwitcher->switchToCampus($user->getCampus());
-        }
+        $campus = $user->getCampus() ?: CampusDatabaseSwitcher::CAMPUS_DILIMAN;
+        $this->databaseSwitcher->switchToCampus($campus);
 
         $refreshed = $this->adminUserRepo->find($empNum);
         if (!$refreshed) {
@@ -131,9 +130,9 @@ class AssocAdminUserProvider implements UserProviderInterface
         }
 
         // Maintain password hash parity with token to prevent deauthentication
-        $assoc = $this->assocLoginService->findByEmployeeId((string) $empNum);
+        $assoc = $this->assocLoginService->findByEmployeeIdForCampus((string) $empNum, $campus);
         if ($assoc) {
-            $refreshed->setPassword((string) ($assoc['pass_word'] ?? ''));
+            $refreshed->setPassword((string) ($assoc['password'] ?? ''));
             if (!empty($assoc['user_name'])) {
                 $refreshed->setUsername((string) $assoc['user_name']);
             }

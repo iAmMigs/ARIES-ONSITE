@@ -98,6 +98,10 @@ class CampusAccessSubscriber implements EventSubscriberInterface
             $requiredModule = AdminUser::MODULE_DOCUMENTS;
         } elseif (str_contains($path, '/school-year')) {
             $requiredModule = AdminUser::MODULE_SCHOOL_YEAR;
+        } elseif (str_contains($path, '/admin/survey')) {
+            $requiredModule = AdminUser::MODULE_SURVEY;
+        } elseif (str_contains($path, '/admin/tracks')) {
+            $requiredModule = AdminUser::MODULE_TRACKS;
         } elseif (str_contains($path, '/admin/access') || str_contains($path, '/api/admin/assoc')) {
             $requiredModule = AdminUser::MODULE_ADMIN_ACCESS;
         }
@@ -129,11 +133,19 @@ class CampusAccessSubscriber implements EventSubscriberInterface
             return $this->urlGenerator->generate('app_admin_school_year_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
         }
 
+        if ($user->hasModule(AdminUser::MODULE_SURVEY)) {
+            return $this->urlGenerator->generate('app_admin_survey_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
+        }
+
+        if ($user->hasModule(AdminUser::MODULE_TRACKS)) {
+            return $this->urlGenerator->generate('app_admin_tracks_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
+        }
+
         if ($user->hasModule(AdminUser::MODULE_ADMIN_ACCESS)) {
             return $this->urlGenerator->generate('app_admin_access_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
         }
 
-        return $this->urlGenerator->generate($isAlabang ? 'app_auth_login_alabang' : 'app_auth_login_diliman');
+        return $this->urlGenerator->generate($isAlabang ? 'app_admin_alabang_dashboard' : 'app_admin_diliman_dashboard');
     }
 
     public static function getSubscribedEvents(): array

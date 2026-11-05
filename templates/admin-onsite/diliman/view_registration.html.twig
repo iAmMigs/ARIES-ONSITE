@@ -293,6 +293,10 @@
                                                 <i class="ki-filled ki-phone text-xs text-feu-green-600"></i>
                                                 <span>{{ guardian.contactNo ?: 'No Contact Provided' }}</span>
                                             </div>
+                                            <div class="text-sm text-gray-700 mt-1 flex items-center gap-1.5">
+                                                <i class="ki-filled ki-sms text-xs text-feu-green-600"></i>
+                                                <span>{{ guardian.email ?: 'No Email Provided' }}</span>
+                                            </div>
                                         </div>
 
                                         {% if not guardian.deceased %}

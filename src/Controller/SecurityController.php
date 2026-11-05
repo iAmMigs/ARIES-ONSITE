@@ -87,13 +87,14 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * Redirects the user to the first module they have permission to access.
+     * Redirects the user to their campus dashboard or their permitted landing module.
      */
     public function resolveLandingRoute(AdminUser $user): Response
     {
         $campus = $user->getCampus();
         $isAlabang = ($campus === 'feu_alabang');
 
+        // Dashboard is default for all admins
         if ($user->hasModule(AdminUser::MODULE_DASHBOARD)) {
             return $this->redirectToRoute($isAlabang ? 'app_admin_alabang_dashboard' : 'app_admin_diliman_dashboard');
         }
@@ -110,10 +111,18 @@ class SecurityController extends AbstractController
             return $this->redirectToRoute('app_admin_school_year_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
         }
 
+        if ($user->hasModule(AdminUser::MODULE_SURVEY)) {
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
+        }
+
+        if ($user->hasModule(AdminUser::MODULE_TRACKS)) {
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
+        }
+
         if ($user->hasModule(AdminUser::MODULE_ADMIN_ACCESS)) {
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $isAlabang ? 'alabang' : 'diliman']);
         }
 
-        return $this->redirectToRoute($isAlabang ? 'app_auth_login_alabang' : 'app_auth_login_diliman');
+        return $this->redirectToRoute($isAlabang ? 'app_admin_alabang_dashboard' : 'app_admin_diliman_dashboard');
     }
 }

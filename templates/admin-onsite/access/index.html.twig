@@ -159,13 +159,20 @@
                                             </span>
                                         {% else %}
                                             <div class="flex flex-wrap gap-1.5 max-w-md">
+                                                {% if admin.hasModule('finance') and not ('registrations' in admin.modules) %}
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                                        <i class="ki-filled ki-wallet text-[10px]"></i> Registrations (Finance Mode)
+                                                    </span>
+                                                {% endif %}
                                                 {% for modKey, modLabel in availableModules %}
-                                                    {% if admin.hasModule(modKey) %}
+                                                    {% if admin.hasModule(modKey) and (modKey != 'registrations' or not admin.hasModule('finance') or ('registrations' in admin.modules)) %}
                                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold
                                                             {% if modKey == 'admin_access' %}bg-purple-50 text-purple-700 border border-purple-200
                                                             {% elseif modKey == 'documents' %}bg-blue-50 text-blue-700 border border-blue-200
                                                             {% elseif modKey == 'registrations' %}bg-emerald-50 text-emerald-700 border border-emerald-200
                                                             {% elseif modKey == 'school_year' %}bg-amber-50 text-amber-700 border border-amber-200
+                                                            {% elseif modKey == 'survey' %}bg-sky-50 text-sky-700 border border-sky-200
+                                                            {% elseif modKey == 'tracks' %}bg-indigo-50 text-indigo-700 border border-indigo-200
                                                             {% else %}bg-gray-100 text-gray-700 border border-gray-200{% endif %}">
                                                             <i class="ki-filled ki-check text-[10px]"></i> {{ modLabel }}
                                                         </span>
@@ -320,11 +327,31 @@
                 <p class="text-[11px] text-gray-500 mb-2">Check each module this administrator is allowed to access:</p>
                 <div class="space-y-2 p-3.5 rounded-xl bg-gray-50 border border-gray-200">
                     {% for modKey, modLabel in availableModules %}
-                    <label class="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200 hover:border-feu-green-600 transition-colors cursor-pointer">
-                        <span class="text-xs font-bold text-gray-800">{{ modLabel }}</span>
-                        <input type="checkbox" name="modules[]" value="{{ modKey }}" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600"
-                               {% if modKey in ['dashboard', 'registrations'] %}checked{% endif %}>
-                    </label>
+                        {% if modKey == 'registrations' %}
+                            <div class="rounded-lg bg-white border border-gray-200 p-2.5 hover:border-feu-green-600 transition-colors">
+                                <label class="flex items-center justify-between cursor-pointer">
+                                    <span class="text-xs font-bold text-gray-800">{{ modLabel }}</span>
+                                    <input type="checkbox" name="modules[]" id="create_mod_registrations" value="registrations" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600" checked onchange="toggleFinanceContainer('create_finance_sub', this.checked)">
+                                </label>
+                                <div id="create_finance_sub" class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[11px] font-bold text-teal-800 flex items-center gap-1">
+                                            <i class="ki-filled ki-wallet text-teal-600 text-xs"></i> Enable Finance Access
+                                        </span>
+                                        <span class="text-[10px] text-gray-400 block">Restricts editing strictly to applicant payment status</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="finance_enabled" id="create_finance_enabled" value="1" class="sr-only peer">
+                                        <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-teal-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        {% else %}
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200 hover:border-feu-green-600 transition-colors cursor-pointer">
+                                <span class="text-xs font-bold text-gray-800">{{ modLabel }}</span>
+                                <input type="checkbox" name="modules[]" value="{{ modKey }}" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600">
+                            </label>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -368,10 +395,31 @@
                 <p class="text-[11px] text-gray-500 mb-2">Select the modules this administrator can access on the left sidebar:</p>
                 <div class="space-y-2 p-3.5 rounded-xl bg-gray-50 border border-gray-200">
                     {% for modKey, modLabel in availableModules %}
-                    <label class="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200 hover:border-feu-green-600 transition-colors cursor-pointer">
-                        <span class="text-xs font-bold text-gray-800">{{ modLabel }}</span>
-                        <input type="checkbox" name="modules[]" id="edit_mod_{{ modKey }}" value="{{ modKey }}" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600">
-                    </label>
+                        {% if modKey == 'registrations' %}
+                            <div class="rounded-lg bg-white border border-gray-200 p-2.5 hover:border-feu-green-600 transition-colors">
+                                <label class="flex items-center justify-between cursor-pointer">
+                                    <span class="text-xs font-bold text-gray-800">{{ modLabel }}</span>
+                                    <input type="checkbox" name="modules[]" id="edit_mod_registrations" value="registrations" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600" onchange="toggleFinanceContainer('edit_finance_sub', this.checked)">
+                                </label>
+                                <div id="edit_finance_sub" class="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
+                                    <div>
+                                        <span class="text-[11px] font-bold text-teal-800 flex items-center gap-1">
+                                            <i class="ki-filled ki-wallet text-teal-600 text-xs"></i> Enable Finance Access
+                                        </span>
+                                        <span class="text-[10px] text-gray-400 block">Restricts editing strictly to applicant payment status</span>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="finance_enabled" id="edit_finance_enabled" value="1" class="sr-only peer">
+                                        <div class="w-8 h-4 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-teal-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        {% else %}
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200 hover:border-feu-green-600 transition-colors cursor-pointer">
+                                <span class="text-xs font-bold text-gray-800">{{ modLabel }}</span>
+                                <input type="checkbox" name="modules[]" id="edit_mod_{{ modKey }}" value="{{ modKey }}" class="w-4 h-4 rounded text-feu-green-700 focus:ring-feu-green-600">
+                            </label>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -563,8 +611,26 @@
     const btnSubmitCreate = document.getElementById('btnSubmitCreateAdmin');
     let empLookupDebounce = null;
 
+    function toggleFinanceContainer(containerId, isChecked) {
+        const el = document.getElementById(containerId);
+        if (el) {
+            if (isChecked) {
+                el.classList.remove('opacity-40', 'pointer-events-none');
+            } else {
+                el.classList.add('opacity-40', 'pointer-events-none');
+                const toggle = el.querySelector('input[type="checkbox"]');
+                if (toggle) toggle.checked = false;
+            }
+        }
+    }
+
     function openCreateModal() {
         document.getElementById('createAdminModal').classList.remove('hidden');
+        const regCb = document.getElementById('create_mod_registrations');
+        const finCb = document.getElementById('create_finance_enabled');
+        if (regCb) regCb.checked = true;
+        if (finCb) finCb.checked = false;
+        toggleFinanceContainer('create_finance_sub', true);
         if (empInput) empInput.focus();
     }
 
@@ -587,8 +653,21 @@
         document.getElementById('editModulesCsrfToken').value = updateModulesCsrfTokens[empNum] || '';
         document.getElementById('editModulesForm').action = updateModulesBaseUrl + '/' + empNum;
 
-        // Reset all checkboxes first
-        ['dashboard', 'registrations', 'documents', 'school_year', 'admin_access'].forEach(function(mod) {
+        const isFinance = Array.isArray(modules) && modules.includes('finance');
+        const isRegistrations = Array.isArray(modules) && modules.includes('registrations');
+
+        const regCb = document.getElementById('edit_mod_registrations');
+        const finCb = document.getElementById('edit_finance_enabled');
+        if (regCb) {
+            regCb.checked = isRegistrations || isFinance;
+            toggleFinanceContainer('edit_finance_sub', regCb.checked);
+        }
+        if (finCb) {
+            finCb.checked = isFinance;
+        }
+
+        // Reset other checkboxes
+        ['survey', 'tracks', 'documents', 'school_year', 'admin_access'].forEach(function(mod) {
             const cb = document.getElementById('edit_mod_' + mod);
             if (cb) {
                 cb.checked = Array.isArray(modules) && modules.includes(mod);

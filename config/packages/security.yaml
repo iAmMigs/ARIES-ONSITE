@@ -17,7 +17,7 @@ security:
             provider: app_assoc_admin_provider
             entry_point: App\Security\CampusAuthenticationEntryPoint
             login_throttling:
-                max_attempts: 5
+                max_attempts: 15
             form_login:
                 login_path: app_auth_login_diliman
                 check_path: app_auth_login_check

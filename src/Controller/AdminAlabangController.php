@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\ApplicantBed;
+use App\Entity\AdminUser;
 use App\Entity\LookupRegion;
 use App\Entity\LookupProvince;
 use App\Entity\LookupCity;
@@ -212,21 +213,27 @@ class AdminAlabangController extends AbstractController
         }
 
         if ($eduType = $request->query->get('education_type')) {
-            if ($eduType === 'Primary') {
-                $primaryGrades = [
+            if ($eduType === 'Grade School' || $eduType === 'Primary') {
+                $gsGrades = [
                     'kinder', 'Kinder', 'grade_1', 'Grade 1', 'grade_2', 'Grade 2',
                     'grade_3', 'Grade 3', 'grade_4', 'Grade 4', 'grade_5', 'Grade 5',
                     'grade_6', 'Grade 6'
                 ];
-                $qb->andWhere("a.educationType IN ('Kinder', 'Grade School', 'K-10', 'Primary') OR a.gradeLevel IN (:primaryGrades)")
-                   ->setParameter('primaryGrades', $primaryGrades);
-            } elseif ($eduType === 'Secondary') {
-                $secondaryGrades = [
+                $qb->andWhere("a.educationType IN ('Grade School', 'Kinder', 'Primary', 'K-10') OR a.gradeLevel IN (:gsGrades)")
+                   ->setParameter('gsGrades', $gsGrades);
+            } elseif ($eduType === 'Junior High School' || $eduType === 'JHS') {
+                $jhsGrades = [
                     'grade_7', 'Grade 7', 'grade_8', 'Grade 8', 'grade_9', 'Grade 9',
-                    'grade_10', 'Grade 10', 'grade_11', 'Grade 11', 'grade_12', 'Grade 12'
+                    'grade_10', 'Grade 10'
                 ];
-                $qb->andWhere("a.educationType IN ('Junior High School', 'Senior High School', 'SHS', 'Secondary') OR a.gradeLevel IN (:secondaryGrades)")
-                   ->setParameter('secondaryGrades', $secondaryGrades);
+                $qb->andWhere("a.educationType IN ('Junior High School', 'JHS') OR a.gradeLevel IN (:jhsGrades)")
+                   ->setParameter('jhsGrades', $jhsGrades);
+            } elseif ($eduType === 'Senior High School' || $eduType === 'SHS') {
+                $shsGrades = [
+                    'grade_11', 'Grade 11', 'grade_12', 'Grade 12'
+                ];
+                $qb->andWhere("a.educationType IN ('Senior High School', 'SHS') OR a.gradeLevel IN (:shsGrades)")
+                   ->setParameter('shsGrades', $shsGrades);
             } else {
                 $qb->andWhere('a.educationType = :eduType')
                    ->setParameter('eduType', $eduType);
@@ -306,21 +313,27 @@ class AdminAlabangController extends AbstractController
         }
 
         if ($eduType = $request->query->get('education_type')) {
-            if ($eduType === 'Primary') {
-                $primaryGrades = [
+            if ($eduType === 'Grade School' || $eduType === 'Primary') {
+                $gsGrades = [
                     'kinder', 'Kinder', 'grade_1', 'Grade 1', 'grade_2', 'Grade 2',
                     'grade_3', 'Grade 3', 'grade_4', 'Grade 4', 'grade_5', 'Grade 5',
                     'grade_6', 'Grade 6'
                 ];
-                $qb->andWhere("a.educationType IN ('Kinder', 'Grade School', 'K-10', 'Primary') OR a.gradeLevel IN (:primaryGrades)")
-                   ->setParameter('primaryGrades', $primaryGrades);
-            } elseif ($eduType === 'Secondary') {
-                $secondaryGrades = [
+                $qb->andWhere("a.educationType IN ('Grade School', 'Kinder', 'Primary', 'K-10') OR a.gradeLevel IN (:gsGrades)")
+                   ->setParameter('gsGrades', $gsGrades);
+            } elseif ($eduType === 'Junior High School' || $eduType === 'JHS') {
+                $jhsGrades = [
                     'grade_7', 'Grade 7', 'grade_8', 'Grade 8', 'grade_9', 'Grade 9',
-                    'grade_10', 'Grade 10', 'grade_11', 'Grade 11', 'grade_12', 'Grade 12'
+                    'grade_10', 'Grade 10'
                 ];
-                $qb->andWhere("a.educationType IN ('Junior High School', 'Senior High School', 'SHS', 'Secondary') OR a.gradeLevel IN (:secondaryGrades)")
-                   ->setParameter('secondaryGrades', $secondaryGrades);
+                $qb->andWhere("a.educationType IN ('Junior High School', 'JHS') OR a.gradeLevel IN (:jhsGrades)")
+                   ->setParameter('jhsGrades', $jhsGrades);
+            } elseif ($eduType === 'Senior High School' || $eduType === 'SHS') {
+                $shsGrades = [
+                    'grade_11', 'Grade 11', 'grade_12', 'Grade 12'
+                ];
+                $qb->andWhere("a.educationType IN ('Senior High School', 'SHS') OR a.gradeLevel IN (:shsGrades)")
+                   ->setParameter('shsGrades', $shsGrades);
             } else {
                 $qb->andWhere('a.educationType = :eduType')
                    ->setParameter('eduType', $eduType);
@@ -427,11 +440,13 @@ class AdminAlabangController extends AbstractController
                 'General Average',
                 'Father Name',
                 'Father Contact',
+                'Father Email',
                 'Father Occupation',
                 'Father Is Deceased',
                 'Father Is OFW',
                 'Mother Name',
                 'Mother Contact',
+                'Mother Email',
                 'Mother Occupation',
                 'Mother Is Deceased',
                 'Mother Is OFW',
@@ -458,8 +473,8 @@ class AdminAlabangController extends AbstractController
                 $fullName = trim($applicant->getLastName() . ', ' . $applicant->getFirstName() . ' ' . ($applicant->getMiddleName() ?? '') . ($suffix ? ' ' . $suffix : ''));
 
                 // Extract Guardians
-                $fatherName = $fatherContact = $fatherOccupation = $fatherDeceased = $fatherOfw = '';
-                $motherName = $motherContact = $motherOccupation = $motherDeceased = $motherOfw = '';
+                $fatherName = $fatherContact = $fatherEmail = $fatherOccupation = $fatherDeceased = $fatherOfw = '';
+                $motherName = $motherContact = $motherEmail = $motherOccupation = $motherDeceased = $motherOfw = '';
                 $guardianName = $guardianRel = $guardianContact = $guardianEmail = $guardianAddress = '';
 
                 foreach ($applicant->getGuardians() as $g) {
@@ -467,12 +482,14 @@ class AdminAlabangController extends AbstractController
                     if ($rel === 'FATHER') {
                         $fatherName = $g->getParentName() ?? '';
                         $fatherContact = $g->getContactNo() ?? '';
+                        $fatherEmail = $g->getEmail() ?? '';
                         $fatherOccupation = $g->getOccupation() ?? '';
                         $fatherDeceased = $g->isDeceased() ? 'Yes' : 'No';
                         $fatherOfw = $g->isOFW() ? 'Yes' : 'No';
                     } elseif ($rel === 'MOTHER') {
                         $motherName = $g->getParentName() ?? '';
                         $motherContact = $g->getContactNo() ?? '';
+                        $motherEmail = $g->getEmail() ?? '';
                         $motherOccupation = $g->getOccupation() ?? '';
                         $motherDeceased = $g->isDeceased() ? 'Yes' : 'No';
                         $motherOfw = $g->isOFW() ? 'Yes' : 'No';
@@ -555,11 +572,13 @@ class AdminAlabangController extends AbstractController
                     $applicant->getGeneralAverage() ?? '',
                     $fatherName,
                     $fatherContact,
+                    $fatherEmail,
                     $fatherOccupation,
                     $fatherDeceased,
                     $fatherOfw,
                     $motherName,
                     $motherContact,
+                    $motherEmail,
                     $motherOccupation,
                     $motherDeceased,
                     $motherOfw,
@@ -748,6 +767,20 @@ class AdminAlabangController extends AbstractController
             if (!$this->isCsrfTokenValid('admin_edit_registration_' . $registration->getStudentNumber(), (string)$request->request->get('_token'))) {
                 $this->addFlash('error', 'Invalid security token. Please try submitting again.');
                 return $this->redirectToRoute('app_admin_alabang_registration_edit', ['id' => $id]);
+            }
+
+            $currentAdmin = $this->getUser();
+            $isFinanceOnly = ($currentAdmin instanceof AdminUser)
+                && $currentAdmin->canManagePayments()
+                && !in_array(AdminUser::MODULE_REGISTRATIONS, $currentAdmin->getModules(), true)
+                && !$currentAdmin->isMasterAdmin();
+
+            if ($isFinanceOnly) {
+                $paymentPaid = $request->request->get('payment_paid') === '1';
+                $registration->setAdmissionStatus($paymentPaid ? 'Paid' : 'For Payment');
+                $em->flush();
+                $this->addFlash('success', 'Payment status updated successfully.');
+                return $this->redirectToRoute('app_admin_alabang_registration_view', ['id' => $registration->getStudentNumber()]);
             }
 
             $firstNameInput = trim((string)$request->request->get('first_name', ''));
@@ -981,6 +1014,9 @@ class AdminAlabangController extends AbstractController
             $score = $request->request->get('exam_score');
             $examDateStr = $request->request->get('exam_date');
 
+            $currentAdmin = $this->getUser();
+            $canManagePayment = ($currentAdmin instanceof \App\Entity\AdminUser && $currentAdmin->canManagePayments());
+
             if ($registration->getEducationType() === 'SHS') {
                 if ($examTaken) {
                     if ($score !== null && $score !== '') {
@@ -994,17 +1030,21 @@ class AdminAlabangController extends AbstractController
                     $registration->setExaminationDate(null);
                 }
 
-                if ($paymentPaid) {
-                    $registration->setAdmissionStatus('Paid');
-                } else {
-                    $registration->setAdmissionStatus('For Payment');
+                if ($canManagePayment) {
+                    if ($paymentPaid) {
+                        $registration->setAdmissionStatus('Paid');
+                    } else {
+                        $registration->setAdmissionStatus('For Payment');
+                    }
                 }
             } else {
                 // K-10
-                if ($paymentPaid) {
-                    $registration->setAdmissionStatus('Paid');
-                } else {
-                    $registration->setAdmissionStatus('For Payment');
+                if ($canManagePayment) {
+                    if ($paymentPaid) {
+                        $registration->setAdmissionStatus('Paid');
+                    } else {
+                        $registration->setAdmissionStatus('For Payment');
+                    }
                 }
                 $registration->setExaminationScore(null);
                 $registration->setExaminationDate(null);
@@ -1420,6 +1460,12 @@ class AdminAlabangController extends AbstractController
     #[Route('/registration/{id}/delete', name: 'app_admin_alabang_delete', methods: ['POST'])]
     public function delete(string $id, Request $request, ApplicantBedRepository $repository, ApplicantDeletionService $service): Response
     {
+        $currentAdmin = $this->getUser();
+        if ($currentAdmin instanceof AdminUser && !$currentAdmin->isMasterAdmin() && !in_array(AdminUser::MODULE_REGISTRATIONS, $currentAdmin->getModules(), true)) {
+            $this->addFlash('error', 'Finance-only accounts cannot delete applicant records.');
+            return $this->redirectToRoute('app_admin_alabang_registrations');
+        }
+
         $registration = $repository->find($id);
         if (!$registration || $registration->getCampus() !== ApplicantBed::CAMPUS_ALABANG) {
             throw $this->createNotFoundException();
@@ -1634,4 +1680,4 @@ class AdminAlabangController extends AbstractController
     {
         return $this->complianceService->getApplicableDocuments($registration);
     }
-}
+}

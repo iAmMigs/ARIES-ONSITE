@@ -624,7 +624,10 @@
                                         N/A
                                     {% endif %}
                                 </td>
-                                <td>{{ father ? father.contactNo|default('N/A') : 'N/A' }}</td>
+                                <td>
+                                    {{ father ? father.contactNo|default('N/A') : 'N/A' }}
+                                    {% if father and father.email %}<div style="font-size: 6.5pt; color: #4b5563;">{{ father.email }}</div>{% endif %}
+                                </td>
                                 <td>
                                     {{ father ? father.occupation|default('N/A') : 'N/A' }}
                                     {% if father and father.isDeceased %}<span style="color: #dc2626; font-size: 6.5pt;">(Deceased)</span>{% endif %}
@@ -653,7 +656,10 @@
                                         N/A
                                     {% endif %}
                                 </td>
-                                <td>{{ mother ? mother.contactNo|default('N/A') : 'N/A' }}</td>
+                                <td>
+                                    {{ mother ? mother.contactNo|default('N/A') : 'N/A' }}
+                                    {% if mother and mother.email %}<div style="font-size: 6.5pt; color: #4b5563;">{{ mother.email }}</div>{% endif %}
+                                </td>
                                 <td>
                                     {{ mother ? mother.occupation|default('N/A') : 'N/A' }}
                                     {% if mother and mother.isDeceased %}<span style="color: #dc2626; font-size: 6.5pt;">(Deceased)</span>{% endif %}

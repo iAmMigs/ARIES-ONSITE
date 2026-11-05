@@ -15,6 +15,10 @@ class CampusDatabaseSwitcher
 {
     public const DB_DILIMAN = 'aries_diliman_db';
     public const DB_ALABANG = 'aries_alabang_db';
+    public const DB_DILIMAN_ASSOCIATES = 'aries_diliman_associates';
+    public const DB_ALABANG_ASSOCIATES = 'aries_alabang_associates';
+    public const DB_DILIMAN_ASSOC_LOGIN = 'aries_diliman_assoc_login';
+    public const DB_ALABANG_ASSOC_LOGIN = 'aries_alabang_assoc_login';
 
     public const CAMPUS_DILIMAN = 'feu_diliman';
     public const CAMPUS_ALABANG = 'feu_alabang';
@@ -31,6 +35,24 @@ class CampusDatabaseSwitcher
     /**
      * Resolves the database name for a given campus code or identifier.
      */
+    public function getAssociatesDatabaseForCampus(?string $campus): string
+    {
+        $normalized = strtolower(trim((string) $campus));
+        if (in_array($normalized, ['feu_alabang', 'falab', 'alabang'], true)) {
+            return self::DB_ALABANG_ASSOCIATES;
+        }
+        return self::DB_DILIMAN_ASSOCIATES;
+    }
+
+    public function getAssocLoginDatabaseForCampus(?string $campus): string
+    {
+        $normalized = strtolower(trim((string) $campus));
+        if (in_array($normalized, ['feu_alabang', 'falab', 'alabang'], true)) {
+            return self::DB_ALABANG_ASSOC_LOGIN;
+        }
+        return self::DB_DILIMAN_ASSOC_LOGIN;
+    }
+
     public function getDatabaseForCampus(?string $campus): string
     {
         if ($campus === null) {
@@ -65,7 +87,7 @@ class CampusDatabaseSwitcher
         }
 
         // Validate database name against allowable databases to avoid injection
-        if (!in_array($databaseName, [self::DB_DILIMAN, self::DB_ALABANG, 'aries_db'], true)) {
+        if (!in_array($databaseName, [self::DB_DILIMAN, self::DB_ALABANG, self::DB_DILIMAN_ASSOCIATES, self::DB_ALABANG_ASSOCIATES, self::DB_DILIMAN_ASSOC_LOGIN, self::DB_ALABANG_ASSOC_LOGIN, 'aries_db'], true)) {
             throw new \InvalidArgumentException(sprintf('Disallowed database name: "%s"', $databaseName));
         }
 

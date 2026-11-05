@@ -41,6 +41,22 @@
         </a>
         {% endif %}
 
+        {# Survey Discovery Link #}
+        {% if app.user and app.user.hasModule('survey') %}
+        <a href="{{ path('app_admin_survey_index', {campus: 'alabang'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'survey' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-like text-xl"></i><span>Survey</span>
+        </a>
+        {% endif %}
+
+        {# Tracks & Strands Link #}
+        {% if app.user and app.user.hasModule('tracks') %}
+        <a href="{{ path('app_admin_tracks_index', {campus: 'alabang'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'tracks' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-briefcase text-xl"></i><span>Tracks & Strands</span>
+        </a>
+        {% endif %}
+
         {# Admin Access Management Link #}
         {% if app.user and app.user.hasModule('admin_access') %}
         <a href="{{ path('app_admin_access_index', {campus: 'alabang'}) }}" 

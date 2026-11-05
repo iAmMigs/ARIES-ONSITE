@@ -16,8 +16,21 @@
         {% include 'admin-onsite/diliman/_header.html.twig' with {'page_title': 'Edit Student Details'} %}
 
         <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+             {% set isFinanceOnly = app.user and app.user.canManagePayments() and not ('registrations' in app.user.modules) and not app.user.isMasterAdmin() %}
              <form method="post" class="max-w-7xl mx-auto" id="editForm" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="{{ csrf_token('admin_edit_registration_' ~ registration.studentNumber) }}">
+
+                {% if isFinanceOnly %}
+                    <div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start sm:items-center gap-3 shadow-2xs">
+                        <div class="p-2 bg-amber-100 rounded-lg text-amber-700">
+                            <i class="ki-filled ki-shield-cross text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Finance Restricted Mode</div>
+                            <div class="text-xs text-amber-700 mt-0.5">You have access as a Finance operator. You can modify the <strong>Payment Status</strong>. All other applicant records are locked for editing.</div>
+                        </div>
+                    </div>
+                {% endif %}
         
                 {# Header Actions #}
                 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -29,7 +42,7 @@
                     </div>
                     <button type="submit" class="inline-flex items-center gap-2 bg-feu-green-600 hover:bg-feu-green-700 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-sm shadow-feu-green-700/20 transition-all cursor-pointer">
                         <i class="ki-filled ki-check text-sm"></i>
-                        <span>Save Changes</span>
+                        <span>{{ isFinanceOnly ? 'Save Payment Status' : 'Save Changes' }}</span>
                     </button>
                 </div>
 
@@ -148,17 +161,30 @@
                                 <div class="mt-3 pt-3 border-t border-gray-200/70">
                                     <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Status</div>
                                     
-                                    <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-1">
-                                        <input type="checkbox" name="payment_paid" id="shsPaymentPaidCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'checked' : '' }}>
-                                        <span class="text-xs font-bold text-gray-700">Mark as Paid</span>
-                                    </label>
+                                    {% if app.user and app.user.canManagePayments() %}
+                                        <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-1">
+                                            <input type="checkbox" name="payment_paid" id="shsPaymentPaidCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'checked' : '' }}>
+                                            <span class="text-xs font-bold text-gray-700">Mark as Paid</span>
+                                        </label>
 
-                                    <div id="shsPaymentPaidBox" class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1 mt-1" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? '' : 'display: none;' }}">
-                                        <i class="ki-filled ki-check-circle text-xs"></i> Paid
-                                    </div>
-                                    <div id="shsPaymentPendingBox" class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-1" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'display: none;' : '' }}">
-                                        <i class="ki-filled ki-time text-xs"></i> For Payment
-                                    </div>
+                                        <div id="shsPaymentPaidBox" class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1 mt-1" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? '' : 'display: none;' }}">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Paid
+                                        </div>
+                                        <div id="shsPaymentPendingBox" class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-1" style="{{ (registration.admissionStatus == 'Paid' or registration.admissionStatus == 'Completed' or registration.admissionStatus == 'C') ? 'display: none;' : '' }}">
+                                            <i class="ki-filled ki-time text-xs"></i> For Payment
+                                        </div>
+                                    {% else %}
+                                        {% if registration.admissionStatus in ['Paid', 'Completed', 'C'] %}
+                                            <div class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1">
+                                                <i class="ki-filled ki-check-circle text-xs"></i> Paid
+                                            </div>
+                                        {% else %}
+                                            <div class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1">
+                                                <i class="ki-filled ki-time text-xs"></i> For Payment
+                                            </div>
+                                        {% endif %}
+                                        <div class="text-[10px] text-gray-400 italic mt-1">(Finance restricted)</div>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -166,17 +192,30 @@
                             <div id="k10PaymentSection" class="bg-gray-50/80 p-4 rounded-xl border border-gray-200/70 text-center shadow-2xs" style="{{ registration.educationType != 'SHS' ? '' : 'display: none;' }}">
                                 <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Payment Status</div>
                                 
-                                <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-1.5">
-                                    <input type="checkbox" name="payment_paid" id="paymentPaidCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Paid' ? 'checked' : '' }}>
-                                    <span class="text-xs font-bold text-gray-700">Mark as Paid</span>
-                                </label>
+                                {% if app.user and app.user.canManagePayments() %}
+                                    <label class="inline-flex items-center justify-center gap-2 cursor-pointer mb-1.5">
+                                        <input type="checkbox" name="payment_paid" id="paymentPaidCheck" value="1" class="form-checkbox h-4 w-4 text-feu-green-600 rounded border-gray-300 focus:ring-feu-green-500" {{ registration.admissionStatus == 'Paid' ? 'checked' : '' }}>
+                                        <span class="text-xs font-bold text-gray-700">Mark as Paid</span>
+                                    </label>
 
-                                <div id="paymentPendingBox" class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-1" style="{{ registration.admissionStatus == 'Paid' ? 'display: none;' : '' }}">
-                                    <i class="ki-filled ki-time text-xs"></i> For Payment
-                                </div>
-                                <div id="paymentPaidBox" class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1 mt-1" style="{{ registration.admissionStatus == 'Paid' ? '' : 'display: none;' }}">
-                                    <i class="ki-filled ki-check-circle text-xs"></i> Paid
-                                </div>
+                                    <div id="paymentPendingBox" class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1 mt-1" style="{{ registration.admissionStatus == 'Paid' ? 'display: none;' : '' }}">
+                                        <i class="ki-filled ki-time text-xs"></i> For Payment
+                                    </div>
+                                    <div id="paymentPaidBox" class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1 mt-1" style="{{ registration.admissionStatus == 'Paid' ? '' : 'display: none;' }}">
+                                        <i class="ki-filled ki-check-circle text-xs"></i> Paid
+                                    </div>
+                                {% else %}
+                                    {% if registration.admissionStatus in ['Paid', 'Completed', 'C'] %}
+                                        <div class="text-xs font-extrabold text-emerald-700 flex items-center justify-center gap-1">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Paid
+                                        </div>
+                                    {% else %}
+                                        <div class="text-xs font-extrabold text-amber-700 flex items-center justify-center gap-1">
+                                            <i class="ki-filled ki-time text-xs"></i> For Payment
+                                        </div>
+                                    {% endif %}
+                                    <div class="text-[10px] text-gray-400 italic mt-1">(Finance restricted)</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -504,10 +543,14 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                             <div>
                                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Occupation</label>
                                                 <input type="text" name="guardians[{{ loop.index0 }}][occupation]" value="{{ guardian.occupation }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="Occupation">
+                                            </div>
+                                            <div>
+                                                <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Email Address</label>
+                                                <input type="email" name="guardians[{{ loop.index0 }}][email]" value="{{ guardian.email }}" class="w-full border border-gray-300 rounded-lg text-xs font-medium shadow-2xs px-3 py-2 bg-white" placeholder="parent@example.com">
                                             </div>
                                             <div>
                                                 <label class="text-xs font-bold text-gray-600 uppercase tracking-wider block mb-1">Contact No.</label>
@@ -1704,5 +1747,33 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 </script>
+{% if isFinanceOnly %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+        const allowedNames = ['payment_paid', '_token'];
+        const elements = editForm.querySelectorAll('input, select, textarea, button');
+        elements.forEach(function(el) {
+            if (el.type === 'submit' || el.id === 'btn_discard' || allowedNames.includes(el.name)) {
+                return;
+            }
+            if (el.tagName === 'BUTTON' && el.type !== 'submit') {
+                el.style.display = 'none';
+                return;
+            }
+            el.setAttribute('disabled', 'disabled');
+            el.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-75');
+            el.readOnly = true;
+        });
+
+        const uploadElements = editForm.querySelectorAll('input[type="file"], label[for="applicantAvatarInput"], label[for="applicantAvatarInputSidebar"], .upload-btn, .delete-doc-btn');
+        uploadElements.forEach(function(el) {
+            el.style.display = 'none';
+        });
+    }
+});
+</script>
+{% endif %}
 <script src="{{ asset('js/phone-picker.js') }}?v={{ 'now'|date('U') }}"></script>
 {% endblock %}

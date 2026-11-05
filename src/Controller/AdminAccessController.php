@@ -43,8 +43,10 @@ class AdminAccessController extends AbstractController
             'total'         => count($admins),
             'master'        => count(array_filter($admins, fn(AdminUser $u) => $u->isMasterAdmin())),
             'active'        => count(array_filter($admins, fn(AdminUser $u) => $u->isActive())),
-            'dashboard'     => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_DASHBOARD))),
             'registrations' => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_REGISTRATIONS))),
+            'finance'       => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_FINANCE))),
+            'survey'        => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_SURVEY))),
+            'tracks'        => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_TRACKS))),
             'documents'     => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_DOCUMENTS))),
             'school_year'   => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_SCHOOL_YEAR))),
             'admin_access'  => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_ADMIN_ACCESS))),
@@ -101,7 +103,17 @@ class AdminAccessController extends AbstractController
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
-        $validModuleKeys = array_keys(AdminUser::AVAILABLE_MODULES);
+        $financeEnabled = $request->request->get('finance_enabled') === '1';
+        if (in_array(AdminUser::MODULE_REGISTRATIONS, $selectedModules, true)) {
+            if ($financeEnabled) {
+                $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_REGISTRATIONS]);
+                $selectedModules[] = AdminUser::MODULE_FINANCE;
+            }
+        } else {
+            $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_FINANCE]);
+        }
+
+        $validModuleKeys = array_merge(array_keys(AdminUser::AVAILABLE_MODULES), [AdminUser::MODULE_FINANCE]);
         $filteredModules = array_values(array_intersect($selectedModules, $validModuleKeys));
 
         if (empty($filteredModules)) {
@@ -109,40 +121,20 @@ class AdminAccessController extends AbstractController
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
-        // 1. Verify existence in central Associate directory
-        $assoc = $assocLoginService->findByEmployeeId($empNumRaw);
+        // 1. Verify existence in campus-specific Associate database
+        $assoc = $assocLoginService->findByEmployeeIdForCampus($empNumRaw, $campusCode);
         if (!$assoc) {
-            $this->addFlash('error', sprintf('Employee #%d was not found in the central Associate directory.', $empNum));
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
-
-        // 2. Check if already an administrator in ARIES or campus mismatch
-        $existingEmp = $adminUserRepo->find($empNum);
-        $otherCampusAdmin = null;
-
-        try {
-            $otherDb = ($campusCode === 'feu_alabang') ? \App\Service\CampusDatabaseSwitcher::DB_DILIMAN : \App\Service\CampusDatabaseSwitcher::DB_ALABANG;
-            $row = $em->getConnection()->fetchAssociative(
-                sprintf('SELECT emp_num, campus, full_name, active FROM `%s`.`admin_users` WHERE emp_num = :empNum LIMIT 1', $otherDb),
-                ['empNum' => $empNum]
-            );
-            if ($row) {
-                $otherCampusAdmin = $row;
+            if ($assocLoginService->existsInOtherCampus($empNumRaw, $campusCode)) {
+                $this->addFlash('error', 'This Employee is not an associate of this campus');
+                return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
             }
-        } catch (\Throwable) {
-        }
 
-        $userNameLower = strtolower((string) ($assoc['user_name'] ?? ''));
-
-        $isDifferentCampus = ($existingEmp && $existingEmp->getCampus() !== $campusCode)
-            || ($otherCampusAdmin !== null)
-            || (str_contains($userNameLower, 'diliman') && $campusCode === 'feu_alabang')
-            || (str_contains($userNameLower, 'alabang') && $campusCode === 'feu_diliman');
-
-        if ($isDifferentCampus) {
-            $this->addFlash('error', 'This Employee is not an associate of this campus');
+            $this->addFlash('error', sprintf('Employee #%d was not found in the Associate directory.', $empNum));
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
+
+        // 2. Check if already an administrator in this campus
+        $existingEmp = $adminUserRepo->find($empNum);
 
         if ($existingEmp && $existingEmp->getCampus() === $campusCode) {
             $this->addFlash('error', sprintf('%s is already registered as an admin', $existingEmp->getFullName()));
@@ -227,7 +219,18 @@ class AdminAccessController extends AbstractController
         }
 
         $selectedModules = (array) $request->request->all('modules');
-        $validModuleKeys = array_keys(AdminUser::AVAILABLE_MODULES);
+        $financeEnabled = $request->request->get('finance_enabled') === '1';
+
+        if (in_array(AdminUser::MODULE_REGISTRATIONS, $selectedModules, true)) {
+            if ($financeEnabled) {
+                $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_REGISTRATIONS]);
+                $selectedModules[] = AdminUser::MODULE_FINANCE;
+            }
+        } else {
+            $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_FINANCE]);
+        }
+
+        $validModuleKeys = array_merge(array_keys(AdminUser::AVAILABLE_MODULES), [AdminUser::MODULE_FINANCE]);
         $filteredModules = array_values(array_intersect($selectedModules, $validModuleKeys));
 
         if (empty($filteredModules)) {

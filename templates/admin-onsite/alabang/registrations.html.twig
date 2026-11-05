@@ -72,8 +72,9 @@
                                      class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
                                      onchange="toggleGradeOptions()">
                                 <option value="">All Levels</option>
-                                <option value="Primary" {{ filters.education_type|default('') == 'Primary' ? 'selected' : '' }}>Primary (K-6)</option>
-                                <option value="Secondary" {{ filters.education_type|default('') == 'Secondary' ? 'selected' : '' }}>Secondary (7-12)</option>
+                                <option value="Grade School" {{ filters.education_type|default('') in ['Grade School', 'Primary'] ? 'selected' : '' }}>Grade School</option>
+                                <option value="Junior High School" {{ filters.education_type|default('') in ['Junior High School', 'JHS'] ? 'selected' : '' }}>Junior High School</option>
+                                <option value="Senior High School" {{ filters.education_type|default('') in ['Senior High School', 'SHS'] ? 'selected' : '' }}>Senior High School</option>
                             </select>
                         </div>
 
@@ -94,9 +95,9 @@
                             </button>
                             <div id="gradeDropdown" class="hidden absolute top-full left-0 w-full bg-white border border-gray-200 rounded-2xl shadow-xl mt-1.5 z-50 p-4 max-h-64 overflow-y-auto">
                                 <div class="space-y-3">
-                                    {# Primary Options #}
-                                    <div class="grade-group-primary">
-                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Primary</div>
+                                    {# Grade School Options #}
+                                    <div class="grade-group-gs">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Grade School</div>
                                         <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
                                             <input type="checkbox" name="grade_levels[]" value="kinder" {{ 'kinder' in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
                                             <span>Kinder</span>
@@ -108,10 +109,20 @@
                                             </label>
                                         {% endfor %}
                                     </div>
-                                    {# Secondary Options #}
-                                    <div class="grade-group-secondary border-t border-gray-100 pt-3">
-                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Secondary</div>
-                                        {% for i in 7..12 %}
+                                    {# Junior High School Options #}
+                                    <div class="grade-group-jhs border-t border-gray-100 pt-3">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Junior High School</div>
+                                        {% for i in 7..10 %}
+                                            <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
+                                                <input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
+                                                <span>Grade {{ i }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    {# Senior High School Options #}
+                                    <div class="grade-group-shs border-t border-gray-100 pt-3">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Senior High School</div>
+                                        {% for i in 11..12 %}
                                             <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
                                                 <input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
                                                 <span>Grade {{ i }}</span>
@@ -234,18 +245,25 @@
 
     function toggleGradeOptions() {
         const eduType = document.getElementById('eduSelect').value;
-        const primaryGroup = document.querySelector('.grade-group-primary');
-        const secondaryGroup = document.querySelector('.grade-group-secondary');
+        const gsGroup = document.querySelector('.grade-group-gs');
+        const jhsGroup = document.querySelector('.grade-group-jhs');
+        const shsGroup = document.querySelector('.grade-group-shs');
 
         // 1. Reset Display
-        if (primaryGroup) primaryGroup.style.display = 'block';
-        if (secondaryGroup) secondaryGroup.style.display = 'block';
+        if (gsGroup) gsGroup.style.display = 'block';
+        if (jhsGroup) jhsGroup.style.display = 'block';
+        if (shsGroup) shsGroup.style.display = 'block';
 
-        // 2. Hide based on selection
-        if (eduType === 'Primary') {
-            if (secondaryGroup) secondaryGroup.style.display = 'none';
-        } else if (eduType === 'Secondary') {
-            if (primaryGroup) primaryGroup.style.display = 'none';
+        // 2. Filter groups based on selection
+        if (eduType === 'Grade School' || eduType === 'Primary') {
+            if (jhsGroup) jhsGroup.style.display = 'none';
+            if (shsGroup) shsGroup.style.display = 'none';
+        } else if (eduType === 'Junior High School' || eduType === 'JHS') {
+            if (gsGroup) gsGroup.style.display = 'none';
+            if (shsGroup) shsGroup.style.display = 'none';
+        } else if (eduType === 'Senior High School' || eduType === 'SHS') {
+            if (gsGroup) gsGroup.style.display = 'none';
+            if (jhsGroup) jhsGroup.style.display = 'none';
         }
     }
 

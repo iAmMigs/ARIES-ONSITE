@@ -15,6 +15,18 @@ doctrine:
             assoc:
                 url: '%env(resolve:ASSOC_DATABASE_URL)%'
                 use_savepoints: true
+            diliman_associates:
+                url: '%env(resolve:DILIMAN_ASSOCIATES_DATABASE_URL)%'
+                use_savepoints: true
+            alabang_associates:
+                url: '%env(resolve:ALABANG_ASSOCIATES_DATABASE_URL)%'
+                use_savepoints: true
+            diliman_assoc_login:
+                url: '%env(resolve:DILIMAN_ASSOC_LOGIN_DATABASE_URL)%'
+                use_savepoints: true
+            alabang_assoc_login:
+                url: '%env(resolve:ALABANG_ASSOC_LOGIN_DATABASE_URL)%'
+                use_savepoints: true
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true

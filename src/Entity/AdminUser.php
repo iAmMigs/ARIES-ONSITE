@@ -57,11 +57,17 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public const MODULE_REGISTRATIONS = 'registrations';
     public const MODULE_DOCUMENTS     = 'documents';
     public const MODULE_SCHOOL_YEAR   = 'school_year';
+    public const MODULE_SURVEY        = 'survey';
+    public const MODULE_TRACKS        = 'tracks';
+    public const MODULE_FINANCE       = 'finance';
     public const MODULE_ADMIN_ACCESS  = 'admin_access';
 
+    // Dashboard is default for ALL admins, so it is omitted from the choice checklist.
+    // Finance is integrated into the Registrations module selection via a dedicated switch.
     public const AVAILABLE_MODULES = [
-        self::MODULE_DASHBOARD     => 'Dashboard',
         self::MODULE_REGISTRATIONS => 'Registrations',
+        self::MODULE_SURVEY        => 'Survey Options',
+        self::MODULE_TRACKS        => 'Tracks & Strands',
         self::MODULE_DOCUMENTS     => 'Documents',
         self::MODULE_SCHOOL_YEAR   => 'School Year',
         self::MODULE_ADMIN_ACCESS  => 'Admin Access',
@@ -96,7 +102,7 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): static { $this->email = $email; return $this; }
 
-    public function getUserIdentifier(): string { return (string) $this->email; }
+    public function getUserIdentifier(): string { return (string) $this->empNum; }
 
     public function getRoles(): array
     {
@@ -159,7 +165,7 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function getModules(): array
     {
         if ($this->isMasterAdmin()) {
-            return array_keys(self::AVAILABLE_MODULES);
+            return array_merge(array_keys(self::AVAILABLE_MODULES), [self::MODULE_FINANCE]);
         }
         return $this->modules ?? [];
     }
@@ -167,7 +173,8 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function setModules(?array $modules): static
     {
         $validKeys = array_keys(self::AVAILABLE_MODULES);
-        $filtered = array_values(array_intersect($modules ?? [], $validKeys));
+        $validKeys[] = self::MODULE_FINANCE;
+        $filtered = array_values(array_intersect($modules ?? [], array_unique($validKeys)));
         $this->modules = $filtered;
         $this->canManageAdmins = in_array(self::MODULE_ADMIN_ACCESS, $filtered, true);
         return $this;
@@ -175,7 +182,12 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasModule(string $module): bool
     {
-        if ($this->isMasterAdmin()) {
+        // Master Admin and default Dashboard access for all admins
+        if ($this->isMasterAdmin() || $module === self::MODULE_DASHBOARD) {
+            return true;
+        }
+        // Finance admins also have access to the Registrations module list/search
+        if ($module === self::MODULE_REGISTRATIONS && in_array(self::MODULE_FINANCE, $this->getModules(), true)) {
             return true;
         }
         return in_array($module, $this->getModules(), true);
@@ -184,6 +196,11 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function canManageAdmins(): bool
     {
         return $this->isMasterAdmin() || $this->hasModule(self::MODULE_ADMIN_ACCESS) || $this->canManageAdmins;
+    }
+
+    public function canManagePayments(): bool
+    {
+        return $this->isMasterAdmin() || $this->hasModule(self::MODULE_FINANCE);
     }
 
     public function setCanManageAdmins(bool $canManageAdmins): static

@@ -63,7 +63,7 @@ class SetupCampusDatabasesCommand extends Command
 
         // 3. Ensure modules column exists on admin_users in both databases
         $io->section('3. Ensuring modules column on admin_users...');
-        foreach ([self::DILIMAN_DB, self::ALABANG_DB, self::SOURCE_DB] as $db) {
+        foreach ([self::DILIMAN_DB, self::ALABANG_DB] as $db) {
             $columnExists = (int) $conn->fetchOne(sprintf(
                 "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = '%s' AND table_name = 'admin_users' AND column_name = 'modules'",
                 $db
@@ -79,7 +79,7 @@ class SetupCampusDatabasesCommand extends Command
 
         // 4. Ensure new audit tables exist
         $io->section('4. Creating extended audit tables...');
-        foreach ([self::DILIMAN_DB, self::ALABANG_DB, self::SOURCE_DB] as $db) {
+        foreach ([self::DILIMAN_DB, self::ALABANG_DB] as $db) {
             $conn->executeStatement(sprintf('USE `%s`', $db));
 
             // audit_admin_users
@@ -176,7 +176,7 @@ class SetupCampusDatabasesCommand extends Command
 
         // 6. Create new triggers for admin_users, school_year, and document_setup
         $io->section('6. Installing new audit triggers for Admin Access, School Year, and Document Setup...');
-        foreach ([self::DILIMAN_DB, self::ALABANG_DB, self::SOURCE_DB] as $db) {
+        foreach ([self::DILIMAN_DB, self::ALABANG_DB] as $db) {
             $conn->executeStatement(sprintf('USE `%s`', $db));
 
             // Triggers for admin_users
@@ -360,7 +360,7 @@ class SetupCampusDatabasesCommand extends Command
 
         // 9. Backfill master admin modules
         $allModulesJson = json_encode(['dashboard', 'registrations', 'documents', 'school_year', 'admin_access']);
-        foreach ([self::DILIMAN_DB, self::ALABANG_DB, self::SOURCE_DB] as $db) {
+        foreach ([self::DILIMAN_DB, self::ALABANG_DB] as $db) {
             $conn->executeStatement(sprintf(
                 "UPDATE `%s`.`admin_users` SET `modules` = '%s' WHERE `tier` = 'master_admin' AND (`modules` IS NULL OR `modules` = '[]' OR `modules` = '')",
                 $db,
@@ -368,21 +368,52 @@ class SetupCampusDatabasesCommand extends Command
             ));
         }
 
-        // 10. Ensure assoc_login columns
-        try {
-            $assocCols = $conn->fetchFirstColumn("SELECT column_name FROM information_schema.columns WHERE table_schema = 'aries_assoc_login' AND table_name = 'assoc_login'");
-            if (!in_array('first_name', $assocCols, true)) {
-                $conn->executeStatement("ALTER TABLE `aries_assoc_login`.`assoc_login` ADD COLUMN `first_name` VARCHAR(100) DEFAULT NULL");
-            }
-            if (!in_array('last_name', $assocCols, true)) {
-                $conn->executeStatement("ALTER TABLE `aries_assoc_login`.`assoc_login` ADD COLUMN `last_name` VARCHAR(100) DEFAULT NULL");
-            }
-            if (!in_array('email', $assocCols, true)) {
-                $conn->executeStatement("ALTER TABLE `aries_assoc_login`.`assoc_login` ADD COLUMN `email` VARCHAR(180) DEFAULT NULL");
-            }
-        } catch (\Throwable $e) {
-            $io->note('assoc_login columns check skipped: ' . $e->getMessage());
+        // 10. Provision 6-Database Architecture: aries_x_associates and aries_x_assoc_login
+        $io->section('10. Provisioning Campus Associates & Assoc Login databases...');
+        $databasesToCreate = [
+            'aries_diliman_associates',
+            'aries_alabang_associates',
+            'aries_diliman_assoc_login',
+            'aries_alabang_assoc_login',
+        ];
+
+        foreach ($databasesToCreate as $dbName) {
+            $conn->executeStatement(sprintf('CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', $dbName));
         }
+
+        // Setup associates tables in aries_diliman_associates and aries_alabang_associates
+        foreach (['aries_diliman_associates', 'aries_alabang_associates'] as $assocDb) {
+            $conn->executeStatement(sprintf("
+                CREATE TABLE IF NOT EXISTS `%s`.`associates` (
+                    `emp_id` INT UNSIGNED NOT NULL PRIMARY KEY,
+                    `last_name` VARCHAR(100) DEFAULT NULL,
+                    `first_name` VARCHAR(100) DEFAULT NULL,
+                    `middle_name` VARCHAR(100) DEFAULT NULL,
+                    `title` VARCHAR(50) DEFAULT NULL,
+                    `email` VARCHAR(180) DEFAULT NULL,
+                    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+                    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX `idx_associates_email` (`email`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ", $assocDb));
+        }
+
+        // Setup assoc_login tables in aries_diliman_assoc_login and aries_alabang_assoc_login
+        foreach (['aries_diliman_assoc_login', 'aries_alabang_assoc_login'] as $loginDb) {
+            $conn->executeStatement(sprintf("
+                CREATE TABLE IF NOT EXISTS `%s`.`assoc_login` (
+                    `emp_id` INT UNSIGNED NOT NULL PRIMARY KEY,
+                    `user_name` VARCHAR(100) NOT NULL UNIQUE,
+                    `password` VARCHAR(255) NOT NULL,
+                    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    INDEX `idx_assoc_login_username` (`user_name`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            ", $loginDb));
+        }
+
+        $io->success('6-Database Architecture provisioned successfully.');
 
         $io->success('Campus databases aries_diliman_db and aries_alabang_db setup completed successfully!');
         return Command::SUCCESS;
