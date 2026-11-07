@@ -540,8 +540,8 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
         const ofwZip = document.getElementById(`${parentPrefix}_ofw_zip`);
 
         if (ofwCountry) ofwCountry.setAttribute('required', 'required');
-        if (ofwAddr) ofwAddr.setAttribute('required', 'required');
-        if (ofwZip) ofwZip.setAttribute('required', 'required');
+        if (ofwAddr) ofwAddr.removeAttribute('required');
+        if (ofwZip) ofwZip.removeAttribute('required');
 
         window.toggleParentOfwPermSame(parentPrefix);
     } else {
@@ -621,8 +621,12 @@ window.toggleParentOfwPermInPh = function(prefix) {
     if (isYes) {
         if (phBlock) {
             phBlock.style.display = 'block';
-            const phReq = phBlock.querySelectorAll('input:not([type="hidden"]), select');
+            const phReq = phBlock.querySelectorAll('select, input.province-autocomplete');
             phReq.forEach(i => i.setAttribute('required', 'required'));
+            const permZip = document.getElementById(`${prefix}_ofw_perm_zip`);
+            if (permZip) permZip.removeAttribute('required');
+            const permStreet = document.getElementById(`${prefix}_ofw_perm_street`);
+            if (permStreet) permStreet.removeAttribute('required');
         }
         if (intlBlock) {
             intlBlock.style.display = 'none';
@@ -635,8 +639,12 @@ window.toggleParentOfwPermInPh = function(prefix) {
     } else {
         if (intlBlock) {
             intlBlock.style.display = 'block';
-            const intlReq = intlBlock.querySelectorAll('input, select');
-            intlReq.forEach(i => i.setAttribute('required', 'required'));
+            const countrySelect = document.getElementById(`${prefix}_ofw_perm_country`);
+            if (countrySelect) countrySelect.setAttribute('required', 'required');
+            const intlAddr = document.getElementById(`${prefix}_ofw_perm_address`);
+            if (intlAddr) intlAddr.removeAttribute('required');
+            const intlZip = document.getElementById(`${prefix}_ofw_perm_intl_zip`);
+            if (intlZip) intlZip.removeAttribute('required');
         }
         if (phBlock) {
             phBlock.style.display = 'none';
@@ -1093,13 +1101,11 @@ window.showDuplicateApplicantModal = function(applicant) {
     const dobEl = document.getElementById('dupApplicantDob');
     const emailEl = document.getElementById('dupApplicantEmail');
     const badgeEl = document.getElementById('dupStudentNumberBadge');
-    const appliedEl = document.getElementById('dupApplicantApplied');
 
     if (nameEl) nameEl.textContent = applicant.fullName || '';
     if (dobEl) dobEl.textContent = applicant.birthDate || '';
     if (emailEl) emailEl.textContent = applicant.email || '';
     if (badgeEl) badgeEl.textContent = applicant.studentNumber || '';
-    if (appliedEl) appliedEl.textContent = applicant.createdAt || '';
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');

@@ -105,4 +105,26 @@ class Phase7SurveyAndTrackEnhancementsTest extends KernelTestCase
         $this->assertStringContainsString('maxSurveyChoices', $dilimanTpl);
         $this->assertStringContainsString('maxSurveyChoices', $alabangTpl);
     }
+
+    public function testOfwAddressAndPostalCodeAreOptional(): void
+    {
+        $dilimanTpl = file_get_contents(__DIR__ . '/../templates/enrollment-onsite/diliman/enroll.html.twig');
+        $alabangTpl = file_get_contents(__DIR__ . '/../templates/enrollment-onsite/alabang/enroll.html.twig');
+        $enrollJs = file_get_contents(__DIR__ . '/../public/js/enrollment.js');
+
+        // Verify templates have Optional label or placeholder
+        $this->assertStringContainsString('father_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address (Optional)"', $dilimanTpl);
+        $this->assertStringContainsString('father_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code (Optional)"', $dilimanTpl);
+        $this->assertStringContainsString('mother_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address (Optional)"', $dilimanTpl);
+        $this->assertStringContainsString('mother_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code (Optional)"', $dilimanTpl);
+
+        $this->assertStringContainsString('father_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address (Optional)"', $alabangTpl);
+        $this->assertStringContainsString('father_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code (Optional)"', $alabangTpl);
+        $this->assertStringContainsString('mother_ofw_address" class="form-control form-control-sm" placeholder="Bldg / Street / Workplace Address (Optional)"', $alabangTpl);
+        $this->assertStringContainsString('mother_ofw_zip" class="form-control form-control-sm" placeholder="Postal Code (Optional)"', $alabangTpl);
+
+        // Verify JS does not enforce required on OFW address and zip
+        $this->assertStringContainsString('if (ofwAddr) ofwAddr.removeAttribute(\'required\');', $enrollJs);
+        $this->assertStringContainsString('if (ofwZip) ofwZip.removeAttribute(\'required\');', $enrollJs);
+    }
 }
