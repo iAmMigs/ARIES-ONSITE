@@ -1596,35 +1596,21 @@
                     <div class="row g-4">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label class="form-label">How did you learn about {{ selected_campus == 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman' }}?<span class="required">*</span></label>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">How did you learn about {{ selected_campus == 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman' }}?<span class="required">*</span></label>
+                                    <span class="badge bg-light text-muted border text-xs" id="surveyLimitBadge">
+                                        <i class="ki-filled ki-information-2 me-1"></i>Select up to <strong class="text-dark">{{ maxSurveyChoices|default(3) }}</strong> option(s)
+                                    </span>
+                                </div>
                                 <div class="survey-grid">
-                                    {% set source_details = [
-                                        {'name': 'Brochures/Flyers', 'icon': 'ki-document'},
-                                        {'name': 'Banner', 'icon': 'ki-flag'},
-                                        {'name': 'Campus Tour', 'icon': 'ki-geolocation'},
-                                        {'name': 'Events', 'icon': 'ki-calendar'},
-                                        {'name': 'Facebook', 'icon': 'ki-facebook'},
-                                        {'name': 'Instagram', 'icon': 'ki-instagram'},
-                                        {'name': 'TikTok', 'icon': 'ki-tiktok'},
-                                        {'name': 'Other Social Media', 'icon': 'ki-share'},
-                                        {'name': 'Google/Website', 'icon': 'ki-compass'},
-                                        {'name': 'Immersion', 'icon': 'ki-user-square'},
-                                        {'name': 'Phone Inquiry', 'icon': 'ki-phone'},
-                                        {'name': 'Poster', 'icon': 'ki-abstract-26'},
-                                        {'name': 'Friends', 'icon': 'ki-users'},
-                                        {'name': 'Family/Relatives', 'icon': 'ki-people'},
-                                        {'name': 'School Visit/Career Talk', 'icon': 'ki-teacher'},
-                                        {'name': 'Visibility: Signage/Billboard', 'icon': 'ki-eye'},
-                                        {'name': 'Walk-in', 'icon': 'ki-exit-right'}
-                                    ] %}
-                                    {% for source in source_details %}
+                                    {% for source in surveyOptions|default([]) %}
                                         <div class="survey-option-card">
-                                            <input type="checkbox" name="marketing_source[]" id="source_{{ loop.index }}" value="{{ source.name }}" class="survey-radio-input" onchange="toggleOtherSource()">
-                                            <label for="source_{{ loop.index }}" class="survey-option-label">
+                                            <input type="checkbox" name="marketing_source[]" id="source_{{ source.id }}" value="{{ source.label }}" class="survey-radio-input survey-checkbox" onchange="handleSurveySelection(this)">
+                                            <label for="source_{{ source.id }}" class="survey-option-label">
                                                 <div class="survey-icon-container">
-                                                    <i class="ki-filled {{ source.icon }} fs-3"></i>
+                                                    <i class="ki-filled {{ source.icon|default('ki-verify') }} fs-3"></i>
                                                 </div>
-                                                <span class="survey-option-text">{{ source.name }}</span>
+                                                <span class="survey-option-text">{{ source.label }}</span>
                                                 <div class="survey-check-indicator">
                                                     <i class="ki-filled ki-verify"></i>
                                                 </div>
@@ -1632,7 +1618,7 @@
                                         </div>
                                     {% endfor %}
                                     <div class="survey-option-card">
-                                        <input type="checkbox" name="marketing_source[]" id="source_other" value="Other" class="survey-radio-input" onchange="toggleOtherSource()">
+                                        <input type="checkbox" name="marketing_source[]" id="source_other" value="Other" class="survey-radio-input survey-checkbox" onchange="handleSurveySelection(this)">
                                         <label for="source_other" class="survey-option-label">
                                             <div class="survey-icon-container">
                                                 <i class="ki-filled ki-plus-circle fs-3"></i>
@@ -1889,18 +1875,49 @@
 
 <script>
     window.nationalityIsoMap = {{ nationality_iso_map|default({})|json_encode|raw }};
+    window.maxSurveyChoices = {{ maxSurveyChoices|default(3) }};
+    window.campusTracks = [
+        {% for t in tracks|default([]) %}
+            {{ t.name|json_encode|raw }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 </script>
 <script src="{{ asset('js/validation.js') }}?v={{ 'now'|date('U') }}"></script>
 <script src="{{ asset('js/enrollment.js') }}?v={{ 'now'|date('U') }}"></script>
 
 <script>
+    if (window.campusTracks && window.campusTracks.length > 0 && typeof strandData !== 'undefined') {
+        strandData['feu_diliman'] = window.campusTracks;
+    }
+
+    function handleSurveySelection(checkbox) {
+        const max = window.maxSurveyChoices || 3;
+        const checked = document.querySelectorAll('input.survey-checkbox:checked');
+
+        if (checked.length > max) {
+            checkbox.checked = false;
+            alert('You can select a maximum of ' + max + ' survey option(s).');
+            return;
+        }
+
+        toggleOtherSource();
+
+        const badge = document.getElementById('surveyLimitBadge');
+        if (badge) {
+            badge.innerHTML = '<i class="ki-filled ki-information-2 me-1"></i>Selected ' + checked.length + ' of ' + max + ' max';
+        }
+    }
+
     function toggleOtherSource() {
         const otherInput = document.getElementById('marketing_source_other');
-        const isOther = document.getElementById('source_other').checked;
+        const otherCb = document.getElementById('source_other');
+        const isOther = otherCb ? otherCb.checked : false;
         const container = document.getElementById('other_source_input_container');
         if (container) container.style.display = isOther ? 'block' : 'none';
-        otherInput.style.display = isOther ? 'block' : 'none';
-        otherInput.required = isOther;
+        if (otherInput) {
+            otherInput.style.display = isOther ? 'block' : 'none';
+            otherInput.required = isOther;
+        }
     }
 
     const loader = document.getElementById('enrollmentLoader');

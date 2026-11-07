@@ -13,11 +13,11 @@ class Phase5FormAndSurveyTest extends KernelTestCase
         $alabangTpl = file_get_contents(__DIR__ . '/../templates/enrollment-onsite/alabang/enroll.html.twig');
         $dilimanTpl = file_get_contents(__DIR__ . '/../templates/enrollment-onsite/diliman/enroll.html.twig');
 
-        $this->assertStringContainsString("'name': 'Other Social Media'", $alabangTpl, 'Alabang enrollment template must have Other Social Media');
-        $this->assertStringContainsString("'name': 'Other Social Media'", $dilimanTpl, 'Diliman enrollment template must have Other Social Media');
+        $this->assertStringContainsString('surveyOptions', $alabangTpl, 'Alabang enrollment template must iterate dynamic surveyOptions');
+        $this->assertStringContainsString('surveyOptions', $dilimanTpl, 'Diliman enrollment template must iterate dynamic surveyOptions');
 
-        $this->assertStringNotContainsString("'name': 'Social Media'", $alabangTpl, 'Old Social Media label must be replaced in Alabang');
-        $this->assertStringNotContainsString("'name': 'Social Media'", $dilimanTpl, 'Old Social Media label must be replaced in Diliman');
+        $this->assertStringNotContainsString("'name': 'Social Media'", $alabangTpl, 'Old Social Media label must not be in Alabang');
+        $this->assertStringNotContainsString("'name': 'Social Media'", $dilimanTpl, 'Old Social Media label must not be in Diliman');
     }
 
     public function testLandlineHintAndOptionalInTemplates(): void

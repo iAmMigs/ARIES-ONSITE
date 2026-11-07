@@ -16,6 +16,7 @@ security:
             lazy: true
             provider: app_assoc_admin_provider
             entry_point: App\Security\CampusAuthenticationEntryPoint
+            access_denied_handler: App\Security\CampusAccessDeniedHandler
             login_throttling:
                 max_attempts: 15
             form_login:
@@ -26,7 +27,7 @@ security:
                 enable_csrf: true
             logout:
                 path: app_logout
-                target: app_home_diliman
+                target: app_auth_login_diliman
 
     access_control:
         # Allow public access to login pages to prevent redirect loops

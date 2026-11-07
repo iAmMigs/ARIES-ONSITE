@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Senior High Tracks & Strands - {{ campusName }} Admin{% endblock %}
+{% block title %}Senior High Tracks - {{ campusName }} Admin{% endblock %}
 
 {% block body %}
 <div class="flex h-screen bg-gray-50 overflow-hidden font-sans">
@@ -15,9 +15,9 @@
             <div>
                 <h1 class="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
                     <i class="ki-filled ki-briefcase text-feu-green-600 text-2xl"></i>
-                    Senior High Tracks & Strands
+                    Senior High Tracks
                 </h1>
-                <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage SHS tracks and strands offered at {{ campusName }}</p>
+                <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage SHS tracks offered at {{ campusName }}</p>
             </div>
             <div>
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-feu-green-50 text-feu-green-800 border border-feu-green-200">
@@ -36,6 +36,46 @@
                 {% endfor %}
             {% endfor %}
 
+            {# --- ADD NEW TRACK COLLAPSIBLE CARD --- #}
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden" id="addTrackContainer">
+                <button type="button" 
+                        onclick="document.getElementById('addTrackFormContainer').classList.toggle('hidden'); document.getElementById('addTrackIcon').classList.toggle('rotate-180');" 
+                        class="w-full px-6 py-4.5 text-left flex justify-between items-center bg-gray-50/60 hover:bg-gray-50 transition-colors cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                        <i class="ki-filled ki-plus-circle text-feu-green-700 text-xl"></i>
+                        <h4 class="text-sm font-bold text-gray-800 m-0">Add New Track</h4>
+                    </div>
+                    <i id="addTrackIcon" class="ki-filled ki-down text-gray-400 transform transition-transform duration-300"></i>
+                </button>
+
+                <form id="addTrackFormContainer" action="{{ path('app_admin_tracks_add', {campus: campus}) }}" method="POST" class="hidden p-6 border-t border-gray-100 space-y-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_tracks_add') }}">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                        <div class="sm:col-span-4">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Track Code <span class="text-red-500">*</span></label>
+                            <input type="text" name="code" id="addTrackCodeInput" placeholder="e.g. STEM" required class="w-full text-xs font-semibold px-3 py-2.5 border border-gray-300 rounded-xl bg-white outline-none focus:border-feu-green-600 uppercase">
+                        </div>
+                        <div class="sm:col-span-8">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Track Name <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" id="addTrackNameInput" placeholder="e.g. Science, Technology, Engineering, and Mathematics" required class="w-full text-xs font-semibold px-3 py-2.5 border border-gray-300 rounded-xl bg-white outline-none focus:border-feu-green-600">
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                        <button type="button" 
+                                onclick="document.getElementById('addTrackFormContainer').classList.add('hidden'); document.getElementById('addTrackIcon').classList.remove('rotate-180'); document.getElementById('addTrackCodeInput').value = ''; document.getElementById('addTrackNameInput').value = '';" 
+                                class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold text-xs px-5 py-2 rounded-xl transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5">
+                            <i class="ki-filled ki-plus text-xs"></i> Add Track
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {# --- TRACKS LIST CARD --- #}
             <div class="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden flex flex-col">
                 <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <div class="flex items-center gap-2.5">
@@ -43,43 +83,31 @@
                             <i class="ki-filled ki-briefcase text-base"></i>
                         </div>
                         <div>
-                            <h2 class="text-base font-bold text-gray-900">Tracks & Strands List</h2>
-                            <p class="text-xs text-gray-500">Frameworks available for incoming Grade 11 & 12</p>
+                            <h2 class="text-base font-bold text-gray-900">Configured Tracks ({{ tracks|length }})</h2>
+                            <p class="text-xs text-gray-500">Automatically sorted alphabetically (A&ndash;Z)</p>
                         </div>
                     </div>
-                </div>
-
-                {# Add Track Form #}
-                <div class="p-4 bg-gray-50 border-b border-gray-200">
-                    <form action="{{ path('app_admin_tracks_add', {campus: campus}) }}" method="POST" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                        <div class="sm:col-span-3">
-                            <input type="text" name="code" placeholder="Code (e.g. STEM)" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                        </div>
-                        <div class="sm:col-span-6">
-                            <input type="text" name="name" placeholder="Full Track/Strand Name" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg bg-white">
-                        </div>
-                        <div class="sm:col-span-3">
-                            <button type="submit" class="w-full bg-feu-green-700 hover:bg-feu-green-800 text-white font-bold text-xs py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1 shadow-2xs">
-                                <i class="ki-filled ki-plus text-xs"></i> Add Track
-                            </button>
-                        </div>
-                    </form>
                 </div>
 
                 <div class="divide-y divide-gray-100">
                     {% for track in tracks %}
                         <div class="p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center gap-3">
-                                <span class="px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-200">
+                                <span class="px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider bg-gray-100 text-gray-800 border border-gray-200 shadow-2xs">
                                     {{ track.code }}
                                 </span>
                                 <div>
                                     <div class="text-sm font-bold text-gray-900">{{ track.name }}</div>
-                                    <div class="text-[11px] text-gray-400">Order: {{ track.displayOrder }}</div>
+                                    <div class="text-[11px] text-gray-400">Code: <code class="text-gray-500 font-mono">{{ track.code }}</code></div>
                                 </div>
                             </div>
-                            <div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="openEditTrackModal({{ track.id }}, '{{ track.code|e('js') }}', '{{ track.name|e('js') }}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-700 hover:bg-emerald-50 hover:text-emerald-800 transition-colors cursor-pointer border border-gray-200 shadow-2xs">
+                                    <i class="ki-filled ki-pencil text-xs"></i> Edit
+                                </button>
+
                                 <form action="{{ path('app_admin_tracks_toggle', {campus: campus, id: track.id}) }}" method="POST">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_tracks_toggle_' ~ track.id) }}">
                                     {% if track.isActive %}
                                         <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer">
                                             <i class="ki-filled ki-check-circle text-xs"></i> Active
@@ -100,5 +128,66 @@
         </main>
     </div>
 </div>
-{% endblock %}
 
+{# Edit Track Modal #}
+<div id="editTrackModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+                    <i class="ki-filled ki-pencil text-base"></i>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900">Edit Track</h3>
+            </div>
+            <button type="button" onclick="closeEditTrackModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 cursor-pointer">
+                <i class="ki-filled ki-cross text-base"></i>
+            </button>
+        </div>
+
+        <form id="editTrackForm" method="POST" action="" class="p-5 space-y-4">
+            <input type="hidden" name="_token" id="editTrackCsrfToken" value="">
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Track Code <span class="text-red-500">*</span></label>
+                <input type="text" name="code" id="editTrackCodeInput" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-feu-green-600 uppercase">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Track Name <span class="text-red-500">*</span></label>
+                <input type="text" name="name" id="editTrackNameInput" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-feu-green-600">
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeEditTrackModal()" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-feu-green-700 hover:bg-feu-green-800 rounded-lg shadow-2xs transition-colors cursor-pointer">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const trackEditTokens = {
+    {% for track in tracks %}
+        {{ track.id }}: '{{ csrf_token('admin_tracks_edit_' ~ track.id) }}',
+    {% endfor %}
+};
+
+function openEditTrackModal(id, code, name) {
+    const modal = document.getElementById('editTrackModal');
+    const form = document.getElementById('editTrackForm');
+    form.action = '{{ path('app_admin_tracks_edit', {campus: campus, id: 0}) }}'.replace('/0', '/' + id);
+    document.getElementById('editTrackCodeInput').value = code;
+    document.getElementById('editTrackNameInput').value = name;
+    document.getElementById('editTrackCsrfToken').value = trackEditTokens[id] || '';
+    modal.classList.remove('hidden');
+}
+
+function closeEditTrackModal() {
+    document.getElementById('editTrackModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

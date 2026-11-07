@@ -18,6 +18,9 @@ use App\Entity\LookupReligion;
 use App\Entity\LookupCitizenship;
 use App\Entity\LookupCountry;
 use App\Entity\SchoolYear;
+use App\Entity\SurveyOption;
+use App\Entity\CampusSetting;
+use App\Entity\TrackSetup;
 use App\Repository\SchoolYearRepository;
 use App\Service\StudentIdGenerator;
 use App\Service\AdmissionsEmailService;
@@ -67,6 +70,61 @@ class EnrollmentDilimanController extends AbstractController
             }
         }
 
+        // Active survey options sorted alphabetically (A-Z)
+        $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
+            ['campus' => [$campus, $campusCode], 'isActive' => true],
+            ['label' => 'ASC']
+        );
+
+        if (empty($surveyOptions)) {
+            $defaultList = [
+                ['label' => 'Banner', 'icon' => 'ki-flag'],
+                ['label' => 'Brochures/Flyers', 'icon' => 'ki-document'],
+                ['label' => 'Campus Tour', 'icon' => 'ki-geolocation'],
+                ['label' => 'Events', 'icon' => 'ki-calendar'],
+                ['label' => 'Facebook', 'icon' => 'ki-facebook'],
+                ['label' => 'Family/Relatives', 'icon' => 'ki-people'],
+                ['label' => 'Friends', 'icon' => 'ki-users'],
+                ['label' => 'Google/Website', 'icon' => 'ki-compass'],
+                ['label' => 'Immersion', 'icon' => 'ki-user-square'],
+                ['label' => 'Instagram', 'icon' => 'ki-instagram'],
+                ['label' => 'Other Social Media', 'icon' => 'ki-share'],
+                ['label' => 'Phone Inquiry', 'icon' => 'ki-phone'],
+                ['label' => 'Poster', 'icon' => 'ki-abstract-26'],
+                ['label' => 'School Visit/Career Talk', 'icon' => 'ki-teacher'],
+                ['label' => 'TikTok', 'icon' => 'ki-tiktok'],
+                ['label' => 'Visibility: Signage/Billboard', 'icon' => 'ki-eye'],
+                ['label' => 'Walk-in', 'icon' => 'ki-exit-right'],
+            ];
+            foreach ($defaultList as $idx => $def) {
+                $opt = new SurveyOption();
+                $opt->setCampus($campus);
+                $opt->setLabel($def['label']);
+                $opt->setIcon($def['icon']);
+                $opt->setIsActive(true);
+                $opt->setDisplayOrder($idx);
+                $em->persist($opt);
+            }
+            $em->flush();
+            $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
+                ['campus' => [$campus, $campusCode], 'isActive' => true],
+                ['label' => 'ASC']
+            );
+        }
+
+        // Max survey choices limit from settings
+        $maxChoicesSetting = $em->getRepository(CampusSetting::class)->findOneBy([
+            'campus' => [$campus, $campusCode],
+            'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
+        ]);
+        $maxSurveyChoices = $maxChoicesSetting ? (int)$maxChoicesSetting->getSettingValue() : 3;
+
+        // Active tracks sorted alphabetically (A-Z)
+        $tracks = $em->getRepository(TrackSetup::class)->findBy(
+            ['campus' => [$campus, $campusCode], 'isActive' => true],
+            ['name' => 'ASC']
+        );
+
         return $this->render('enrollment-onsite/diliman/enroll.html.twig', [
             'selected_campus'        => $campus,
             'open_sys'               => $openSYs,
@@ -77,6 +135,9 @@ class EnrollmentDilimanController extends AbstractController
             'nationalities'          => $nationalities,
             'countries'              => $countries,
             'nationality_iso_map'    => $nationalityIsoMap,
+            'surveyOptions'          => $surveyOptions,
+            'maxSurveyChoices'       => $maxSurveyChoices,
+            'tracks'                 => $tracks,
         ]);
     }
 
@@ -227,10 +288,23 @@ class EnrollmentDilimanController extends AbstractController
                 $em->persist($passport);
             }
 
+            $maxChoicesSetting = $em->getRepository(CampusSetting::class)->findOneBy([
+                'campus' => [$campus, $campusCode],
+                'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
+            ]);
+            $maxSurveyChoices = $maxChoicesSetting ? (int)$maxChoicesSetting->getSettingValue() : 3;
+
             $rawMarketing = $request->request->all()['marketing_source'] ?? $request->request->get('marketing_source');
             if (is_array($rawMarketing)) {
+                $filteredRaw = array_filter(array_map('trim', $rawMarketing), fn($s) => $s !== '');
+                if (count($filteredRaw) > $maxSurveyChoices) {
+                    $em->rollback();
+                    $this->addFlash('error', sprintf('You can select a maximum of %d survey option(s).', $maxSurveyChoices));
+                    return $this->redirectToRoute('app_enrollment_diliman_apply');
+                }
+
                 $sources = [];
-                foreach ($rawMarketing as $src) {
+                foreach ($filteredRaw as $src) {
                     if ($src === 'Other') {
                         $otherText = trim((string)$request->request->get('marketing_source_other', ''));
                         $sources[] = $otherText !== '' ? ('Other: ' . $otherText) : 'Other';

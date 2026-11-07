@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\AdminUser;
+use App\Entity\CampusSetting;
 use App\Entity\SurveyOption;
 use App\Service\CampusDatabaseSwitcher;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,18 +27,62 @@ class SurveyController extends AbstractController
         $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
         $databaseSwitcher->switchToCampus($campusCode);
 
+        // Alphabetically sorted by label (A-Z)
         $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
             ['campus' => $campusCode],
-            ['displayOrder' => 'ASC', 'id' => 'ASC']
+            ['label' => 'ASC']
         );
+
+        $maxChoicesSetting = $em->getRepository(CampusSetting::class)->findOneBy([
+            'campus' => $campusCode,
+            'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
+        ]);
+        $maxChoices = $maxChoicesSetting ? (int) $maxChoicesSetting->getSettingValue() : 3;
 
         return $this->render('admin-onsite/survey/index.html.twig', [
             'campus'        => $campus,
             'campusCode'    => $campusCode,
             'campusName'    => $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman',
             'surveyOptions' => $surveyOptions,
+            'maxChoices'    => $maxChoices,
             'active_menu'   => 'survey',
         ]);
+    }
+
+    #[Route('/{campus}/settings', name: 'app_admin_survey_settings', methods: ['POST'])]
+    public function updateSettings(string $campus, Request $request, EntityManagerInterface $em, CampusDatabaseSwitcher $databaseSwitcher): Response
+    {
+        $this->authorizeAdmin($campus);
+        $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
+        $databaseSwitcher->switchToCampus($campusCode);
+
+        if (!$this->isCsrfTokenValid('admin_survey_settings', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+        }
+
+        $maxChoices = (int) $request->request->get('max_choices', 3);
+        if ($maxChoices < 1) {
+            $maxChoices = 1;
+        }
+
+        $setting = $em->getRepository(CampusSetting::class)->findOneBy([
+            'campus' => $campusCode,
+            'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
+        ]);
+
+        if (!$setting) {
+            $setting = new CampusSetting();
+            $setting->setCampus($campusCode);
+            $setting->setSettingKey(CampusSetting::SETTING_MAX_SURVEY_CHOICES);
+            $em->persist($setting);
+        }
+
+        $setting->setSettingValue((string) $maxChoices);
+        $em->flush();
+
+        $this->addFlash('success', sprintf('Maximum applicant choices updated to %d.', $maxChoices));
+        return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
     }
 
     #[Route('/{campus}/toggle/{id}', name: 'app_admin_survey_toggle', methods: ['POST'])]
@@ -77,18 +122,38 @@ class SurveyController extends AbstractController
         $label = trim((string) $request->request->get('label', ''));
         $icon = trim((string) $request->request->get('icon', 'ki-verify'));
 
-        if ($label !== '') {
-            $option = new SurveyOption();
-            $option->setCampus($campusCode);
-            $option->setLabel($label);
-            $option->setIcon($icon ?: 'ki-verify');
-            $option->setIsActive(true);
-            $option->setDisplayOrder((int) $request->request->get('display_order', 0));
-
-            $em->persist($option);
-            $em->flush();
-            $this->addFlash('success', sprintf('Survey option "%s" added successfully.', $label));
+        if ($label === '') {
+            $this->addFlash('error', 'Option label cannot be empty.');
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
         }
+
+        // Duplicate validation (case-insensitive & trimmed per campus)
+        $existing = $em->createQueryBuilder()
+            ->select('s')
+            ->from(SurveyOption::class, 's')
+            ->where('s.campus = :campus')
+            ->andWhere('LOWER(TRIM(s.label)) = :label')
+            ->setParameter('campus', $campusCode)
+            ->setParameter('label', strtolower($label))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($existing) {
+            $this->addFlash('error', sprintf('A survey option with the label "%s" already exists.', $label));
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+        }
+
+        $option = new SurveyOption();
+        $option->setCampus($campusCode);
+        $option->setLabel($label);
+        $option->setIcon($icon ?: 'ki-verify');
+        $option->setIsActive(true);
+        $option->setDisplayOrder(0);
+
+        $em->persist($option);
+        $em->flush();
+        $this->addFlash('success', sprintf('Survey option "%s" added successfully.', $label));
 
         return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
     }
@@ -109,15 +174,35 @@ class SurveyController extends AbstractController
         if ($option && $option->getCampus() === $campusCode) {
             $label = trim((string) $request->request->get('label', ''));
             $icon = trim((string) $request->request->get('icon', 'ki-verify'));
-            $order = (int) $request->request->get('display_order', 0);
 
-            if ($label !== '') {
-                $option->setLabel($label);
-                $option->setIcon($icon ?: 'ki-verify');
-                $option->setDisplayOrder($order);
-                $em->flush();
-                $this->addFlash('success', sprintf('Survey option "%s" updated successfully.', $label));
+            if ($label === '') {
+                $this->addFlash('error', 'Option label cannot be empty.');
+                return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
             }
+
+            // Duplicate validation excluding current ID
+            $existing = $em->createQueryBuilder()
+                ->select('s')
+                ->from(SurveyOption::class, 's')
+                ->where('s.campus = :campus')
+                ->andWhere('s.id != :id')
+                ->andWhere('LOWER(TRIM(s.label)) = :label')
+                ->setParameter('campus', $campusCode)
+                ->setParameter('id', $id)
+                ->setParameter('label', strtolower($label))
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            if ($existing) {
+                $this->addFlash('error', sprintf('Another survey option with the label "%s" already exists.', $label));
+                return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+            }
+
+            $option->setLabel($label);
+            $option->setIcon($icon ?: 'ki-verify');
+            $em->flush();
+            $this->addFlash('success', sprintf('Survey option "%s" updated successfully.', $label));
         }
 
         return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);

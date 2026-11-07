@@ -67,7 +67,7 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public const AVAILABLE_MODULES = [
         self::MODULE_REGISTRATIONS => 'Registrations',
         self::MODULE_SURVEY        => 'Survey Options',
-        self::MODULE_TRACKS        => 'Tracks & Strands',
+        self::MODULE_TRACKS        => 'Tracks',
         self::MODULE_DOCUMENTS     => 'Documents',
         self::MODULE_SCHOOL_YEAR   => 'School Year',
         self::MODULE_ADMIN_ACCESS  => 'Admin Access',
@@ -184,6 +184,13 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // Master Admin and default Dashboard access for all admins
         if ($this->isMasterAdmin() || $module === self::MODULE_DASHBOARD) {
+            return true;
+        }
+        // Backward compatibility for Tracks module
+        if ($module === self::MODULE_TRACKS && in_array('tracks_strands', $this->getModules(), true)) {
+            return true;
+        }
+        if ($module === 'tracks_strands' && in_array(self::MODULE_TRACKS, $this->getModules(), true)) {
             return true;
         }
         // Finance admins also have access to the Registrations module list/search

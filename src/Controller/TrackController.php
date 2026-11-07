@@ -26,9 +26,10 @@ class TrackController extends AbstractController
         $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
         $databaseSwitcher->switchToCampus($campusCode);
 
+        // Alphabetically sorted by name (A-Z)
         $tracks = $em->getRepository(TrackSetup::class)->findBy(
             ['campus' => $campusCode],
-            ['displayOrder' => 'ASC', 'id' => 'ASC']
+            ['name' => 'ASC']
         );
 
         return $this->render('admin-onsite/tracks/index.html.twig', [
@@ -41,17 +42,22 @@ class TrackController extends AbstractController
     }
 
     #[Route('/{campus}/toggle/{id}', name: 'app_admin_tracks_toggle', methods: ['POST'])]
-    public function toggle(string $campus, int $id, EntityManagerInterface $em, CampusDatabaseSwitcher $databaseSwitcher): Response
+    public function toggle(string $campus, int $id, Request $request, EntityManagerInterface $em, CampusDatabaseSwitcher $databaseSwitcher): Response
     {
         $this->authorizeAdmin($campus);
         $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
         $databaseSwitcher->switchToCampus($campusCode);
 
+        if (!$this->isCsrfTokenValid('admin_tracks_toggle_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
         $track = $em->getRepository(TrackSetup::class)->find($id);
         if ($track && $track->getCampus() === $campusCode) {
             $track->setIsActive(!$track->isActive());
             $em->flush();
-            $this->addFlash('success', sprintf('Track/Strand "%s" status updated.', $track->getName()));
+            $this->addFlash('success', sprintf('Track "%s" status updated.', $track->getName()));
         }
 
         return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
@@ -64,22 +70,96 @@ class TrackController extends AbstractController
         $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
         $databaseSwitcher->switchToCampus($campusCode);
 
-        $code = trim((string) $request->request->get('code', ''));
-        $name = trim((string) $request->request->get('name', ''));
-
-        if ($code !== '' && $name !== '') {
-            $track = new TrackSetup();
-            $track->setCampus($campusCode);
-            $track->setCode($code);
-            $track->setName($name);
-            $track->setIsActive(true);
-            $track->setDisplayOrder((int) $request->request->get('display_order', 0));
-
-            $em->persist($track);
-            $em->flush();
-            $this->addFlash('success', sprintf('Track "%s (%s)" added successfully.', $name, $code));
+        if (!$this->isCsrfTokenValid('admin_tracks_add', (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
         }
 
+        $code = strtoupper(trim((string) $request->request->get('code', '')));
+        $name = trim((string) $request->request->get('name', ''));
+
+        if ($code === '' || $name === '') {
+            $this->addFlash('error', 'Both Track Code and Track Name are required.');
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
+        // Duplicate prevention per campus (case-insensitive for both code and name)
+        $existing = $em->getRepository(TrackSetup::class)->createQueryBuilder('t')
+            ->where('t.campus = :campus')
+            ->andWhere('(LOWER(TRIM(t.code)) = :code OR LOWER(TRIM(t.name)) = :name)')
+            ->setParameter('campus', $campusCode)
+            ->setParameter('code', strtolower($code))
+            ->setParameter('name', strtolower($name))
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($existing) {
+            $this->addFlash('error', sprintf('A track with code "%s" or name "%s" already exists.', $code, $name));
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
+        $track = new TrackSetup();
+        $track->setCampus($campusCode);
+        $track->setCode($code);
+        $track->setName($name);
+        $track->setIsActive(true);
+        $track->setDisplayOrder(0);
+
+        $em->persist($track);
+        $em->flush();
+
+        $this->addFlash('success', sprintf('Track "%s (%s)" added successfully.', $name, $code));
+        return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+    }
+
+    #[Route('/{campus}/edit/{id}', name: 'app_admin_tracks_edit', methods: ['POST'])]
+    public function edit(string $campus, int $id, Request $request, EntityManagerInterface $em, CampusDatabaseSwitcher $databaseSwitcher): Response
+    {
+        $this->authorizeAdmin($campus);
+        $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
+        $databaseSwitcher->switchToCampus($campusCode);
+
+        if (!$this->isCsrfTokenValid('admin_tracks_edit_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
+        $track = $em->getRepository(TrackSetup::class)->find($id);
+        if (!$track || $track->getCampus() !== $campusCode) {
+            $this->addFlash('error', 'Track not found.');
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
+        $code = strtoupper(trim((string) $request->request->get('code', '')));
+        $name = trim((string) $request->request->get('name', ''));
+
+        if ($code === '' || $name === '') {
+            $this->addFlash('error', 'Both Track Code and Track Name are required.');
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
+        // Duplicate check excluding current track
+        $existing = $em->getRepository(TrackSetup::class)->createQueryBuilder('t')
+            ->where('t.campus = :campus')
+            ->andWhere('t.id != :id')
+            ->andWhere('(LOWER(TRIM(t.code)) = :code OR LOWER(TRIM(t.name)) = :name)')
+            ->setParameter('campus', $campusCode)
+            ->setParameter('id', $id)
+            ->setParameter('code', strtolower($code))
+            ->setParameter('name', strtolower($name))
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($existing) {
+            $this->addFlash('error', sprintf('A track with code "%s" or name "%s" already exists.', $code, $name));
+            return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
+        }
+
+        $track->setCode($code);
+        $track->setName($name);
+        $em->flush();
+
+        $this->addFlash('success', sprintf('Track "%s (%s)" updated successfully.', $name, $code));
         return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
     }
 
@@ -96,8 +176,7 @@ class TrackController extends AbstractController
         }
 
         if (!$currentUser->hasModule(AdminUser::MODULE_TRACKS)) {
-            throw new AccessDeniedException('Access denied: You do not have permission to access the Tracks & Strands module.');
+            throw new AccessDeniedException('Access denied: You do not have permission to access the Tracks module.');
         }
     }
 }
-

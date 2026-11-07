@@ -49,11 +49,11 @@
         </a>
         {% endif %}
 
-        {# Tracks & Strands Link #}
+        {# Tracks Link #}
         {% if app.user and app.user.hasModule('tracks') %}
         <a href="{{ path('app_admin_tracks_index', {campus: 'diliman'}) }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'tracks' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
-            <i class="ki-filled ki-briefcase text-xl"></i><span>Tracks & Strands</span>
+            <i class="ki-filled ki-briefcase text-xl"></i><span>Tracks</span>
         </a>
         {% endif %}
 
