@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/diliman/apply')]
 class EnrollmentDilimanController extends AbstractController
@@ -840,14 +841,87 @@ class EnrollmentDilimanController extends AbstractController
     }
 
     #[Route('/success/{studentNumber}', name: 'app_enrollment_diliman_success', methods: ['GET'])]
-    public function success(string $studentNumber, EntityManagerInterface $em): Response
+    public function success(string $studentNumber, EntityManagerInterface $em, HttpClientInterface $httpClient): Response
     {
         $applicant = $em->getRepository(ApplicantBed::class)->findOneBy(['studentNumber' => $studentNumber]);
         if (!$applicant) throw $this->createNotFoundException('Application not found.');
+	
+	if ($applicant->getExtensionName()==""){
+		$fname = $applicant->getFirstName() . ' ' . $applicant->getMiddleName() . ' ' . $applicant->getLastName();
+	}
+	else{
+		$fname = $applicant->getFirstName() . ' ' . $applicant->getMiddleName() . ' ' . $applicant->getLastName() . ' ' .$applicant->getExtensionName();
+	}
+	
+	$studentNumber = $applicant->getStudentNumber();
+	$gradeLevel = $applicant->getGradeLevel();
+	$email = $applicant->getPersonalEmail();
+	$sy = $applicant->getSchoolYearOfEntry();
+
+	// Escape values before inserting them into HTML.
+    $escape = static fn (string $value): string =>
+        htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+    $body = <<<HTML
+    <html>
+      <head><title></title></head>
+      <body style="font-family: Calibri; font-size: 14px;">
+        <center>
+          <table style="width: 75%;">
+            <tr>
+              <td style="padding-top: 20px;">
+                <center><img src="cid:banner" border="0"></center><br>
+              </td>
+            </tr>
+            <tr><td style="padding-top: 20px;">Dear {$escape($fname)},</td></tr>
+            <tr>
+              <td style="padding-top: 20px;">
+                We are pleased to inform you that your application has been successfully registered
+                in our Admissions Portal.
+              </td>
+            </tr>
+            <tr><td style="padding-top: 20px;">Your Student Number has been created.</td></tr>
+            <tr><td style="padding-top: 20px; text-align: center;"><center><table style="text-align: left; font-weight: bold;"><tr><td>Student Name</td><td>{$escape($fname)}</td></tr><tr><td>Student Number</td><td>{$escape($studentNumber)}</td></tr><tr><td>Applying for</td><td>{$escape($gradeLevel)}</td></tr><tr><td>School Year</td><td>{$escape($sy)}</td></tr></table></center>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top: 20px;">
+                We look forward to welcoming you to the Tamaraw community.
+              </td>
+            </tr>
+            <tr><td style="padding-top: 20px;">FEU Diliman</td></tr>
+          </table>
+        </center>
+      </body>
+    </html>
+    HTML;
+
+    $mailerResponse = $httpClient->request(
+        'POST',
+        'http://172.31.7.52/graph_mailer/send.php',
+        [
+            'body' => [
+                'subject' => 'FEU DILIMAN Admissions Portal',
+                'to' => $email,
+                'bcc' => 'alng@feutech.edu.ph,kvdy@feutech.edu.ph',
+                'from' => 'noreply@feudiliman.edu.ph',
+                'body' => $body,
+                'inline_images' => ['feudol.png'],
+            ],
+        ]
+    );
+
+    // Check whether the mailer accepted the request.
+    $mailerStatus = $mailerResponse->getStatusCode();
+    if ($mailerStatus < 200 || $mailerStatus >= 300) {
+        // Log this or handle it according to your application’s error flow.
+        // The mailer may provide useful details in:
+        // $mailerResponse->getContent(false)
+    }
 
         return $this->render('enrollment-onsite/diliman/success.html.twig', [
             'student_number' => $applicant->getStudentNumber(),
-            'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName(),
+            'student_name' => $fname,
             'education_type' => $applicant->getEducationType(),
         ]);
     }
