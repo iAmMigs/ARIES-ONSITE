@@ -2,7 +2,7 @@
 <tr class="hover:bg-gray-50/70 transition-colors">
     
     {# --- 1. PHOTO COLUMN --- #}
-    <td class="py-4 px-6 whitespace-nowrap">
+    <td class="py-4 px-4 whitespace-nowrap">
         {% if r.photoSlug %}
             <img src="{{ asset(r.photoSlug) }}" class="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-xs" alt="Student Photo">
         {% else %}
@@ -13,14 +13,14 @@
     </td>
 
     {# --- 2. STUDENT ID --- #}
-    <td class="py-4 px-6 whitespace-nowrap">
+    <td class="py-4 px-4 whitespace-nowrap">
         <span class="font-mono text-xs font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md border border-gray-200/80">
             {{ r.studentNumber }}
         </span>
     </td>
 
     {# --- 3. FULL NAME --- #}
-    <td class="py-4 px-6 whitespace-nowrap">
+    <td class="py-4 px-4 whitespace-nowrap">
         <div class="font-bold text-gray-900 tracking-tight text-sm">
             {{ r.lastName }}, {{ r.firstName }}{% if r.middleName %} {{ r.middleName }}{% endif %}{% if r.suffix %} {{ r.suffix }}{% endif %}
         </div>
@@ -28,13 +28,13 @@
     </td>
 
     {# --- 4. LEVEL / STRAND --- #}
-    <td class="py-4 px-6 whitespace-nowrap">
+    <td class="py-4 px-4 w-44 max-w-[176px] whitespace-normal">
         <div class="flex flex-col gap-1 items-start">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                 {{ r.gradeLevel|replace({'_': ' '})|title }}
             </span>
             {% if r.trackStrand %}
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                <span class="inline-block max-w-[160px] whitespace-normal break-words leading-snug px-2.5 py-1 rounded-xl text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
                     {{ r.trackStrand }}
                 </span>
             {% endif %}
@@ -42,7 +42,7 @@
     </td>
 
     {# --- 5. STATUS --- #}
-    <td class="py-4 px-6 whitespace-nowrap">
+    <td class="py-4 px-4 whitespace-nowrap">
         <div class="flex flex-col gap-1 items-start">
             {% if r.admissionStatus == 'Pending' or r.admissionStatus == 'P' or r.admissionStatus == 'For Payment' %}
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
@@ -79,12 +79,12 @@
     </td>
 
     {# --- 6. DATE APPLIED --- #}
-    <td class="py-4 px-6 whitespace-nowrap text-xs font-medium text-gray-500">
+    <td class="py-4 px-4 whitespace-nowrap text-xs font-medium text-gray-500">
         {{ r.createdAt|date('M d, Y') }}
     </td>
 
     {# --- 7. ACTIONS --- #}
-    <td class="py-4 px-6 whitespace-nowrap text-right">
+    <td class="py-4 px-4 whitespace-nowrap text-right">
         <div class="inline-flex items-center justify-end gap-1.5">
             {# View Button #}
             <a href="{{ path('app_admin_alabang_registration_view', {'id': r.studentNumber}) }}" 

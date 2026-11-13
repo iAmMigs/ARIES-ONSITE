@@ -359,23 +359,20 @@
                                 <h4 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Siblings (Enrolled in FEU)</h4>
                             </div>
                             {% if registration.siblings|length > 0 %}
-                                <div class="space-y-2">
+                                <div class="space-y-2.5">
                                     {% for sibling in registration.siblings %}
-                                        <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/70 shadow-2xs">
+                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/70 shadow-2xs">
                                             <div>
-                                                <span class="text-sm font-bold text-gray-900 block">{{ sibling.siblingName }}</span>
-                                                <span class="text-xs text-gray-500">{{ sibling.school }}</span>
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Sibling Name</span>
+                                                <span class="text-sm font-bold text-gray-900">{{ sibling.siblingName ?: 'N/A' }}</span>
                                             </div>
                                             <div>
-                                                {% if sibling.feuStudentNo %}
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                        <i class="ki-filled ki-verify text-xs"></i> FEU ID: {{ sibling.feuStudentNo }}
-                                                    </span>
-                                                {% else %}
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                                        <i class="ki-filled ki-verify text-xs"></i> FEU Student
-                                                    </span>
-                                                {% endif %}
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">FEU Campus / School</span>
+                                                <span class="text-xs font-semibold text-gray-700">{{ sibling.school ?: 'N/A' }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">FEU Student No.</span>
+                                                <span class="text-xs font-bold text-emerald-800">{{ sibling.feuStudentNo ?: 'N/A' }}</span>
                                             </div>
                                         </div>
                                     {% endfor %}

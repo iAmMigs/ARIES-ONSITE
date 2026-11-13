@@ -305,20 +305,27 @@ class EnrollmentDilimanController extends AbstractController
 
                 $sources = [];
                 foreach ($filteredRaw as $src) {
+                    /*
                     if ($src === 'Other') {
                         $otherText = trim((string)$request->request->get('marketing_source_other', ''));
                         $sources[] = $otherText !== '' ? ('Other: ' . $otherText) : 'Other';
                     } else {
                         $sources[] = trim((string)$src);
                     }
+                    */
+                    if ($src !== 'Other') {
+                        $sources[] = trim((string)$src);
+                    }
                 }
                 $applicant->setMarketingSource(implode(', ', array_filter($sources)));
             } else {
                 $marketingSource = (string)$rawMarketing;
+                /*
                 if ($marketingSource === 'Other') {
                     $marketingSource = (string)$request->request->get('marketing_source_other', '');
                 }
-                $applicant->setMarketingSource($marketingSource !== '' ? $marketingSource : null);
+                */
+                $applicant->setMarketingSource($marketingSource !== '' && $marketingSource !== 'Other' ? $marketingSource : null);
             }
 
             if (empty($applicant->getMarketingSource())) {
@@ -353,17 +360,30 @@ class EnrollmentDilimanController extends AbstractController
             $siblingSchools = $request->request->all()['sibling_school'] ?? [];
             $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
             if (is_array($siblingNames)) {
-                foreach ($siblingNames as $index => $name) {
-                    if (!empty($name)) {
-                        $sibling = new ApplicantBedSibling();
-                        $sibling->setApplicant($applicant);
-                        $sibling->setSiblingName($formatName($name));
-                        $sibling->setSchool($siblingSchools[$index] ?? null);
-                        $sibling->setFeuStudentNo($siblingStudentNos[$index] ?? null);
-                        if (!empty($siblingStudentNos[$index])) $sibling->setIsFeuStudent(true);
-                        $applicant->addSibling($sibling);
-                        $em->persist($sibling);
+                $seenSiblingNames = [];
+                foreach ($siblingNames as $index => $rawName) {
+                    $name = trim((string)($rawName ?? ''));
+                    $school = trim((string)($siblingSchools[$index] ?? ''));
+                    $studentNo = trim((string)($siblingStudentNos[$index] ?? ''));
+
+                    if ($name === '' && $school === '' && $studentNo === '') {
+                        continue;
                     }
+
+                    $formattedName = strtoupper($name !== '' ? $name : ('UNNAMED SIBLING ' . ($index + 1)));
+                    if (isset($seenSiblingNames[$formattedName])) {
+                        $formattedName .= ' (' . ($index + 1) . ')';
+                    }
+                    $seenSiblingNames[$formattedName] = true;
+
+                    $sibling = new ApplicantBedSibling();
+                    $sibling->setApplicant($applicant);
+                    $sibling->setSiblingName($formattedName);
+                    $sibling->setSchool($school !== '' ? strtoupper($school) : null);
+                    $sibling->setFeuStudentNo($studentNo !== '' ? $studentNo : null);
+                    $sibling->setIsFeuStudent(true);
+                    $applicant->addSibling($sibling);
+                    $em->persist($sibling);
                 }
             }
 
@@ -690,7 +710,12 @@ class EnrollmentDilimanController extends AbstractController
         $guardian->setDeceased($request->request->get($slot . '_deceased') ? true : false);
         $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
         $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
-        $guardian->setEmail($request->request->get($slot . '_email'));
+
+        $email = $request->request->get($slot . '_email');
+        if ($slot === 'guardian' && empty($email) && in_array(strtoupper($relationship), ['FATHER', 'MOTHER'], true)) {
+            $email = $request->request->get(strtolower($relationship) . '_email');
+        }
+        $guardian->setEmail($guardian->isDeceased() ? null : ($email !== null && trim((string)$email) !== '' ? trim((string)$email) : null));
         $guardian->setNationality($request->request->get($slot . '_nationality'));
 
         // --- Address handling for father, mother, or guardian ---

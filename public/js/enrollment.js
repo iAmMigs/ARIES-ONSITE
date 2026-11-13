@@ -484,12 +484,15 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
 
     const occGroup = document.getElementById(`${parentPrefix}_occupation_group`);
     const contactGroup = document.getElementById(`${parentPrefix}_contact_group`);
+    const emailGroup = document.getElementById(`${parentPrefix}_email_group`);
     const occInput = document.getElementById(`${parentPrefix}_occupation`);
     const contactInput = document.getElementById(`${parentPrefix}_contact`);
+    const emailInput = document.getElementById(`${parentPrefix}_email`);
     
     if (isDeceased) {
         if (occGroup) occGroup.style.display = 'none';
         if (contactGroup) contactGroup.style.display = 'none';
+        if (emailGroup) emailGroup.style.display = 'none';
         
         if (occInput) { 
             occInput.disabled = true; 
@@ -501,14 +504,24 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
             contactInput.removeAttribute('required'); 
             if (window.ARIESValidation) window.ARIESValidation.resetField(contactInput, window.ARIESValidation.getErrorElement(contactInput));
         }
+        if (emailInput) {
+            emailInput.disabled = true;
+            emailInput.value = '';
+            emailInput.removeAttribute('required');
+            if (window.ARIESValidation) window.ARIESValidation.resetField(emailInput, window.ARIESValidation.getErrorElement(emailInput));
+        }
     } else {
         if (occGroup) occGroup.style.display = 'block';
         if (contactGroup) contactGroup.style.display = 'block';
+        if (emailGroup) emailGroup.style.display = 'block';
         
         if (occInput) { occInput.disabled = false; }
         if (contactInput) { 
             contactInput.disabled = false; 
             contactInput.setAttribute('required', 'required'); 
+        }
+        if (emailInput) {
+            emailInput.disabled = false;
         }
     }
 
@@ -672,6 +685,7 @@ window.syncGuardianFromParent = function() {
     const gRelation = document.getElementById('guardian_relation');
     const gContact = document.getElementById('guardian_contact');
     const gOccupation = document.getElementById('guardian_occupation');
+    const gEmail = document.getElementById('guardian_email');
     
     if (!gName || !gRelation || !gContact) return;
 
@@ -681,6 +695,7 @@ window.syncGuardianFromParent = function() {
         const pMiddle = (document.getElementById(`${activeType}_middlename`)?.value || '').trim();
         const pContact = document.getElementById(`${activeType}_contact`)?.value || '';
         const pOccupation = (document.getElementById(`${activeType}_occupation`)?.value || '').trim();
+        const pEmail = (document.getElementById(`${activeType}_email`)?.value || '').trim();
         
         let fullName = '';
         if (pLast && pFirst) {
@@ -696,6 +711,9 @@ window.syncGuardianFromParent = function() {
         gContact.value = pContact;
         if (gOccupation) {
             gOccupation.value = pOccupation;
+        }
+        if (gEmail) {
+            gEmail.value = pEmail;
         }
 
         // Sync country dial code and flag to guardian
@@ -728,12 +746,17 @@ window.syncGuardianFromParent = function() {
             gOccupation.readOnly = true;
             gOccupation.classList.add('bg-gray-50', 'cursor-not-allowed');
         }
+        if (gEmail) {
+            gEmail.readOnly = true;
+            gEmail.classList.add('bg-gray-50', 'cursor-not-allowed');
+        }
 
         // Reset validation styling if values are now present
         if (window.ARIESValidation) {
             if (fullName) window.ARIESValidation.resetField(gName, window.ARIESValidation.getErrorElement(gName));
             if (pContact) window.ARIESValidation.resetField(gContact, window.ARIESValidation.getErrorElement(gContact));
             if (pOccupation && gOccupation) window.ARIESValidation.resetField(gOccupation, window.ARIESValidation.getErrorElement(gOccupation));
+            if (pEmail && gEmail) window.ARIESValidation.resetField(gEmail, window.ARIESValidation.getErrorElement(gEmail));
             window.ARIESValidation.resetField(gRelation, window.ARIESValidation.getErrorElement(gRelation));
         }
     }
@@ -784,6 +807,10 @@ window.setGuardian = function(type) {
             if (gOccupation) {
                 gOccupation.value = '';
             }
+            const gEmail = document.getElementById('guardian_email');
+            if (gEmail) {
+                gEmail.value = '';
+            }
 
             // Reset guardian country dial code and flag
             const gDial = document.getElementById('guardianCountryDialCode');
@@ -813,6 +840,10 @@ window.setGuardian = function(type) {
                 gOccupation.readOnly = false;
                 gOccupation.classList.remove('bg-gray-50', 'cursor-not-allowed');
             }
+            if (gEmail) {
+                gEmail.readOnly = false;
+                gEmail.classList.remove('bg-gray-50', 'cursor-not-allowed');
+            }
         } else {
             window.syncGuardianFromParent();
         }
@@ -832,12 +863,12 @@ window.addSibling = function() {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                 <div class="col-span-12 md:col-span-5">
-                    <label class="form-label text-xs">Name</label>
-                    <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name" oninput="window.isFormDirty = true;">
+                    <label class="form-label text-xs">Name <span class="required">*</span></label>
+                    <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name" required oninput="this.value = this.value.toUpperCase(); window.isFormDirty = true;">
                 </div>
                 <div class="col-span-12 md:col-span-4">
                     <label class="form-label text-xs">School</label>
-                    <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School" oninput="window.isFormDirty = true;">
+                    <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School" oninput="this.value = this.value.toUpperCase(); window.isFormDirty = true;">
                 </div>
                 <div class="col-span-12 md:col-span-3">
                     <label class="form-label text-xs">Student No.</label>
@@ -2463,6 +2494,7 @@ function initFormValidation() {
             }
             if (surveyContainer) surveyContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
+            /*
             const otherCheck = document.getElementById('source_other');
             const otherInput = document.getElementById('marketing_source_other');
             if (otherCheck && otherCheck.checked && otherInput && !otherInput.value.trim()) {
@@ -2472,7 +2504,9 @@ function initFormValidation() {
                     surveyError.style.display = 'block';
                 }
                 otherInput.focus();
-            } else if (surveyError) {
+            } else
+            */
+            if (surveyError) {
                 surveyError.style.display = 'none';
             }
         }

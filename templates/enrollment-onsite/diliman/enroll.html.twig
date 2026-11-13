@@ -833,11 +833,11 @@
                                     <label class="btn-check-label" for="f_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
                                 </div>
                             </div>
-                            <div class="col-md-3" id="father_occupation_group">
+                            <div class="col-md-4" id="father_occupation_group">
                                 <label class="form-label">Occupation</label>
                                 <input type="text" name="father_occupation" id="father_occupation" class="form-control" placeholder="Occupation">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Nationality <span class="required">*</span></label>
                                 <select name="father_nationality" id="father_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
                                     <option value=""></option>
@@ -846,7 +846,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-4" id="father_contact_group">
+                            <div class="col-md-6" id="father_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="father_contact_req">*</span></label>
                                 {% include 'enrollment-onsite/_phone_input.html.twig' with {
                                     prefix: 'father',
@@ -856,6 +856,10 @@
                                     placeholder: '9xxxxxxxxx',
                                     countries: countries
                                 } %}
+                            </div>
+                            <div class="col-md-6" id="father_email_group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" name="father_email" id="father_email" class="form-control" placeholder="Email Address">
                             </div>
                         </div>
                         {# Father Address with Same as Applicant #}
@@ -1076,11 +1080,11 @@
                                     <label class="btn-check-label" for="m_ofw"><i class="ki-filled ki-airplane"></i> OFW</label>
                                 </div>
                             </div>
-                            <div class="col-md-3" id="mother_occupation_group">
+                            <div class="col-md-4" id="mother_occupation_group">
                                 <label class="form-label">Occupation</label>
                                 <input type="text" name="mother_occupation" id="mother_occupation" class="form-control" placeholder="Occupation">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Nationality <span class="required">*</span></label>
                                 <select name="mother_nationality" id="mother_nationality" class="form-select" data-control="select2" data-placeholder="Select Nationality" required>
                                     <option value=""></option>
@@ -1089,7 +1093,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-4" id="mother_contact_group">
+                            <div class="col-md-6" id="mother_contact_group">
                                 <label class="form-label">Contact No. <span class="required" id="mother_contact_req">*</span></label>
                                 {% include 'enrollment-onsite/_phone_input.html.twig' with {
                                     prefix: 'mother',
@@ -1099,6 +1103,10 @@
                                     placeholder: '9xxxxxxxxx',
                                     countries: countries
                                 } %}
+                            </div>
+                            <div class="col-md-6" id="mother_email_group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" name="mother_email" id="mother_email" class="form-control" placeholder="Email Address">
                             </div>
                         </div>
                         {# Mother Address with Same as Applicant #}
@@ -1617,6 +1625,7 @@
                                             </label>
                                         </div>
                                     {% endfor %}
+                                    {#
                                     <div class="survey-option-card">
                                         <input type="checkbox" name="marketing_source[]" id="source_other" value="Other" class="survey-radio-input survey-checkbox" onchange="handleSurveySelection(this)">
                                         <label for="source_other" class="survey-option-label">
@@ -1629,13 +1638,16 @@
                                             </div>
                                         </label>
                                     </div>
+                                    #}
                                 </div>
+                                {#
                                 <div class="row mt-3" id="other_source_input_container" style="display:none;">
                                     <div class="col-md-6">
                                         <label class="form-label text-xs font-bold text-gray-500 uppercase">Please specify how you learned about us:</label>
                                         <input type="text" name="marketing_source_other" id="marketing_source_other" class="form-control" placeholder="Type answer here...">
                                     </div>
                                 </div>
+                                #}
                             </div>
                         </div>
                     </div>
@@ -1900,7 +1912,7 @@
             return;
         }
 
-        toggleOtherSource();
+        /* toggleOtherSource(); */
 
         const badge = document.getElementById('surveyLimitBadge');
         if (badge) {
@@ -1908,6 +1920,7 @@
         }
     }
 
+    /*
     function toggleOtherSource() {
         const otherInput = document.getElementById('marketing_source_other');
         const otherCb = document.getElementById('source_other');
@@ -1919,6 +1932,7 @@
             otherInput.required = isOther;
         }
     }
+    */
 
     const loader = document.getElementById('enrollmentLoader');
     if (loader) {

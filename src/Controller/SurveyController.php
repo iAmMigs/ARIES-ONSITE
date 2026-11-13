@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\AdminUser;
+use App\Entity\ApplicantBed;
 use App\Entity\CampusSetting;
 use App\Entity\SurveyOption;
 use App\Service\CampusDatabaseSwitcher;
@@ -33,6 +34,8 @@ class SurveyController extends AbstractController
             ['label' => 'ASC']
         );
 
+        $optionUsageCounts = $this->getOptionUsageCounts($em, $surveyOptions);
+
         $maxChoicesSetting = $em->getRepository(CampusSetting::class)->findOneBy([
             'campus' => $campusCode,
             'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
@@ -40,12 +43,13 @@ class SurveyController extends AbstractController
         $maxChoices = $maxChoicesSetting ? (int) $maxChoicesSetting->getSettingValue() : 3;
 
         return $this->render('admin-onsite/survey/index.html.twig', [
-            'campus'        => $campus,
-            'campusCode'    => $campusCode,
-            'campusName'    => $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman',
-            'surveyOptions' => $surveyOptions,
-            'maxChoices'    => $maxChoices,
-            'active_menu'   => 'survey',
+            'campus'            => $campus,
+            'campusCode'        => $campusCode,
+            'campusName'        => $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman',
+            'surveyOptions'     => $surveyOptions,
+            'optionUsageCounts' => $optionUsageCounts,
+            'maxChoices'        => $maxChoices,
+            'active_menu'       => 'survey',
         ]);
     }
 
@@ -206,6 +210,87 @@ class SurveyController extends AbstractController
         }
 
         return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+    }
+
+    #[Route('/{campus}/delete/{id}', name: 'app_admin_survey_delete', methods: ['POST'])]
+    public function delete(string $campus, int $id, Request $request, EntityManagerInterface $em, CampusDatabaseSwitcher $databaseSwitcher): Response
+    {
+        $this->authorizeAdmin($campus);
+        $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
+        $databaseSwitcher->switchToCampus($campusCode);
+
+        if (!$this->isCsrfTokenValid('admin_survey_delete_' . $id, (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid security token.');
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+        }
+
+        $option = $em->getRepository(SurveyOption::class)->find($id);
+        if (!$option || $option->getCampus() !== $campusCode) {
+            $this->addFlash('error', 'Survey option not found.');
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+        }
+
+        $usageCounts = $this->getOptionUsageCounts($em, [$option]);
+        $usageCount = $usageCounts[$option->getId()] ?? 0;
+        if ($usageCount > 0) {
+            $this->addFlash('error', sprintf('Cannot delete survey option "%s" because it has already been selected by %d applicant(s). You can only edit or disable it.', $option->getLabel(), $usageCount));
+            return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+        }
+
+        $optionLabel = $option->getLabel();
+        $em->remove($option);
+        $em->flush();
+
+        $this->addFlash('success', sprintf('Unused survey option "%s" deleted successfully.', $optionLabel));
+        return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
+    }
+
+    /**
+     * @param SurveyOption[] $options
+     * @return array<int, int>
+     */
+    private function getOptionUsageCounts(EntityManagerInterface $em, array $options): array
+    {
+        $counts = [];
+        $labelToIds = [];
+        foreach ($options as $opt) {
+            $counts[$opt->getId()] = 0;
+            $key = strtolower(trim((string) $opt->getLabel()));
+            if ($key !== '') {
+                $labelToIds[$key][] = $opt->getId();
+            }
+        }
+
+        if ($labelToIds === []) {
+            return $counts;
+        }
+
+        $rows = $em->getRepository(ApplicantBed::class)->createQueryBuilder('a')
+            ->select('a.marketingSource')
+            ->where('a.marketingSource IS NOT NULL')
+            ->andWhere("a.marketingSource != ''")
+            ->getQuery()
+            ->getScalarResult();
+
+        foreach ($rows as $row) {
+            $raw = (string) ($row['marketingSource'] ?? '');
+            if ($raw === '') {
+                continue;
+            }
+            $tokens = array_unique(array_filter(array_map(
+                static fn(string $part): string => strtolower(trim($part)),
+                explode(',', $raw)
+            )));
+            foreach ($tokens as $token) {
+                if (isset($labelToIds[$token])) {
+                    foreach ($labelToIds[$token] as $optId) {
+                        $counts[$optId]++;
+                    }
+                }
+            }
+        }
+
+        return $counts;
     }
 
     private function authorizeAdmin(string $campus): void

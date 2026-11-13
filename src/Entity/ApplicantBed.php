@@ -191,6 +191,10 @@ class ApplicantBed
         }
         return $this;
     }
+    public function removeGuardian(ApplicantBedGuardian $g): static {
+        $this->guardians->removeElement($g);
+        return $this;
+    }
 
     public function getSiblings(): Collection { return $this->siblings; }
     public function addSibling(ApplicantBedSibling $s): static {
@@ -198,6 +202,10 @@ class ApplicantBed
             $this->siblings->add($s);
             $s->setApplicant($this);
         }
+        return $this;
+    }
+    public function removeSibling(ApplicantBedSibling $s): static {
+        $this->siblings->removeElement($s);
         return $this;
     }
 
@@ -209,6 +217,10 @@ class ApplicantBed
         }
         return $this;
     }
+    public function removeSchool(ApplicantBedSchool $s): static {
+        $this->schools->removeElement($s);
+        return $this;
+    }
 
     public function getRequirements(): Collection { return $this->requirements; }
     public function addRequirement(ApplicantBedRequirement $r): static {
@@ -216,6 +228,10 @@ class ApplicantBed
             $this->requirements->add($r);
             $r->setApplicant($this);
         }
+        return $this;
+    }
+    public function removeRequirement(ApplicantBedRequirement $r): static {
+        $this->requirements->removeElement($r);
         return $this;
     }
 

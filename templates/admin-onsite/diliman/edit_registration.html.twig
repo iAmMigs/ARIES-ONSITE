@@ -104,9 +104,18 @@
 
                                 <select name="track_strand" class="bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200/70 rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-amber-500 outline-none">
                                     <option value="">Select Framework / Strand</option>
-                                    {% for framework in ['Accountancy, Business Administration, and Management', 'Arts and Humanities', 'Engineering and Architecture', 'IT and Computer Science', 'Medicine and Health Sciences', 'Tourism and Hospitality', 'Mixed Framework', 'STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'] %}
-                                        <option value="{{ framework }}" {{ (registration.trackStrand|upper == framework|upper) ? 'selected' : '' }}>{{ framework }}</option>
+                                    {% set currentTrack = registration.trackStrand|default('')|trim %}
+                                    {% set currentTrackMatched = false %}
+                                    {% for track in tracks|default([]) %}
+                                        {% set isSelected = (currentTrack|upper == track.name|upper or currentTrack|upper == track.code|upper or (currentTrack|length == 50 and track.name|slice(0, 50)|upper == currentTrack|upper)) %}
+                                        {% if isSelected %}
+                                            {% set currentTrackMatched = true %}
+                                        {% endif %}
+                                        <option value="{{ track.name }}" {{ isSelected ? 'selected' : '' }}>{{ track.name }}</option>
                                     {% endfor %}
+                                    {% if currentTrack != '' and not currentTrackMatched %}
+                                        <option value="{{ currentTrack }}" selected>{{ currentTrack }} (Inactive / Legacy)</option>
+                                    {% endif %}
                                 </select>
                             </div>
 

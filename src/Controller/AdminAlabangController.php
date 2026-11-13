@@ -762,6 +762,10 @@ class AdminAlabangController extends AbstractController
         $documentSetups = $this->getFilteredDocumentSetups($registration, $em, ApplicantBed::CAMPUS_ALABANG);
         $nationalities = $em->getRepository(\App\Entity\LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
         $countries = $em->getRepository(\App\Entity\LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
+        $tracks = $em->getRepository(\App\Entity\TrackSetup::class)->findBy(
+            ['campus' => ['feu_alabang', ApplicantBed::CAMPUS_ALABANG], 'isActive' => true],
+            ['name' => 'ASC']
+        );
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('admin_edit_registration_' . $registration->getStudentNumber(), (string)$request->request->get('_token'))) {
@@ -1231,14 +1235,53 @@ class AdminAlabangController extends AbstractController
                 }
             }
 
-            $siblingsData = $request->request->all('siblings');
-            foreach ($registration->getSiblings() as $index => $s) {
-                if (isset($siblingsData[$index])) {
-                    $data = $siblingsData[$index];
-                    $s->setSiblingName($data['name']);
-                    $s->setSchool($data['school']);
-                    $s->setFeuStudentNo($data['feu_id']);
-                    $s->setIsFeuStudent(!empty($data['feu_id']));
+            if ($request->request->has('siblings')) {
+                $siblingsData = $request->request->all('siblings');
+                $existingByName = [];
+                foreach ($registration->getSiblings()->toArray() as $existingSibling) {
+                    $existingKey = strtoupper(trim((string) $existingSibling->getSiblingName()));
+                    $existingByName[$existingKey] = $existingSibling;
+                }
+
+                $submittedByName = [];
+                foreach ($siblingsData as $index => $data) {
+                    $name = trim((string)($data['name'] ?? ''));
+                    $school = trim((string)($data['school'] ?? ''));
+                    $feuId = trim((string)($data['feu_id'] ?? ''));
+                    if ($name === '' && $school === '' && $feuId === '') {
+                        continue;
+                    }
+                    $formattedName = strtoupper($name !== '' ? $name : ('UNNAMED SIBLING ' . ($index + 1)));
+                    if (isset($submittedByName[$formattedName])) {
+                        $formattedName .= ' (' . ($index + 1) . ')';
+                    }
+                    $submittedByName[$formattedName] = [
+                        'name'   => $formattedName,
+                        'school' => $school !== '' ? strtoupper($school) : null,
+                        'feu_id' => $feuId !== '' ? $feuId : null,
+                    ];
+                }
+
+                foreach ($existingByName as $existingKey => $existingSibling) {
+                    if (!isset($submittedByName[$existingKey])) {
+                        $registration->removeSibling($existingSibling);
+                        $em->remove($existingSibling);
+                    }
+                }
+
+                foreach ($submittedByName as $key => $payload) {
+                    if (isset($existingByName[$key])) {
+                        $sibling = $existingByName[$key];
+                    } else {
+                        $sibling = new \App\Entity\ApplicantBedSibling();
+                        $sibling->setApplicant($registration);
+                        $sibling->setSiblingName($payload['name']);
+                        $registration->addSibling($sibling);
+                        $em->persist($sibling);
+                    }
+                    $sibling->setSchool($payload['school']);
+                    $sibling->setFeuStudentNo($payload['feu_id']);
+                    $sibling->setIsFeuStudent(true);
                 }
             }
 
@@ -1305,7 +1348,8 @@ class AdminAlabangController extends AbstractController
             'registration' => $registration,
             'documentSetups' => $documentSetups,
             'nationalities' => $nationalities,
-            'countries' => $countries
+            'countries' => $countries,
+            'tracks' => $tracks
         ]);
     }
 

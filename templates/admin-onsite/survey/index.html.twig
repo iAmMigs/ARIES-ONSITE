@@ -167,6 +167,15 @@
                                         </button>
                                     {% endif %}
                                 </form>
+
+                                {% if (optionUsageCounts[opt.id]|default(0)) == 0 %}
+                                    <form action="{{ path('app_admin_survey_delete', {campus: campus, id: opt.id}) }}" method="POST" onsubmit="return confirm('Delete unused survey option &quot;{{ opt.label|e('js') }}&quot;? This action cannot be undone.');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_survey_delete_' ~ opt.id) }}">
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-colors cursor-pointer shadow-2xs" title="Delete unused survey option">
+                                            <i class="ki-filled ki-trash text-xs"></i> Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
                             </div>
                         </div>
                     {% else %}
