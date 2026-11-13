@@ -127,7 +127,6 @@ class AdminDilimanController extends AbstractController
         // Breakdown Logic
         $grsLevels = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'];
         $jhsLevels = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
-        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'Sports Track'];
 
         foreach ($grsLevels as $l) {
             $lNew = 0; $lTrans = 0;
@@ -151,15 +150,50 @@ class AdminDilimanController extends AbstractController
             $summary['jhs'][] = ['name' => $l, 'new' => $lNew, 'transferee' => $lTrans, 'total' => $lNew + $lTrans];
         }
 
-        foreach ($strands as $s) {
+        $allTracks = $em->getRepository(\App\Entity\TrackSetup::class)->findBy(
+            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN]],
+            ['name' => 'ASC']
+        );
+
+        $matchedTrackKeys = [];
+        foreach ($allTracks as $track) {
+            $tName = trim((string) $track->getName());
+            $tCode = trim((string) $track->getCode());
             $sNew = 0; $sTrans = 0;
             foreach ($rawSummary as $rs) {
-                if ($rs['trackStrand'] === $s) {
+                $val = trim((string) ($rs['trackStrand'] ?? ''));
+                if ($val === '') continue;
+                $isMatch = strcasecmp($val, $tName) === 0
+                    || ($tCode !== '' && strcasecmp($val, $tCode) === 0)
+                    || (strlen($val) === 50 && strlen($tName) > 50 && strcasecmp($val, substr($tName, 0, 50)) === 0);
+                if ($isMatch) {
+                    $matchedTrackKeys[strtolower($val)] = true;
                     if (in_array($rs['admissionType'], ['New Student', 'Freshman'])) $sNew += $rs['cnt'];
                     elseif ($rs['admissionType'] === 'Transferee') $sTrans += $rs['cnt'];
                 }
             }
-            $summary['shs'][] = ['name' => $s, 'new' => $sNew, 'transferee' => $sTrans, 'total' => $sNew + $sTrans];
+            if ($track->isActive() || ($sNew + $sTrans) > 0) {
+                $summary['shs'][] = ['name' => $tName, 'new' => $sNew, 'transferee' => $sTrans, 'total' => $sNew + $sTrans];
+            }
+        }
+
+        // Retain any legacy/unmatched trackStrand values that have applicants
+        $legacyStrands = [];
+        foreach ($rawSummary as $rs) {
+            $val = trim((string) ($rs['trackStrand'] ?? ''));
+            if ($val === '' || isset($matchedTrackKeys[strtolower($val)])) continue;
+            $key = strtolower($val);
+            if (!isset($legacyStrands[$key])) {
+                $legacyStrands[$key] = ['name' => $val, 'new' => 0, 'transferee' => 0, 'total' => 0];
+            }
+            if (in_array($rs['admissionType'], ['New Student', 'Freshman'])) $legacyStrands[$key]['new'] += $rs['cnt'];
+            elseif ($rs['admissionType'] === 'Transferee') $legacyStrands[$key]['transferee'] += $rs['cnt'];
+            $legacyStrands[$key]['total'] = $legacyStrands[$key]['new'] + $legacyStrands[$key]['transferee'];
+        }
+        foreach ($legacyStrands as $ls) {
+            if ($ls['total'] > 0) {
+                $summary['shs'][] = $ls;
+            }
         }
 
         // Discovery Stats (Marketing Source)
@@ -171,18 +205,20 @@ class AdminDilimanController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $activeSurveyOptions = $em->getRepository(\App\Entity\SurveyOption::class)->findBy(
-            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN], 'isActive' => true],
+        $allSurveyOptions = $em->getRepository(\App\Entity\SurveyOption::class)->findBy(
+            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN]],
             ['label' => 'ASC']
         );
 
         $discoveryMap = [];
         $normalizedToLabel = [];
-        foreach ($activeSurveyOptions as $opt) {
+        foreach ($allSurveyOptions as $opt) {
             $label = trim((string) $opt->getLabel());
             if ($label !== '') {
-                $discoveryMap[$label] = 0;
                 $normalizedToLabel[strtolower($label)] = $label;
+                if ($opt->isActive()) {
+                    $discoveryMap[$label] = 0;
+                }
             }
         }
 
@@ -200,7 +236,8 @@ class AdminDilimanController extends AbstractController
                 }
                 $key = strtolower($singleSrc);
                 if (isset($normalizedToLabel[$key])) {
-                    $discoveryMap[$normalizedToLabel[$key]] += $cnt;
+                    $label = $normalizedToLabel[$key];
+                    $discoveryMap[$label] = ($discoveryMap[$label] ?? 0) + $cnt;
                 } else {
                     $otherCount += $cnt;
                 }

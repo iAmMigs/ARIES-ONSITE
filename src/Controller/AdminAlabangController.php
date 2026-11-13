@@ -88,7 +88,6 @@ class AdminAlabangController extends AbstractController
 
         // Process summary data in PHP
         $categories = ['Senior HS' => ['levels' => ['Grade 11', 'Grade 12']]];
-        $strands = ['STEM', 'ABM', 'HUMSS', 'GAS', 'ICT'];
 
         foreach ($categories as $catName => $config) {
             $catNew = 0; $catTrans = 0;
@@ -121,20 +120,55 @@ class AdminAlabangController extends AbstractController
             $summary['total']['current'] += ($catNew + $catTrans);
         }
 
-        foreach ($strands as $s) {
+        $allTracks = $em->getRepository(\App\Entity\TrackSetup::class)->findBy(
+            ['campus' => ['feu_alabang', ApplicantBed::CAMPUS_ALABANG]],
+            ['name' => 'ASC']
+        );
+
+        $matchedTrackKeys = [];
+        foreach ($allTracks as $track) {
+            $tName = trim((string) $track->getName());
+            $tCode = trim((string) $track->getCode());
             $sNew = 0; $sTrans = 0;
             foreach ($rawSummary as $rs) {
-                if ($rs['trackStrand'] === $s) {
+                $val = trim((string) ($rs['trackStrand'] ?? ''));
+                if ($val === '') continue;
+                $isMatch = strcasecmp($val, $tName) === 0
+                    || ($tCode !== '' && strcasecmp($val, $tCode) === 0)
+                    || (strlen($val) === 50 && strlen($tName) > 50 && strcasecmp($val, substr($tName, 0, 50)) === 0);
+                if ($isMatch) {
+                    $matchedTrackKeys[strtolower($val)] = true;
                     if (in_array($rs['admissionType'], ['New Student', 'Freshman'])) $sNew += $rs['cnt'];
                     elseif ($rs['admissionType'] === 'Transferee') $sTrans += $rs['cnt'];
                 }
             }
-            $summary['shs'][] = [
-                'name' => $s,
-                'new' => $sNew,
-                'transferee' => $sTrans,
-                'total' => $sNew + $sTrans
-            ];
+            if ($track->isActive() || ($sNew + $sTrans) > 0) {
+                $summary['shs'][] = [
+                    'name' => $tName,
+                    'new' => $sNew,
+                    'transferee' => $sTrans,
+                    'total' => $sNew + $sTrans
+                ];
+            }
+        }
+
+        // Retain any legacy/unmatched trackStrand values that have applicants
+        $legacyStrands = [];
+        foreach ($rawSummary as $rs) {
+            $val = trim((string) ($rs['trackStrand'] ?? ''));
+            if ($val === '' || isset($matchedTrackKeys[strtolower($val)])) continue;
+            $key = strtolower($val);
+            if (!isset($legacyStrands[$key])) {
+                $legacyStrands[$key] = ['name' => $val, 'new' => 0, 'transferee' => 0, 'total' => 0];
+            }
+            if (in_array($rs['admissionType'], ['New Student', 'Freshman'])) $legacyStrands[$key]['new'] += $rs['cnt'];
+            elseif ($rs['admissionType'] === 'Transferee') $legacyStrands[$key]['transferee'] += $rs['cnt'];
+            $legacyStrands[$key]['total'] = $legacyStrands[$key]['new'] + $legacyStrands[$key]['transferee'];
+        }
+        foreach ($legacyStrands as $ls) {
+            if ($ls['total'] > 0) {
+                $summary['shs'][] = $ls;
+            }
         }
 
         // Discovery Stats (Marketing Source)
@@ -146,18 +180,20 @@ class AdminAlabangController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $activeSurveyOptions = $em->getRepository(\App\Entity\SurveyOption::class)->findBy(
-            ['campus' => ['feu_alabang', ApplicantBed::CAMPUS_ALABANG], 'isActive' => true],
+        $allSurveyOptions = $em->getRepository(\App\Entity\SurveyOption::class)->findBy(
+            ['campus' => ['feu_alabang', ApplicantBed::CAMPUS_ALABANG]],
             ['label' => 'ASC']
         );
 
         $discoveryMap = [];
         $normalizedToLabel = [];
-        foreach ($activeSurveyOptions as $opt) {
+        foreach ($allSurveyOptions as $opt) {
             $label = trim((string) $opt->getLabel());
             if ($label !== '') {
-                $discoveryMap[$label] = 0;
                 $normalizedToLabel[strtolower($label)] = $label;
+                if ($opt->isActive()) {
+                    $discoveryMap[$label] = 0;
+                }
             }
         }
 
@@ -175,7 +211,8 @@ class AdminAlabangController extends AbstractController
                 }
                 $key = strtolower($singleSrc);
                 if (isset($normalizedToLabel[$key])) {
-                    $discoveryMap[$normalizedToLabel[$key]] += $cnt;
+                    $label = $normalizedToLabel[$key];
+                    $discoveryMap[$label] = ($discoveryMap[$label] ?? 0) + $cnt;
                 } else {
                     $otherCount += $cnt;
                 }
