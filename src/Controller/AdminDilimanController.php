@@ -151,7 +151,7 @@ class AdminDilimanController extends AbstractController
         }
 
         $allTracks = $em->getRepository(\App\Entity\TrackSetup::class)->findBy(
-            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN]],
+            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN], 'isDeleted' => false],
             ['name' => 'ASC']
         );
 
@@ -206,7 +206,7 @@ class AdminDilimanController extends AbstractController
             ->getResult();
 
         $allSurveyOptions = $em->getRepository(\App\Entity\SurveyOption::class)->findBy(
-            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN]],
+            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN], 'isDeleted' => false],
             ['label' => 'ASC']
         );
 
@@ -835,7 +835,7 @@ class AdminDilimanController extends AbstractController
         $nationalities = $em->getRepository(\App\Entity\LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
         $countries = $em->getRepository(\App\Entity\LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
         $tracks = $em->getRepository(\App\Entity\TrackSetup::class)->findBy(
-            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN], 'isActive' => true],
+            ['campus' => ['feu_diliman', ApplicantBed::CAMPUS_DILIMAN], 'isActive' => true, 'isDeleted' => false],
             ['name' => 'ASC']
         );
 
@@ -1308,7 +1308,7 @@ class AdminDilimanController extends AbstractController
                 }
             }
 
-            if ($request->request->has('siblings')) {
+            if ($request->request->has('siblings_submitted') || $request->request->has('siblings')) {
                 $siblingsData = $request->request->all('siblings');
                 $existingByName = [];
                 foreach ($registration->getSiblings()->toArray() as $existingSibling) {
@@ -1335,10 +1335,10 @@ class AdminDilimanController extends AbstractController
                     ];
                 }
 
+                // Soft-delete only (never hard-delete existing siblings)
                 foreach ($existingByName as $existingKey => $existingSibling) {
                     if (!isset($submittedByName[$existingKey])) {
-                        $registration->removeSibling($existingSibling);
-                        $em->remove($existingSibling);
+                        $existingSibling->setIsDeleted(true);
                     }
                 }
 
@@ -1352,6 +1352,7 @@ class AdminDilimanController extends AbstractController
                         $registration->addSibling($sibling);
                         $em->persist($sibling);
                     }
+                    $sibling->setIsDeleted(false);
                     $sibling->setSchool($payload['school']);
                     $sibling->setFeuStudentNo($payload['feu_id']);
                     $sibling->setIsFeuStudent(true);

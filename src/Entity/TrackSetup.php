@@ -27,6 +27,9 @@ class TrackSetup
     #[ORM\Column(options: ['default' => true])]
     private bool $isActive = true;
 
+    #[ORM\Column(name: 'is_deleted', options: ['default' => false])]
+    private bool $isDeleted = false;
+
     #[ORM\Column(options: ['default' => 0])]
     private int $displayOrder = 0;
 
@@ -51,6 +54,9 @@ class TrackSetup
 
     public function isActive(): bool { return $this->isActive; }
     public function setIsActive(bool $isActive): static { $this->isActive = $isActive; return $this; }
+
+    public function isDeleted(): bool { return $this->isDeleted; }
+    public function setIsDeleted(bool $isDeleted): static { $this->isDeleted = $isDeleted; return $this; }
 
     public function getDisplayOrder(): int { return $this->displayOrder; }
     public function setDisplayOrder(int $displayOrder): static { $this->displayOrder = $displayOrder; return $this; }

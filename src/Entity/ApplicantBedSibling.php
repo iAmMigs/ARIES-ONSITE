@@ -32,6 +32,9 @@ class ApplicantBedSibling
     #[ORM\Column(name: 'FeuStudentNo', type: Types::STRING, length: 50, nullable: true)]
     private ?string $FeuStudentNo = null;
 
+    #[ORM\Column(name: 'is_deleted', type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $isDeleted = false;
+
     public function getApplicant(): ?ApplicantBed { return $this->applicant; }
     public function setApplicant(?ApplicantBed $applicant): static { $this->applicant = $applicant; return $this; }
     
@@ -46,4 +49,7 @@ class ApplicantBedSibling
     
     public function getFeuStudentNo(): ?string { return $this->FeuStudentNo; }
     public function setFeuStudentNo(?string $FeuStudentNo): static { $this->FeuStudentNo = $FeuStudentNo; return $this; }
+
+    public function isDeleted(): bool { return $this->isDeleted; }
+    public function setIsDeleted(bool $isDeleted): static { $this->isDeleted = $isDeleted; return $this; }
 }

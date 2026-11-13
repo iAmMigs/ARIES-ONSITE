@@ -71,7 +71,7 @@ class EnrollmentAlabangController extends AbstractController
 
         // Active survey options sorted alphabetically (A-Z)
         $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
-            ['campus' => [$campus, $campusCode], 'isActive' => true],
+            ['campus' => [$campus, $campusCode], 'isActive' => true, 'isDeleted' => false],
             ['label' => 'ASC']
         );
 
@@ -120,7 +120,7 @@ class EnrollmentAlabangController extends AbstractController
 
         // Active tracks sorted alphabetically (A-Z)
         $tracks = $em->getRepository(TrackSetup::class)->findBy(
-            ['campus' => [$campus, $campusCode], 'isActive' => true],
+            ['campus' => [$campus, $campusCode], 'isActive' => true, 'isDeleted' => false],
             ['name' => 'ASC']
         );
 

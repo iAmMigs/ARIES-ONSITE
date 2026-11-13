@@ -358,9 +358,10 @@
                                 <i class="ki-filled ki-profile-user text-feu-green-600 text-base"></i>
                                 <h4 class="text-sm font-bold text-gray-800 uppercase tracking-wider">Siblings (Enrolled in FEU)</h4>
                             </div>
-                            {% if registration.siblings|length > 0 %}
+                            {% set activeSiblings = registration.siblings|filter(s => not s.isDeleted) %}
+                            {% if activeSiblings|length > 0 %}
                                 <div class="space-y-2.5">
-                                    {% for sibling in registration.siblings %}
+                                    {% for sibling in activeSiblings %}
                                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-xl bg-gray-50/70 border border-gray-200/70 shadow-2xs">
                                             <div>
                                                 <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">Sibling Name</span>
@@ -573,7 +574,7 @@
                                             </div>
                                             <div class="min-w-0 flex-1">
                                                 <div class="text-sm font-bold text-red-900 truncate">{{ setup.documentName }}</div>
-                                                <div class="text-xs text-red-600 font-bold uppercase whitespace-nowrap mt-0.5">Missing / Not Submitted</div>
+                                                <div class="text-xs text-red-600 font-bold uppercase whitespace-nowrap mt-0.5">Not Submitted</div>
                                             </div>
                                         </div>
                                         <form method="POST" action="{{ path('app_admin_alabang_registration_doc_waive', {id: registration.studentNumber, slug: setup.slug}) }}" class="m-0 flex-shrink-0" onsubmit="return confirm('Are you sure you want to officially waive this requirement for this applicant?');">

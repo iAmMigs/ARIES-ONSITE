@@ -696,10 +696,45 @@
                     </table>
                 </div>
 
+                {# CARD E: SIBLINGS (ENROLLED IN FEU) #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> Siblings (Enrolled in FEU)
+                            </td>
+                        </tr>
+                    </table>
+
+                    {% set activeSiblings = registration.siblings|filter(s => not s.isDeleted) %}
+                    {% if activeSiblings|length > 0 %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Sibling Name</th>
+                                <th style="width: 35%;">School Attended</th>
+                                <th style="width: 25%;">FEU Student No.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sib in activeSiblings %}
+                            <tr>
+                                <td><strong>{{ sib.siblingName }}</strong></td>
+                                <td>{{ sib.school }}</td>
+                                <td>{{ sib.feuStudentNo|default(sib.studentNo|default('N/A')) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <div style="font-size: 7.5pt; color: #9ca3af; font-style: italic; padding: 3px 0;">No siblings enrolled in FEU recorded.</div>
+                    {% endif %}
+                </div>
+
             </td>
 
             {# ------------------------------------------------ #}
-            {# RIGHT COLUMN: EDUCATION, FILES, SIBLINGS & INFO  #}
+            {# RIGHT COLUMN: EDUCATION, FILES & INFO            #}
             {# ------------------------------------------------ #}
             <td style="width: 49%; vertical-align: top; padding: 0;">
 
@@ -841,40 +876,6 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-
-                {# CARD E: SIBLINGS (ENROLLED IN FEU) #}
-                <div class="card">
-                    <table class="card-header-table">
-                        <tr>
-                            <td class="card-title">
-                                <span class="card-title-icon">&bull;</span> Siblings (Enrolled in FEU)
-                            </td>
-                        </tr>
-                    </table>
-
-                    {% if registration.siblings|length > 0 %}
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40%;">Sibling Name</th>
-                                <th style="width: 35%;">School Attended</th>
-                                <th style="width: 25%;">FEU Student No.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for sib in registration.siblings %}
-                            <tr>
-                                <td><strong>{{ sib.siblingName }}</strong></td>
-                                <td>{{ sib.school }}</td>
-                                <td>{{ sib.feuStudentNo|default(sib.studentNo|default('N/A')) }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    {% else %}
-                        <div style="font-size: 7.5pt; color: #9ca3af; font-style: italic; padding: 3px 0;">No siblings enrolled in FEU recorded.</div>
-                    {% endif %}
                 </div>
 
                 {# CARD F: GENERAL INFORMATION #}

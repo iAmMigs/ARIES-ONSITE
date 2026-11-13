@@ -27,9 +27,9 @@ class TrackController extends AbstractController
         $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
         $databaseSwitcher->switchToCampus($campusCode);
 
-        // Alphabetically sorted by name (A-Z)
+        // Alphabetically sorted by name (A-Z), excluding soft-deleted
         $tracks = $em->getRepository(TrackSetup::class)->findBy(
-            ['campus' => $campusCode],
+            ['campus' => $campusCode, 'isDeleted' => false],
             ['name' => 'ASC']
         );
 
@@ -90,9 +90,10 @@ class TrackController extends AbstractController
             return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
         }
 
-        // Duplicate prevention per campus (case-insensitive for both code and name)
+        // Duplicate prevention per campus (case-insensitive for both code and name, excluding soft-deleted)
         $existing = $em->getRepository(TrackSetup::class)->createQueryBuilder('t')
             ->where('t.campus = :campus')
+            ->andWhere('t.isDeleted = false')
             ->andWhere('(LOWER(TRIM(t.code)) = :code OR LOWER(TRIM(t.name)) = :name)')
             ->setParameter('campus', $campusCode)
             ->setParameter('code', strtolower($code))
@@ -132,7 +133,7 @@ class TrackController extends AbstractController
         }
 
         $track = $em->getRepository(TrackSetup::class)->find($id);
-        if (!$track || $track->getCampus() !== $campusCode) {
+        if (!$track || $track->getCampus() !== $campusCode || $track->isDeleted()) {
             $this->addFlash('error', 'Track not found.');
             return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
         }
@@ -145,9 +146,10 @@ class TrackController extends AbstractController
             return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
         }
 
-        // Duplicate check excluding current track
+        // Duplicate check excluding current track and soft-deleted tracks
         $existing = $em->getRepository(TrackSetup::class)->createQueryBuilder('t')
             ->where('t.campus = :campus')
+            ->andWhere('t.isDeleted = false')
             ->andWhere('t.id != :id')
             ->andWhere('(LOWER(TRIM(t.code)) = :code OR LOWER(TRIM(t.name)) = :name)')
             ->setParameter('campus', $campusCode)
@@ -183,7 +185,7 @@ class TrackController extends AbstractController
         }
 
         $track = $em->getRepository(TrackSetup::class)->find($id);
-        if (!$track || $track->getCampus() !== $campusCode) {
+        if (!$track || $track->getCampus() !== $campusCode || $track->isDeleted()) {
             $this->addFlash('error', 'Track not found.');
             return $this->redirectToRoute('app_admin_tracks_index', ['campus' => $campus]);
         }
@@ -195,7 +197,8 @@ class TrackController extends AbstractController
         }
 
         $trackName = $track->getName();
-        $em->remove($track);
+        $track->setIsDeleted(true);
+        $track->setIsActive(false);
         $em->flush();
 
         $this->addFlash('success', sprintf('Unused track "%s" deleted successfully.', $trackName));

@@ -28,9 +28,9 @@ class SurveyController extends AbstractController
         $campusCode = strtolower(trim($campus)) === 'alabang' ? 'feu_alabang' : 'feu_diliman';
         $databaseSwitcher->switchToCampus($campusCode);
 
-        // Alphabetically sorted by label (A-Z)
+        // Alphabetically sorted by label (A-Z), excluding soft-deleted
         $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
-            ['campus' => $campusCode],
+            ['campus' => $campusCode, 'isDeleted' => false],
             ['label' => 'ASC']
         );
 
@@ -102,7 +102,7 @@ class SurveyController extends AbstractController
         }
 
         $option = $em->getRepository(SurveyOption::class)->find($id);
-        if ($option && $option->getCampus() === $campusCode) {
+        if ($option && $option->getCampus() === $campusCode && !$option->isDeleted()) {
             $option->setIsActive(!$option->isActive());
             $em->flush();
             $this->addFlash('success', sprintf('Survey option "%s" status updated.', $option->getLabel()));
@@ -131,11 +131,12 @@ class SurveyController extends AbstractController
             return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
         }
 
-        // Duplicate validation (case-insensitive & trimmed per campus)
+        // Duplicate validation (case-insensitive & trimmed per campus, excluding soft-deleted)
         $existing = $em->createQueryBuilder()
             ->select('s')
             ->from(SurveyOption::class, 's')
             ->where('s.campus = :campus')
+            ->andWhere('s.isDeleted = false')
             ->andWhere('LOWER(TRIM(s.label)) = :label')
             ->setParameter('campus', $campusCode)
             ->setParameter('label', strtolower($label))
@@ -175,7 +176,7 @@ class SurveyController extends AbstractController
         }
 
         $option = $em->getRepository(SurveyOption::class)->find($id);
-        if ($option && $option->getCampus() === $campusCode) {
+        if ($option && $option->getCampus() === $campusCode && !$option->isDeleted()) {
             $label = trim((string) $request->request->get('label', ''));
             $icon = trim((string) $request->request->get('icon', 'ki-verify'));
 
@@ -184,11 +185,12 @@ class SurveyController extends AbstractController
                 return $this->redirectToRoute('app_admin_survey_index', ['campus' => $campus]);
             }
 
-            // Duplicate validation excluding current ID
+            // Duplicate validation excluding current ID and soft-deleted options
             $existing = $em->createQueryBuilder()
                 ->select('s')
                 ->from(SurveyOption::class, 's')
                 ->where('s.campus = :campus')
+                ->andWhere('s.isDeleted = false')
                 ->andWhere('s.id != :id')
                 ->andWhere('LOWER(TRIM(s.label)) = :label')
                 ->setParameter('campus', $campusCode)
@@ -238,7 +240,8 @@ class SurveyController extends AbstractController
         }
 
         $optionLabel = $option->getLabel();
-        $em->remove($option);
+        $option->setIsDeleted(true);
+        $option->setIsActive(false);
         $em->flush();
 
         $this->addFlash('success', sprintf('Unused survey option "%s" deleted successfully.', $optionLabel));
