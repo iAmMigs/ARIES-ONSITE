@@ -31,7 +31,7 @@ class AdminAlabangController extends AbstractController
     ) {
     }
     #[Route('/', name: 'app_admin_alabang_dashboard')]
-    public function dashboard(ApplicantBedRepository $repository, SchoolYearRepository $syRepo): Response
+    public function dashboard(ApplicantBedRepository $repository, SchoolYearRepository $syRepo, EntityManagerInterface $em): Response
     {
         $campus = ApplicantBed::CAMPUS_ALABANG;
         
@@ -146,17 +146,22 @@ class AdminAlabangController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $sources = [
-            'Brochures/Flyers', 'Banner', 'Campus Tour', 'Events', 'Other Social Media',
-            'Facebook', 'Instagram', 'TikTok',
-            'Google/Website', 'Immersion', 'Phone Inquiry', 'Poster',
-            'Friends', 'Family/Relatives',
-            'School Visit/Career Talk', 'Visibility: Signage/Billboard', 'Walk-in', 'Other'
-        ];
+        $activeSurveyOptions = $em->getRepository(\App\Entity\SurveyOption::class)->findBy(
+            ['campus' => ['feu_alabang', ApplicantBed::CAMPUS_ALABANG], 'isActive' => true],
+            ['label' => 'ASC']
+        );
 
         $discoveryMap = [];
-        foreach ($sources as $s) { $discoveryMap[$s] = 0; }
-        
+        $normalizedToLabel = [];
+        foreach ($activeSurveyOptions as $opt) {
+            $label = trim((string) $opt->getLabel());
+            if ($label !== '') {
+                $discoveryMap[$label] = 0;
+                $normalizedToLabel[strtolower($label)] = $label;
+            }
+        }
+
+        $otherCount = 0;
         foreach ($rawDiscovery as $rd) {
             $srcStr = trim((string)($rd['source'] ?? ''));
             if ($srcStr === '') continue;
@@ -168,12 +173,17 @@ class AdminAlabangController extends AbstractController
                 if ($singleSrc === 'Social Media' || str_starts_with($singleSrc, 'Social Media')) {
                     $singleSrc = 'Other Social Media';
                 }
-                if (isset($discoveryMap[$singleSrc])) {
-                    $discoveryMap[$singleSrc] += $cnt;
+                $key = strtolower($singleSrc);
+                if (isset($normalizedToLabel[$key])) {
+                    $discoveryMap[$normalizedToLabel[$key]] += $cnt;
                 } else {
-                    $discoveryMap['Other'] += $cnt;
+                    $otherCount += $cnt;
                 }
             }
+        }
+
+        if ($otherCount > 0) {
+            $discoveryMap['Other'] = ($discoveryMap['Other'] ?? 0) + $otherCount;
         }
 
         $discoveryStats = [];
