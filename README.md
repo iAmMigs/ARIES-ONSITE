@@ -1,115 +1,43 @@
 # ARIES-ONSITE (Onsite Enrollment System)
 
-Welcome to the **ARIES-ONSITE** project repository! This system is a centralized, web-based enrollment application tailored for **FEU Alabang** and **FEU Diliman**. 
+**ARIES-ONSITE** is a web-based Basic Education (K–10 and Senior High School) onsite student registration and admissions management platform built for **FEU Alabang** and **FEU Diliman**.
 
-## 1. Details of the Project
-The ARIES-ONSITE application is designed to streamline the onsite student registration and enrollment workflow. It serves as a unified platform for administrative management, providing essential tools to process applicants seamlessly across multiple campuses.
+## Project Overview
 
-### Core Features
-*   **Multi-Campus Operations:** Dedicated administrative dashboards and application funnels tailored specifically for the records and processes of FEU Alabang and FEU Diliman.
-*   **Comprehensive Student Registration:** Facilitates the capture of essential applicant details, academic program choices, and securely handles required document uploads.
-*   **Data Integrity & Security:** Contains highly advanced tracking through dynamic database triggers coupled with a robust audit trail mechanism. It tracks all updates and strictly distinguishes between legitimate edits made via the system and direct tampering/changes made at the database backdoor level.
-*   **Performance Optimization:** Engineered for high responsiveness during peak enrollment volume surges, utilizing server-side pagination, strict file upload constraints, and index-optimized database search queries.
+ARIES-ONSITE streamlines the end-to-end onsite admissions workflow—from applicant registration and document submission to administrative verification, compliance tracking, payment/exam recording, and printable student summary exports—while maintaining strict campus isolation and database-level audit integrity.
 
-## 2. Specifics and Requirements
+## Core Features
 
-To run this project, ensure your environment meets the following software architectural structural requirements.
+### Multi-Campus Operations
+* **Campus-Specific Portals & Dashboards:** Dedicated public enrollment flows and administrative panels for **FEU Alabang** and **FEU Diliman**.
+* **Isolated Campus Databases:** Dynamic campus database routing (`CampusDatabaseSwitcher`) separating Alabang and Diliman applicant records, configurations, and associate employee authentication databases.
 
-### Technology Stack
-*   **Backend Framework:** Symfony 7.4.5
-*   **Programming Language:** PHP 8.2 (or higher)
-*   **Database Management:** MySQL or MariaDB (Integrated via Doctrine ORM)
-*   **Frontend Technologies:**
-    *   Twig Templating Engine
-    *   Tailwind CSS (Compiled via `symfonycasts/tailwind-bundle`)
+### Student Registration & Admissions Workflow
+* **K–10 & SHS Application Funnel:** Captures personal information, standardized Philippine address hierarchy (Region, Province, City/Municipality, Barangay), citizenship/religion/country lookups, educational history, parent/guardian details, FEU-enrolled siblings, and foreign passport records.
+* **Automated Student ID & Notifications:** Generates campus student numbers (`StudentIdGenerator`) and dispatches admissions email notifications (`AdmissionsEmailService`).
+* **Document Compliance & Promissory Tracking:** Supports per-student-type document requirements, file validation/uploads, promissory deadlines, and automated compliance status synchronization (`DocumentComplianceService`).
 
-### System Prerequisites
-*   **PHP:** Version >= 8.2 (Required Extensions: `ctype`, `iconv`, `pdo_mysql`)
-*   **Composer:** Needed for managing PHP library dependencies properly.
-*   **Database Server:** XAMPP, WAMP, or any dedicated local MySQL/MariaDB server instance.
-*   **Git:** For version control and cloning the repository base.
-*   **Symfony CLI:** (Optional but highly recommended for launching a robust local development server)
+### Administrative Management & Reporting
+* **Dynamic Analytics Dashboard:** Tracks registration volumes, K–10 and SHS track/strand breakdowns, and marketing/discovery survey metrics dynamically from campus configurations while preserving historical counts for disabled options.
+* **Applicant Review & Editing:** Server-side paginated registration directory with search/filtering, in-place applicant editing, sibling management, exam/payment status controls, and per-document action menus (Upload, Replace, Waive/Unwaive, and Soft Delete).
+* **PDF Student Summary Export:** Generates formatted applicant summary sheets (personal info, family/guardian details, FEU siblings, education history, submitted documents, and general info) via **Dompdf**.
 
-## 3. Complete Instructions on How to Install
+### Configurable Campus Modules
+* **Document Setup:** Manage required admission documents and allowed file formats per applicant type.
+* **School Year Management:** Configure active enrollment school years per campus.
+* **SHS Tracks & Strands:** Manage selectable academic tracks/strands with active toggles and soft deletion.
+* **Discovery Survey Options:** Manage marketing/discovery survey options with active toggles and soft deletion.
 
-Follow these step-by-step instructions to get the application running fully functional on your local machine.
+### Security, Access Control & Data Integrity
+* **Role-Based Access Control (RBAC):** Tiered admin roles (`Master Admin`, `Senior Admin`, `Staff Admin`) and granular module permissions (`Registrations`, `Finance`, `Documents`, `School Year`, `Tracks`, `Survey Options`, `Admin Access`) integrated with associate employee accounts.
+* **Application Hardening:** CSRF protection, login throttling, campus access subscribers, and no-cache response headers on protected routes.
+* **Soft Deletes:** Administrative deletions across documents, applicant siblings, tracks, and survey options use `is_deleted` soft-delete flags to preserve historical records and dashboard accuracy.
+* **Tamper-Evident Audit Trail:** Combines Symfony event subscribers (`DatabaseAuditSubscriber`) with database triggers and dedicated `Audit*` tables to log every modification with the acting admin ID and flag unauthorized direct database edits (`BACKDOOR`).
 
-### Step 1: Clone the Repository
-Open your terminal or command prompt window and clone the project to your chosen local directory:
-```bash
-git clone https://github.com/iAmMigs/ARIES-ONSITE.git
-cd ARIES-ONSITE
-```
+## Technology Stack
 
-### Step 2: Install PHP Dependencies
-Run Composer to read the `composer.lock` file and install all necessary vendor libraries and packages:
-```bash
-composer install
-```
-
-### Step 3: Configure Environment Variables
-You need to establish your local environment file. This file contains critical sensitive details such as your database connection string.
-1. Duplicate the templated environment file `.env` and name the copy `.env.local`:
-   ```bash
-   cp .env .env.local
-   ```
-2. Open `.env.local` in your preferred code editor.
-3. Locate the `DATABASE_URL` variable line. Update it accurately with your current local database credentials using the following structure format:
-   ```dotenv
-   DATABASE_URL="mysql://username:password@127.0.0.1:3306/aries_db?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
-   ```
-   *(Critical Note: Ensure your configured database user account has administrative privileges to create databases AND execute/create TRIGGERS, as the security audit trail relies heavily on them).*
-
-### Step 4: Create and Setup the Database
-*(Skip to Step 5 if you were already handed an existing `.sql` database backup).* 
-If setting up from scratch, let Doctrine create the database schema and execute migrations for you:
-```bash
-# 1. Instruct Doctrine to provision the new database
-php bin/console doctrine:database:create
-
-# 2. Execute migrations to generate tables, columns, and audit triggers
-php bin/console doctrine:migrations:migrate
-```
-
-### Step 5: Build Frontend Assets
-Compile the Tailwind CSS structural utilities to ensure all responsive grids and visual styles load successfully:
-```bash
-# Build the Tailwind CSS files
-php bin/console tailwind:build
-
-# Compile the final asset mapping
-php bin/console asset-map:compile
-```
-
-### Step 6: Start the Local Development Server
-Launch your server listener so you can interact with the app in your browser:
-```bash
-# Preferred method using Symfony CLI
-symfony server:start
-
-# Alternative method using PHP's standard built-in server utility
-php -S localhost:8000 -t public/
-```
-You can now access the running application by navigating to `http://localhost:8000` (or the port specified by the CLI) via your web browser.
-
----
-
-## Testing & Useful Developer Commands
-
-The repository comes packaged with built-in sandbox commands that allow you to rapidly populate your database with dummy data logic for testing workflows.
-
-### Populating Mock Data
-*   **Create Admin Accounts:** `php bin/console app:create-admins`
-*   **Seed Alabang Applicants Mock Data:** `php bin/console app:populate-alabang`
-*   **Seed Diliman Applicants Mock Data:** `php bin/console app:populate-diliman`
-
-### Clearing Mock Data
-> ⚠️ **WARNING:** These commands will aggressively wipe ALL applicant records for the specified campus. Use exclusively for isolated test environments.
-*   **Purge Alabang Data:** `php bin/console app:clear-alabang`
-*   **Purge Diliman Data:** `php bin/console app:clear-diliman`
-
-### Validating the Audit Trail
-The platform's native event subscriber and triggers pair together to lock down database modification trails. Use these steps to test it: 
-1. **Via Dashboard:** Modify a record through the Admin Dashboard UI. The database logs your active Admin ID as the accessor.
-2. **Via Third-Party Database Tool (Tampering Context):** Attempt to modify a row data value externally via a database management GUI like PHPMyAdmin or DBeaver. The background SQL trigger will immediately intercept the raw query, log a `NULL` admin ID indicating absence of application-level authentication, and forcefully insert a `BACKDOOR` system remark.
-3. **Monitor Logs:** Query your system directly to view these interceptions using: `SELECT * FROM audit_bed_applicants ORDER BY audit_date_time DESC;`
+* **Backend:** PHP 8.2+, Symfony 7.4
+* **Database & ORM:** MySQL / MariaDB with Doctrine ORM 3.6 & Doctrine DBAL
+* **Frontend:** Twig, Tailwind CSS (`symfonycasts/tailwind-bundle`), Stimulus, Symfony UX Turbo
+* **PDF Export:** Dompdf (`dompdf/dompdf`)
+* **Messaging & Security:** Symfony Mailer, Symfony Security Bundle, Rate Limiter, CSRF
