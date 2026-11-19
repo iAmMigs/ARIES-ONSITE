@@ -1,0 +1,945 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller;
+
+use App\Entity\ApplicantBed;
+use App\Entity\ApplicantBedPassport;
+use App\Entity\ApplicantBedGuardian;
+use App\Entity\ApplicantBedSibling;
+use App\Entity\ApplicantBedSchool;
+use App\Entity\ApplicantBedRequirement;
+use App\Entity\DocumentSetup;
+use App\Entity\LookupRegion;
+use App\Entity\LookupProvince;
+use App\Entity\LookupCity;
+use App\Entity\LookupBarangay;
+use App\Entity\LookupReligion;
+use App\Entity\LookupCitizenship;
+use App\Entity\LookupCountry;
+use App\Entity\SchoolYear;
+use App\Entity\SurveyOption;
+use App\Entity\CampusSetting;
+use App\Entity\TrackSetup;
+use App\Repository\SchoolYearRepository;
+use App\Service\DocumentComplianceService;
+use App\Service\StudentIdGenerator;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/alabang/apply')]
+class EnrollmentAlabangController extends AbstractController
+{
+    #[Route('', name: 'app_enrollment_alabang_apply', methods: ['GET'])]
+    public function apply(Request $request, EntityManagerInterface $em, SchoolYearRepository $syRepo): Response
+    {
+        $campus = 'feu_alabang';
+        $campusCode = SchoolYear::CAMPUS_ALABANG;
+
+        $openSYs = $syRepo->findOpenEnrollmentsByCampus($campusCode);
+        if (empty($openSYs)) {
+            return $this->render('enrollment-onsite/enrollment_closed.html.twig', [
+                'campus' => $campus,
+                'activeSY' => null,
+            ]);
+        }
+        
+        $documents    = $em->getRepository(DocumentSetup::class)->findBy(['campus' => [$campusCode, null]]);
+        $religions    = $em->getRepository(LookupReligion::class)->findBy([], ['religionName' => 'ASC']);
+        $citizenships = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
+        $nationalities = $em->getRepository(LookupCitizenship::class)->findBy([], ['citizenshipName' => 'ASC']);
+        $countries    = $em->getRepository(LookupCountry::class)->findBy([], ['countryName' => 'ASC']);
+
+        $countryMapBySfId = [];
+        foreach ($countries as $c) {
+            if ($c->getCountrySfId() !== null && $c->getCountrySfId() !== '') {
+                $countryMapBySfId[(string)$c->getCountrySfId()] = $c;
+            }
+        }
+        $nationalityIsoMap = [];
+        foreach ($nationalities as $nat) {
+            $sfId = $nat->getCountrySfId();
+            if ($sfId !== null && isset($countryMapBySfId[(string)$sfId])) {
+                $nationalityIsoMap[$nat->getCitizenshipName()] = $countryMapBySfId[(string)$sfId]->getIso();
+            }
+        }
+
+        // Active survey options sorted alphabetically (A-Z)
+        $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
+            ['campus' => [$campus, $campusCode], 'isActive' => true, 'isDeleted' => false],
+            ['label' => 'ASC']
+        );
+
+        if (empty($surveyOptions)) {
+            $defaultList = [
+                ['label' => 'Banner', 'icon' => 'ki-flag'],
+                ['label' => 'Brochures/Flyers', 'icon' => 'ki-document'],
+                ['label' => 'Campus Tour', 'icon' => 'ki-geolocation'],
+                ['label' => 'Events', 'icon' => 'ki-calendar'],
+                ['label' => 'Facebook', 'icon' => 'ki-facebook'],
+                ['label' => 'Family/Relatives', 'icon' => 'ki-people'],
+                ['label' => 'Friends', 'icon' => 'ki-users'],
+                ['label' => 'Google/Website', 'icon' => 'ki-compass'],
+                ['label' => 'Immersion', 'icon' => 'ki-user-square'],
+                ['label' => 'Instagram', 'icon' => 'ki-instagram'],
+                ['label' => 'Other Social Media', 'icon' => 'ki-share'],
+                ['label' => 'Phone Inquiry', 'icon' => 'ki-phone'],
+                ['label' => 'Poster', 'icon' => 'ki-abstract-26'],
+                ['label' => 'School Visit/Career Talk', 'icon' => 'ki-teacher'],
+                ['label' => 'TikTok', 'icon' => 'ki-tiktok'],
+                ['label' => 'Visibility: Signage/Billboard', 'icon' => 'ki-eye'],
+                ['label' => 'Walk-in', 'icon' => 'ki-exit-right'],
+            ];
+            foreach ($defaultList as $idx => $def) {
+                $opt = new SurveyOption();
+                $opt->setCampus($campus);
+                $opt->setLabel($def['label']);
+                $opt->setIcon($def['icon']);
+                $opt->setIsActive(true);
+                $opt->setDisplayOrder($idx);
+                $em->persist($opt);
+            }
+            $em->flush();
+            $surveyOptions = $em->getRepository(SurveyOption::class)->findBy(
+                ['campus' => [$campus, $campusCode], 'isActive' => true],
+                ['label' => 'ASC']
+            );
+        }
+
+        // Max survey choices limit from settings
+        $maxChoicesSetting = $em->getRepository(CampusSetting::class)->findOneBy([
+            'campus' => [$campus, $campusCode],
+            'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
+        ]);
+        $maxSurveyChoices = $maxChoicesSetting ? (int)$maxChoicesSetting->getSettingValue() : 3;
+
+        // Active tracks sorted alphabetically (A-Z)
+        $tracks = $em->getRepository(TrackSetup::class)->findBy(
+            ['campus' => [$campus, $campusCode], 'isActive' => true, 'isDeleted' => false],
+            ['name' => 'ASC']
+        );
+
+        return $this->render('enrollment-onsite/alabang/enroll.html.twig', [
+            'selected_campus'        => $campus,
+            'open_sys'               => $openSYs,
+            'active_sy'              => $syRepo->findActiveByCampus($campusCode),
+            'documents'              => $documents,
+            'religions'              => $religions,
+            'citizenships'           => $citizenships,
+            'nationalities'          => $nationalities,
+            'countries'              => $countries,
+            'nationality_iso_map'    => $nationalityIsoMap,
+            'surveyOptions'          => $surveyOptions,
+            'maxSurveyChoices'       => $maxSurveyChoices,
+            'tracks'                 => $tracks,
+        ]);
+    }
+
+    #[Route('/submit', name: 'app_enrollment_alabang_submit', methods: ['POST'])]
+    public function submit(
+        Request $request,
+        EntityManagerInterface $em,
+        StudentIdGenerator $idGenerator,
+        SchoolYearRepository $syRepo,
+        DocumentComplianceService $complianceService
+    ): Response
+    {
+        $campus = 'feu_alabang';
+        $campusCode = SchoolYear::CAMPUS_ALABANG;
+        
+        if (!$this->isCsrfTokenValid('enrollment_submit_alabang', (string)$request->request->get('_token'))) {
+            $this->addFlash('error', 'Your session has expired or the form submission token is invalid. Please try again.');
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
+        }
+
+        $syId = $request->request->get('school_year_id');
+        $selectedSY = null;
+        if ($syId) {
+            $selectedSY = $syRepo->find((int)$syId);
+        }
+
+        if (!$selectedSY || !$selectedSY->isEnrollmentOpen() || $selectedSY->getCampus() !== $campusCode) {
+            error_log("Enrollment Redirect: Selected School Year is invalid or closed.");
+            $this->addFlash('error', 'The selected school year enrollment is closed.');
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
+        }
+
+        $lrnInput = $request->request->get('lrn');
+        
+        if (!empty($lrnInput)) {
+            $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrnInput]);
+            if ($existing) {
+                error_log("Enrollment Redirect: LRN $lrnInput already exists in the system.");
+                $this->addFlash('error', 'The provided LRN is already registered.');
+                return $this->redirectToRoute('app_enrollment_alabang_apply');
+            }
+        }
+
+        $firstNameInput = trim((string)$request->request->get('first_name', ''));
+        $lastNameInput = trim((string)$request->request->get('last_name', ''));
+        $birthdayInput = trim((string)$request->request->get('birthday', ''));
+        $emailInput = trim((string)$request->request->get('email', ''));
+
+        if ($firstNameInput !== '' && $lastNameInput !== '' && $birthdayInput !== '' && $emailInput !== '') {
+            try {
+                $bDate = new \DateTime($birthdayInput);
+                $dupCheck = $em->getRepository(ApplicantBed::class)->createQueryBuilder('a')
+                    ->where('a.campus = :campus')
+                    ->andWhere('LOWER(TRIM(a.firstName)) = :firstName')
+                    ->andWhere('LOWER(TRIM(a.lastName)) = :lastName')
+                    ->andWhere('a.birthDate = :birthDate')
+                    ->andWhere('LOWER(TRIM(a.personalEmail)) = :email')
+                    ->setParameter('campus', $campusCode)
+                    ->setParameter('firstName', strtolower($firstNameInput))
+                    ->setParameter('lastName', strtolower($lastNameInput))
+                    ->setParameter('birthDate', $bDate)
+                    ->setParameter('email', strtolower($emailInput))
+                    ->setMaxResults(1)
+                    ->getQuery()
+                    ->getOneOrNullResult();
+
+                if ($dupCheck) {
+                    $this->addFlash('error', sprintf('Duplicate Registration Blocked: An application for %s %s already exists in the system (Student Number: %s).', $firstNameInput, $lastNameInput, $dupCheck->getStudentNumber()));
+                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                }
+            } catch (\Exception $e) { }
+        }
+
+        $em->beginTransaction();
+        try {
+            $applicant = new ApplicantBed();
+            
+            $studentNo = $idGenerator->generateStudentNumber($campus, $selectedSY);
+            $applicant->setStudentNumber($studentNo);
+            
+            // Persist the applicant immediately so that child entities (with derived identities) can safely map their ManyToOne primary keys.
+            $em->persist($applicant);
+            
+            $applicant->setCampus($campusCode);
+            $applicant->setAdmissionStatus(ApplicantBed::STATUS_PENDING);
+            $applicant->setAdmissionDate(new \DateTime());
+
+            $applicant->setEducationType($request->request->get('education_type'));
+            $applicant->setGradeLevel($request->request->get('grade_level'));
+            $applicant->setTrackStrand($request->request->get('strand'));
+            $applicant->setLrn($lrnInput !== '' ? $lrnInput : null);
+            $applicant->setSchoolYearOfEntry($selectedSY->getLabel());
+            $applicant->setAdmissionType($request->request->get('admission_type'));
+            $applicant->setLastGradeCompleted($request->request->get('last_grade_completed'));
+            $genAvg = $request->request->get('general_average');
+            $applicant->setGeneralAverage($genAvg !== null && trim((string)$genAvg) !== '' ? trim((string)$genAvg) : null);
+
+            $formatName = fn(?string $n) => $n ? strtoupper(trim($n)) : null;
+
+            $applicant->setLastName($formatName($request->request->get('last_name')));
+            $applicant->setFirstName($formatName($request->request->get('first_name')));
+            $applicant->setMiddleName($formatName($request->request->get('middle_name')));
+            $applicant->setSuffix($formatName($request->request->get('suffix')));
+            $applicant->setExtensionName($formatName($request->request->get('suffix')));
+            $applicant->setPreferredName($formatName($request->request->get('preferred_name')));
+            
+            if ($birthday = $request->request->get('birthday')) {
+                $applicant->setBirthDate(new \DateTime($birthday));
+            }
+            $applicant->setBirthPlace($formatName($request->request->get('birth_place')));
+            $applicant->setGender($request->request->get('gender') == 'Male' ? ApplicantBed::GENDER_MALE : ApplicantBed::GENDER_FEMALE);
+            
+            $religion = $request->request->get('religion');
+            if (strtoupper($religion) === 'OTHER') {
+                $otherReligion = $request->request->get('other_religion');
+                $applicant->setReligion($formatName($otherReligion) ?: 'OTHER');
+            } else {
+                $applicant->setReligion($religion);
+            }
+            
+            $citizenship = $request->request->get('citizenship');
+            $applicant->setCitizenship($citizenship);
+            $applicant->setNationality($request->request->get('nationality'));
+            $applicant->setCountryOfBirth($request->request->get('country_of_birth'));
+            $applicant->setCountryOfResidence($request->request->get('country_of_residence'));
+            
+            if (strtoupper($citizenship) === 'INTERNATIONAL') {
+                $applicant->setPassportNumber($request->request->get('passport_number'));
+                $applicant->setVisaType($request->request->get('visa_type'));
+                $applicant->setVisaStatus($request->request->get('visa_status'));
+
+                // Link and persist Passport entity
+                $passport = new ApplicantBedPassport();
+                $passport->setApplicant($applicant);
+                $passport->setPassportNumber($request->request->get('passport_number', ''));
+                $passport->setCountryOfIssue($request->request->get('passport_country_issue', ''));
+                if ($pIssueDate = $request->request->get('passport_date_issued')) {
+                    $passport->setDateIssued(new \DateTime($pIssueDate));
+                }
+                if ($pExpDate = $request->request->get('passport_expiration_date')) {
+                    $passport->setExpirationDate(new \DateTime($pExpDate));
+                }
+                $em->persist($passport);
+                $applicant->setPassport($passport);
+            }
+
+            $maxChoicesSetting = $em->getRepository(CampusSetting::class)->findOneBy([
+                'campus' => [$campus, $campusCode],
+                'settingKey' => CampusSetting::SETTING_MAX_SURVEY_CHOICES,
+            ]);
+            $maxSurveyChoices = $maxChoicesSetting ? (int)$maxChoicesSetting->getSettingValue() : 3;
+
+            $rawMarketing = $request->request->all()['marketing_source'] ?? $request->request->get('marketing_source');
+            if (is_array($rawMarketing)) {
+                $filteredRaw = array_filter(array_map('trim', $rawMarketing), fn($s) => $s !== '');
+                if (count($filteredRaw) > $maxSurveyChoices) {
+                    $em->rollback();
+                    $this->addFlash('error', sprintf('You can select a maximum of %d survey option(s).', $maxSurveyChoices));
+                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                }
+
+                $sources = [];
+                foreach ($filteredRaw as $src) {
+                    /*
+                    if ($src === 'Other') {
+                        $otherText = trim((string)$request->request->get('marketing_source_other', ''));
+                        $sources[] = $otherText !== '' ? ('Other: ' . $otherText) : 'Other';
+                    } else {
+                        $sources[] = trim((string)$src);
+                    }
+                    */
+                    if ($src !== 'Other') {
+                        $sources[] = trim((string)$src);
+                    }
+                }
+                $applicant->setMarketingSource(implode(', ', array_filter($sources)));
+            } else {
+                $marketingSource = (string)$rawMarketing;
+                /*
+                if ($marketingSource === 'Other') {
+                    $marketingSource = (string)$request->request->get('marketing_source_other', '');
+                }
+                */
+                $applicant->setMarketingSource($marketingSource !== '' && $marketingSource !== 'Other' ? $marketingSource : null);
+            }
+
+            if (empty($applicant->getMarketingSource())) {
+                $em->rollback();
+                $this->addFlash('error', 'Please select at least one option in the survey (How did you learn about us).');
+                return $this->redirectToRoute('app_enrollment_alabang_apply');
+            }
+
+            $agreedDateStr = $request->request->get('documents_agreed_date');
+            $promissoryAgreement = $request->request->get('promissory_agreement');
+
+            if (!empty($agreedDateStr)) {
+                $applicant->setDocumentsAgreedDate(new \DateTime($agreedDateStr));
+                $applicant->setDocumentsAgreed(true);
+            } elseif ($promissoryAgreement === '1' && $selectedSY->getPromissoryDeadline()) {
+                // If agreement flag is set (Alabang specific) use the school year's deadline
+                $applicant->setDocumentsAgreedDate($selectedSY->getPromissoryDeadline());
+                $applicant->setDocumentsAgreed(true);
+            }
+
+            $dialCode = trim((string)$request->request->get('country_dial_code', ''));
+            $contactNumber = trim((string)$request->request->get('contact_number', ''));
+            $applicant->setMobileNumber($dialCode ? ($dialCode . ' ' . $contactNumber) : $contactNumber);
+            $applicant->setPersonalEmail($request->request->get('email'));
+            $applicant->setLandLineNumber($request->request->get('landline'));
+
+            $this->hydrateAddress($applicant, $request, $em, 'current');
+            if ($request->request->get('sameAsCurrent') === 'on') {
+                $applicant->setPermanentRegion($applicant->getCurrentRegion());
+                $applicant->setPermanentProvince($applicant->getCurrentProvince());
+                $applicant->setPermanentCity($applicant->getCurrentCity());
+                $applicant->setPermanentBarangay($applicant->getCurrentBarangay());
+                $applicant->setPermanentAddress($applicant->getCurrentAddress());
+                $applicant->setPermanentZip($applicant->getCurrentZip());
+            } else {
+                $this->hydrateAddress($applicant, $request, $em, 'permanent');
+            }
+
+            $this->handleGuardian($applicant, $request, 'father', $em);
+            $this->handleGuardian($applicant, $request, 'mother', $em);
+            $this->handleGuardian($applicant, $request, 'guardian', $em);
+
+            $siblingNames = $request->request->all()['sibling_name'] ?? [];
+            $siblingSchools = $request->request->all()['sibling_school'] ?? [];
+            $siblingStudentNos = $request->request->all()['sibling_student_no'] ?? [];
+            if (is_array($siblingNames)) {
+                $seenSiblingNames = [];
+                foreach ($siblingNames as $index => $rawName) {
+                    $name = trim((string)($rawName ?? ''));
+                    $school = trim((string)($siblingSchools[$index] ?? ''));
+                    $studentNo = trim((string)($siblingStudentNos[$index] ?? ''));
+
+                    if ($name === '' && $school === '' && $studentNo === '') {
+                        continue;
+                    }
+
+                    $formattedName = strtoupper($name !== '' ? $name : ('UNNAMED SIBLING ' . ($index + 1)));
+                    if (isset($seenSiblingNames[$formattedName])) {
+                        $formattedName .= ' (' . ($index + 1) . ')';
+                    }
+                    $seenSiblingNames[$formattedName] = true;
+
+                    $sibling = new ApplicantBedSibling();
+                    $sibling->setApplicant($applicant);
+                    $sibling->setSiblingName($formattedName);
+                    $sibling->setSchool($school !== '' ? strtoupper($school) : null);
+                    $sibling->setFeuStudentNo($studentNo !== '' ? $studentNo : null);
+                    $sibling->setIsFeuStudent(true);
+                    $applicant->addSibling($sibling);
+                    $em->persist($sibling);
+                }
+            }
+
+            $levels = ['kinder', 'elem', 'jhs', 'shs'];
+            foreach ($levels as $lvl) {
+                $schools = $request->request->all()['educ_' . $lvl . '_school'] ?? [];
+                $years = $request->request->all()['educ_' . $lvl . '_year'] ?? [];
+                $levelLabels = $request->request->all()['educ_' . $lvl . '_level'] ?? [];
+                $types = $request->request->all()['educ_' . $lvl . '_type'] ?? [];
+                
+                $isInternationals = $request->request->all()['educ_' . $lvl . '_is_international'] ?? [];
+                $countries = $request->request->all()['educ_' . $lvl . '_country'] ?? [];
+                $regions = $request->request->all()['educ_' . $lvl . '_region'] ?? [];
+                $provinces = $request->request->all()['educ_' . $lvl . '_province'] ?? [];
+                $cities = $request->request->all()['educ_' . $lvl . '_city'] ?? [];
+                $addresses = $request->request->all()['educ_' . $lvl . '_address'] ?? [];
+
+                if (is_array($schools)) {
+                    foreach ($schools as $index => $schoolName) {
+                        if (!empty($schoolName)) {
+                            $school = new ApplicantBedSchool();
+                            $school->setApplicant($applicant);
+                            $school->setSchool($formatName($schoolName));
+                            $school->setSchoolYear($years[$index] ?? null);
+                            $school->setSchoolType($types[$index] ?? null);
+                            $school->setLevel($levelLabels[$index] ?? match($lvl) {
+                                'kinder' => 'Kindergarten',
+                                'elem' => 'Elementary',
+                                'jhs' => 'Junior High School',
+                                'shs' => 'Senior High School',
+                                default => strtoupper($lvl)
+                            });
+
+                            $addrVal = trim((string)($addresses[$index] ?? ''));
+                            $school->setAddressLine($addrVal !== '' ? $addrVal : null);
+                            
+                            $isInt = !empty($isInternationals[$index]);
+                            $school->setIsInternational($isInt);
+                            if ($isInt) {
+                                $countryVal = trim((string)($countries[$index] ?? ''));
+                                if ($countryVal === '') {
+                                    $em->rollback();
+                                    $this->addFlash('error', sprintf('Country is required for international school: %s', $schoolName));
+                                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                                }
+                                $school->setCountry($countryVal);
+                            } else {
+                                $regVal = trim((string)($regions[$index] ?? ''));
+                                $provVal = trim((string)($provinces[$index] ?? ''));
+                                $cityVal = trim((string)($cities[$index] ?? ''));
+                                if ($regVal === '' || $provVal === '' || $cityVal === '') {
+                                    $em->rollback();
+                                    $this->addFlash('error', sprintf('Region, Province, and City/Municipality are required for school: %s', $schoolName));
+                                    return $this->redirectToRoute('app_enrollment_alabang_apply');
+                                }
+                                if (is_numeric($regVal)) {
+                                    $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => (int)$regVal]);
+                                    $school->setRegion($r ? $r->getRegionDesc() : $regVal);
+                                } else {
+                                    $school->setRegion($regVal);
+                                }
+                                if (is_numeric($provVal)) {
+                                    $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => (int)$provVal]);
+                                    $school->setProvince($p ? $p->getProvinceDesc() : $provVal);
+                                } else {
+                                    $school->setProvince($provVal);
+                                }
+                                if (is_numeric($cityVal)) {
+                                    $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => (int)$cityVal]);
+                                    $school->setCity($c ? $c->getCityDesc() : $cityVal);
+                                } else {
+                                    $school->setCity($cityVal);
+                                }
+                            }
+                            
+                            $applicant->addSchool($school);
+                            $em->persist($school);
+                        }
+                    }
+                }
+            }
+
+            $applicableSetups = $complianceService->getApplicableDocuments($applicant);
+            $processedReqSlugs = [];
+
+            foreach ($applicableSetups as $docSetup) {
+                $slug = $docSetup->getSlug();
+                if (in_array($slug, $processedReqSlugs, true)) {
+                    continue;
+                }
+
+                $file = $request->files->get($slug);
+                if ($file instanceof UploadedFile && $file->isValid()) {
+                    $processedReqSlugs[] = $slug;
+                    $this->saveUploadedRequirement($applicant, $docSetup, $file, $studentNo, $em);
+                }
+            }
+
+            // Fallback: Catch any additional uploaded documents sent in request matching a valid setup for this campus
+            foreach ($request->files->all() as $fileKey => $uploadedFile) {
+                if (in_array($fileKey, $processedReqSlugs, true) || $fileKey === 'profile_picture' || $fileKey === 'profile_picture_sidebar') {
+                    continue;
+                }
+                if ($uploadedFile instanceof UploadedFile && $uploadedFile->isValid()) {
+                    $extraDocSetup = $em->getRepository(DocumentSetup::class)->findOneBy([
+                        'slug' => $fileKey,
+                        'campus' => [$campusCode, null],
+                    ]);
+                    if ($extraDocSetup) {
+                        $processedReqSlugs[] = $fileKey;
+                        $this->saveUploadedRequirement($applicant, $extraDocSetup, $uploadedFile, $studentNo, $em);
+                    }
+                }
+            }
+
+            // Synchronize document compliance status (ensuring missing documents are flagged with promissory deadline)
+            $complianceService->syncComplianceStatus($applicant);
+
+            $em->flush();
+            $em->commit();
+
+            return $this->redirectToRoute('app_enrollment_alabang_success', ['studentNumber' => $studentNo]);
+
+        } catch (\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
+            $em->rollback();
+            error_log('Enrollment DB Constraint Error (Alabang): ' . $e->getMessage());
+            $this->addFlash('error', 'Submission failed: A record with this unique information already exists.');
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
+        } catch (\Throwable $e) {
+            $em->rollback();
+            // Log the error for debugging
+            error_log('Enrollment Submission Error (Alabang): ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+            $this->addFlash('error', 'Submission failed: ' . $e->getMessage());
+            return $this->redirectToRoute('app_enrollment_alabang_apply');
+        }
+    }
+
+    /**
+     * Validates and persists an uploaded applicant document strictly adhering to admin-configured file rules.
+     */
+    private function saveUploadedRequirement(
+        ApplicantBed $applicant,
+        DocumentSetup $docSetup,
+        UploadedFile $file,
+        string $studentNo,
+        EntityManagerInterface $em
+    ): void {
+        if ($file->getSize() > 10485760) {
+            throw new \Exception('File ' . $docSetup->getDocumentName() . ' exceeds 10MB limit.');
+        }
+
+        $allowedTypesString = $docSetup->getAllowedFileTypes();
+        $allowedExtensions = !empty($allowedTypesString)
+            ? array_map('trim', explode(',', strtolower($allowedTypesString)))
+            : ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'];
+
+        if (in_array('jpg', $allowedExtensions, true) && !in_array('jpeg', $allowedExtensions, true)) {
+            $allowedExtensions[] = 'jpeg';
+        } elseif (in_array('jpeg', $allowedExtensions, true) && !in_array('jpg', $allowedExtensions, true)) {
+            $allowedExtensions[] = 'jpg';
+        }
+
+        $clientExt = strtolower((string)$file->getClientOriginalExtension());
+        if (!in_array($clientExt, $allowedExtensions, true)) {
+            throw new \Exception('Invalid format for ' . $docSetup->getDocumentName() . '. Allowed: ' . implode(', ', $allowedExtensions));
+        }
+
+        $mime = (string)$file->getMimeType();
+        $isAllowedMime = str_starts_with($mime, 'image/') 
+            || $mime === 'application/pdf'
+            || (in_array('docx', $allowedExtensions, true) && ($mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || $mime === 'application/zip'))
+            || (in_array('doc', $allowedExtensions, true) && ($mime === 'application/msword'));
+
+        if (!$isAllowedMime) {
+            throw new \Exception('Invalid file type for ' . $docSetup->getDocumentName());
+        }
+
+        $targetDir = $this->getParameter('kernel.project_dir') . '/public/uploads/' . $docSetup->getFolderName();
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        $safeExts = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx'];
+        $ext = strtolower((string)($file->guessExtension() ?: $clientExt));
+        if (!in_array($ext, $safeExts, true)) {
+            $ext = 'pdf';
+        }
+        $filename = $studentNo . '-' . strtoupper($docSetup->getSlug()) . '-' . bin2hex(random_bytes(8)) . '.' . $ext;
+        $file->move($targetDir, $filename);
+
+        $req = new ApplicantBedRequirement();
+        $req->setApplicant($applicant);
+        $req->setRequirement($docSetup->getDocumentName());
+        $req->setStoredFileName('uploads/' . $docSetup->getFolderName() . '/' . $filename);
+        $req->setSlug($docSetup->getSlug());
+        $req->setStatus('S');
+        $req->setDateSubmitted(new \DateTime());
+        $req->setIsDeleted(false);
+
+        $applicant->addRequirement($req);
+        $em->persist($req);
+    }
+
+    private function hydrateAddress(ApplicantBed $applicant, Request $request, EntityManagerInterface $em, string $type)
+    {
+        $prefix = ($type === 'current') ? 'address' : 'perm';
+        $fieldPrefix = ($type === 'current') ? 'Current' : 'Permanent';
+
+        $isInternational = strtoupper((string)$applicant->getCitizenship()) === 'INTERNATIONAL';
+        if ($type === 'permanent' && $isInternational) {
+            $applicant->setPermanentCountry($request->request->get('perm_country'));
+            $applicant->setPermanentAddress(strtoupper((string)($request->request->get('perm_address', '') ?: '')));
+            $applicant->setPermanentZip((string)$request->request->get('perm_zip', ''));
+            $applicant->setPermanentRegion(null);
+            $applicant->setPermanentProvince(null);
+            $applicant->setPermanentCity(null);
+            $applicant->setPermanentBarangay(null);
+            return;
+        }
+
+        $regionId = $request->request->get($type === 'current' ? 'region' : 'perm_region');
+        $provId = $request->request->get($prefix . '_province');
+        $cityId = $request->request->get($prefix . '_city');
+        $brgyId = $request->request->get($prefix . '_barangay');
+
+        if($regionId) {
+            $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regionId]);
+            if($r) $applicant->{'set'.$fieldPrefix.'Region'}($r->getRegionDesc());
+            else $applicant->{'set'.$fieldPrefix.'Region'}(strtoupper($regionId));
+        }
+        if($provId) {
+            $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provId]);
+            if($p) $applicant->{'set'.$fieldPrefix.'Province'}($p->getProvinceDesc());
+            else $applicant->{'set'.$fieldPrefix.'Province'}(strtoupper($provId));
+        }
+        if($cityId) {
+            $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityId]);
+            if($c) $applicant->{'set'.$fieldPrefix.'City'}($c->getCityDesc());
+            else $applicant->{'set'.$fieldPrefix.'City'}(strtoupper($cityId));
+        }
+        if($brgyId) {
+            $applicant->{'set'.$fieldPrefix.'Barangay'}($brgyId); 
+        }
+
+        $applicant->{'set'.$fieldPrefix.'Address'}(strtoupper((string)($request->request->get($type === 'current' ? 'address' : 'perm_address') ?: '')));
+        $applicant->{'set'.$fieldPrefix.'Zip'}((string)$request->request->get($type === 'current' ? 'address_zip' : 'perm_zip', ''));
+    }
+
+    private function handleGuardian(ApplicantBed $applicant, Request $request, string $slot, EntityManagerInterface $em)
+    {
+        $slotType = strtoupper($slot); 
+
+        if ($slot === 'guardian') {
+            $fullname = strtoupper(trim((string)$request->request->get('guardian_name', '')));
+            $relationship = strtoupper(trim((string)$request->request->get('guardian_relation', 'GUARDIAN')));
+            $occupation = strtoupper(trim((string)$request->request->get('guardian_occupation', '')));
+            if ($occupation === '') {
+                if (in_array($relationship, ['FATHER', 'DAD'])) {
+                    $occupation = strtoupper(trim((string)$request->request->get('father_occupation', '')));
+                } elseif (in_array($relationship, ['MOTHER', 'MOM'])) {
+                    $occupation = strtoupper(trim((string)$request->request->get('mother_occupation', '')));
+                }
+            }
+        } else {
+            $lname = trim($request->request->get($slot . '_lastname', ''));
+            $fname = trim($request->request->get($slot . '_firstname', ''));
+            $mname = trim($request->request->get($slot . '_middlename', ''));
+            
+            $firstMid = trim(strtoupper(trim("$fname $mname")));
+            $lname = strtoupper($lname);
+
+            if ($lname && $firstMid) {
+                $fullname = "$lname, $firstMid";
+            } elseif ($lname) {
+                $fullname = $lname;
+            } elseif ($firstMid) {
+                $fullname = $firstMid;
+            } else {
+                $fullname = '';
+            }
+
+            $relationship = strtoupper($slot);
+            $occupation = strtoupper(trim($request->request->get($slot . '_occupation', '')));
+        }
+
+        if (empty($fullname) || $fullname === ',' || $fullname === ', ') return;
+
+        $guardian = null;
+        foreach ($applicant->getGuardians() as $g) {
+            $dbType = $g->getGuardianType() ?: strtoupper($g->getRelationship());
+            if ($dbType === $slotType || ($slotType === 'GUARDIAN' && !in_array($dbType, ['FATHER', 'MOTHER']))) {
+                $guardian = $g;
+                break;
+            }
+        }
+
+        if (!$guardian) {
+            $guardian = new ApplicantBedGuardian();
+            $guardian->setApplicant($applicant);
+            $guardian->setGuardianType($slotType); 
+            $applicant->addGuardian($guardian);
+        }
+
+        $guardian->setParentName($fullname);
+        $guardian->setRelationship($relationship);
+        $guardian->setOccupation($occupation);
+        $dialCode = trim((string)$request->request->get($slot . '_country_dial_code', ''));
+        $contactNo = trim((string)$request->request->get($slot . '_contact', ''));
+        $guardian->setContactNo($dialCode ? ($dialCode . ' ' . $contactNo) : $contactNo);
+        $guardian->setDeceased($request->request->get($slot . '_deceased') ? true : false);
+        $guardian->setOFW($request->request->get($slot . '_ofw') ? true : false);
+        $guardian->setOfwCountry($request->request->get($slot . '_ofw_country'));
+
+        $email = $request->request->get($slot . '_email');
+        if ($slot === 'guardian' && empty($email) && in_array(strtoupper($relationship), ['FATHER', 'MOTHER'], true)) {
+            $email = $request->request->get(strtolower($relationship) . '_email');
+        }
+        $guardian->setEmail($guardian->isDeceased() ? null : ($email !== null && trim((string)$email) !== '' ? trim((string)$email) : null));
+
+        // --- Address handling for father, mother, or guardian ---
+        $sameAsApplicant = (bool)$request->request->get($slot . '_same_as_applicant');
+        $guardian->setSameAsApplicant($sameAsApplicant);
+
+        if ($guardian->isDeceased()) {
+            $guardian->setSameAsApplicant(false);
+            $guardian->setCurrentRegion(null);
+            $guardian->setCurrentProvince(null);
+            $guardian->setCurrentCity(null);
+            $guardian->setCurrentBarangay(null);
+            $guardian->setCurrentAddress(null);
+            $guardian->setCurrentZip(null);
+            $guardian->setPermanentRegion(null);
+            $guardian->setPermanentProvince(null);
+            $guardian->setPermanentCity(null);
+            $guardian->setPermanentBarangay(null);
+            $guardian->setPermanentAddress(null);
+            $guardian->setPermanentZip(null);
+            $guardian->setPermanentCountry(null);
+        } elseif ($guardian->isOFW()) {
+            $guardian->setSameAsApplicant(false);
+            $ofwCountry = $request->request->get($slot . '_ofw_country');
+            $guardian->setOfwCountry($ofwCountry);
+            $guardian->setCurrentRegion(null);
+            $guardian->setCurrentProvince(null);
+            $guardian->setCurrentCity(null);
+            $guardian->setCurrentBarangay(null);
+            $guardian->setCurrentAddress(strtoupper((string)($request->request->get($slot . '_ofw_address') ?: '')));
+            $guardian->setCurrentZip((string)($request->request->get($slot . '_ofw_zip') ?: ''));
+
+            $ofwPermSame = (bool)$request->request->get($slot . '_ofw_perm_same');
+            if ($ofwPermSame) {
+                $guardian->setPermanentCountry($ofwCountry);
+                $guardian->setPermanentAddress($guardian->getCurrentAddress());
+                $guardian->setPermanentZip($guardian->getCurrentZip());
+                $guardian->setPermanentRegion(null);
+                $guardian->setPermanentProvince(null);
+                $guardian->setPermanentCity(null);
+                $guardian->setPermanentBarangay(null);
+            } else {
+                $permInPh = $request->request->get($slot . '_ofw_perm_in_ph');
+                if ($permInPh === 'yes') {
+                    $guardian->setPermanentCountry(null);
+                    [$ofwReg, $ofwProv, $ofwCity] = $this->resolveAddressDesc(
+                        $em,
+                        (string)$request->request->get($slot . '_ofw_perm_region', ''),
+                        (string)$request->request->get($slot . '_ofw_perm_province', ''),
+                        (string)$request->request->get($slot . '_ofw_perm_city', '')
+                    );
+                    $guardian->setPermanentRegion($ofwReg);
+                    $guardian->setPermanentProvince($ofwProv);
+                    $guardian->setPermanentCity($ofwCity);
+                    $guardian->setPermanentBarangay((string)$request->request->get($slot . '_ofw_perm_barangay', ''));
+                    $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_ofw_perm_street') ?: '')));
+                    $guardian->setPermanentZip((string)$request->request->get($slot . '_ofw_perm_zip', ''));
+                } else {
+                    $guardian->setPermanentCountry($request->request->get($slot . '_ofw_perm_country'));
+                    $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_ofw_perm_address') ?: '')));
+                    $guardian->setPermanentZip((string)($request->request->get($slot . '_ofw_perm_intl_zip') ?: $request->request->get($slot . '_ofw_perm_zip') ?: ''));
+                    $guardian->setPermanentRegion(null);
+                    $guardian->setPermanentProvince(null);
+                    $guardian->setPermanentCity(null);
+                    $guardian->setPermanentBarangay(null);
+                }
+            }
+        } elseif ($sameAsApplicant) {
+            $guardian->setCurrentRegion($applicant->getCurrentRegion());
+            $guardian->setCurrentProvince($applicant->getCurrentProvince());
+            $guardian->setCurrentCity($applicant->getCurrentCity());
+            $guardian->setCurrentBarangay($applicant->getCurrentBarangay());
+            $guardian->setCurrentAddress($applicant->getCurrentAddress());
+            $guardian->setCurrentZip($applicant->getCurrentZip());
+            $guardian->setPermanentRegion($applicant->getPermanentRegion());
+            $guardian->setPermanentProvince($applicant->getPermanentProvince());
+            $guardian->setPermanentCity($applicant->getPermanentCity());
+            $guardian->setPermanentBarangay($applicant->getPermanentBarangay());
+            $guardian->setPermanentAddress($applicant->getPermanentAddress());
+            $guardian->setPermanentZip($applicant->getPermanentZip());
+            $guardian->setPermanentCountry($applicant->getPermanentCountry());
+        } else {
+            $guardian->setPermanentCountry(null);
+            [$curReg, $curProv, $curCity] = $this->resolveAddressDesc(
+                $em,
+                (string)$request->request->get($slot . '_addr_region', ''),
+                (string)$request->request->get($slot . '_addr_province', ''),
+                (string)$request->request->get($slot . '_addr_city', '')
+            );
+            $guardian->setCurrentRegion($curReg);
+            $guardian->setCurrentProvince($curProv);
+            $guardian->setCurrentCity($curCity);
+            $guardian->setCurrentBarangay((string)$request->request->get($slot . '_addr_barangay', ''));
+            $guardian->setCurrentAddress(strtoupper((string)($request->request->get($slot . '_addr_street') ?: '')));
+            $guardian->setCurrentZip((string)$request->request->get($slot . '_addr_zip', ''));
+
+            $permSame = $request->request->get($slot . '_perm_same');
+            if ($permSame) {
+                $guardian->setPermanentRegion($guardian->getCurrentRegion());
+                $guardian->setPermanentProvince($guardian->getCurrentProvince());
+                $guardian->setPermanentCity($guardian->getCurrentCity());
+                $guardian->setPermanentBarangay($guardian->getCurrentBarangay());
+                $guardian->setPermanentAddress($guardian->getCurrentAddress());
+                $guardian->setPermanentZip($guardian->getCurrentZip());
+            } else {
+                [$permReg, $permProv, $permCity] = $this->resolveAddressDesc(
+                    $em,
+                    (string)$request->request->get($slot . '_perm_region', ''),
+                    (string)$request->request->get($slot . '_perm_province', ''),
+                    (string)$request->request->get($slot . '_perm_city', '')
+                );
+                $guardian->setPermanentRegion($permReg);
+                $guardian->setPermanentProvince($permProv);
+                $guardian->setPermanentCity($permCity);
+                $guardian->setPermanentBarangay((string)$request->request->get($slot . '_perm_barangay', ''));
+                $guardian->setPermanentAddress(strtoupper((string)($request->request->get($slot . '_perm_street') ?: '')));
+                $guardian->setPermanentZip((string)$request->request->get($slot . '_perm_zip', ''));
+            }
+        }
+
+        $em->persist($guardian);
+    }
+
+    #[Route('/success/{studentNumber}', name: 'app_enrollment_alabang_success', methods: ['GET'])]
+    public function success(string $studentNumber, EntityManagerInterface $em): Response
+    {
+        $applicant = $em->getRepository(ApplicantBed::class)->findOneBy(['studentNumber' => $studentNumber]);
+        if (!$applicant) throw $this->createNotFoundException('Application not found.');
+
+        return $this->render('enrollment-onsite/alabang/success.html.twig', [
+            'student_number' => $applicant->getStudentNumber(),
+            'student_name' => $applicant->getFirstName() . ' ' . $applicant->getLastName(),
+            'education_type' => $applicant->getEducationType(),
+        ]);
+    }
+
+    #[Route('/api/check-lrn', name: 'app_enrollment_alabang_check_lrn', methods: ['GET'])]
+    public function checkLrn(Request $request, EntityManagerInterface $em): Response
+    {
+        $lrn = $request->query->get('lrn');
+        if (!$lrn) return $this->json(['exists' => false]);
+        $existing = $em->getRepository(ApplicantBed::class)->findOneBy(['lrn' => $lrn]);
+        return $this->json(['exists' => $existing !== null]);
+    }
+
+    #[Route('/api/check-duplicate-applicant', name: 'app_enrollment_alabang_check_duplicate', methods: ['POST'])]
+    public function checkDuplicate(Request $request, EntityManagerInterface $em): Response
+    {
+        $payload = json_decode($request->getContent(), true) ?: $request->request->all();
+        $firstName = trim((string)($payload['first_name'] ?? ''));
+        $lastName = trim((string)($payload['last_name'] ?? ''));
+        $birthDateStr = trim((string)($payload['birth_date'] ?? $payload['birthday'] ?? ''));
+        $email = trim((string)($payload['email'] ?? ''));
+
+        if (!$firstName || !$lastName || !$birthDateStr || !$email) {
+            return $this->json(['exists' => false]);
+        }
+
+        try {
+            $birthDate = new \DateTime($birthDateStr);
+        } catch (\Exception $e) {
+            return $this->json(['exists' => false]);
+        }
+
+        $qb = $em->getRepository(ApplicantBed::class)->createQueryBuilder('a')
+            ->where('a.campus = :campus')
+            ->andWhere('LOWER(TRIM(a.firstName)) = :firstName')
+            ->andWhere('LOWER(TRIM(a.lastName)) = :lastName')
+            ->andWhere('a.birthDate = :birthDate')
+            ->andWhere('LOWER(TRIM(a.personalEmail)) = :email')
+            ->setParameter('campus', ApplicantBed::CAMPUS_ALABANG)
+            ->setParameter('firstName', strtolower($firstName))
+            ->setParameter('lastName', strtolower($lastName))
+            ->setParameter('birthDate', $birthDate)
+            ->setParameter('email', strtolower($email));
+
+        $existing = $qb->setMaxResults(1)->getQuery()->getOneOrNullResult();
+
+        if ($existing) {
+            return $this->json([
+                'exists' => true,
+                'blocked' => true,
+                'applicant' => [
+                    'studentNumber' => $existing->getStudentNumber(),
+                    'fullName' => trim($existing->getFirstName() . ' ' . ($existing->getMiddleName() ? $existing->getMiddleName() . ' ' : '') . $existing->getLastName()),
+                    'birthDate' => $existing->getBirthDate() ? $existing->getBirthDate()->format('F j, Y') : '',
+                    'email' => $existing->getPersonalEmail() ?? '',
+                    'createdAt' => $existing->getCreatedAt() ? $existing->getCreatedAt()->format('M d, Y') : '',
+                ]
+            ]);
+        }
+
+        return $this->json(['exists' => false]);
+    }
+
+    /**
+     * Resolves raw region, province, and city codes to their human-readable descriptions.
+     *
+     * @return array{0: ?string, 1: ?string, 2: ?string}
+     */
+    private function resolveAddressDesc(EntityManagerInterface $em, string $regCode, string $provCode, string $cityCode): array
+    {
+        $regDesc = trim($regCode);
+        if ($regDesc !== '') {
+            $r = $em->getRepository(LookupRegion::class)->findOneBy(['regionCode' => $regDesc]);
+            if ($r) {
+                $regDesc = $r->getRegionDesc();
+            }
+        }
+
+        $provDesc = trim($provCode);
+        if ($provDesc !== '') {
+            $p = $em->getRepository(LookupProvince::class)->findOneBy(['provinceCode' => $provDesc]);
+            if ($p) {
+                $provDesc = $p->getProvinceDesc();
+            }
+        }
+
+        $cityDesc = trim($cityCode);
+        if ($cityDesc !== '') {
+            $c = $em->getRepository(LookupCity::class)->findOneBy(['cityCode' => $cityDesc]);
+            if ($c) {
+                $cityDesc = $c->getCityDesc();
+            }
+        }
+
+        return [
+            $regDesc !== '' ? strtoupper($regDesc) : null,
+            $provDesc !== '' ? strtoupper($provDesc) : null,
+            $cityDesc !== '' ? strtoupper($cityDesc) : null,
+        ];
+    }
+}

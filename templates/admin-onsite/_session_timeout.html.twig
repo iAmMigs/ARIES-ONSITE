@@ -1,0 +1,166 @@
+{# templates/admin-onsite/_session_timeout.html.twig #}
+{# Admin Inactivity Session Timeout Warning Modal & Background Tracker #}
+
+<div id="sessionTimeoutModal" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="sessionTimeoutTitle">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-gray-100 text-center transform transition-all scale-100">
+        
+        {# Pulsing Icon #}
+        <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-4 shadow-xs">
+            <i class="ki-filled ki-time-schedule text-3xl animate-pulse"></i>
+        </div>
+
+        <h3 id="sessionTimeoutTitle" class="text-xl font-black text-gray-900 tracking-tight">
+            Session Inactivity Warning
+        </h3>
+        
+        <p class="text-xs text-gray-500 mt-2 leading-relaxed">
+            For institutional data security, your active administrative session will expire automatically due to inactivity.
+        </p>
+
+        {# Countdown Display #}
+        <div class="my-5 bg-amber-50/60 border border-amber-200/80 rounded-2xl py-3.5 px-6 inline-block w-full">
+            <span class="text-[10px] uppercase font-black tracking-wider text-amber-800/80 block mb-1">
+                Auto-Logout Countdown
+            </span>
+            <span id="sessionCountdownDisplay" class="text-4xl font-black font-mono text-amber-700 tracking-wider">
+                02:00
+            </span>
+        </div>
+
+        {# Action Buttons #}
+        <div class="grid grid-cols-2 gap-3 pt-2">
+            <a href="{{ path('app_logout') }}?reason=manual" 
+               class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">
+                <i class="ki-filled ki-exit-right text-base"></i> Log Out
+            </a>
+            <button type="button" 
+                    id="stayLoggedInBtn"
+                    onclick="handleStayLoggedIn()" 
+                    class="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl font-bold text-sm text-white bg-feu-green-800 hover:bg-feu-green-900 transition-all shadow-sm">
+                <i class="ki-filled ki-check text-base"></i> Stay Logged In
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Config: 15 minutes total inactivity limit (900s), show warning at 2 minutes remaining (120s)
+    const TOTAL_TIMEOUT_SEC = 900;
+    const WARNING_LEAD_SEC  = 120;
+    const TRIGGER_AT_SEC    = TOTAL_TIMEOUT_SEC - WARNING_LEAD_SEC; // 780s (13 minutes idle)
+    const KEEPALIVE_URL     = "{{ path('app_admin_session_keepalive') }}";
+    const LOGOUT_URL        = "{{ path('app_logout') }}?reason=timeout";
+
+    let lastActivityTimestamp = Date.now();
+    let isWarningModalOpen = false;
+    let keepaliveInFlight = false;
+    let isLoggingOut = false;
+
+    const modal = document.getElementById('sessionTimeoutModal');
+    const countdownEl = document.getElementById('sessionCountdownDisplay');
+
+    // Debounced user activity tracker
+    function recordActivity() {
+        if (!isWarningModalOpen) {
+            lastActivityTimestamp = Date.now();
+        }
+    }
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    let debounceTimer = null;
+    activityEvents.forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (!debounceTimer) {
+                recordActivity();
+                debounceTimer = setTimeout(() => { debounceTimer = null; }, 3000);
+            }
+        }, { passive: true });
+    });
+
+    // Format seconds to MM:SS
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    // Modal Display Controls
+    function showWarningModal(remainingSec) {
+        if (!modal) return;
+        isWarningModalOpen = true;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        if (countdownEl) {
+            countdownEl.textContent = formatTime(remainingSec);
+        }
+    }
+
+    function hideWarningModal() {
+        if (!modal) return;
+        isWarningModalOpen = false;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // "Stay Logged In" Action
+    window.handleStayLoggedIn = function() {
+        hideWarningModal();
+        lastActivityTimestamp = Date.now();
+
+        if (!keepaliveInFlight) {
+            keepaliveInFlight = true;
+            fetch(KEEPALIVE_URL, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .catch(() => {})
+            .finally(() => {
+                keepaliveInFlight = false;
+            });
+        }
+    };
+
+    // Heartbeat check running every second
+    setInterval(() => {
+        const now = Date.now();
+        const idleSec = Math.floor((now - lastActivityTimestamp) / 1000);
+        const remainingSec = Math.max(0, TOTAL_TIMEOUT_SEC - idleSec);
+
+        if (idleSec >= TRIGGER_AT_SEC) {
+            if (!isWarningModalOpen) {
+                showWarningModal(remainingSec);
+            } else if (countdownEl) {
+                countdownEl.textContent = formatTime(remainingSec);
+            }
+
+            // Expiration reached
+            if (remainingSec <= 0) {
+                if (!isLoggingOut) {
+                    isLoggingOut = true;
+                    if (modal) {
+                        const title = document.getElementById('sessionTimeoutTitle');
+                        const desc = modal.querySelector('p');
+                        const btnContainer = modal.querySelector('.grid');
+                        const iconBox = modal.querySelector('.w-16');
+                        if (title) title.textContent = 'Session Expired';
+                        if (desc) desc.innerHTML = '<span class="text-rose-600 font-bold flex items-center justify-center gap-1.5"><i class="ki-filled ki-loading animate-spin text-base"></i> Logged out due to inactivity, redirecting to login...</span>';
+                        if (countdownEl && countdownEl.parentElement) countdownEl.parentElement.style.display = 'none';
+                        if (btnContainer) btnContainer.style.display = 'none';
+                        if (iconBox) {
+                            iconBox.className = 'w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mx-auto mb-4 shadow-xs';
+                            iconBox.innerHTML = '<i class="ki-filled ki-cross-circle text-3xl"></i>';
+                        }
+                    }
+                    setTimeout(() => {
+                        window.location.href = LOGOUT_URL;
+                    }, 1200);
+                }
+            }
+        } else if (isWarningModalOpen && !isLoggingOut) {
+            hideWarningModal();
+        }
+    }, 1000);
+})();
+</script>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\ApplicantBed;
@@ -36,7 +38,7 @@ class ApplicantDeletionService
         $fs = new Filesystem();
         $publicDir = $this->projectDir . '/public/';
 
-        // 1. Delete ID Picture
+        // Remove the applicant's profile ID picture from the public filesystem if it exists.
         if ($applicant->getPhotoSlug()) {
             $photoPath = $publicDir . $applicant->getPhotoSlug();
             if ($fs->exists($photoPath)) {
@@ -44,8 +46,11 @@ class ApplicantDeletionService
             }
         }
 
-        // 2. Delete Requirement Documents
-        // This relies on the 'requirements' relationship in ApplicantBed
+        /*
+         * Delete Requirement Documents
+         * This operation relies on the mapped 'requirements' collection inside ApplicantBed
+         * to traverse and safely remove physical files from the storage path.
+         */
         foreach ($applicant->getRequirements() as $req) {
             if ($req->getStoredFileName()) {
                 $docPath = $publicDir . $req->getStoredFileName();
@@ -55,12 +60,11 @@ class ApplicantDeletionService
             }
         }
 
-        // 3. Delete Database Record
-        // Doctrine cascade=['remove'] will automatically delete:
-        // - Guardians
-        // - Siblings
-        // - Schools
-        // - Requirements (Database rows)
+        /*
+         * Delete Database Record
+         * The Doctrine ORM's cascade=['remove'] mapping automatically executes deletion for:
+         * Guardians, Siblings, Schools, and Database Requirement Tracking rows.
+         */
         $this->em->remove($applicant);
         $this->em->flush();
     }

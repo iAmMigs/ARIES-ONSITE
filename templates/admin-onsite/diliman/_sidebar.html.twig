@@ -10,26 +10,64 @@
     
     <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {# Dashboard Link #}
+        {% if app.user and app.user.hasModule('dashboard') %}
         <a href="{{ path('app_admin_diliman_dashboard') }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'dashboard' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-chart-pie-simple text-xl"></i><span>Dashboard</span>
         </a>
+        {% endif %}
         
         {# Registrations Link #}
+        {% if app.user and app.user.hasModule('registrations') %}
         <a href="{{ path('app_admin_diliman_registrations') }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'registrations' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-people text-xl"></i><span>Registrations</span>
         </a>
+        {% endif %}
         
         {# Document Setup Link #}
+        {% if app.user and app.user.hasModule('documents') %}
         <a href="{{ path('app_admin_diliman_documents') }}" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'documents' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
             <i class="ki-filled ki-folder text-xl"></i><span>Document Setup</span>
         </a>
+        {% endif %}
+
+        {# School Year Management Link #}
+        {% if app.user and app.user.hasModule('school_year') %}
+        <a href="{{ path('app_admin_school_year_index', {campus: 'diliman'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'school_year' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-calendar text-xl"></i><span>School Year</span>
+        </a>
+        {% endif %}
+
+        {# Survey Discovery Link #}
+        {% if app.user and app.user.hasModule('survey') %}
+        <a href="{{ path('app_admin_survey_index', {campus: 'diliman'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'survey' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-like text-xl"></i><span>Survey</span>
+        </a>
+        {% endif %}
+
+        {# Tracks Link #}
+        {% if app.user and app.user.hasModule('tracks') %}
+        <a href="{{ path('app_admin_tracks_index', {campus: 'diliman'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'tracks' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-briefcase text-xl"></i><span>Tracks</span>
+        </a>
+        {% endif %}
+
+        {# Admin Access Management Link #}
+        {% if app.user and app.user.hasModule('admin_access') %}
+        <a href="{{ path('app_admin_access_index', {campus: 'diliman'}) }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all {{ active_menu|default('') == 'admin_access' ? 'bg-feu-gold-500 text-feu-green-900 font-bold shadow-lg shadow-feu-gold-500/20' : 'text-feu-green-100 hover:bg-feu-green-800' }}">
+            <i class="ki-filled ki-shield-tick text-xl"></i><span>Admin Access</span>
+        </a>
+        {% endif %}
     </nav>
     
     <div class="p-4 border-t border-feu-green-800">
-        <a href="{{ path('app_logout') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-300 hover:bg-red-900/20 transition-all">
+        <a href="{{ path('app_logout', {'campus': 'diliman'}) }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-300 hover:bg-red-900/20 transition-all">
             <i class="ki-filled ki-exit-right text-xl"></i><span>Sign Out</span>
         </a>
     </div>

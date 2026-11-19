@@ -1,10 +1,32 @@
 doctrine:
     dbal:
-        url: '%env(resolve:DATABASE_URL)%'
-
-
-        profiling_collect_backtrace: '%kernel.debug%'
-        use_savepoints: true
+        default_connection: default
+        connections:
+            default:
+                url: '%env(resolve:DATABASE_URL)%'
+                profiling_collect_backtrace: '%kernel.debug%'
+                use_savepoints: true
+            diliman:
+                url: '%env(resolve:DILIMAN_DATABASE_URL)%'
+                use_savepoints: true
+            alabang:
+                url: '%env(resolve:ALABANG_DATABASE_URL)%'
+                use_savepoints: true
+            assoc:
+                url: '%env(resolve:ASSOC_DATABASE_URL)%'
+                use_savepoints: true
+            diliman_associates:
+                url: '%env(resolve:DILIMAN_ASSOCIATES_DATABASE_URL)%'
+                use_savepoints: true
+            alabang_associates:
+                url: '%env(resolve:ALABANG_ASSOCIATES_DATABASE_URL)%'
+                use_savepoints: true
+            diliman_assoc_login:
+                url: '%env(resolve:DILIMAN_ASSOC_LOGIN_DATABASE_URL)%'
+                use_savepoints: true
+            alabang_assoc_login:
+                url: '%env(resolve:ALABANG_ASSOC_LOGIN_DATABASE_URL)%'
+                use_savepoints: true
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
@@ -25,10 +47,8 @@ doctrine:
             auto_mapping: false
 
 when@test:
-    doctrine:
-        dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
-            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+    framework:
+        test: true
 
 when@prod:
     doctrine:

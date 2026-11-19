@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\ApplicantBedRequirementRepository;
@@ -13,6 +15,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBedRequirement
 {
+    public const STATUS_PENDING = 'P';
+    public const STATUS_SUBMITTED = 'S';
+    public const STATUS_WAIVED = 'W';
+
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'requirements')]
     #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
@@ -41,9 +47,6 @@ class ApplicantBedRequirement
     #[ORM\Column(name: 'Status', type: Types::STRING, length: 1, options: ['default' => 'P'])]
     private string $Status = 'P';
 
-    #[ORM\Column(name: 'IsRequired', type: Types::BOOLEAN)]
-    private bool $IsRequired = true;
-
     #[ORM\Column(name: 'IsDeleted', type: Types::BOOLEAN, options: ['default' => false])]
     private bool $IsDeleted = false;
 
@@ -60,16 +63,18 @@ class ApplicantBedRequirement
     public function setRequirement(string $Requirement): static { $this->Requirement = $Requirement; return $this; }
     public function getStoredFileName(): ?string { return $this->StoredFileName; }
     public function setStoredFileName(?string $StoredFileName): static { $this->StoredFileName = $StoredFileName; return $this; }
+    public function getFilePath(): ?string { return $this->StoredFileName; }
     
     public function getDocumentFile(): ?File { return $this->documentFile; }
     public function setDocumentFile(?File $documentFile): static { $this->documentFile = $documentFile; return $this; }
 
     public function getStatus(): string { return $this->Status; }
     public function setStatus(string $Status): static { $this->Status = $Status; return $this; }
-    public function isRequired(): bool { return $this->IsRequired; }
-    public function setIsRequired(bool $IsRequired): static { $this->IsRequired = $IsRequired; return $this; }
     public function getDateSubmitted(): ?\DateTimeInterface { return $this->DateSubmitted; }
     public function setDateSubmitted(?\DateTimeInterface $DateSubmitted): static { $this->DateSubmitted = $DateSubmitted; return $this; }
     public function isDeleted(): bool { return $this->IsDeleted; }
     public function setIsDeleted(bool $IsDeleted): static { $this->IsDeleted = $IsDeleted; return $this; }
+
+    public function isWaived(): bool { return $this->Status === self::STATUS_WAIVED; }
+    public function isSubmitted(): bool { return $this->Status === self::STATUS_SUBMITTED; }
 }

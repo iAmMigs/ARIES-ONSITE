@@ -32,5 +32,8 @@ class AuditBedRequirement
     #[ORM\Column(name: 'DateSubmitted', type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $DateSubmitted = null;
 
+    #[ORM\Column(name: 'IsDeleted', type: Types::BOOLEAN, nullable: true)]
+    private ?bool $IsDeleted = null;
+
     public function __set($name, $value) { if (property_exists($this, $name)) { $this->$name = $value; } }
 }

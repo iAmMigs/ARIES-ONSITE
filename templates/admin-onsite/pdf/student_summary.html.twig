@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Record - {{ registration.studentNumber }}</title>
+    <style>
+        @page {
+            margin: 6mm 8mm 6mm 8mm;
+            size: A4 portrait;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        {% if dellaRobbiaBase64 is defined and dellaRobbiaBase64 %}
+        @font-face {
+            font-family: 'Della Robbia BT';
+            font-style: normal;
+            font-weight: bold;
+            src: url('data:font/truetype;charset=utf-8;base64,{{ dellaRobbiaBase64 }}') format('truetype');
+        }
+        {% endif %}
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 8pt;
+            line-height: 1.3;
+            color: #1f2937;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+        }
+
+        /* --- Header Institution Bar --- */
+        .institution-header {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 2px solid #166534;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+        }
+        .inst-title {
+            font-family: 'Della Robbia BT', Georgia, 'Times New Roman', serif;
+            font-size: 13.5pt;
+            font-weight: bold;
+            color: #166534;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .inst-sub {
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: #374151;
+        }
+        .inst-record {
+            font-size: 7.5pt;
+            color: #6b7280;
+            margin-top: 1px;
+        }
+        .campus-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 7.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .campus-diliman {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .campus-alabang {
+            background-color: #fefce8;
+            color: #854d0e;
+            border: 1px solid #fde047;
+        }
+
+        /* --- Applicant Hero Card (Mirrors View Page) --- */
+        .hero-card {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+        .hero-card td {
+            padding: 6px 10px;
+            vertical-align: middle;
+        }
+        .photo-frame {
+            width: 72px;
+            height: 72px;
+            border-radius: 6px;
+            border: 2px solid #e5e7eb;
+            background-color: #f9fafb;
+            text-align: center;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+        .photo-img {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        .photo-placeholder {
+            width: 72px;
+            height: 72px;
+            line-height: 72px;
+            font-size: 24pt;
+            font-weight: 800;
+            color: #166534;
+            background-color: #f0fdf4;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .student-name {
+            font-size: 13pt;
+            font-weight: 800;
+            color: #111827;
+            letter-spacing: -0.3px;
+            margin-bottom: 3px;
+        }
+
+        /* --- Pill Badges --- */
+        .pill-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 7pt;
+            font-weight: 700;
+            margin-right: 3px;
+            margin-bottom: 2px;
+        }
+        .badge-id {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+        .badge-admission {
+            background-color: #faf5ff;
+            color: #6b21a8;
+            border: 1px solid #f3e8ff;
+        }
+        .badge-grade {
+            background-color: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #dbeafe;
+        }
+        .badge-strand {
+            background-color: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fef3c7;
+        }
+        .badge-green {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .badge-amber {
+            background-color: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .badge-waived {
+            background-color: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+        .badge-promissory {
+            background-color: #fffbeb;
+            color: #78350f;
+            border: 1px solid #fcd34d;
+            font-size: 7.5pt;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .status-box {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            padding: 5px 8px;
+            text-align: center;
+            width: 100px;
+        }
+        .status-label {
+            font-size: 6.5pt;
+            font-weight: 800;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1px;
+        }
+        .status-val {
+            font-size: 11pt;
+            font-weight: 800;
+            color: #166534;
+        }
+
+        /* --- Section Cards Layout --- */
+        .grid-layout {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 7px 0;
+            margin-bottom: 5px;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+        }
+        .card-header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 3px;
+            margin-bottom: 4px;
+        }
+        .card-title {
+            font-size: 8pt;
+            font-weight: 800;
+            color: #111827;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .card-title-icon {
+            color: #166534;
+            font-weight: 800;
+            margin-right: 3px;
+        }
+
+        /* --- Label & Value Pairs --- */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .field-table td {
+            padding: 2px 3px 3px 3px;
+            vertical-align: top;
+        }
+        .lbl {
+            font-size: 6.5pt;
+            font-weight: 800;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 1px;
+        }
+        .val {
+            font-size: 8pt;
+            font-weight: 700;
+            color: #111827;
+        }
+        .val-sub {
+            font-size: 7pt;
+            color: #4b5563;
+            font-weight: normal;
+            line-height: 1.25;
+        }
+
+        /* --- Education Highlight Box --- */
+        .edu-highlight {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #f9fafb;
+            border: 1px solid #f3f4f6;
+            border-radius: 5px;
+            margin-bottom: 4px;
+        }
+        .edu-highlight td {
+            padding: 3px 5px;
+            vertical-align: middle;
+        }
+
+        /* --- School Timeline Items --- */
+        .school-item {
+            border-left: 2px solid #166534;
+            padding-left: 6px;
+            margin-bottom: 4px;
+        }
+
+        /* --- Tables Inside Cards --- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 7.5pt;
+        }
+        .data-table th {
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 3px 5px;
+            text-align: left;
+            font-size: 6.5pt;
+            font-weight: 800;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        .data-table td {
+            border-bottom: 1px solid #f3f4f6;
+            padding: 3px 5px;
+            vertical-align: middle;
+        }
+
+        /* --- Signatures --- */
+        .signatures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+            page-break-inside: avoid;
+        }
+        .signature-box {
+            width: 48%;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            padding: 5px 8px;
+            background-color: #fbfbfa;
+        }
+        .sig-line {
+            border-bottom: 1px solid #374151;
+            height: 22px;
+            margin-bottom: 2px;
+        }
+        .sig-caption {
+            font-size: 7pt;
+            color: #4b5563;
+            text-align: center;
+        }
+
+        /* --- Footer --- */
+        .doc-footer {
+            font-size: 6.5pt;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 5px;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    {# ========================================== #}
+    {# 1. INSTITUTION & RECORD HEADER            #}
+    {# ========================================== #}
+    <table class="institution-header">
+        <tr>
+            {% if logoBase64 is defined and logoBase64 %}
+            <td style="width: 44px; vertical-align: middle; padding-right: 8px;">
+                <img src="{{ logoBase64 }}" style="width: 40px; height: 40px; object-fit: contain;" alt="FEU Logo">
+            </td>
+            {% endif %}
+            <td style="vertical-align: middle;">
+                <div class="inst-title">Far Eastern University</div>
+                <div class="inst-sub">Basic Education Department</div>
+                <div class="inst-record">Official Student Admission & Enrollment Summary</div>
+            </td>
+            <td style="text-align: right; vertical-align: middle;">
+                <span class="campus-badge {{ campus == 'diliman' ? 'campus-diliman' : 'campus-alabang' }}">
+                    {{ campus == 'diliman' ? 'FEU Diliman Campus' : 'FEU Alabang Campus' }}
+                </span>
+                <div style="font-size: 7pt; color: #6b7280; margin-top: 2px;">
+                    Generated: {{ "now"|date("F j, Y") }} &bull; {{ "now"|date("g:i A") }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {# ========================================== #}
+    {# 2. APPLICANT HERO CARD (MATCHING THE VIEW) #}
+    {# ========================================== #}
+    <table class="hero-card">
+        <tr>
+            {# 2x2 Picture #}
+            <td style="width: 86px;">
+                <div class="photo-frame">
+                    {% if photoBase64 %}
+                        <img src="{{ photoBase64 }}" class="photo-img" alt="Student 2x2 Photo">
+                    {% else %}
+                        <div class="photo-placeholder">{{ registration.firstName|first|upper }}</div>
+                    {% endif %}
+                </div>
+            </td>
+
+            {# Name, Badges, Contact #}
+            <td style="padding-left: 10px;">
+                <div class="student-name">
+                    {{ registration.lastName }}, {{ registration.firstName }} {{ registration.middleName }}
+                    {% if registration.suffix or registration.extensionName %}
+                        {{ registration.suffix ?: registration.extensionName }}
+                    {% endif %}
+                </div>
+
+                <div style="margin-bottom: 4px;">
+                    <span class="pill-badge badge-id">STUDENT ID {{ registration.studentNumber }}</span>
+                    <span class="pill-badge badge-admission">{{ registration.admissionType|default('New Student') }}</span>
+                    {% if registration.gradeLevel %}
+                        <span class="pill-badge badge-grade">{{ registration.gradeLevel|replace({'_': ' '})|title }}</span>
+                    {% endif %}
+                    {% if registration.trackStrand %}
+                        <span class="pill-badge badge-strand">{{ registration.trackStrand }}</span>
+                    {% endif %}
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt; color: #4b5563;">
+                    <tr>
+                        <td style="padding: 1px 0;">
+                            <strong>Email:</strong> {{ registration.personalEmail }}
+                        </td>
+                        <td style="padding: 1px 0;">
+                            <strong>Mobile:</strong> {{ registration.mobileNumber }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1px 0;">
+                            <strong>School Year:</strong> {{ registration.schoolYearOfEntry|default('N/A') }}
+                        </td>
+                        <td style="padding: 1px 0;">
+                            <strong>LRN:</strong> {{ registration.lrn|default('N/A') }}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+
+            {# Right Status Box (Payment / Exam) #}
+            <td style="width: 105px; text-align: right;">
+                <div class="status-box">
+                    <div class="status-label">Payment Status</div>
+                    <div class="status-val">
+                        {% if registration.admissionStatus in ['Paid', 'Enrolled', 'Completed', 'C'] or registration.examinationScore is not null %}
+                            Paid
+                        {% else %}
+                            <span style="color: #d97706;">For Payment</span>
+                        {% endif %}
+                    </div>
+
+                    {% if registration.examinationScore is not null %}
+                        <div style="margin-top: 4px; padding-top: 3px; border-top: 1px solid #e5e7eb;">
+                            <div class="status-label">Exam Score</div>
+                            <div style="font-size: 9pt; font-weight: 800; color: #166534;">{{ registration.examinationScore }}</div>
+                            {% if registration.examinationDate %}
+                                <div style="font-size: 6pt; color: #6b7280;">{{ registration.examinationDate|date('M d, Y') }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    {# ==================================================== #}
+    {# 3. TWO-COLUMN BALANCED CONTENT (51% LEFT, 49% RIGHT) #}
+    {# ==================================================== #}
+    <table class="grid-layout">
+        <tr>
+            {# ------------------------------------------------ #}
+            {# LEFT COLUMN: PERSONAL INFO & FAMILY DETAILS     #}
+            {# ------------------------------------------------ #}
+            <td style="width: 51%; vertical-align: top; padding: 0;">
+
+                {# CARD A: PERSONAL INFORMATION #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> Personal Information
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="field-table">
+                        <tr>
+                            <td style="width: 33%;">
+                                <div class="lbl">Gender</div>
+                                <div class="val">{{ registration.gender|upper in ['M', 'MALE'] ? 'Male' : (registration.gender|upper in ['F', 'FEMALE'] ? 'Female' : registration.gender|default('N/A')) }}</div>
+                            </td>
+                            <td style="width: 37%;">
+                                <div class="lbl">Birthday</div>
+                                <div class="val">{{ registration.birthDate ? registration.birthDate|date('F j, Y') : 'N/A' }}</div>
+                            </td>
+                            <td style="width: 30%;">
+                                <div class="lbl">Age</div>
+                                <div class="val">{{ age ? age ~ ' yrs' : 'N/A' }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 50%;">
+                                <div class="lbl">Birth Place</div>
+                                <div class="val">{{ registration.birthPlace|default('N/A') }}</div>
+                            </td>
+                            <td colspan="2" style="width: 50%;">
+                                <div class="lbl">Religion</div>
+                                <div class="val">{{ registration.religion|default('N/A') }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lbl">Nationality</div>
+                                <div class="val">{{ registration.nationality|default('FILIPINO') }}</div>
+                            </td>
+                            <td>
+                                <div class="lbl">Citizenship</div>
+                                <div class="val">{{ registration.citizenship|default('LOCAL') }}</div>
+                            </td>
+                            <td>
+                                <div class="lbl">Country of Birth</div>
+                                <div class="val">{{ registration.countryOfBirth|default('Philippines') }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="lbl">Preferred Name</div>
+                                <div class="val">{{ registration.preferredName|default('N/A') }}</div>
+                            </td>
+                            <td>
+                                <div class="lbl">Suffix</div>
+                                <div class="val">{{ registration.suffix|default('N/A') }}</div>
+                            </td>
+                            <td>
+                                <div class="lbl">Country of Residence</div>
+                                <div class="val">{{ registration.countryOfResidence|default('Philippines') }}</div>
+                            </td>
+                        </tr>
+                        {% if registration.indigenousGroup %}
+                        <tr>
+                            <td colspan="3">
+                                <div class="lbl">Indigenous Group</div>
+                                <div class="val">{{ registration.indigenousGroup }}</div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </table>
+
+                    {# International Student Passport & Visa #}
+                    {% if registration.citizenship|upper == 'INTERNATIONAL' or registration.passportNumber %}
+                    <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed #e5e7eb;">
+                        <div class="lbl" style="color: #166534; margin-bottom: 2px;">Passport & Visa Information</div>
+                        <table class="field-table">
+                            <tr>
+                                <td style="width: 33%;">
+                                    <div class="lbl">Passport Number</div>
+                                    <div class="val">{{ registration.passportNumber|default('N/A') }}</div>
+                                </td>
+                                <td style="width: 37%;">
+                                    <div class="lbl">Visa Type</div>
+                                    <div class="val">{{ registration.visaType|default('N/A')|title }}</div>
+                                </td>
+                                <td style="width: 30%;">
+                                    <div class="lbl">Visa Status</div>
+                                    <div class="val">{{ registration.visaStatus|default('N/A') }}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    {% endif %}
+
+                    {# Address Block #}
+                    <div style="margin-top: 5px; padding-top: 4px; border-top: 1px dashed #e5e7eb;">
+                        <table class="field-table">
+                            <tr>
+                                <td style="width: 50%;">
+                                    <div class="lbl">Current Address</div>
+                                    <div class="val" style="font-size: 7.5pt;">{{ registration.currentAddress|default('N/A') }}</div>
+                                    <div class="val-sub">
+                                        {{ [registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.currentZip %} {{ registration.currentZip }}{% endif %}
+                                    </div>
+                                </td>
+                                <td style="width: 50%;">
+                                    <div class="lbl">Permanent Address</div>
+                                    <div class="val" style="font-size: 7.5pt;">{{ registration.permanentAddress|default('N/A') }}</div>
+                                    <div class="val-sub">
+                                        {{ [registration.permanentBarangay|location_barangay, registration.permanentCity|location_city, registration.permanentProvince|location_province, registration.permanentCountry]|filter(v => v is not empty and v|trim != '')|join(', ') }}{% if registration.permanentZip %} {{ registration.permanentZip }}{% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {# CARD B: FAMILY & GUARDIAN INFORMATION #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> Family & Guardian Information
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 16%;">Relation</th>
+                                <th style="width: 38%;">Full Name & Complete Address</th>
+                                <th style="width: 23%;">Contact No.</th>
+                                <th style="width: 23%;">Occupation / Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Father</strong></td>
+                                <td>
+                                    {% if father and father.parentName %}
+                                        {% set fName = father.parentName|trim %}
+                                        {% if ',' in fName %}
+                                            {% set fParts = fName|split(',') %}
+                                            <strong>{{ (fParts[1]|trim ~ ' ' ~ fParts[0]|trim)|trim }}</strong>
+                                        {% else %}
+                                            <strong>{{ fName }}</strong>
+                                        {% endif %}
+                                        {% set fAddr = [father.currentAddress, father.currentBarangay|location_barangay, father.currentCity|location_city, father.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% if not fAddr and father.sameAsApplicant %}
+                                            {% set fAddr = [registration.currentAddress, registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% endif %}
+                                        {% if fAddr %}
+                                            <div style="font-size: 6.5pt; color: #4b5563; margin-top: 1px; line-height: 1.2;">{{ fAddr }}{% if father.currentZip %} {{ father.currentZip }}{% endif %}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ father ? father.contactNo|default('N/A') : 'N/A' }}
+                                    {% if father and father.email %}<div style="font-size: 6.5pt; color: #4b5563;">{{ father.email }}</div>{% endif %}
+                                </td>
+                                <td>
+                                    {{ father ? father.occupation|default('N/A') : 'N/A' }}
+                                    {% if father and father.isDeceased %}<span style="color: #dc2626; font-size: 6.5pt;">(Deceased)</span>{% endif %}
+                                    {% if father and father.isOFW %}<span style="color: #2563eb; font-size: 6.5pt;">(OFW)</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Mother</strong></td>
+                                <td>
+                                    {% if mother and mother.parentName %}
+                                        {% set mName = mother.parentName|trim %}
+                                        {% if ',' in mName %}
+                                            {% set mParts = mName|split(',') %}
+                                            <strong>{{ (mParts[1]|trim ~ ' ' ~ mParts[0]|trim)|trim }}</strong>
+                                        {% else %}
+                                            <strong>{{ mName }}</strong>
+                                        {% endif %}
+                                        {% set mAddr = [mother.currentAddress, mother.currentBarangay|location_barangay, mother.currentCity|location_city, mother.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% if not mAddr and mother.sameAsApplicant %}
+                                            {% set mAddr = [registration.currentAddress, registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                        {% endif %}
+                                        {% if mAddr %}
+                                            <div style="font-size: 6.5pt; color: #4b5563; margin-top: 1px; line-height: 1.2;">{{ mAddr }}{% if mother.currentZip %} {{ mother.currentZip }}{% endif %}</div>
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ mother ? mother.contactNo|default('N/A') : 'N/A' }}
+                                    {% if mother and mother.email %}<div style="font-size: 6.5pt; color: #4b5563;">{{ mother.email }}</div>{% endif %}
+                                </td>
+                                <td>
+                                    {{ mother ? mother.occupation|default('N/A') : 'N/A' }}
+                                    {% if mother and mother.isDeceased %}<span style="color: #dc2626; font-size: 6.5pt;">(Deceased)</span>{% endif %}
+                                    {% if mother and mother.isOFW %}<span style="color: #2563eb; font-size: 6.5pt;">(OFW)</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% if guardian and guardian.parentName %}
+                            <tr>
+                                <td><strong>Guardian</strong></td>
+                                <td>
+                                    {% set gName = guardian.parentName|trim %}
+                                    {% if ',' in gName %}
+                                        {% set gParts = gName|split(',') %}
+                                        <strong>{{ (gParts[1]|trim ~ ' ' ~ gParts[0]|trim)|trim }}</strong>
+                                    {% else %}
+                                        <strong>{{ gName }}</strong>
+                                    {% endif %}
+                                    {% set gAddr = [guardian.currentAddress, guardian.currentBarangay|location_barangay, guardian.currentCity|location_city, guardian.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                    {% if not gAddr and guardian.sameAsApplicant %}
+                                        {% set gAddr = [registration.currentAddress, registration.currentBarangay|location_barangay, registration.currentCity|location_city, registration.currentProvince|location_province]|filter(v => v is not empty and v|trim != '')|join(', ') %}
+                                    {% endif %}
+                                    {% if gAddr %}
+                                        <div style="font-size: 6.5pt; color: #4b5563; margin-top: 1px; line-height: 1.2;">{{ gAddr }}{% if guardian.currentZip %} {{ guardian.currentZip }}{% endif %}</div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ guardian.contactNo|default('N/A') }}</td>
+                                <td>
+                                    {{ guardian.relationship|default('Guardian') }}
+                                    {% if guardian.email %}<div style="font-size: 6.5pt; color: #6b7280;">{{ guardian.email }}</div>{% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# CARD E: SIBLINGS (ENROLLED IN FEU) #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> Siblings (Enrolled in FEU)
+                            </td>
+                        </tr>
+                    </table>
+
+                    {% set activeSiblings = registration.siblings|filter(s => not s.isDeleted) %}
+                    {% if activeSiblings|length > 0 %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Sibling Name</th>
+                                <th style="width: 35%;">School Attended</th>
+                                <th style="width: 25%;">FEU Student No.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sib in activeSiblings %}
+                            <tr>
+                                <td><strong>{{ sib.siblingName }}</strong></td>
+                                <td>{{ sib.school }}</td>
+                                <td>{{ sib.feuStudentNo|default(sib.studentNo|default('N/A')) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <div style="font-size: 7.5pt; color: #9ca3af; font-style: italic; padding: 3px 0;">No siblings enrolled in FEU recorded.</div>
+                    {% endif %}
+                </div>
+
+            </td>
+
+            {# ------------------------------------------------ #}
+            {# RIGHT COLUMN: EDUCATION, FILES & INFO            #}
+            {# ------------------------------------------------ #}
+            <td style="width: 49%; vertical-align: top; padding: 0;">
+
+                {# CARD C: EDUCATION HISTORY #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> Education History
+                            </td>
+                        </tr>
+                    </table>
+
+                    {# Highlight Box: Last Grade & General Average #}
+                    <table class="edu-highlight">
+                        <tr>
+                            <td style="width: 55%;">
+                                <div class="lbl">Last Grade Completed</div>
+                                <div class="val" style="font-size: 8.5pt;">{{ registration.lastGradeCompleted|default('Grade 10') }}</div>
+                            </td>
+                            <td style="width: 45%; text-align: right;">
+                                <div class="lbl">General Average</div>
+                                <div style="font-size: 11pt; font-weight: 800; color: #166534;">
+                                    {% if registration.generalAverage is not null and registration.generalAverage != '' %}
+                                        {% if registration.generalAverage matches '/^[0-9]+(\\.[0-9]+)?$/' %}
+                                            {{ registration.generalAverage|number_format(2) }}
+                                        {% else %}
+                                            {{ registration.generalAverage }}
+                                        {% endif %}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    {# Schools Timeline #}
+                    {% for sch in registration.schools %}
+                        <div class="school-item">
+                            <span class="pill-badge badge-grade" style="font-size: 6.5pt; padding: 1px 5px; margin-bottom: 1px;">
+                                {% if sch.level == 'P' or sch.level == 'E' %}Elementary
+                                {% elseif sch.level == 'I' %}Junior High School
+                                {% elseif sch.level == 'S' %}Senior High School
+                                {% else %}{{ sch.level }}{% endif %}
+                            </span>
+                            <div style="font-size: 8pt; font-weight: 800; color: #111827;">{{ sch.school }}</div>
+                            <div style="font-size: 7pt; color: #4b5563;">
+                                SY {{ sch.schoolYear }}{% if sch.schoolType %} &bull; {{ sch.schoolType }}{% endif %}
+                            </div>
+                            <div style="font-size: 6.5pt; color: #6b7280;">
+                                {% if sch.isInternational %}
+                                    {{ sch.country }}
+                                {% else %}
+                                    {{ sch.city|location_city }}{% if sch.province %}, {{ sch.province|location_province }}{% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div style="font-size: 7.5pt; color: #9ca3af; font-style: italic; padding: 4px 0;">No previous school record provided.</div>
+                    {% endfor %}
+                </div>
+
+                {# CARD D: SUBMITTED FILES & PROMISSORY DEADLINE #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title" style="vertical-align: middle;">
+                                <span class="card-title-icon">&bull;</span> Submitted Files
+                            </td>
+                            {# Promissory Deadline on the Right Side of the Header #}
+                            <td style="text-align: right; vertical-align: middle;">
+                                {% if promissoryDeadline %}
+                                    <span class="badge-promissory">
+                                        Promissory: {{ promissoryDeadline|date('M d, Y') }}
+                                    </span>
+                                {% else %}
+                                    <span style="font-size: 6.5pt; color: #6b7280; font-weight: bold; background: #f3f4f6; padding: 2px 5px; border-radius: 3px;">
+                                        Regular
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+
+                    {# Promissory Callout Notice if applicant agreed to promissory #}
+                    {% if registration.documentsAgreedDate or (registration.isDocumentsAgreed is defined and registration.isDocumentsAgreed) %}
+                        <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 5px; padding: 4px 6px; margin-bottom: 5px; font-size: 7pt; color: #78350f;">
+                            <strong>Promissory Note Agreement:</strong> Pending documents to be submitted on or before <strong>{{ promissoryDeadline ? promissoryDeadline|date('F j, Y') : 'the designated deadline' }}</strong>.
+                        </div>
+                    {% endif %}
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 65%;">Requirement Name</th>
+                                <th style="width: 35%; text-align: right;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: #111827;">2x2 ID Picture of the Applicant</div>
+                                    <div style="font-size: 6pt; color: #6b7280;">JPG, PNG (TO BE EMAILED)</div>
+                                </td>
+                                <td style="text-align: right;">
+                                    {% if registration.photoSlug %}
+                                        <span class="pill-badge badge-green" style="font-size: 6.5pt; margin: 0;">Uploaded</span>
+                                    {% else %}
+                                        <span class="pill-badge badge-amber" style="font-size: 6.5pt; margin: 0;">Promissory</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% for doc in documentSetups %}
+                                {% set docSlug = doc.slug|default('')|lower %}
+                                {% set uploaded = (doc.id is defined and uploadedDocsMap[doc.id] is defined and uploadedDocsMap[doc.id]) 
+                                               or (docSlug != '' and uploadedDocsMap[docSlug] is defined and uploadedDocsMap[docSlug]) %}
+                                {% set waived = (doc.id is defined and waivedDocsMap is defined and waivedDocsMap[doc.id] is defined and waivedDocsMap[doc.id])
+                                              or (docSlug != '' and waivedDocsMap is defined and waivedDocsMap[docSlug] is defined and waivedDocsMap[docSlug]) %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700; color: #111827;">{{ doc.documentName }}</div>
+                                        <div style="font-size: 6pt; color: #6b7280;">{{ doc.allowedFileTypes|default('PDF, JPG')|upper }}</div>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        {% if uploaded %}
+                                            <span class="pill-badge badge-green" style="font-size: 6.5pt; margin: 0;">Uploaded</span>
+                                        {% elseif waived %}
+                                            <span class="pill-badge badge-waived" style="font-size: 6.5pt; margin: 0;">Waived</span>
+                                        {% else %}
+                                            <span class="pill-badge badge-amber" style="font-size: 6.5pt; margin: 0;">Promissory</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="2" style="text-align: center; color: #9ca3af; font-size: 7pt;">No document requirements configured.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# CARD F: GENERAL INFORMATION #}
+                <div class="card">
+                    <table class="card-header-table">
+                        <tr>
+                            <td class="card-title">
+                                <span class="card-title-icon">&bull;</span> General Information
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table class="field-table">
+                        <tr>
+                            <td style="width: 50%;">
+                                <div class="lbl">Date Applied</div>
+                                <div class="val">{{ registration.createdAt ? registration.createdAt|date('M d, Y') : 'N/A' }}</div>
+                            </td>
+                            <td style="width: 50%;">
+                                <div class="lbl">School Year Entry</div>
+                                <div class="val">{{ registration.schoolYearOfEntry|default('N/A') }}</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="lbl">Discovery Source</div>
+                                <div class="val" style="font-size: 7.5pt; font-weight: normal; color: #374151;">
+                                    {{ registration.marketingSource|default('Direct Walk-in / Onsite') }}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </td>
+        </tr>
+    </table>
+
+    {# ========================================== #}
+    {# 4. OFFICIAL CERTIFICATION & SIGNATURES    #}
+    {# ========================================== #}
+    <table class="signatures-table">
+        <tr>
+            <td class="signature-box" style="margin-right: 4%;">
+                <div style="font-size: 6.5pt; font-weight: 700; color: #4b5563; text-transform: uppercase; margin-bottom: 2px;">
+                    Student / Parent / Guardian Certification
+                </div>
+                <div class="sig-line"></div>
+                <div class="sig-caption">
+                    <strong>{{ registration.lastName }}, {{ registration.firstName }}</strong> or Authorized Guardian<br>
+                    Signature Over Printed Name &bull; Date
+                </div>
+            </td>
+            <td style="width: 4%;"></td>
+            <td class="signature-box">
+                <div style="font-size: 6.5pt; font-weight: 700; color: #166534; text-transform: uppercase; margin-bottom: 2px;">
+                    FEU Admissions / Registrar Verification
+                </div>
+                <div class="sig-line"></div>
+                <div class="sig-caption">
+                    <strong>Admissions & Registration Officer</strong><br>
+                    Document Verification & Endorsement &bull; Date
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-footer">
+        ARIES (Admission, Registration, Information, and Enrollment System) &bull; Far Eastern University &bull; Confidential Student Record
+    </div>
+
+</body>
+</html>
