@@ -41,6 +41,8 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $campus = null;
 
+    private ?string $username = null;
+
     public const TIER_MASTER = 'master_admin';
     public const TIER_SENIOR = 'senior_admin';
     public const TIER_STAFF  = 'staff_admin';
@@ -51,8 +53,31 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
         self::TIER_STAFF  => 'Staff Admin',
     ];
 
+    public const MODULE_DASHBOARD     = 'dashboard';
+    public const MODULE_REGISTRATIONS = 'registrations';
+    public const MODULE_DOCUMENTS     = 'documents';
+    public const MODULE_SCHOOL_YEAR   = 'school_year';
+    public const MODULE_SURVEY        = 'survey';
+    public const MODULE_TRACKS        = 'tracks';
+    public const MODULE_FINANCE       = 'finance';
+    public const MODULE_ADMIN_ACCESS  = 'admin_access';
+
+    // Dashboard is default for ALL admins, so it is omitted from the choice checklist.
+    // Finance is integrated into the Registrations module selection via a dedicated switch.
+    public const AVAILABLE_MODULES = [
+        self::MODULE_REGISTRATIONS => 'Registrations',
+        self::MODULE_SURVEY        => 'Survey Options',
+        self::MODULE_TRACKS        => 'Tracks',
+        self::MODULE_DOCUMENTS     => 'Documents',
+        self::MODULE_SCHOOL_YEAR   => 'School Year',
+        self::MODULE_ADMIN_ACCESS  => 'Admin Access',
+    ];
+
     #[ORM\Column(length: 30, options: ['default' => 'staff_admin'])]
     private string $tier = self::TIER_STAFF;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $modules = [];
 
     #[ORM\Column(options: ['default' => false])]
     private bool $canManageAdmins = false;
@@ -77,7 +102,7 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): static { $this->email = $email; return $this; }
 
-    public function getUserIdentifier(): string { return (string) $this->email; }
+    public function getUserIdentifier(): string { return (string) $this->empNum; }
 
     public function getRoles(): array
     {
@@ -98,6 +123,9 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getLastName(): ?string { return $this->lastName; }
     public function setLastName(string $lastName): static { $this->lastName = $lastName; return $this; }
+
+    public function getUsername(): ?string { return $this->username; }
+    public function setUsername(?string $username): static { $this->username = $username; return $this; }
 
     public function getProfilePicture(): ?string { return $this->profilePicture; }
     public function setProfilePicture(?string $profilePicture): static { $this->profilePicture = $profilePicture; return $this; }
@@ -134,9 +162,52 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
     public function isSeniorAdmin(): bool { return $this->tier === self::TIER_SENIOR; }
     public function isStaffAdmin(): bool  { return $this->tier === self::TIER_STAFF; }
 
+    public function getModules(): array
+    {
+        if ($this->isMasterAdmin()) {
+            return array_merge(array_keys(self::AVAILABLE_MODULES), [self::MODULE_FINANCE]);
+        }
+        return $this->modules ?? [];
+    }
+
+    public function setModules(?array $modules): static
+    {
+        $validKeys = array_keys(self::AVAILABLE_MODULES);
+        $validKeys[] = self::MODULE_FINANCE;
+        $filtered = array_values(array_intersect($modules ?? [], array_unique($validKeys)));
+        $this->modules = $filtered;
+        $this->canManageAdmins = in_array(self::MODULE_ADMIN_ACCESS, $filtered, true);
+        return $this;
+    }
+
+    public function hasModule(string $module): bool
+    {
+        // Master Admin and default Dashboard access for all admins
+        if ($this->isMasterAdmin() || $module === self::MODULE_DASHBOARD) {
+            return true;
+        }
+        // Backward compatibility for Tracks module
+        if ($module === self::MODULE_TRACKS && in_array('tracks_strands', $this->getModules(), true)) {
+            return true;
+        }
+        if ($module === 'tracks_strands' && in_array(self::MODULE_TRACKS, $this->getModules(), true)) {
+            return true;
+        }
+        // Finance admins also have access to the Registrations module list/search
+        if ($module === self::MODULE_REGISTRATIONS && in_array(self::MODULE_FINANCE, $this->getModules(), true)) {
+            return true;
+        }
+        return in_array($module, $this->getModules(), true);
+    }
+
     public function canManageAdmins(): bool
     {
-        return $this->isMasterAdmin() || $this->canManageAdmins;
+        return $this->isMasterAdmin() || $this->hasModule(self::MODULE_ADMIN_ACCESS) || $this->canManageAdmins;
+    }
+
+    public function canManagePayments(): bool
+    {
+        return $this->isMasterAdmin() || $this->hasModule(self::MODULE_FINANCE);
     }
 
     public function setCanManageAdmins(bool $canManageAdmins): static
@@ -166,17 +237,17 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function canCreateTier(string $targetTier): bool
+    public function canEditAdmin(self $target): bool
     {
-        if ($this->isMasterAdmin()) {
-            return $targetTier === self::TIER_SENIOR || $targetTier === self::TIER_STAFF;
+        if ($target->isMasterAdmin()) {
+            return false;
         }
 
-        if ($this->isSeniorAdmin() && $this->canManageAdmins()) {
-            return $targetTier === self::TIER_STAFF;
+        if ($this->getCampus() !== null && $target->getCampus() !== null && $this->getCampus() !== $target->getCampus()) {
+            return false;
         }
 
-        return false;
+        return $this->canManageAdmins();
     }
 
     public function canDeleteAdmin(self $target): bool
@@ -197,18 +268,11 @@ class AdminUser implements UserInterface, PasswordAuthenticatedUserInterface
             return false;
         }
 
-        if ($this->isMasterAdmin()) {
-            return true;
-        }
-
-        if ($this->isSeniorAdmin() && $this->canManageAdmins()) {
-            return $target->isStaffAdmin();
-        }
-
-        return false;
+        return $this->canManageAdmins();
     }
 
-    public function getFullName(): string {
+    public function getFullName(): string
+    {
         return $this->firstName . ' ' . $this->lastName;
     }
 }

@@ -19,17 +19,12 @@ class CampusAuthenticationEntryPoint implements AuthenticationEntryPointInterfac
 
     public function start(Request $request, ?AuthenticationException $authException = null): RedirectResponse
     {
-        $path = $request->getPathInfo();
+        $path = strtolower($request->getPathInfo());
 
-        if (str_starts_with($path, '/alabang-admin')) {
+        if (str_contains($path, 'alabang')) {
             return new RedirectResponse($this->urlGenerator->generate('app_auth_login_alabang'));
         }
-        
-        if (str_starts_with($path, '/diliman-admin')) {
-            return new RedirectResponse($this->urlGenerator->generate('app_auth_login_diliman'));
-        }
 
-        // Default fallback
         return new RedirectResponse($this->urlGenerator->generate('app_auth_login_diliman'));
     }
 }

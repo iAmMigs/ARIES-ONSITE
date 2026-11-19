@@ -15,6 +15,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class ApplicantBedRequirement
 {
+    public const STATUS_PENDING = 'P';
+    public const STATUS_SUBMITTED = 'S';
+    public const STATUS_WAIVED = 'W';
+
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: ApplicantBed::class, inversedBy: 'requirements')]
     #[ORM\JoinColumn(name: 'student_number', referencedColumnName: 'student_number', nullable: false, onDelete: 'CASCADE')]
@@ -70,4 +74,7 @@ class ApplicantBedRequirement
     public function setDateSubmitted(?\DateTimeInterface $DateSubmitted): static { $this->DateSubmitted = $DateSubmitted; return $this; }
     public function isDeleted(): bool { return $this->IsDeleted; }
     public function setIsDeleted(bool $IsDeleted): static { $this->IsDeleted = $IsDeleted; return $this; }
+
+    public function isWaived(): bool { return $this->Status === self::STATUS_WAIVED; }
+    public function isSubmitted(): bool { return $this->Status === self::STATUS_SUBMITTED; }
 }

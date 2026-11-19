@@ -1,0 +1,43 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Security;
+
+use Symfony\Component\PasswordHasher\PasswordHasherInterface;
+
+/**
+ * Validates legacy MD5 password hashes used by the central Associate Login database.
+ * Employs constant-time string comparison to prevent timing attacks.
+ */
+class Md5PasswordHasher implements PasswordHasherInterface
+{
+    public function hash(string $plainPassword): string
+    {
+        return md5($plainPassword);
+    }
+
+    public function verify(string $hashedPassword, string $plainPassword): bool
+    {
+        if ($hashedPassword === '' || $plainPassword === '') {
+            return false;
+        }
+
+        $stored = trim($hashedPassword);
+        if (hash_equals(strtolower($stored), md5($plainPassword))) {
+            return true;
+        }
+        if (password_verify($plainPassword, $stored)) {
+            return true;
+        }
+        if (hash_equals($stored, $plainPassword)) {
+            return true;
+        }
+        return false;
+    }
+
+    public function needsRehash(string $hashedPassword): bool
+    {
+        return false;
+    }
+}

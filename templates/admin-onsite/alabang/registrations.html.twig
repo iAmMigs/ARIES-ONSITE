@@ -39,7 +39,7 @@
                     <form method="GET" action="{{ path('app_admin_alabang_registrations') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end" id="filterForm">
                         
                         {# 1. Search Keyword #}
-                        <div class="lg:col-span-3">
+                        <div class="lg:col-span-2">
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Search Keyword</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -47,24 +47,39 @@
                                 </div>
                                 <input type="text" name="search" value="{{ filters.search|default('') }}" 
                                        class="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
-                                       placeholder="Search name or student no...">
+                                       placeholder="Search name or ID...">
                             </div>
                         </div>
 
-                        {# 2. Education Level #}
+                        {# 2. School Year #}
+                        <div class="lg:col-span-2">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">School Year</label>
+                            <select name="school_year" 
+                                    class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs">
+                                <option value="">All School Years</option>
+                                {% for sy in schoolYears|default([]) %}
+                                    <option value="{{ sy.label }}" {{ filters.school_year|default('') == sy.label ? 'selected' : '' }}>
+                                        {{ sy.label }}{% if sy.isActive %} (Active){% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {# 3. Education Level #}
                         <div class="lg:col-span-2">
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Education</label>
                             <select name="education_type" id="eduSelect" 
                                      class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
                                      onchange="toggleGradeOptions()">
                                 <option value="">All Levels</option>
-                                <option value="Primary" {{ filters.education_type|default('') == 'Primary' ? 'selected' : '' }}>Primary (K-6)</option>
-                                <option value="Secondary" {{ filters.education_type|default('') == 'Secondary' ? 'selected' : '' }}>Secondary (7-12)</option>
+                                <option value="Grade School" {{ filters.education_type|default('') in ['Grade School', 'Primary'] ? 'selected' : '' }}>Grade School</option>
+                                <option value="Junior High School" {{ filters.education_type|default('') in ['Junior High School', 'JHS'] ? 'selected' : '' }}>Junior High School</option>
+                                <option value="Senior High School" {{ filters.education_type|default('') in ['Senior High School', 'SHS'] ? 'selected' : '' }}>Senior High School</option>
                             </select>
                         </div>
 
-                        {# 3. Grade Level Dropdown #}
-                        <div class="lg:col-span-3 relative group">
+                        {# 4. Grade Level Dropdown #}
+                        <div class="lg:col-span-2 relative group">
                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Grade Level</label>
                             <button type="button" 
                                     class="w-full text-left bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm flex justify-between items-center outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs" 
@@ -80,9 +95,9 @@
                             </button>
                             <div id="gradeDropdown" class="hidden absolute top-full left-0 w-full bg-white border border-gray-200 rounded-2xl shadow-xl mt-1.5 z-50 p-4 max-h-64 overflow-y-auto">
                                 <div class="space-y-3">
-                                    {# Primary Options #}
-                                    <div class="grade-group-primary">
-                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Primary</div>
+                                    {# Grade School Options #}
+                                    <div class="grade-group-gs">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Grade School</div>
                                         <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
                                             <input type="checkbox" name="grade_levels[]" value="kinder" {{ 'kinder' in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
                                             <span>Kinder</span>
@@ -94,10 +109,20 @@
                                             </label>
                                         {% endfor %}
                                     </div>
-                                    {# Secondary Options #}
-                                    <div class="grade-group-secondary border-t border-gray-100 pt-3">
-                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Secondary</div>
-                                        {% for i in 7..12 %}
+                                    {# Junior High School Options #}
+                                    <div class="grade-group-jhs border-t border-gray-100 pt-3">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Junior High School</div>
+                                        {% for i in 7..10 %}
+                                            <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
+                                                <input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
+                                                <span>Grade {{ i }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                    {# Senior High School Options #}
+                                    <div class="grade-group-shs border-t border-gray-100 pt-3">
+                                        <div class="text-[10px] font-bold text-feu-green-700 uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-md mb-2">Senior High School</div>
+                                        {% for i in 11..12 %}
                                             <label class="flex items-center gap-2.5 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg text-sm text-gray-700">
                                                 <input type="checkbox" name="grade_levels[]" value="grade_{{ i }}" {{ ('grade_' ~ i) in filters.grade_levels|default([]) ? 'checked' : '' }} class="rounded border-gray-300 text-feu-green-700 focus:ring-feu-green-600"> 
                                                 <span>Grade {{ i }}</span>
@@ -114,7 +139,7 @@
                             <select name="promissory" 
                                     class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-feu-green-600 focus:ring-1 focus:ring-feu-green-600 transition-colors shadow-xs">
                                 <option value="">All</option>
-                                <option value="complied" {{ filters.promissory|default('') == 'complied' ? 'selected' : '' }}>Complied</option>
+                                <option value="complied" {{ filters.promissory|default('') == 'complied' ? 'selected' : '' }}>Documents Complied</option>
                                 <option value="not_complied" {{ filters.promissory|default('') == 'not_complied' ? 'selected' : '' }}>Not Complied</option>
                             </select>
                         </div>
@@ -154,7 +179,7 @@
                 {# --- TABLE CONTAINER --- #}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200/80 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                        <h3 class="font-bold text-gray-800 text-base">Applicant Records ({{ totalItems }})</h3>
+                        <h3 class="font-bold text-gray-800 text-base">Applicant Records</h3>
                         <span class="text-xs text-gray-500">
                             Showing page <strong class="text-gray-800">{{ currentPage }}</strong> of {{ totalPages|default(1) }}
                         </span>
@@ -164,13 +189,13 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-gray-200 text-[11px] font-black uppercase tracking-wider text-gray-400 bg-gray-50/30">
-                                    <th class="py-3.5 px-6">Picture</th>
-                                    <th class="py-3.5 px-6">Student ID</th>
-                                    <th class="py-3.5 px-6">Applicant Name</th>
-                                    <th class="py-3.5 px-6">Education / Strand</th>
-                                    <th class="py-3.5 px-6">Admission Status</th>
-                                    <th class="py-3.5 px-6">Date Applied</th>
-                                    <th class="py-3.5 px-6 text-right">Actions</th>
+                                    <th class="py-3.5 px-4">Picture</th>
+                                    <th class="py-3.5 px-4">Student ID</th>
+                                    <th class="py-3.5 px-4">Applicant Name</th>
+                                    <th class="py-3.5 px-4 w-44">Education / Strand</th>
+                                    <th class="py-3.5 px-4">Admission Status</th>
+                                    <th class="py-3.5 px-4">Date Applied</th>
+                                    <th class="py-3.5 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 text-sm">
@@ -220,18 +245,25 @@
 
     function toggleGradeOptions() {
         const eduType = document.getElementById('eduSelect').value;
-        const primaryGroup = document.querySelector('.grade-group-primary');
-        const secondaryGroup = document.querySelector('.grade-group-secondary');
+        const gsGroup = document.querySelector('.grade-group-gs');
+        const jhsGroup = document.querySelector('.grade-group-jhs');
+        const shsGroup = document.querySelector('.grade-group-shs');
 
         // 1. Reset Display
-        if (primaryGroup) primaryGroup.style.display = 'block';
-        if (secondaryGroup) secondaryGroup.style.display = 'block';
+        if (gsGroup) gsGroup.style.display = 'block';
+        if (jhsGroup) jhsGroup.style.display = 'block';
+        if (shsGroup) shsGroup.style.display = 'block';
 
-        // 2. Hide based on selection
-        if (eduType === 'Primary') {
-            if (secondaryGroup) secondaryGroup.style.display = 'none';
-        } else if (eduType === 'Secondary') {
-            if (primaryGroup) primaryGroup.style.display = 'none';
+        // 2. Filter groups based on selection
+        if (eduType === 'Grade School' || eduType === 'Primary') {
+            if (jhsGroup) jhsGroup.style.display = 'none';
+            if (shsGroup) shsGroup.style.display = 'none';
+        } else if (eduType === 'Junior High School' || eduType === 'JHS') {
+            if (gsGroup) gsGroup.style.display = 'none';
+            if (shsGroup) shsGroup.style.display = 'none';
+        } else if (eduType === 'Senior High School' || eduType === 'SHS') {
+            if (gsGroup) gsGroup.style.display = 'none';
+            if (jhsGroup) jhsGroup.style.display = 'none';
         }
     }
 

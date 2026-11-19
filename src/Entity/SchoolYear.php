@@ -118,6 +118,6 @@ class SchoolYear
      */
     public function getDisplayLabel(): string
     {
-        return $this->label . ' (' . $this->yearStart . '–' . $this->yearEnd . ')';
+        return $this->label . ' (' . $this->yearStart . '-' . $this->yearEnd . ')';
     }
 }

@@ -1,0 +1,299 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Survey Discovery Options - {{ campusName }} Admin{% endblock %}
+
+{% block body %}
+{% set surveyIcons = [
+    'ki-verify', 'ki-like', 'ki-facebook', 'ki-instagram', 'ki-youtube', 'ki-twitter',
+    'ki-sms', 'ki-messages', 'ki-people', 'ki-shop', 'ki-geolocation', 'ki-teacher',
+    'ki-briefcase', 'ki-compass', 'ki-star', 'ki-heart', 'ki-badge', 'ki-award',
+    'ki-screen', 'ki-call', 'ki-notification-bing', 'ki-paper-plane'
+] %}
+
+<div class="flex h-screen bg-gray-50 overflow-hidden font-sans">
+    {% if campusCode == 'feu_alabang' %}
+        {% include 'admin-onsite/alabang/_sidebar.html.twig' %}
+    {% else %}
+        {% include 'admin-onsite/diliman/_sidebar.html.twig' %}
+    {% endif %}
+
+    <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header class="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-xs">
+            <div>
+                <h1 class="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2.5">
+                    <i class="ki-filled ki-like text-blue-600 text-2xl"></i>
+                    Survey Discovery Options
+                </h1>
+                <p class="text-xs text-gray-500 font-semibold mt-0.5">Manage "How did you learn about us" inquiry sources for {{ campusName }}</p>
+            </div>
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                    <i class="ki-filled ki-geolocation text-xs"></i> {{ campusName }}
+                </span>
+            </div>
+        </header>
+
+        <main class="p-6 space-y-6 max-w-5xl mx-auto w-full">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="p-4 rounded-xl border text-sm font-semibold flex items-center gap-2 {{ label == 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800' }}">
+                        <i class="ki-filled {{ label == 'success' ? 'ki-check-circle' : 'ki-information-2' }} text-base"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {# --- APPLICANT SURVEY CHOICES LIMIT SETTING CARD --- #}
+            <div class="bg-white rounded-2xl shadow-xs border border-gray-200 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 border border-purple-100 flex items-center justify-center text-lg">
+                        <i class="ki-filled ki-setting-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-900">Applicant Survey Selection Limit</h3>
+                        <p class="text-xs text-gray-500">Maximum number of survey options an applicant can choose on the application page</p>
+                    </div>
+                </div>
+                <form action="{{ path('app_admin_survey_settings', {campus: campus}) }}" method="POST" class="flex items-center gap-2 w-full sm:w-auto">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_survey_settings') }}">
+                    <div class="flex items-center">
+                        <input type="number" name="max_choices" value="{{ maxChoices|default(3) }}" min="1" max="20" required class="w-20 text-center text-sm font-bold px-3 py-2 border border-gray-300 rounded-xl bg-gray-50 focus:bg-white focus:border-purple-600 outline-none transition-all shadow-2xs">
+                        <span class="text-xs font-semibold text-gray-500 ml-2">max choices</span>
+                    </div>
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5">
+                        <i class="ki-filled ki-check text-xs"></i> Save Limit
+                    </button>
+                </form>
+            </div>
+
+            {# --- ADD NEW SURVEY OPTION COLLAPSIBLE CARD --- #}
+            <div class="bg-white rounded-2xl border border-gray-200 shadow-xs relative" id="addSurveyContainer">
+                <button type="button" 
+                        onclick="document.getElementById('addSurveyFormContainer').classList.toggle('hidden'); document.getElementById('addSurveyIcon').classList.toggle('rotate-180');" 
+                        class="w-full px-6 py-4.5 text-left flex justify-between items-center bg-gray-50/60 hover:bg-gray-50 rounded-2xl transition-colors cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                        <i class="ki-filled ki-plus-circle text-blue-600 text-xl"></i>
+                        <h4 class="text-sm font-bold text-gray-800 m-0">Add New Survey Option</h4>
+                    </div>
+                    <i id="addSurveyIcon" class="ki-filled ki-down text-gray-400 transform transition-transform duration-300"></i>
+                </button>
+
+                <form id="addSurveyFormContainer" action="{{ path('app_admin_survey_add', {campus: campus}) }}" method="POST" class="hidden p-6 border-t border-gray-100 rounded-b-2xl space-y-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token('admin_survey_add') }}">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                        {# Icon Selector Popover #}
+                        <div class="sm:col-span-4 relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Select Icon</label>
+                            <input type="hidden" name="icon" id="addSurveyIconInput" value="ki-verify">
+                            <button type="button" id="addIconBtn" onclick="toggleIconDropdown('addIconDropdown')" class="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:border-blue-500 shadow-2xs">
+                                <span class="flex items-center gap-2 truncate">
+                                    <i id="addIconPreview" class="ki-filled ki-verify text-lg text-blue-600"></i>
+                                    <span class="text-xs text-gray-600 font-semibold" id="addIconNameText">ki-verify</span>
+                                </span>
+                                <i class="ki-filled ki-down text-xs text-gray-400"></i>
+                            </button>
+
+                            <div id="addIconDropdown" class="hidden absolute top-full left-0 mt-2 w-80 p-3 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 ring-1 ring-black/10">
+                                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Choose KeenIcon</div>
+                                <div class="grid grid-cols-5 gap-2 max-h-56 overflow-y-auto p-1">
+                                    {% for ic in surveyIcons %}
+                                        <button type="button" onclick="selectSurveyIcon('{{ ic }}', 'addSurveyIconInput', 'addIconPreview', 'addIconDropdown')" class="w-10 h-10 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-700 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 transition-colors shadow-2xs cursor-pointer" title="{{ ic }}">
+                                            <i class="ki-filled {{ ic }} text-lg"></i>
+                                        </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-8">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Source Label <span class="text-red-500">*</span></label>
+                            <input type="text" name="label" id="addSurveyLabelInput" placeholder="e.g. TikTok, Billboard, Alumni Referral" required class="w-full text-xs font-semibold px-3 py-2.5 border border-gray-300 rounded-xl bg-white outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                        <button type="button" 
+                                onclick="document.getElementById('addSurveyFormContainer').classList.add('hidden'); document.getElementById('addSurveyIcon').classList.remove('rotate-180'); document.getElementById('addSurveyLabelInput').value = '';" 
+                                class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 py-2 rounded-xl transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5">
+                            <i class="ki-filled ki-plus text-xs"></i> Add Survey Option
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xs border border-gray-200 overflow-hidden flex flex-col">
+                <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-sm">
+                            <i class="ki-filled ki-like text-base"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-gray-900">Configured Survey Sources ({{ surveyOptions|length }})</h2>
+                            <p class="text-xs text-gray-500">Automatically sorted alphabetically (A&ndash;Z)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divide-y divide-gray-100">
+                    {% for opt in surveyOptions %}
+                        <div class="p-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-base">
+                                    <i class="ki-filled {{ opt.icon|default('ki-verify') }}"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-bold text-gray-900">{{ opt.label }}</div>
+                                    <div class="text-[11px] text-gray-400">Icon: <code class="text-gray-500 font-mono">{{ opt.icon|default('ki-verify') }}</code></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="openEditSurveyModal({{ opt.id }}, '{{ opt.label|e('js') }}', '{{ opt.icon|default('ki-verify') }}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors cursor-pointer border border-gray-200 shadow-2xs">
+                                    <i class="ki-filled ki-pencil text-xs"></i> Edit
+                                </button>
+
+                                <form action="{{ path('app_admin_survey_toggle', {campus: campus, id: opt.id}) }}" method="POST">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('admin_survey_toggle_' ~ opt.id) }}">
+                                    {% if opt.isActive %}
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-colors cursor-pointer">
+                                            <i class="ki-filled ki-check-circle text-xs"></i> Active
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors cursor-pointer">
+                                            <i class="ki-filled ki-cross-circle text-xs"></i> Disabled
+                                        </button>
+                                    {% endif %}
+                                </form>
+
+                                {% if (optionUsageCounts[opt.id]|default(0)) == 0 %}
+                                    <form action="{{ path('app_admin_survey_delete', {campus: campus, id: opt.id}) }}" method="POST" onsubmit="return confirm('Delete unused survey option &quot;{{ opt.label|e('js') }}&quot;? This action cannot be undone.');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_survey_delete_' ~ opt.id) }}">
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 transition-colors cursor-pointer shadow-2xs" title="Delete unused survey option">
+                                            <i class="ki-filled ki-trash text-xs"></i> Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="p-8 text-center text-xs text-gray-400 italic">No survey options configured yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+{# Edit Survey Modal #}
+<div id="editSurveyModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/70">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-sm">
+                    <i class="ki-filled ki-pencil text-base"></i>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900">Edit Survey Option</h3>
+            </div>
+            <button type="button" onclick="closeEditSurveyModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+                <i class="ki-filled ki-cross text-base"></i>
+            </button>
+        </div>
+
+        <form id="editSurveyForm" method="POST" action="" class="p-5 space-y-4">
+            <input type="hidden" name="_token" id="editSurveyCsrfToken" value="">
+            <input type="hidden" name="icon" id="editSurveyIconInput" value="ki-verify">
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Source Label</label>
+                <input type="text" name="label" id="editSurveyLabelInput" required class="w-full text-xs font-semibold px-3 py-2 border border-gray-300 rounded-lg outline-none focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1.5">Choose Icon</label>
+                <div class="grid grid-cols-6 gap-2 p-2 border border-gray-200 rounded-xl bg-gray-50/70 max-h-36 overflow-y-auto">
+                    {% for ic in surveyIcons %}
+                        <button type="button" onclick="selectEditSurveyIcon('{{ ic }}')" id="edit_icon_{{ ic }}" class="w-10 h-10 rounded-lg border border-gray-200 bg-white flex items-center justify-center text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors edit-icon-btn" title="{{ ic }}">
+                            <i class="ki-filled {{ ic }} text-lg"></i>
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeEditSurveyModal()" class="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleIconDropdown(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('hidden');
+}
+
+function selectSurveyIcon(iconName, inputId, previewId, dropdownId) {
+    document.getElementById(inputId).value = iconName;
+    const preview = document.getElementById(previewId);
+    if (preview) {
+        preview.className = 'ki-filled ' + iconName + ' text-base text-blue-600';
+    }
+    const nameText = document.getElementById('addIconNameText');
+    if (nameText) {
+        nameText.textContent = iconName;
+    }
+    const dropdown = document.getElementById(dropdownId);
+    if (dropdown) dropdown.classList.add('hidden');
+}
+
+function selectEditSurveyIcon(iconName) {
+    document.getElementById('editSurveyIconInput').value = iconName;
+    document.querySelectorAll('.edit-icon-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-50', 'border-blue-500', 'text-blue-600', 'ring-2', 'ring-blue-400');
+    });
+    const selectedBtn = document.getElementById('edit_icon_' + iconName);
+    if (selectedBtn) {
+        selectedBtn.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-600', 'ring-2', 'ring-blue-400');
+    }
+}
+
+// Map of tokens per survey item ID
+const surveyEditTokens = {
+    {% for opt in surveyOptions %}
+        {{ opt.id }}: '{{ csrf_token('admin_survey_edit_' ~ opt.id) }}',
+    {% endfor %}
+};
+
+function openEditSurveyModal(id, label, icon) {
+    const modal = document.getElementById('editSurveyModal');
+    const form = document.getElementById('editSurveyForm');
+    form.action = '{{ path('app_admin_survey_edit', {campus: campus, id: 0}) }}'.replace('/0', '/' + id);
+    document.getElementById('editSurveyLabelInput').value = label;
+    document.getElementById('editSurveyCsrfToken').value = surveyEditTokens[id] || '';
+    selectEditSurveyIcon(icon);
+    modal.classList.remove('hidden');
+}
+
+function closeEditSurveyModal() {
+    document.getElementById('editSurveyModal').classList.add('hidden');
+}
+
+// Close icon dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    const addDropdown = document.getElementById('addIconDropdown');
+    const addBtn = document.getElementById('addIconBtn');
+    if (addDropdown && addBtn && !addBtn.contains(e.target) && !addDropdown.contains(e.target)) {
+        addDropdown.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}
+

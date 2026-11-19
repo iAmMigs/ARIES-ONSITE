@@ -31,9 +31,13 @@ class StudentIdGenerator
     /**
      * Generates the next available student number for the given campus and school year.
      *
+     * ID format strictly contains no dashes:
+     *   FEU Alabang: {yearStart}{typeCode}{6-digit series}  — e.g. 20255000001
+     *   FEU Diliman: {yearStart}{typeCode}{4-digit series}  — e.g. 202550001
+     *
      * @param string     $campus     Raw campus form value ('feu_alabang' or 'feu_diliman')
      * @param SchoolYear $schoolYear The currently active school year for that campus
-     * @param bool       $isInternational Whether the applicant is international/non-Filipino
+     * @param bool       $isInternational Kept for signature compatibility; all applicants follow the standardized dashless format
      *
      * @return string The generated student number
      */
@@ -44,26 +48,7 @@ class StudentIdGenerator
             ? ApplicantBed::CAMPUS_ALABANG
             : ApplicantBed::CAMPUS_DILIMAN;
 
-        if ($isInternational && $campusCode === ApplicantBed::CAMPUS_DILIMAN) {
-            // YYYY-XXXXXX format for Non-Filipino Applicants at FEU Diliman
-            $prefix = $schoolYear->getYearStart() . '-';
-            $latestStudent = $this->applicantBedRepository->findLatestForGeneration($campusCode, $prefix);
-            
-            $nextSeries = 1;
-            if ($latestStudent) {
-                $latestId = $latestStudent->getStudentNumber();
-                if (strlen($latestId) > strlen($prefix)) {
-                    $nextSeries = (int) substr($latestId, strlen($prefix)) + 1;
-                }
-            }
-            
-            $generatedId = $prefix . str_pad((string) $nextSeries, 6, '0', STR_PAD_LEFT);
-            error_log("StudentIdGenerator: Generated international student ID $generatedId for campus $campus");
-            return $generatedId;
-        }
-
-        // Build the 5-character prefix: 4-digit year + type code '5'
-        // e.g. SY2526 (yearStart=2025) → prefix "20255"
+        // Build the 5-character prefix: 4-digit year + type code '5' (e.g. 20255)
         $prefix = $schoolYear->getYearStart() . self::TYPE_CODE;
 
         // Find the highest existing student number for this campus + SY prefix
@@ -85,8 +70,6 @@ class StudentIdGenerator
         // Diliman → 4-digit series (total 9 chars with prefix)
         $seriesPadLength = ($campus === 'feu_alabang') ? 6 : 4;
 
-        $generatedId = $prefix . str_pad((string) $nextSeries, $seriesPadLength, '0', STR_PAD_LEFT);
-        error_log("StudentIdGenerator: Generated $generatedId for campus $campus");
-        return $generatedId;
+        return $prefix . str_pad((string) $nextSeries, $seriesPadLength, '0', STR_PAD_LEFT);
     }
 }

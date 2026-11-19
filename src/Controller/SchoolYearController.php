@@ -386,5 +386,9 @@ class SchoolYearController extends AbstractController
         if ($expectedCampus === null || $user->getCampus() !== $expectedCampus) {
             throw new AccessDeniedException('You are not authorized to manage school years for this campus.');
         }
+
+        if (!$user->isMasterAdmin() && !$user->hasModule(AdminUser::MODULE_SCHOOL_YEAR)) {
+            throw new AccessDeniedException('You do not have permission to access the School Year module.');
+        }
     }
 }

@@ -41,8 +41,12 @@ class DocumentApiController extends AbstractController
         foreach ($allDocs as $doc) {
             // 1. Check Student Type
             $docStudentType = $doc->getStudentType();
-            if ($docStudentType && $docStudentType !== 'Both' && $docStudentType !== $studentType) {
-                continue;
+            if ($docStudentType && strtoupper($docStudentType) !== 'BOTH' && strtoupper($docStudentType) !== 'ALL') {
+                $normDoc = strtolower(str_replace([' ', '_', '-'], '', (string)$docStudentType));
+                $normStudent = strtolower(str_replace([' ', '_', '-'], '', (string)$studentType));
+                if ($normDoc !== $normStudent) {
+                    continue;
+                }
             }
 
             // 2. Check Nationality
@@ -61,8 +65,12 @@ class DocumentApiController extends AbstractController
 
             // 3. Check Grade Levels
             $docGradeLevels = $doc->getGradeLevels() ?? [];
-            if (!empty($docGradeLevels) && !in_array('All', $docGradeLevels) && !in_array($gradeLevel, $docGradeLevels)) {
-                continue;
+            if (!empty($docGradeLevels)) {
+                $normalizedGrades = array_map(fn($g) => strtolower(str_replace([' ', '_', '-'], '', (string)$g)), $docGradeLevels);
+                $normalizedApplicantGrade = strtolower(str_replace([' ', '_', '-'], '', (string)$gradeLevel));
+                if (!in_array('all', $normalizedGrades, true) && !in_array($normalizedApplicantGrade, $normalizedGrades, true)) {
+                    continue;
+                }
             }
 
             // 4. Custom Conditions for International / Foreign Applicants

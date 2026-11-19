@@ -60,9 +60,9 @@ class LogoutSubscriber implements EventSubscriberInterface
         }
 
         if ($campus === 'feu_alabang') {
-            $event->setResponse(new RedirectResponse($this->urlGenerator->generate('app_home_alabang')));
+            $event->setResponse(new RedirectResponse($this->urlGenerator->generate('app_auth_login_alabang')));
         } else {
-            $event->setResponse(new RedirectResponse($this->urlGenerator->generate('app_home_diliman')));
+            $event->setResponse(new RedirectResponse($this->urlGenerator->generate('app_auth_login_diliman')));
         }
     }
 }

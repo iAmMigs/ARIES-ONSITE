@@ -24,7 +24,7 @@ class AddressController extends AbstractController
         foreach ($regions as $r) {
             $data[] = ['code' => $r->getRegionCode(), 'name' => $r->getRegionDesc()];
         }
-        return $this->json($data);
+        return $this->cachedJson($data);
     }
 
     #[Route('/provinces/{regionCode}', name: 'api_address_provinces')]
@@ -35,7 +35,7 @@ class AddressController extends AbstractController
         foreach ($provinces as $p) {
             $data[] = ['code' => $p->getProvinceCode(), 'name' => $p->getProvinceDesc()];
         }
-        return $this->json($data);
+        return $this->cachedJson($data);
     }
 
     #[Route('/cities/{provinceCode}', name: 'api_address_cities')]
@@ -46,7 +46,7 @@ class AddressController extends AbstractController
         foreach ($cities as $c) {
             $data[] = ['code' => $c->getCityCode(), 'name' => $c->getCityDesc()];
         }
-        return $this->json($data);
+        return $this->cachedJson($data);
     }
 
     #[Route('/barangays/{cityCode}', name: 'api_address_barangays')]
@@ -57,7 +57,7 @@ class AddressController extends AbstractController
         foreach ($barangays as $b) {
             $data[] = ['code' => $b->getBarangayCode(), 'name' => $b->getBarangayDesc(), 'zip' => $b->getZipcode()];
         }
-        return $this->json($data);
+        return $this->cachedJson($data);
     }
 
     #[Route('/provinces-all', name: 'api_address_provinces_all')]
@@ -80,6 +80,21 @@ class AddressController extends AbstractController
             ];
         }
 
-        return $this->json($data);
+        return $this->cachedJson($data);
+    }
+
+    /**
+     * Cache static geographic responses for 24 hours to eliminate redundant database queries.
+     *
+     * @param array<int|string, mixed> $data
+     */
+    private function cachedJson(array $data): JsonResponse
+    {
+        $response = new JsonResponse($data);
+        $response->setPublic();
+        $response->setMaxAge(86400);
+        $response->setSharedMaxAge(86400);
+
+        return $response;
     }
 }

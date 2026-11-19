@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\AdminUser;
 use App\Repository\AdminUserRepository;
+use App\Service\AssocLoginService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +17,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Manages administrator accounts, hierarchy roles, module access permissions,
+ * Manages administrator accounts, module access permissions,
  * and high-security role transfer/deletion operations with multi-stage verification.
  *
  * Scope: Strict campus isolation between FEU Alabang and FEU Diliman.
@@ -39,35 +40,39 @@ class AdminAccessController extends AbstractController
         $admins = $adminUserRepo->findBy(['campus' => $campusCode], ['empNum' => 'ASC']);
 
         $metrics = [
-            'total'  => count($admins),
-            'master' => count(array_filter($admins, fn(AdminUser $u) => $u->isMasterAdmin())),
-            'senior' => count(array_filter($admins, fn(AdminUser $u) => $u->isSeniorAdmin())),
-            'staff'  => count(array_filter($admins, fn(AdminUser $u) => $u->isStaffAdmin())),
-            'active' => count(array_filter($admins, fn(AdminUser $u) => $u->isActive())),
+            'total'         => count($admins),
+            'master'        => count(array_filter($admins, fn(AdminUser $u) => $u->isMasterAdmin())),
+            'active'        => count(array_filter($admins, fn(AdminUser $u) => $u->isActive())),
+            'registrations' => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_REGISTRATIONS))),
+            'finance'       => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_FINANCE))),
+            'survey'        => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_SURVEY))),
+            'tracks'        => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_TRACKS))),
+            'documents'     => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_DOCUMENTS))),
+            'school_year'   => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_SCHOOL_YEAR))),
+            'admin_access'  => count(array_filter($admins, fn(AdminUser $u) => $u->hasModule(AdminUser::MODULE_ADMIN_ACCESS))),
         ];
 
         return $this->render('admin-onsite/access/index.html.twig', [
-            'campus'          => $campus,
-            'campusCode'      => $campusCode,
-            'campusName'      => $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman',
-            'admins'          => $admins,
-            'metrics'         => $metrics,
-            'active_menu'     => 'admin_access',
-            'currentUser'     => $currentUser,
-            'canCreateSenior' => $currentUser->isMasterAdmin(),
-            'canCreateStaff'  => $currentUser->canCreateTier(AdminUser::TIER_STAFF),
+            'campus'           => $campus,
+            'campusCode'       => $campusCode,
+            'campusName'       => $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman',
+            'admins'           => $admins,
+            'metrics'          => $metrics,
+            'active_menu'      => 'admin_access',
+            'currentUser'      => $currentUser,
+            'availableModules' => AdminUser::AVAILABLE_MODULES,
         ]);
     }
 
     /**
-     * Creates a new administrator account within the authorized campus.
+     * Creates a new administrator account with modular module permissions.
      */
     #[Route('/{campus}/create', name: 'app_admin_access_create', methods: ['POST'])]
     public function create(
         string $campus,
         Request $request,
         AdminUserRepository $adminUserRepo,
-        UserPasswordHasherInterface $passwordHasher,
+        AssocLoginService $assocLoginService,
         EntityManagerInterface $em
     ): Response {
         $currentUser = $this->getAuthenticatedAdmin();
@@ -80,15 +85,10 @@ class AdminAccessController extends AbstractController
         }
 
         $empNumRaw = trim((string) $request->request->get('emp_num', ''));
-        $firstName = trim((string) $request->request->get('first_name', ''));
-        $lastName  = trim((string) $request->request->get('last_name', ''));
-        $email     = strtolower(trim((string) $request->request->get('email', '')));
-        $password  = (string) $request->request->get('password', '');
-        $tier      = (string) $request->request->get('tier', AdminUser::TIER_STAFF);
-        $canManage = $request->request->getBoolean('can_manage_admins');
+        $selectedModules = (array) $request->request->all('modules');
 
-        if ($empNumRaw === '' || $firstName === '' || $lastName === '' || $email === '' || $password === '') {
-            $this->addFlash('error', 'All fields (Employee Number, First Name, Last Name, Email, Password) are required.');
+        if ($empNumRaw === '') {
+            $this->addFlash('error', 'Employee Number is required.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
@@ -99,72 +99,94 @@ class AdminAccessController extends AbstractController
 
         $empNum = (int) $empNumRaw;
         if ($empNum <= 0 || (float) $empNumRaw > 4294967295) {
-            $this->addFlash('error', 'Employee Number must be a valid positive number up to 4,294,967,295.');
+            $this->addFlash('error', 'Employee Number must be a valid positive number.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
+        $financeEnabled = $request->request->get('finance_enabled') === '1';
+        if (in_array(AdminUser::MODULE_REGISTRATIONS, $selectedModules, true)) {
+            if ($financeEnabled) {
+                $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_REGISTRATIONS]);
+                $selectedModules[] = AdminUser::MODULE_FINANCE;
+            }
+        } else {
+            $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_FINANCE]);
+        }
+
+        $validModuleKeys = array_merge(array_keys(AdminUser::AVAILABLE_MODULES), [AdminUser::MODULE_FINANCE]);
+        $filteredModules = array_values(array_intersect($selectedModules, $validModuleKeys));
+
+        if (empty($filteredModules)) {
+            $this->addFlash('error', 'Please select at least one module for the administrator.');
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        // 1. Verify existence in campus-specific Associate database
+        $assoc = $assocLoginService->findByEmployeeIdForCampus($empNumRaw, $campusCode);
+        if (!$assoc) {
+            if ($assocLoginService->existsInOtherCampus($empNumRaw, $campusCode)) {
+                $this->addFlash('error', 'This Employee is not an associate of this campus');
+                return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+            }
+
+            $this->addFlash('error', sprintf('Employee #%d was not found in the Associate directory.', $empNum));
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        // 2. Check if already an administrator in this campus
         $existingEmp = $adminUserRepo->find($empNum);
-        if ($existingEmp) {
-            $this->addFlash('error', sprintf('An administrator with employee number "%d" already exists in the system.', $empNum));
+
+        if ($existingEmp && $existingEmp->getCampus() === $campusCode) {
+            $this->addFlash('error', sprintf('%s is already registered as an admin', $existingEmp->getFullName()));
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->addFlash('error', 'Please provide a valid email address.');
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
+        $username = (string) ($assoc['user_name'] ?? ('user' . $empNum));
+        $firstName = trim((string) ($assoc['first_name'] ?? ''));
+        $lastName = trim((string) ($assoc['last_name'] ?? ''));
 
-        if (strlen($password) < 8) {
-            $this->addFlash('error', 'Password must be at least 8 characters long.');
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        if (!$firstName && !empty($assoc['full_name'])) {
+            $parts = explode(' ', (string) $assoc['full_name'], 2);
+            $firstName = $parts[0] ?? '';
+            $lastName = $parts[1] ?? 'Staff';
         }
-
-        if (!$currentUser->canCreateTier($tier)) {
-            $this->addFlash('error', 'You do not have permission to create an administrator with the selected role tier.');
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
-
-        $existing = $adminUserRepo->findOneBy(['email' => $email]);
-        if ($existing) {
-            $this->addFlash('error', sprintf('An administrator with email "%s" already exists in the system.', $email));
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        if (!$firstName) {
+            $firstName = ucfirst($username);
+            $lastName = 'Staff';
         }
 
         $newAdmin = new AdminUser();
         $newAdmin->setEmpNum($empNum);
         $newAdmin->setFirstName($firstName);
-        $newAdmin->setLastName($lastName);
-        $newAdmin->setEmail($email);
+        $newAdmin->setLastName($lastName ?: 'Staff');
+        $newAdmin->setEmail($username . '@feu' . ($campusCode === 'feu_alabang' ? 'alabang' : 'diliman') . '.edu.ph');
         $newAdmin->setCampus($campusCode);
-        $newAdmin->setTier($tier);
+        $newAdmin->setTier(AdminUser::TIER_STAFF);
+        $newAdmin->setModules($filteredModules);
         $newAdmin->setRoles(['ROLE_ADMIN']);
         $newAdmin->setIsActive(true);
-
-        // Only Master Admin can grant module management access
-        $newAdmin->setCanManageAdmins($currentUser->isMasterAdmin() ? $canManage : false);
-
-        $hashedPassword = $passwordHasher->hashPassword($newAdmin, $password);
-        $newAdmin->setPassword($hashedPassword);
+        $newAdmin->setPassword(''); // Delegated to central assoc_login MD5
 
         $em->persist($newAdmin);
         $em->flush();
 
         $this->addFlash('success', sprintf(
-            'Administrator %s (%s) has been successfully created as %s.',
-            $newAdmin->getFullName(),
-            $newAdmin->getEmail(),
-            $newAdmin->getTierLabel()
+            'Associate @%s (Employee #%d) has been successfully added as an Administrator for %s with %d module(s) granted.',
+            $username,
+            $empNum,
+            $campusCode === 'feu_alabang' ? 'FEU Alabang' : 'FEU Diliman',
+            count($filteredModules)
         ));
 
         return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
     }
 
     /**
-     * Toggles module management access for a non-master administrator.
-     * Restricted strictly to Master Admin.
+     * Updates module access permissions for an existing administrator.
+     * Can be executed by the Master Admin or any administrator with Admin Access module permissions.
      */
-    #[Route('/{campus}/toggle-permission/{id}', name: 'app_admin_access_toggle_permission', methods: ['POST'])]
-    public function togglePermission(
+    #[Route('/{campus}/update-modules/{id}', name: 'app_admin_access_update_modules', methods: ['POST'])]
+    public function updateModules(
         string $campus,
         int $id,
         Request $request,
@@ -173,12 +195,9 @@ class AdminAccessController extends AbstractController
     ): Response {
         $currentUser = $this->getAuthenticatedAdmin();
         $campusCode = $this->resolveAndAuthorizeCampus($campus, $currentUser);
+        $this->assertCanAccessModule($currentUser);
 
-        if (!$currentUser->isMasterAdmin()) {
-            throw new AccessDeniedException('Only the Master Admin can modify module access permissions.');
-        }
-
-        if (!$this->isCsrfTokenValid('admin_access_toggle_perm_' . $id, (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_access_update_modules_' . $id, (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Invalid security token.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
@@ -190,19 +209,49 @@ class AdminAccessController extends AbstractController
         }
 
         if ($target->isMasterAdmin()) {
-            $this->addFlash('error', 'Master Admin permissions cannot be modified.');
+            $this->addFlash('error', 'Master Admin module access cannot be modified.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 
-        $newVal = !$target->canManageAdmins();
-        $target->setCanManageAdmins($newVal);
+        if (!$currentUser->canEditAdmin($target)) {
+            $this->addFlash('error', 'You do not have permission to modify module access for this administrator.');
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        $selectedModules = (array) $request->request->all('modules');
+        $financeEnabled = $request->request->get('finance_enabled') === '1';
+
+        if (in_array(AdminUser::MODULE_REGISTRATIONS, $selectedModules, true)) {
+            if ($financeEnabled) {
+                $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_REGISTRATIONS]);
+                $selectedModules[] = AdminUser::MODULE_FINANCE;
+            }
+        } else {
+            $selectedModules = array_diff($selectedModules, [AdminUser::MODULE_FINANCE]);
+        }
+
+        $validModuleKeys = array_merge(array_keys(AdminUser::AVAILABLE_MODULES), [AdminUser::MODULE_FINANCE]);
+        $filteredModules = array_values(array_intersect($selectedModules, $validModuleKeys));
+
+        if (empty($filteredModules)) {
+            $this->addFlash('error', 'An administrator must have at least one permitted module.');
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        // Prevent self-lockout from Admin Access module
+        if ($target->getEmpNum() === $currentUser->getEmpNum() && !in_array(AdminUser::MODULE_ADMIN_ACCESS, $filteredModules, true)) {
+            $this->addFlash('error', 'You cannot revoke your own access to the Admin Access module.');
+            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
+        }
+
+        $target->setModules($filteredModules);
         $target->setUpdatedAt(new \DateTimeImmutable());
         $em->flush();
 
         $this->addFlash('success', sprintf(
-            'Admin Access module permission for %s was %s.',
+            'Module access permissions for %s have been successfully updated (%d module(s) granted).',
             $target->getFullName(),
-            $newVal ? 'granted' : 'revoked'
+            count($filteredModules)
         ));
 
         return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
@@ -259,17 +308,20 @@ class AdminAccessController extends AbstractController
         }
 
         // Execute role swap
+        $allModules = array_keys(AdminUser::AVAILABLE_MODULES);
         $target->setTier(AdminUser::TIER_MASTER);
+        $target->setModules($allModules);
         $target->setCanManageAdmins(true);
         $target->setUpdatedAt(new \DateTimeImmutable());
 
-        $currentUser->setTier(AdminUser::TIER_SENIOR);
+        $currentUser->setTier(AdminUser::TIER_STAFF);
+        $currentUser->setModules($allModules);
         $currentUser->setUpdatedAt(new \DateTimeImmutable());
 
         $em->flush();
 
         $this->addFlash('success', sprintf(
-            'Master Admin role has been successfully transferred to %s. Your account is now a Senior Admin.',
+            'Master Admin role has been successfully transferred to %s.',
             $target->getFullName()
         ));
 
@@ -365,11 +417,6 @@ class AdminAccessController extends AbstractController
 
         if ($target->getEmpNum() === $currentUser->getEmpNum()) {
             $this->addFlash('error', 'You cannot deactivate your own account.');
-            return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
-        }
-
-        if (!$currentUser->isMasterAdmin() && !$target->isStaffAdmin()) {
-            $this->addFlash('error', 'You can only toggle status for Staff Admins.');
             return $this->redirectToRoute('app_admin_access_index', ['campus' => $campus]);
         }
 

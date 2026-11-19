@@ -167,31 +167,25 @@ window.updateGradeLevels = function() {
     let isLocked = false;
 
     if (admType && eduType) {
-        if (admType === 'New Student') {
-            isLocked = true; 
-            if (eduType === 'Kinder') {
-                options = [{val: 'Kinder', label: 'Kinder'}];
-            } else if (eduType === 'Grade School') {
-                options = [{val: 'Grade 1', label: 'Grade 1'}];
-            } else if (eduType === 'Junior High School') {
-                options = [{val: 'Grade 7', label: 'Grade 7'}];
-            } else if (eduType === 'Senior High School') {
-                options = [{val: 'Grade 11', label: 'Grade 11'}];
-            }
-        } else if (admType === 'Transferee') {
+        if (eduType === 'Kinder') {
+            options = [{val: 'Kinder', label: 'Kinder'}];
+            isLocked = true;
+        } else if (eduType === 'Grade School') {
+            options = [
+                {val: 'Grade 1', label: 'Grade 1'},
+                {val: 'Grade 2', label: 'Grade 2'}, {val: 'Grade 3', label: 'Grade 3'},
+                {val: 'Grade 4', label: 'Grade 4'}, {val: 'Grade 5', label: 'Grade 5'}, {val: 'Grade 6', label: 'Grade 6'}
+            ];
             isLocked = false;
-            if (eduType === 'Grade School') {
-                options = [
-                    {val: 'Grade 2', label: 'Grade 2'}, {val: 'Grade 3', label: 'Grade 3'},
-                    {val: 'Grade 4', label: 'Grade 4'}, {val: 'Grade 5', label: 'Grade 5'}, {val: 'Grade 6', label: 'Grade 6'}
-                ];
-            } else if (eduType === 'Junior High School') {
-                options = [
-                    {val: 'Grade 8', label: 'Grade 8'}, {val: 'Grade 9', label: 'Grade 9'}, {val: 'Grade 10', label: 'Grade 10'}
-                ];
-            } else if (eduType === 'Senior High School') {
-                options = [{val: 'Grade 11', label: 'Grade 11'}, {val: 'Grade 12', label: 'Grade 12'}];
-            }
+        } else if (eduType === 'Junior High School') {
+            options = [
+                {val: 'Grade 7', label: 'Grade 7'},
+                {val: 'Grade 8', label: 'Grade 8'}, {val: 'Grade 9', label: 'Grade 9'}, {val: 'Grade 10', label: 'Grade 10'}
+            ];
+            isLocked = false;
+        } else if (eduType === 'Senior High School') {
+            options = [{val: 'Grade 11', label: 'Grade 11'}, {val: 'Grade 12', label: 'Grade 12'}];
+            isLocked = false;
         }
     }
 
@@ -221,6 +215,18 @@ window.updateGradeLevels = function() {
         gradeSelect.setAttribute('required', 'required');
         if (lrnInput) lrnInput.setAttribute('required', 'required');
         if (lrnRequiredSpan) lrnRequiredSpan.style.display = 'inline';
+    }
+
+    gradeSelect.classList.remove('is-invalid', 'border-red-400');
+    const gradeAnchor = gradeSelect.closest('.input-wrapper') || gradeSelect.closest('.relative') || gradeSelect;
+    if (gradeAnchor.nextElementSibling && gradeAnchor.nextElementSibling.classList.contains('error-message')) {
+        gradeAnchor.nextElementSibling.remove();
+    } else {
+        const gradeParent = gradeAnchor.parentElement || gradeSelect.parentElement;
+        if (gradeParent) {
+            const existing = gradeParent.querySelector('.error-message');
+            if (existing) existing.remove();
+        }
     }
 
     if (window.ARIESValidation) window.ARIESValidation.resetField(gradeSelect, window.ARIESValidation.getErrorElement(gradeSelect));
@@ -398,21 +404,26 @@ window.updatePermanentAddressFields = function() {
         }
     });
 
-    // Handle common inputs (Street and Zip)
+    // Handle common inputs (Street is optional, Zip is required when enabled)
     const streetInput = document.getElementById('permAddressInput') || document.querySelector('[name="perm_address"]');
     const zipInput = document.getElementById('perm_zip');
-    [streetInput, zipInput].forEach(i => {
-        if (i) {
-            if (isChecked) {
-                i.disabled = true;
-                i.removeAttribute('required');
-                if (window.ARIESValidation) window.ARIESValidation.resetField(i, window.ARIESValidation.getErrorElement(i));
-            } else {
-                i.disabled = false;
-                i.setAttribute('required', 'required');
-            }
+    if (streetInput) {
+        streetInput.disabled = isChecked;
+        streetInput.removeAttribute('required');
+        if (isChecked && window.ARIESValidation) {
+            window.ARIESValidation.resetField(streetInput, window.ARIESValidation.getErrorElement(streetInput));
         }
-    });
+    }
+    if (zipInput) {
+        if (isChecked) {
+            zipInput.disabled = true;
+            zipInput.removeAttribute('required');
+            if (window.ARIESValidation) window.ARIESValidation.resetField(zipInput, window.ARIESValidation.getErrorElement(zipInput));
+        } else {
+            zipInput.disabled = false;
+            zipInput.setAttribute('required', 'required');
+        }
+    }
 };
 
 window.toggleGuardianAddress = function() {
@@ -473,12 +484,15 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
 
     const occGroup = document.getElementById(`${parentPrefix}_occupation_group`);
     const contactGroup = document.getElementById(`${parentPrefix}_contact_group`);
+    const emailGroup = document.getElementById(`${parentPrefix}_email_group`);
     const occInput = document.getElementById(`${parentPrefix}_occupation`);
     const contactInput = document.getElementById(`${parentPrefix}_contact`);
+    const emailInput = document.getElementById(`${parentPrefix}_email`);
     
     if (isDeceased) {
         if (occGroup) occGroup.style.display = 'none';
         if (contactGroup) contactGroup.style.display = 'none';
+        if (emailGroup) emailGroup.style.display = 'none';
         
         if (occInput) { 
             occInput.disabled = true; 
@@ -490,14 +504,24 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
             contactInput.removeAttribute('required'); 
             if (window.ARIESValidation) window.ARIESValidation.resetField(contactInput, window.ARIESValidation.getErrorElement(contactInput));
         }
+        if (emailInput) {
+            emailInput.disabled = true;
+            emailInput.value = '';
+            emailInput.removeAttribute('required');
+            if (window.ARIESValidation) window.ARIESValidation.resetField(emailInput, window.ARIESValidation.getErrorElement(emailInput));
+        }
     } else {
         if (occGroup) occGroup.style.display = 'block';
         if (contactGroup) contactGroup.style.display = 'block';
+        if (emailGroup) emailGroup.style.display = 'block';
         
         if (occInput) { occInput.disabled = false; }
         if (contactInput) { 
             contactInput.disabled = false; 
             contactInput.setAttribute('required', 'required'); 
+        }
+        if (emailInput) {
+            emailInput.disabled = false;
         }
     }
 
@@ -529,8 +553,8 @@ window.toggleParentStatus = function(currentId, otherId, parentPrefix) {
         const ofwZip = document.getElementById(`${parentPrefix}_ofw_zip`);
 
         if (ofwCountry) ofwCountry.setAttribute('required', 'required');
-        if (ofwAddr) ofwAddr.setAttribute('required', 'required');
-        if (ofwZip) ofwZip.setAttribute('required', 'required');
+        if (ofwAddr) ofwAddr.removeAttribute('required');
+        if (ofwZip) ofwZip.removeAttribute('required');
 
         window.toggleParentOfwPermSame(parentPrefix);
     } else {
@@ -610,8 +634,12 @@ window.toggleParentOfwPermInPh = function(prefix) {
     if (isYes) {
         if (phBlock) {
             phBlock.style.display = 'block';
-            const phReq = phBlock.querySelectorAll('input:not([type="hidden"]), select');
+            const phReq = phBlock.querySelectorAll('select, input.province-autocomplete');
             phReq.forEach(i => i.setAttribute('required', 'required'));
+            const permZip = document.getElementById(`${prefix}_ofw_perm_zip`);
+            if (permZip) permZip.removeAttribute('required');
+            const permStreet = document.getElementById(`${prefix}_ofw_perm_street`);
+            if (permStreet) permStreet.removeAttribute('required');
         }
         if (intlBlock) {
             intlBlock.style.display = 'none';
@@ -624,8 +652,12 @@ window.toggleParentOfwPermInPh = function(prefix) {
     } else {
         if (intlBlock) {
             intlBlock.style.display = 'block';
-            const intlReq = intlBlock.querySelectorAll('input, select');
-            intlReq.forEach(i => i.setAttribute('required', 'required'));
+            const countrySelect = document.getElementById(`${prefix}_ofw_perm_country`);
+            if (countrySelect) countrySelect.setAttribute('required', 'required');
+            const intlAddr = document.getElementById(`${prefix}_ofw_perm_address`);
+            if (intlAddr) intlAddr.removeAttribute('required');
+            const intlZip = document.getElementById(`${prefix}_ofw_perm_intl_zip`);
+            if (intlZip) intlZip.removeAttribute('required');
         }
         if (phBlock) {
             phBlock.style.display = 'none';
@@ -652,6 +684,8 @@ window.syncGuardianFromParent = function() {
     const gName = document.getElementById('guardian_name');
     const gRelation = document.getElementById('guardian_relation');
     const gContact = document.getElementById('guardian_contact');
+    const gOccupation = document.getElementById('guardian_occupation');
+    const gEmail = document.getElementById('guardian_email');
     
     if (!gName || !gRelation || !gContact) return;
 
@@ -660,6 +694,8 @@ window.syncGuardianFromParent = function() {
         const pFirst = (document.getElementById(`${activeType}_firstname`)?.value || '').trim();
         const pMiddle = (document.getElementById(`${activeType}_middlename`)?.value || '').trim();
         const pContact = document.getElementById(`${activeType}_contact`)?.value || '';
+        const pOccupation = (document.getElementById(`${activeType}_occupation`)?.value || '').trim();
+        const pEmail = (document.getElementById(`${activeType}_email`)?.value || '').trim();
         
         let fullName = '';
         if (pLast && pFirst) {
@@ -673,6 +709,12 @@ window.syncGuardianFromParent = function() {
         gName.value = fullName;
         gRelation.value = activeType === 'father' ? 'Father' : 'Mother';
         gContact.value = pContact;
+        if (gOccupation) {
+            gOccupation.value = pOccupation;
+        }
+        if (gEmail) {
+            gEmail.value = pEmail;
+        }
 
         // Sync country dial code and flag to guardian
         const pDial = document.getElementById(`${activeType}CountryDialCode`)?.value || '+63';
@@ -700,11 +742,21 @@ window.syncGuardianFromParent = function() {
         gName.classList.add('bg-gray-50', 'cursor-not-allowed');
         gRelation.classList.add('bg-gray-50', 'cursor-not-allowed');
         gContact.classList.add('bg-gray-50', 'cursor-not-allowed');
+        if (gOccupation) {
+            gOccupation.readOnly = true;
+            gOccupation.classList.add('bg-gray-50', 'cursor-not-allowed');
+        }
+        if (gEmail) {
+            gEmail.readOnly = true;
+            gEmail.classList.add('bg-gray-50', 'cursor-not-allowed');
+        }
 
         // Reset validation styling if values are now present
         if (window.ARIESValidation) {
             if (fullName) window.ARIESValidation.resetField(gName, window.ARIESValidation.getErrorElement(gName));
             if (pContact) window.ARIESValidation.resetField(gContact, window.ARIESValidation.getErrorElement(gContact));
+            if (pOccupation && gOccupation) window.ARIESValidation.resetField(gOccupation, window.ARIESValidation.getErrorElement(gOccupation));
+            if (pEmail && gEmail) window.ARIESValidation.resetField(gEmail, window.ARIESValidation.getErrorElement(gEmail));
             window.ARIESValidation.resetField(gRelation, window.ARIESValidation.getErrorElement(gRelation));
         }
     }
@@ -751,6 +803,14 @@ window.setGuardian = function(type) {
             gName.value = '';
             gRelation.value = '';
             gContact.value = '';
+            const gOccupation = document.getElementById('guardian_occupation');
+            if (gOccupation) {
+                gOccupation.value = '';
+            }
+            const gEmail = document.getElementById('guardian_email');
+            if (gEmail) {
+                gEmail.value = '';
+            }
 
             // Reset guardian country dial code and flag
             const gDial = document.getElementById('guardianCountryDialCode');
@@ -776,6 +836,14 @@ window.setGuardian = function(type) {
             gName.classList.remove('bg-gray-50', 'cursor-not-allowed');
             gRelation.classList.remove('bg-gray-50', 'cursor-not-allowed');
             gContact.classList.remove('bg-gray-50', 'cursor-not-allowed');
+            if (gOccupation) {
+                gOccupation.readOnly = false;
+                gOccupation.classList.remove('bg-gray-50', 'cursor-not-allowed');
+            }
+            if (gEmail) {
+                gEmail.readOnly = false;
+                gEmail.classList.remove('bg-gray-50', 'cursor-not-allowed');
+            }
         } else {
             window.syncGuardianFromParent();
         }
@@ -795,12 +863,12 @@ window.addSibling = function() {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
                 <div class="col-span-12 md:col-span-5">
-                    <label class="form-label text-xs">Name</label>
-                    <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name" oninput="window.isFormDirty = true;">
+                    <label class="form-label text-xs">Name <span class="required">*</span></label>
+                    <input type="text" name="sibling_name[]" class="form-control form-control-sm" placeholder="Full Name" required oninput="this.value = this.value.toUpperCase(); window.isFormDirty = true;">
                 </div>
                 <div class="col-span-12 md:col-span-4">
                     <label class="form-label text-xs">School</label>
-                    <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School" oninput="window.isFormDirty = true;">
+                    <input type="text" name="sibling_school[]" class="form-control form-control-sm" placeholder="School" oninput="this.value = this.value.toUpperCase(); window.isFormDirty = true;">
                 </div>
                 <div class="col-span-12 md:col-span-3">
                     <label class="form-label text-xs">Student No.</label>
@@ -1062,15 +1130,13 @@ window.showDuplicateApplicantModal = function(applicant) {
 
     const nameEl = document.getElementById('dupApplicantName');
     const dobEl = document.getElementById('dupApplicantDob');
+    const emailEl = document.getElementById('dupApplicantEmail');
     const badgeEl = document.getElementById('dupStudentNumberBadge');
-    const appliedEl = document.getElementById('dupApplicantApplied');
-    const haltNumEl = document.getElementById('dupHaltStudentNumber');
 
     if (nameEl) nameEl.textContent = applicant.fullName || '';
     if (dobEl) dobEl.textContent = applicant.birthDate || '';
+    if (emailEl) emailEl.textContent = applicant.email || '';
     if (badgeEl) badgeEl.textContent = applicant.studentNumber || '';
-    if (appliedEl) appliedEl.textContent = applicant.createdAt || '';
-    if (haltNumEl) haltNumEl.textContent = applicant.studentNumber || '';
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -1103,12 +1169,7 @@ window.handleDuplicateIsMe = function() {
 };
 
 window.handleDuplicateNotMe = function() {
-    window.duplicateCheckBypassed = true;
     window.closeDuplicateApplicantModal();
-    const form = document.getElementById('enrollmentForm');
-    if (form) {
-        window.proceedAfterValidation(form);
-    }
 };
 
 window.proceedAfterValidation = function(form) {
@@ -1279,16 +1340,32 @@ function initSessionTimeout() {
         window.location.href = landingUrl;
     }
 
+    function isDpaPending() {
+        const dpaOverlay = document.getElementById('dpaModalOverlay');
+        return dpaOverlay && !sessionStorage.getItem('dpa_agreed');
+    }
+
     // --- Reset the 5-minute idle timer ---
     function resetIdleTimer() {
         if (idleTimer) clearTimeout(idleTimer);
+        // Do NOT start session countdown if DPA modal is still pending agreement
+        if (isDpaPending()) {
+            return;
+        }
         idleTimer = setTimeout(showWarning, IDLE_LIMIT);
     }
+
+    // Globally expose to start session timeout once DPA is agreed
+    window.startSessionTimeout = function() {
+        resetIdleTimer();
+    };
 
     // --- Listen for any user activity ---
     const activityEvents = ['mousemove','mousedown','keydown','touchstart','scroll','input','change'];
     activityEvents.forEach(evt => {
         document.addEventListener(evt, () => {
+            // Do not track session timeout activity while DPA is pending
+            if (isDpaPending()) return;
             // Only reset idle if the warning is NOT currently visible
             if (!overlay || overlay.style.display === 'none') {
                 resetIdleTimer();
@@ -1296,8 +1373,10 @@ function initSessionTimeout() {
         }, { passive: true });
     });
 
-    // Start the idle timer
-    resetIdleTimer();
+    // Start the idle timer only if DPA is already agreed / not pending
+    if (!isDpaPending()) {
+        resetIdleTimer();
+    }
 }
 
 function initCampusSelection() {
@@ -1418,6 +1497,47 @@ function initConditionalFields() {
         if (citizenshipInput) {
             citizenshipInput.dispatchEvent(new Event('change'));
         }
+
+        // Auto-change applicant mobile phone code based on chosen nationality
+        const selectedOption = nationalitySelect.options[nationalitySelect.selectedIndex];
+        let iso = selectedOption ? selectedOption.getAttribute('data-iso') : null;
+        if (!iso && window.nationalityIsoMap && window.nationalityIsoMap[nat]) {
+            iso = window.nationalityIsoMap[nat];
+        }
+
+        if (iso) {
+            const applicantPhoneGroup = document.querySelector('.phone-input-group[data-phone-group="applicant"]');
+            if (applicantPhoneGroup) {
+                applicantPhoneGroup.dispatchEvent(new CustomEvent('phone:set-country', {
+                    detail: { iso: iso },
+                    bubbles: true
+                }));
+            }
+
+            // Also propagate to parent nationalities if they have not been manually set by the user
+            ['father', 'mother', 'guardian'].forEach(parentKey => {
+                const parentNatSelect = document.getElementById(`${parentKey}_nationality`);
+                if (parentNatSelect) {
+                    if (!parentNatSelect.hasAttribute('data-user-modified')) {
+                        if (typeof jQuery !== 'undefined') {
+                            $(parentNatSelect).val(nationalitySelect.value).trigger('change', [{ programmatic: true }]);
+                        } else {
+                            parentNatSelect.value = nationalitySelect.value;
+                            parentNatSelect.dispatchEvent(new CustomEvent('change', { detail: { programmatic: true } }));
+                        }
+                    }
+                } else {
+                    // For forms without parent nationality dropdowns (e.g. Alabang), update parent phone codes directly
+                    const parentPhoneGroup = document.querySelector(`.phone-input-group[data-phone-group="${parentKey}"]`);
+                    if (parentPhoneGroup) {
+                        parentPhoneGroup.dispatchEvent(new CustomEvent('phone:set-country', {
+                            detail: { iso: iso },
+                            bubbles: true
+                        }));
+                    }
+                }
+            });
+        }
     }
 
     // Since nationalitySelect is using select2, bind to change
@@ -1426,6 +1546,60 @@ function initConditionalFields() {
     } else if (nationalitySelect) {
         nationalitySelect.addEventListener('change', updateCitizenship);
     }
+
+    // Bind parent nationality dropdowns (Diliman) to update their respective phone dial codes
+    function bindParentNationalityPhone(selectId, phoneGroupKey) {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        function handleParentNatChange(e, extraData) {
+            const isProgrammatic = extraData && extraData.programmatic;
+            if (!isProgrammatic) {
+                select.setAttribute('data-user-modified', '1');
+            }
+
+            const val = (select.value || '').trim().toUpperCase();
+            let iso = null;
+            if (select.selectedIndex >= 0) {
+                const opt = select.options[select.selectedIndex];
+                if (opt) iso = opt.getAttribute('data-iso');
+            }
+            if (!iso && window.nationalityIsoMap && window.nationalityIsoMap[val]) {
+                iso = window.nationalityIsoMap[val];
+            }
+
+            if (iso) {
+                const phoneGroup = document.querySelector(`.phone-input-group[data-phone-group="${phoneGroupKey}"]`);
+                if (phoneGroup) {
+                    phoneGroup.dispatchEvent(new CustomEvent('phone:set-country', {
+                        detail: { iso: iso },
+                        bubbles: true
+                    }));
+                }
+            }
+
+            // If this parent is currently synced as guardian, update guardian info
+            if (phoneGroupKey === 'father' || phoneGroupKey === 'mother') {
+                const fChk = document.getElementById('f_is_guardian');
+                const mChk = document.getElementById('m_is_guardian');
+                if ((phoneGroupKey === 'father' && fChk && fChk.checked) ||
+                    (phoneGroupKey === 'mother' && mChk && mChk.checked)) {
+                    if (typeof window.syncGuardianFromParent === 'function') {
+                        window.syncGuardianFromParent();
+                    }
+                }
+            }
+        }
+
+        if (typeof jQuery !== 'undefined') {
+            $(select).on('change', handleParentNatChange);
+        }
+        select.addEventListener('change', handleParentNatChange);
+    }
+
+    bindParentNationalityPhone('father_nationality', 'father');
+    bindParentNationalityPhone('mother_nationality', 'mother');
+    bindParentNationalityPhone('guardian_nationality', 'guardian');
 
     function togglePhilippinesCountryOption(isInternational) {
         const countrySelects = [
@@ -1637,8 +1811,7 @@ function initDynamicFormatting() {
                 });
             }
 
-            countryList.addEventListener('click', function(e) {
-                const item = e.target.closest('.country-item');
+            function selectCountryItem(item, shouldFocusInput) {
                 if (!item) return;
 
                 const code = item.getAttribute('data-code');
@@ -1656,7 +1829,23 @@ function initDynamicFormatting() {
 
                 updatePhoneRestrictions();
                 closeDropdown();
-                if (contactInput) contactInput.focus();
+                if (shouldFocusInput && contactInput) contactInput.focus();
+            }
+
+            countryList.addEventListener('click', function(e) {
+                const item = e.target.closest('.country-item');
+                selectCountryItem(item, true);
+            });
+
+            group.addEventListener('phone:set-country', function(e) {
+                const targetIso = (e.detail?.iso || '').toUpperCase();
+                if (!targetIso) return;
+                const match = Array.from(countryList.querySelectorAll('.country-item')).find(item => {
+                    return (item.getAttribute('data-iso') || '').toUpperCase() === targetIso;
+                });
+                if (match) {
+                    selectCountryItem(match, false);
+                }
             });
 
             if (hiddenInput) {
@@ -1718,10 +1907,21 @@ function initDynamicFormatting() {
             if (el) window.ARIESValidation.setupFormatting(el, 'name');
         });
 
-        const textFields = ['other_religion', 'birth_place', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name', 'address', 'perm_address'];
+        const textFields = ['other_religion', 'birth_place', 'indigenous_group', 'father_occupation', 'mother_occupation', 'prev_school_name'];
         textFields.forEach(name => {
             const el = document.querySelector(`[name="${name}"]`);
             if (el) window.ARIESValidation.setupFormatting(el, 'text');
+        });
+
+        const addressFields = [
+            'address', 'perm_address',
+            'father_addr_street', 'father_perm_street', 'father_ofw_perm_street',
+            'mother_addr_street', 'mother_perm_street', 'mother_ofw_perm_street',
+            'guardian_addr_street', 'guardian_perm_street'
+        ];
+        addressFields.forEach(name => {
+            const el = document.querySelector(`[name="${name}"]`);
+            if (el) window.ARIESValidation.setupFormatting(el, 'address');
         });
     }
 }
@@ -1939,23 +2139,83 @@ function initAddressLookups() {
     window.setupAddressLookup('mother_ofw_perm');
 }
 
-window.toggleSchoolType = function(select, prefix) {
-    const row = select.closest('.educ-section') || select.closest('.school-row');
+window.toggleSchoolType = function(triggerEl, prefix) {
+    const row = triggerEl.closest('.educ-section') || triggerEl.closest('.school-row');
     if (!row) return;
 
-    const isInternational = select.value === 'International';
+    const hiddenInput = row.querySelector('.intl-hidden-input');
+    const isInternational = triggerEl.value === 'International';
+
     const localGroup = document.getElementById(`${prefix}_local`);
     const intlGroup = document.getElementById(`${prefix}_intl_group`);
-    const hiddenInput = row.querySelector('.intl-hidden-input');
 
     if (hiddenInput) hiddenInput.value = isInternational ? "1" : "0";
     
+    const regSelect = document.getElementById(`${prefix}_region`);
+    const provSearch = document.getElementById(`${prefix}_province_search`);
+    const citySelect = document.getElementById(`${prefix}_city`);
+    const localAddr = document.getElementById(`${prefix}_local_addr`);
+    const countrySelect = row.querySelector('.country-select');
+    const intlAddr = document.getElementById(`${prefix}_intl_addr`);
+
     if (isInternational) {
         if (localGroup) localGroup.style.display = 'none';
         if (intlGroup) intlGroup.style.display = '';
+        if (regSelect) {
+            regSelect.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(regSelect, window.ARIESValidation.getErrorElement(regSelect));
+            }
+        }
+        if (provSearch) {
+            provSearch.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(provSearch, window.ARIESValidation.getErrorElement(provSearch));
+            }
+        }
+        if (citySelect) {
+            citySelect.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(citySelect, window.ARIESValidation.getErrorElement(citySelect));
+            }
+        }
+        if (localAddr) {
+            localAddr.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(localAddr, window.ARIESValidation.getErrorElement(localAddr));
+            }
+        }
+        if (countrySelect) countrySelect.setAttribute('required', 'required');
+        if (intlAddr) {
+            intlAddr.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(intlAddr, window.ARIESValidation.getErrorElement(intlAddr));
+            }
+        }
     } else {
         if (localGroup) localGroup.style.display = '';
         if (intlGroup) intlGroup.style.display = 'none';
+        if (countrySelect) {
+            countrySelect.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(countrySelect, window.ARIESValidation.getErrorElement(countrySelect));
+            }
+        }
+        if (intlAddr) {
+            intlAddr.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(intlAddr, window.ARIESValidation.getErrorElement(intlAddr));
+            }
+        }
+        if (regSelect) regSelect.setAttribute('required', 'required');
+        if (provSearch) provSearch.setAttribute('required', 'required');
+        if (citySelect) citySelect.setAttribute('required', 'required');
+        if (localAddr) {
+            localAddr.removeAttribute('required');
+            if (window.ARIESValidation && typeof window.ARIESValidation.resetField === 'function') {
+                window.ARIESValidation.resetField(localAddr, window.ARIESValidation.getErrorElement(localAddr));
+            }
+        }
     }
     
     window.isFormDirty = true;
@@ -2086,7 +2346,9 @@ function initFormValidation() {
         } else if (input.type === 'checkbox') {
             if (input.required && !input.checked) {
                 fieldValid = false;
-                errorMessage = 'Please check this box.';
+                errorMessage = input.id === 'reservation_policy_agreement'
+                    ? 'Please accept the Reservation Agreement & DepEd Withdrawal Policy to proceed.'
+                    : 'Please check this box.';
             }
         } else if (input.required && window.ARIESValidation.isEmpty(input.value)) {
             fieldValid = false;
@@ -2212,6 +2474,43 @@ function initFormValidation() {
             if (!validateSingleField(input)) isFormValid = false;
         });
 
+        // Marketing Survey validation (must have at least 1 option selected)
+        const surveyChecks = form.querySelectorAll('input[name="marketing_source[]"]:checked');
+        const surveyContainer = document.querySelector('.survey-grid');
+        let surveyError = document.getElementById('survey-validation-error');
+        if (!surveyError && surveyContainer) {
+            surveyError = document.createElement('div');
+            surveyError.id = 'survey-validation-error';
+            surveyError.className = 'text-danger font-semibold text-xs mt-2';
+            surveyError.innerText = 'Please select at least one option on how you learned about us.';
+            surveyContainer.parentNode.appendChild(surveyError);
+        }
+
+        if (surveyChecks.length === 0) {
+            isFormValid = false;
+            if (surveyError) {
+                surveyError.innerText = 'Please select at least one option on how you learned about us.';
+                surveyError.style.display = 'block';
+            }
+            if (surveyContainer) surveyContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            /*
+            const otherCheck = document.getElementById('source_other');
+            const otherInput = document.getElementById('marketing_source_other');
+            if (otherCheck && otherCheck.checked && otherInput && !otherInput.value.trim()) {
+                isFormValid = false;
+                if (surveyError) {
+                    surveyError.innerText = 'Please specify how you learned about us in the text field.';
+                    surveyError.style.display = 'block';
+                }
+                otherInput.focus();
+            } else
+            */
+            if (surveyError) {
+                surveyError.style.display = 'none';
+            }
+        }
+
         const lrnInput = document.querySelector('[name="lrn"]');
         if (lrnInput && lrnInput.classList.contains('is-invalid')) isFormValid = false;
 
@@ -2224,9 +2523,10 @@ function initFormValidation() {
                 const firstName = form.querySelector('[name="first_name"]')?.value || '';
                 const lastName = form.querySelector('[name="last_name"]')?.value || '';
                 const middleName = form.querySelector('[name="middle_name"]')?.value || '';
-                const birthDate = form.querySelector('[name="birth_date"]')?.value || '';
+                const birthDate = form.querySelector('[name="birthday"]')?.value || form.querySelector('[name="birth_date"]')?.value || '';
+                const email = form.querySelector('[name="email"]')?.value || '';
 
-                if (firstName && lastName && birthDate) {
+                if (firstName && lastName && birthDate && email) {
                     const checkUrl = window.location.pathname.includes('alabang')
                         ? '/alabang/apply/api/check-duplicate-applicant'
                         : '/diliman/apply/api/check-duplicate-applicant';
@@ -2241,7 +2541,8 @@ function initFormValidation() {
                             first_name: firstName,
                             last_name: lastName,
                             middle_name: middleName,
-                            birth_date: birthDate
+                            birth_date: birthDate,
+                            email: email
                         })
                     })
                     .then(res => res.json())
@@ -2410,7 +2711,19 @@ window.updateEducationHistory = function() {
             }
             sec.querySelectorAll('.educ-input').forEach(inp => {
                 inp.disabled = false;
+            });
+            // Set base required on school, type, year
+            sec.querySelectorAll(`[name^="educ_${lvl}_school"], [name^="educ_${lvl}_type"], [name^="educ_${lvl}_year"]`).forEach(inp => {
                 inp.setAttribute('required', 'required');
+            });
+            // Properly sync required on location fields per row
+            const rows = sec.querySelectorAll('.school-row, #section_educ_kinder');
+            rows.forEach(r => {
+                const typeSelect = r.querySelector(`select[name="educ_${lvl}_type[]"]`);
+                const prefixMatch = r.querySelector('[id$="_local"]')?.id?.replace('_local', '');
+                if (typeSelect && prefixMatch && window.toggleSchoolType) {
+                    window.toggleSchoolType(typeSelect, prefixMatch);
+                }
             });
         }
     };
@@ -2448,9 +2761,9 @@ window.addSchoolRow = function(level) {
     const isFirst = container.children.length === 0;
 
     const deleteBtnHtml = !isFirst ? 
-        `<div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
-            <button type="button" class="btn-remove-row" title="Remove School" onclick="this.closest('.school-row').remove(); window.isFormDirty = true;">
-                <i class="ki-filled ki-trash"></i> Remove
+        `<div class="d-flex justify-content-end mb-2">
+            <button type="button" class="btn btn-sm btn-light-danger py-1 px-3 d-inline-flex align-items-center gap-1 btn-remove-row" title="Remove School" onclick="this.closest('.school-row').remove(); window.isFormDirty = true;">
+                <i class="ki-filled ki-trash"></i> <span>Remove</span>
             </button>
         </div>` : '';
 
@@ -2463,7 +2776,7 @@ window.addSchoolRow = function(level) {
 
     row.innerHTML = `
         ${deleteBtnHtml}
-        <div class="row g-3 align-items-center mb-3">
+        <div class="row g-3 align-items-center mb-2">
             <div class="col-md-5">
                 <label class="form-label text-xs">School Name <span class="required">*</span></label>
                 <input type="text" name="educ_${level}_school[]" class="form-control form-control-sm educ-input" placeholder="School Name" required oninput="window.isFormDirty = true;">
@@ -2485,32 +2798,40 @@ window.addSchoolRow = function(level) {
 
         <div class="row g-2 mt-2 location-local-group" id="${prefix}_local">
             <div class="col-md-4">
-                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region</label>
-                <select id="${prefix}_region" class="form-select form-select-sm" data-placeholder="Region">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Region <span class="required text-danger">*</span></label>
+                <select id="${prefix}_region" class="form-select form-select-sm educ-input" data-placeholder="Region" required>
                     <option value=""></option>
                 </select>
                 <input type="hidden" name="educ_${level}_region[]" id="${prefix}_region_hidden">
             </div>
             <div class="col-md-4 position-relative">
-                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province</label>
-                <input type="text" id="${prefix}_province_search" class="form-control form-control-sm province-autocomplete" placeholder="Province" autocomplete="off">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Province <span class="required text-danger">*</span></label>
+                <input type="text" id="${prefix}_province_search" class="form-control form-control-sm province-autocomplete educ-input" placeholder="Province" autocomplete="off" required>
                 <input type="hidden" id="${prefix}_province" name="educ_${level}_province[]">
                 <div id="${prefix}_province_suggestions" class="autocomplete-suggestions hidden"></div>
             </div>
             <div class="col-md-4">
-                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality</label>
-                <select id="${prefix}_city" name="educ_${level}_city[]" class="form-select form-select-sm" disabled data-placeholder="City/Municipality">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">City/Municipality <span class="required text-danger">*</span></label>
+                <select id="${prefix}_city" name="educ_${level}_city[]" class="form-select form-select-sm educ-input" disabled data-placeholder="City/Municipality" required>
                     <option value=""></option>
                 </select>
+            </div>
+            <div class="col-12 mt-2">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line</label>
+                <input type="text" id="${prefix}_local_addr" name="educ_${level}_address[]" class="form-control form-control-sm educ-input" placeholder="House No. / Street / Bldg / Subdivision" oninput="window.isFormDirty = true;">
             </div>
         </div>
         
         <div class="row g-2 mt-2 location-intl-group" id="${prefix}_intl_group" style="display:none;">
             <div class="col-md-6">
-                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country</label>
-                <select name="educ_${level}_country[]" class="form-select form-select-sm country-select" data-placeholder="Country">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Country <span class="required text-danger">*</span></label>
+                <select name="educ_${level}_country[]" class="form-select form-select-sm country-select educ-input" data-placeholder="Country">
                     ${countryOptions}
                 </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-[10px] font-bold text-gray-500 uppercase mb-1">Address Line</label>
+                <input type="text" id="${prefix}_intl_addr" class="form-control form-control-sm educ-input" placeholder="School Address Line / Street / City" oninput="window.isFormDirty = true;">
             </div>
         </div>
         <input type="hidden" name="educ_${level}_is_international[]" class="intl-hidden-input" value="0">
@@ -2521,6 +2842,18 @@ window.addSchoolRow = function(level) {
     if (select) {
         select.addEventListener('change', function() {
             window.toggleSchoolType(this, prefix);
+        });
+    }
+
+    // Keep Address Line synced between local and intl inputs so user text isn't lost if they toggle
+    const localAddrInput = row.querySelector(`#${prefix}_local_addr`);
+    const intlAddrInput = row.querySelector(`#${prefix}_intl_addr`);
+    if (localAddrInput && intlAddrInput) {
+        localAddrInput.addEventListener('input', function() {
+            intlAddrInput.value = this.value;
+        });
+        intlAddrInput.addEventListener('input', function() {
+            localAddrInput.value = this.value;
         });
     }
 
@@ -2603,6 +2936,9 @@ function initDPAModal() {
             sessionStorage.setItem('dpa_agreed', '1');
             overlay.classList.remove('visible');
             document.body.style.overflow = '';
+            if (typeof window.startSessionTimeout === 'function') {
+                window.startSessionTimeout();
+            }
         });
     }
 }
